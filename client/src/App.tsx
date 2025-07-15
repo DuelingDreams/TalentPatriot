@@ -5,19 +5,21 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
-import Users from "@/pages/Users";
-import Projects from "@/pages/Projects";
-import Analytics from "@/pages/Analytics";
-import Settings from "@/pages/Settings";
+import Jobs from "@/pages/Jobs";
+import Clients from "@/pages/Clients";
+import Candidates from "@/pages/Users";
+import Calendar from "@/pages/Calendar";
+import Messages from "@/pages/Messages";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/users" component={Users} />
-      <Route path="/projects" component={Projects} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/settings" component={Settings} />
+      <Route path="/jobs" component={Jobs} />
+      <Route path="/clients" component={Clients} />
+      <Route path="/candidates" component={Candidates} />
+      <Route path="/calendar" component={Calendar} />
+      <Route path="/messages" component={Messages} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

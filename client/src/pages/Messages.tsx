@@ -1,16 +1,16 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default function Candidates() {
+export default function Messages() {
   return (
-    <DashboardLayout pageTitle="Candidates">
+    <DashboardLayout pageTitle="Messages">
       <div className="p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Candidates Management</CardTitle>
+            <CardTitle>Messages & Communication</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-slate-600">Candidates page content will be implemented here.</p>
+            <p className="text-slate-600">Messages and communication page content will be implemented here.</p>
           </CardContent>
         </Card>
       </div>

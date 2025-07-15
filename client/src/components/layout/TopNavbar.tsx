@@ -17,7 +17,8 @@ import {
   User, 
   Settings, 
   CreditCard, 
-  LogOut 
+  LogOut,
+  Briefcase 
 } from 'lucide-react'
 
 interface TopNavbarProps {
@@ -46,10 +47,16 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
           <Menu className="w-6 h-6" />
         </Button>
 
-        {/* Page Title */}
-        <div className="flex-1 lg:flex-none">
-          <h1 className="text-xl font-semibold text-slate-900 lg:ml-0">{pageTitle}</h1>
+        {/* Logo for desktop */}
+        <div className="hidden lg:flex items-center space-x-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <Briefcase className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-xl font-semibold text-slate-900">ATS Pro</span>
         </div>
+
+        {/* Spacer for mobile */}
+        <div className="flex-1 lg:hidden"></div>
 
         {/* Right side nav */}
         <div className="flex items-center space-x-4">

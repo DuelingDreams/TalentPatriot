@@ -4,12 +4,12 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
-  Zap, 
   Home, 
+  Briefcase, 
+  Building2, 
   Users, 
-  Folder, 
-  BarChart3, 
-  Settings, 
+  Calendar, 
+  MessageSquare,
   HelpCircle, 
   FileText 
 } from 'lucide-react'
@@ -22,10 +22,11 @@ interface SidebarProps {
 
 const navigationItems = [
   { label: 'Dashboard', href: '/', icon: Home },
-  { label: 'Users', href: '/users', icon: Users },
-  { label: 'Projects', href: '/projects', icon: Folder },
-  { label: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { label: 'Settings', href: '/settings', icon: Settings },
+  { label: 'Jobs', href: '/jobs', icon: Briefcase },
+  { label: 'Clients', href: '/clients', icon: Building2 },
+  { label: 'Candidates', href: '/candidates', icon: Users },
+  { label: 'Calendar', href: '/calendar', icon: Calendar },
+  { label: 'Messages', href: '/messages', icon: MessageSquare },
 ]
 
 const secondaryItems = [
@@ -57,9 +58,9 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
           <div className="flex h-16 items-center px-6 border-b border-slate-200">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Zap className="w-5 h-5 text-white" />
+                <Briefcase className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-semibold text-slate-900">Vite App</span>
+              <span className="text-xl font-semibold text-slate-900">ATS Pro</span>
             </div>
           </div>
 
