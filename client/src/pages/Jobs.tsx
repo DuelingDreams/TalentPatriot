@@ -14,7 +14,8 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { insertJobSchema } from '@/../../shared/schema'
 import { z } from 'zod'
-import { Plus, Briefcase, Building2, Calendar, Loader2 } from 'lucide-react'
+import { Plus, Briefcase, Building2, Calendar, Loader2, Users } from 'lucide-react'
+import { Link } from 'wouter'
 
 // Form schema for new job creation
 const newJobSchema = insertJobSchema.extend({
@@ -251,6 +252,12 @@ export default function Jobs() {
                     </div>
                     
                     <div className="flex flex-col items-end gap-2">
+                      <Link href={`/jobs/${job.id}`}>
+                        <Button size="sm" variant="outline" className="text-xs">
+                          <Users className="w-3 h-3 mr-1" />
+                          View Pipeline
+                        </Button>
+                      </Link>
                       <Badge className={getStatusColor(job.status)}>
                         {job.status.replace('_', ' ')}
                       </Badge>

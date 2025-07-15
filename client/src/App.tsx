@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
+import JobPipeline from "@/pages/JobPipeline";
 import Clients from "@/pages/Clients";
 import Candidates from "@/pages/Users";
 import Calendar from "@/pages/Calendar";
@@ -16,6 +17,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/jobs" component={Jobs} />
+      <Route path="/jobs/:id" component={JobPipeline} />
       <Route path="/clients" component={Clients} />
       <Route path="/candidates" component={Candidates} />
       <Route path="/calendar" component={Calendar} />
