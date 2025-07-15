@@ -311,3 +311,107 @@ export function useCreateCandidateNote() {
     }
   })
 }
+
+// Hook to fetch interview events for calendar
+export function useInterviewEvents() {
+  const { userRole } = useAuth()
+  
+  return useQuery({
+    queryKey: ['interview-events', userRole],
+    queryFn: async () => {
+      let query = supabase
+        .from('job_candidate')
+        .select(`
+          id,
+          interview_date,
+          stage,
+          candidates (
+            id,
+            name,
+            email
+          ),
+          jobs (
+            id,
+            title,
+            clients (
+              id,
+              name
+            )
+          )
+        `)
+        .not('interview_date', 'is', null)
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        query = query.eq('status', 'demo')
+      } else {
+        query = query.is('status', null).or('status.neq.demo')
+      }
+      
+      query = query.order('interview_date', { ascending: true })
+
+      const { data, error } = await query
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data as {
+        id: string
+        interview_date: string
+        stage: string
+        candidates: {
+          id: string
+          name: string
+          email: string
+        }
+        jobs: {
+          id: string
+          title: string
+          clients: {
+            id: string
+            name: string
+          }
+        }
+      }[]
+    }
+  })
+}
+
+// Hook to schedule an interview
+export function useScheduleInterview() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ 
+      jobCandidateId, 
+      interviewDate, 
+      stage 
+    }: { 
+      jobCandidateId: string
+      interviewDate: string
+      stage?: string 
+    }) => {
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .update({ 
+          interview_date: interviewDate,
+          stage: stage || 'interview',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', jobCandidateId)
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['interview-events'] })
+      queryClient.invalidateQueries({ queryKey: ['job-candidates'] })
+    }
+  })
+}

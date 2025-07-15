@@ -58,6 +58,7 @@ export const jobCandidate = pgTable("job_candidate", {
   stage: candidateStageEnum("stage").default('applied').notNull(),
   notes: text("notes"),
   assignedTo: varchar("assigned_to", { length: 255 }),
+  interviewDate: timestamp("interview_date"),
   status: recordStatusEnum("status").default('active').notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
