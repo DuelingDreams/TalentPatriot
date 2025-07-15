@@ -21,9 +21,11 @@ import { Plus, Briefcase, Building2, Calendar, Loader2, Users, AlertCircle } fro
 import { Link } from 'wouter'
 
 // Form schema for new job creation
-const newJobSchema = insertJobSchema.extend({
+const newJobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
-  client_id: z.string().min(1, 'Client selection is required')
+  description: z.string().optional(),
+  client_id: z.string().min(1, 'Client selection is required'),
+  status: z.string().optional()
 })
 
 type NewJobFormData = z.infer<typeof newJobSchema>
@@ -199,6 +201,11 @@ export default function Jobs() {
                           type="submit" 
                           disabled={createJobMutation.isPending}
                           className="bg-blue-600 hover:bg-blue-700"
+                          onClick={() => {
+                            console.log('Create Job button clicked!')
+                            console.log('Form state:', form.getValues())
+                            console.log('Form errors:', form.formState.errors)
+                          }}
                         >
                           {createJobMutation.isPending ? (
                             <>
