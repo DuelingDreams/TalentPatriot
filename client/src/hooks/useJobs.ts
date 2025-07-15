@@ -415,3 +415,132 @@ export function useScheduleInterview() {
     }
   })
 }
+
+// Hook to fetch dashboard metrics
+export function useDashboardMetrics() {
+  const { userRole } = useAuth()
+  
+  return useQuery({
+    queryKey: ['dashboard-metrics', userRole],
+    queryFn: async () => {
+      // Get jobs count
+      let jobsQuery = supabase
+        .from('jobs')
+        .select('id, status', { count: 'exact' })
+      
+      // Get candidates count  
+      let candidatesQuery = supabase
+        .from('candidates')
+        .select('id', { count: 'exact' })
+        
+      // Get recent hire data for average days calculation
+      let hiredCandidatesQuery = supabase
+        .from('job_candidate')
+        .select(`
+          updated_at,
+          candidates!inner (
+            created_at
+          )
+        `)
+        .eq('stage', 'hired')
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        jobsQuery = jobsQuery.eq('record_status', 'demo')
+        candidatesQuery = candidatesQuery.eq('status', 'demo')
+        hiredCandidatesQuery = hiredCandidatesQuery.eq('status', 'demo')
+      } else {
+        jobsQuery = jobsQuery.is('record_status', null).or('record_status.neq.demo')
+        candidatesQuery = candidatesQuery.is('status', null).or('status.neq.demo')
+        hiredCandidatesQuery = hiredCandidatesQuery.is('status', null).or('status.neq.demo')
+      }
+
+      const [jobsResult, candidatesResult, hiredResult] = await Promise.all([
+        jobsQuery,
+        candidatesQuery,
+        hiredCandidatesQuery
+      ])
+
+      if (jobsResult.error || candidatesResult.error || hiredResult.error) {
+        throw new Error('Failed to fetch dashboard metrics')
+      }
+
+      // Calculate metrics
+      const totalJobs = jobsResult.count || 0
+      const openJobs = jobsResult.data?.filter(job => job.status === 'open').length || 0
+      const totalCandidates = candidatesResult.count || 0
+      
+      // Calculate average days to hire
+      let averageDaysToHire = 0
+      if (hiredResult.data && hiredResult.data.length > 0) {
+        const daysTotals = hiredResult.data.map(hire => {
+          const hiredDate = new Date(hire.updated_at)
+          const applicationDate = new Date(hire.candidates.created_at)
+          return Math.floor((hiredDate.getTime() - applicationDate.getTime()) / (1000 * 60 * 60 * 24))
+        })
+        averageDaysToHire = Math.round(daysTotals.reduce((sum, days) => sum + days, 0) / daysTotals.length)
+      }
+
+      return {
+        totalJobs,
+        openJobs,
+        totalCandidates,
+        averageDaysToHire
+      }
+    }
+  })
+}
+
+// Hook to fetch recent candidate activity
+export function useRecentActivity() {
+  const { userRole } = useAuth()
+  
+  return useQuery({
+    queryKey: ['recent-activity', userRole],
+    queryFn: async () => {
+      let query = supabase
+        .from('job_candidate')
+        .select(`
+          id,
+          stage,
+          updated_at,
+          candidates (
+            id,
+            name,
+            email
+          ),
+          jobs (
+            id,
+            title,
+            clients (
+              name
+            )
+          )
+        `)
+        .order('updated_at', { ascending: false })
+        .limit(10)
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        query = query.eq('status', 'demo')
+      } else {
+        query = query.is('status', null).or('status.neq.demo')
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data?.map(activity => ({
+        id: activity.id,
+        candidateName: activity.candidates.name,
+        jobTitle: activity.jobs.title,
+        clientName: activity.jobs.clients?.name,
+        stage: activity.stage,
+        timestamp: activity.updated_at
+      })) || []
+    }
+  })
+}
