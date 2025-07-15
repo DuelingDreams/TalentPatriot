@@ -15,24 +15,33 @@ ALTER TABLE candidate_notes ENABLE ROW LEVEL SECURITY;
 -- CLIENTS TABLE POLICIES
 -- =====================================================
 
--- Policy: Clients SELECT access
+-- Policy: Clients SELECT access (includes public demo access)
 CREATE POLICY "clients_select" ON clients
     FOR SELECT
     USING (
-        -- demo_viewer: only demo records
-        (auth.jwt() ->> 'role' = 'demo_viewer' AND status = 'demo')
+        -- Public demo access (no authentication required)
+        (status = 'demo')
         OR
-        -- bd: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'bd' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
-        OR
-        -- recruiter: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'recruiter' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
-        OR
-        -- pm: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'pm' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
-        OR
-        -- admin: full access to all records
-        (auth.jwt() ->> 'role' = 'admin')
+        -- Authenticated access with role-based filtering
+        (
+            auth.uid() IS NOT NULL
+            AND (
+                -- demo_viewer: only demo records
+                (auth.jwt() ->> 'role' = 'demo_viewer' AND status = 'demo')
+                OR
+                -- bd: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'bd' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
+                OR
+                -- recruiter: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'recruiter' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
+                OR
+                -- pm: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'pm' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
+                OR
+                -- admin: full access to all records
+                (auth.jwt() ->> 'role' = 'admin')
+            )
+        )
     );
 
 -- Policy: Clients INSERT access
@@ -86,28 +95,37 @@ CREATE POLICY "clients_delete" ON clients
 -- JOBS TABLE POLICIES
 -- =====================================================
 
--- Policy: Jobs SELECT access
+-- Policy: Jobs SELECT access (includes public demo access)
 CREATE POLICY "jobs_select" ON jobs
     FOR SELECT
     USING (
-        -- demo_viewer: only demo records
-        (auth.jwt() ->> 'role' = 'demo_viewer' AND record_status = 'demo')
+        -- Public demo access (no authentication required)
+        (record_status = 'demo')
         OR
-        -- bd: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'bd' AND (record_status IS DISTINCT FROM 'demo' OR record_status IS NULL))
-        OR
-        -- pm: read access to contract jobs only (non-demo)
+        -- Authenticated access with role-based filtering
         (
-            auth.jwt() ->> 'role' = 'pm' 
-            AND job_status = 'contract'
-            AND (record_status IS DISTINCT FROM 'demo' OR record_status IS NULL)
+            auth.uid() IS NOT NULL
+            AND (
+                -- demo_viewer: only demo records
+                (auth.jwt() ->> 'role' = 'demo_viewer' AND record_status = 'demo')
+                OR
+                -- bd: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'bd' AND (record_status IS DISTINCT FROM 'demo' OR record_status IS NULL))
+                OR
+                -- pm: read access to contract jobs only (non-demo)
+                (
+                    auth.jwt() ->> 'role' = 'pm' 
+                    AND job_status = 'contract'
+                    AND (record_status IS DISTINCT FROM 'demo' OR record_status IS NULL)
+                )
+                OR
+                -- recruiter: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'recruiter' AND (record_status IS DISTINCT FROM 'demo' OR record_status IS NULL))
+                OR
+                -- admin: full access to all records
+                (auth.jwt() ->> 'role' = 'admin')
+            )
         )
-        OR
-        -- recruiter: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'recruiter' AND (record_status IS DISTINCT FROM 'demo' OR record_status IS NULL))
-        OR
-        -- admin: full access to all records
-        (auth.jwt() ->> 'role' = 'admin')
     );
 
 -- Policy: Jobs INSERT access
@@ -161,24 +179,33 @@ CREATE POLICY "jobs_delete" ON jobs
 -- CANDIDATES TABLE POLICIES
 -- =====================================================
 
--- Policy: Candidates SELECT access
+-- Policy: Candidates SELECT access (includes public demo access)
 CREATE POLICY "candidates_select" ON candidates
     FOR SELECT
     USING (
-        -- demo_viewer: only demo records
-        (auth.jwt() ->> 'role' = 'demo_viewer' AND status = 'demo')
+        -- Public demo access (no authentication required)
+        (status = 'demo')
         OR
-        -- bd: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'bd' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
-        OR
-        -- pm: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'pm' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
-        OR
-        -- recruiter: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'recruiter' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
-        OR
-        -- admin: full access to all records
-        (auth.jwt() ->> 'role' = 'admin')
+        -- Authenticated access with role-based filtering
+        (
+            auth.uid() IS NOT NULL
+            AND (
+                -- demo_viewer: only demo records
+                (auth.jwt() ->> 'role' = 'demo_viewer' AND status = 'demo')
+                OR
+                -- bd: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'bd' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
+                OR
+                -- pm: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'pm' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
+                OR
+                -- recruiter: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'recruiter' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
+                OR
+                -- admin: full access to all records
+                (auth.jwt() ->> 'role' = 'admin')
+            )
+        )
     );
 
 -- Policy: Candidates INSERT access
@@ -232,36 +259,45 @@ CREATE POLICY "candidates_delete" ON candidates
 -- JOB_CANDIDATE TABLE POLICIES
 -- =====================================================
 
--- Policy: Job_candidate SELECT access
+-- Policy: Job_candidate SELECT access (includes public demo access)
 CREATE POLICY "job_candidate_select" ON job_candidate
     FOR SELECT
     USING (
-        -- demo_viewer: only demo records
-        (auth.jwt() ->> 'role' = 'demo_viewer' AND status = 'demo')
+        -- Public demo access (no authentication required)
+        (status = 'demo')
         OR
-        -- bd: read access to non-demo records
-        (auth.jwt() ->> 'role' = 'bd' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
-        OR
-        -- pm: read access to non-demo records (via job relationship)
+        -- Authenticated access with role-based filtering
         (
-            auth.jwt() ->> 'role' = 'pm' 
-            AND (status IS DISTINCT FROM 'demo' OR status IS NULL)
-            AND EXISTS (
-                SELECT 1 FROM jobs 
-                WHERE jobs.id = job_candidate.job_id 
-                AND jobs.job_status = 'contract'
+            auth.uid() IS NOT NULL
+            AND (
+                -- demo_viewer: only demo records
+                (auth.jwt() ->> 'role' = 'demo_viewer' AND status = 'demo')
+                OR
+                -- bd: read access to non-demo records
+                (auth.jwt() ->> 'role' = 'bd' AND (status IS DISTINCT FROM 'demo' OR status IS NULL))
+                OR
+                -- pm: read access to non-demo records (via job relationship)
+                (
+                    auth.jwt() ->> 'role' = 'pm' 
+                    AND (status IS DISTINCT FROM 'demo' OR status IS NULL)
+                    AND EXISTS (
+                        SELECT 1 FROM jobs 
+                        WHERE jobs.id = job_candidate.job_id 
+                        AND jobs.job_status = 'contract'
+                    )
+                )
+                OR
+                -- recruiter: read access to assigned records or all non-demo
+                (
+                    auth.jwt() ->> 'role' = 'recruiter' 
+                    AND (status IS DISTINCT FROM 'demo' OR status IS NULL)
+                    AND (assigned_to = auth.uid()::text OR assigned_to IS NULL)
+                )
+                OR
+                -- admin: full access to all records
+                (auth.jwt() ->> 'role' = 'admin')
             )
         )
-        OR
-        -- recruiter: read access to assigned records or all non-demo
-        (
-            auth.jwt() ->> 'role' = 'recruiter' 
-            AND (status IS DISTINCT FROM 'demo' OR status IS NULL)
-            AND (assigned_to = auth.uid()::text OR assigned_to IS NULL)
-        )
-        OR
-        -- admin: full access to all records
-        (auth.jwt() ->> 'role' = 'admin')
     );
 
 -- Policy: Job_candidate INSERT access
@@ -335,55 +371,68 @@ CREATE POLICY "job_candidate_delete" ON job_candidate
 -- CANDIDATE_NOTES TABLE POLICIES
 -- =====================================================
 
--- Policy: Candidate_notes SELECT access
+-- Policy: Candidate_notes SELECT access (includes public demo access)
 CREATE POLICY "candidate_notes_select" ON candidate_notes
     FOR SELECT
     USING (
-        -- demo_viewer: only notes for demo job_candidates
-        (
-            auth.jwt() ->> 'role' = 'demo_viewer' 
-            AND EXISTS (
-                SELECT 1 FROM job_candidate 
-                WHERE job_candidate.id = candidate_notes.job_candidate_id 
-                AND job_candidate.status = 'demo'
-            )
+        -- Public demo access (no authentication required)
+        EXISTS (
+            SELECT 1 FROM job_candidate 
+            WHERE job_candidate.id = candidate_notes.job_candidate_id 
+            AND job_candidate.status = 'demo'
         )
         OR
-        -- bd: read access to notes for non-demo job_candidates
+        -- Authenticated access with role-based filtering
         (
-            auth.jwt() ->> 'role' = 'bd' 
-            AND EXISTS (
-                SELECT 1 FROM job_candidate 
-                WHERE job_candidate.id = candidate_notes.job_candidate_id 
-                AND (job_candidate.status IS DISTINCT FROM 'demo' OR job_candidate.status IS NULL)
+            auth.uid() IS NOT NULL
+            AND (
+                -- demo_viewer: only notes for demo job_candidates
+                (
+                    auth.jwt() ->> 'role' = 'demo_viewer' 
+                    AND EXISTS (
+                        SELECT 1 FROM job_candidate 
+                        WHERE job_candidate.id = candidate_notes.job_candidate_id 
+                        AND job_candidate.status = 'demo'
+                    )
+                )
+                OR
+                -- bd: read access to notes for non-demo job_candidates
+                (
+                    auth.jwt() ->> 'role' = 'bd' 
+                    AND EXISTS (
+                        SELECT 1 FROM job_candidate 
+                        WHERE job_candidate.id = candidate_notes.job_candidate_id 
+                        AND (job_candidate.status IS DISTINCT FROM 'demo' OR job_candidate.status IS NULL)
+                    )
+                )
+                OR
+                -- pm: read access to notes for contract job candidates
+                (
+                    auth.jwt() ->> 'role' = 'pm' 
+                    AND EXISTS (
+                        SELECT 1 FROM job_candidate 
+                        JOIN jobs ON jobs.id = job_candidate.job_id
+                        WHERE job_candidate.id = candidate_notes.job_candidate_id 
+                        AND jobs.job_status = 'contract'
+                        AND (job_candidate.status IS DISTINCT FROM 'demo' OR job_candidate.status IS NULL)
+                    )
+                )
+                OR
+                -- recruiter: read access to notes for assigned candidates
+                (
+                    auth.jwt() ->> 'role' = 'recruiter' 
+                    AND EXISTS (
+                        SELECT 1 FROM job_candidate 
+                        WHERE job_candidate.id = candidate_notes.job_candidate_id 
+                        AND (job_candidate.status IS DISTINCT FROM 'demo' OR job_candidate.status IS NULL)
+                        AND (job_candidate.assigned_to = auth.uid()::text OR job_candidate.assigned_to IS NULL)
+                    )
+                )
+                OR
+                -- admin: full access to all notes
+                (auth.jwt() ->> 'role' = 'admin')
             )
         )
-        OR
-        -- pm: read access to notes for contract job candidates
-        (
-            auth.jwt() ->> 'role' = 'pm' 
-            AND EXISTS (
-                SELECT 1 FROM job_candidate 
-                JOIN jobs ON jobs.id = job_candidate.job_id
-                WHERE job_candidate.id = candidate_notes.job_candidate_id 
-                AND jobs.job_status = 'contract'
-                AND (job_candidate.status IS DISTINCT FROM 'demo' OR job_candidate.status IS NULL)
-            )
-        )
-        OR
-        -- recruiter: read access to notes for assigned candidates
-        (
-            auth.jwt() ->> 'role' = 'recruiter' 
-            AND EXISTS (
-                SELECT 1 FROM job_candidate 
-                WHERE job_candidate.id = candidate_notes.job_candidate_id 
-                AND (job_candidate.status IS DISTINCT FROM 'demo' OR job_candidate.status IS NULL)
-                AND (job_candidate.assigned_to = auth.uid()::text OR job_candidate.assigned_to IS NULL)
-            )
-        )
-        OR
-        -- admin: full access to all notes
-        (auth.jwt() ->> 'role' = 'admin')
     );
 
 -- Policy: Candidate_notes INSERT access
@@ -489,6 +538,7 @@ CREATE POLICY "candidate_notes_delete" ON candidate_notes
 -- - Cannot write to any records
 -- 
 -- UNAUTHENTICATED:
--- - No access to any records (RLS blocks all access)
+-- - Read-only access to demo records only (status = 'demo')
+-- - No access to production data
 -- 
 -- =====================================================

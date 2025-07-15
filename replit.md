@@ -61,6 +61,10 @@ Preferred communication style: Simple, everyday language.
 - Added author-only write access for candidate_notes (author_id = auth.uid())
 - Created strict demo data protection preventing writes to demo records
 - Established hierarchical permissions with admin override capabilities
+- Created public RLS policies enabling unauthenticated read access to demo data (status='demo')
+- Updated all SELECT policies to allow public demo access without authentication
+- Maintained secure access control for production data requiring authentication
+- Generated admin scripts for enabling anonymous access in Supabase
 
 ## System Architecture
 
