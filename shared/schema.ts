@@ -38,6 +38,15 @@ export const jobs = pgTable("jobs", {
   clientId: uuid("client_id").references(() => clients.id).notNull(),
   status: jobStatusEnum("job_status").default('open').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
+  // External posting fields
+  salary: varchar("salary", { length: 100 }), // e.g. "$80,000 - $120,000"
+  location: varchar("location", { length: 255 }), // Job location
+  jobType: varchar("job_type", { length: 50 }).default('full-time'), // full-time, part-time, contract
+  experienceLevel: varchar("experience_level", { length: 50 }), // entry, mid, senior, executive
+  remote: varchar("remote", { length: 20 }).default('office'), // remote, office, hybrid
+  requirements: text("requirements"), // Skills and requirements
+  benefits: text("benefits"), // Benefits and perks
+  externalPostings: text("external_postings"), // JSON: [{"platform": "indeed", "url": "...", "postedAt": "..."}]
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -180,6 +189,14 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 export const insertJobSchema = createInsertSchema(jobs).omit({
   id: true,
   createdAt: true,
+}).extend({
+  salary: z.string().optional(),
+  location: z.string().optional(),
+  jobType: z.enum(['full-time', 'part-time', 'contract', 'temporary', 'internship']).optional(),
+  experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
+  remote: z.enum(['remote', 'office', 'hybrid']).optional(),
+  requirements: z.string().optional(),
+  benefits: z.string().optional(),
 });
 
 export const insertCandidateSchema = createInsertSchema(candidates).omit({

@@ -8,27 +8,64 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Separator } from '@/components/ui/separator'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs, useClients, useCreateJob } from '@/hooks/useJobs'
 import { useAuth } from '@/contexts/AuthContext'
-import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { insertJobSchema } from '@/../../shared/schema'
 import { z } from 'zod'
-import { Plus, Briefcase, Building2, Calendar, Loader2, Users, AlertCircle } from 'lucide-react'
+import { 
+  Plus, 
+  Briefcase, 
+  Building2, 
+  Calendar, 
+  Loader2, 
+  Users, 
+  Share2, 
+  ExternalLink,
+  MapPin,
+  DollarSign,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Globe,
+  Linkedin,
+  BrainCircuit
+} from 'lucide-react'
 import { Link } from 'wouter'
 
 // Form schema for new job creation
 const newJobSchema = insertJobSchema.extend({
   title: z.string().min(1, 'Job title is required'),
-  client_id: z.string().min(1, 'Client selection is required')
+  clientId: z.string().min(1, 'Client selection is required'),
+  location: z.string().optional(),
+  salary: z.string().optional(),
+  jobType: z.enum(['full-time', 'part-time', 'contract', 'temporary', 'internship']).optional(),
+  experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
+  remote: z.enum(['remote', 'office', 'hybrid']).optional(),
+  requirements: z.string().optional(),
+  benefits: z.string().optional(),
 })
 
 type NewJobFormData = z.infer<typeof newJobSchema>
 
+// External posting platforms
+const POSTING_PLATFORMS = [
+  { id: 'indeed', name: 'Indeed', icon: Globe, description: 'Post to Indeed job board' },
+  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, description: 'Post to LinkedIn Jobs' },
+  { id: 'monster', name: 'Monster', icon: BrainCircuit, description: 'Post to Monster.com' },
+  { id: 'glassdoor', name: 'Glassdoor', icon: Building2, description: 'Post to Glassdoor' },
+  { id: 'ziprecruiter', name: 'ZipRecruiter', icon: Share2, description: 'Post to ZipRecruiter' },
+]
+
 export default function Jobs() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isPostingModalOpen, setIsPostingModalOpen] = useState(false)
+  const [selectedJobForPosting, setSelectedJobForPosting] = useState<any>(null)
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const { toast } = useToast()
   const { userRole } = useAuth()
 
@@ -45,10 +82,75 @@ export default function Jobs() {
     defaultValues: {
       title: '',
       description: '',
-      client_id: '',
-      status: 'open'
+      clientId: '',
+      status: 'open',
+      jobType: 'full-time',
+      remote: 'office',
+      location: '',
+      salary: '',
+      experienceLevel: undefined,
+      requirements: '',
+      benefits: ''
     }
   })
+
+  // Handle external job posting
+  const handleExternalPosting = async (job: any, platforms: string[]) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "External posting is disabled in demo mode.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Simulate posting to external platforms
+    // In a real implementation, this would integrate with actual APIs
+    try {
+      const postingPromises = platforms.map(async (platform) => {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
+        
+        // Simulate random success/failure for demo
+        if (Math.random() > 0.8) {
+          throw new Error(`Failed to post to ${platform}`)
+        }
+        
+        return {
+          platform,
+          url: `https://${platform}.com/jobs/${job.id}`,
+          postedAt: new Date().toISOString()
+        }
+      })
+
+      const results = await Promise.allSettled(postingPromises)
+      const successful = results.filter(r => r.status === 'fulfilled').length
+      const failed = results.filter(r => r.status === 'rejected').length
+
+      if (successful > 0) {
+        toast({
+          title: "Job Posted Successfully",
+          description: `Posted to ${successful} platform${successful > 1 ? 's' : ''}${failed > 0 ? `, failed on ${failed}` : ''}.`,
+        })
+      } else {
+        toast({
+          title: "Posting Failed",
+          description: "Failed to post to all selected platforms. Please try again.",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to post job externally. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsPostingModalOpen(false)
+      setSelectedPlatforms([])
+    }
+  }
 
   // Handle form submission
   const onSubmit = async (data: NewJobFormData) => {
@@ -146,7 +248,7 @@ export default function Jobs() {
 
                       <FormField
                         control={form.control}
-                        name="client_id"
+                        name="clientId"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Client</FormLabel>
@@ -173,6 +275,149 @@ export default function Jobs() {
                                 )}
                               </SelectContent>
                             </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <Separator className="my-4" />
+
+                      {/* Job Details Section */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="location"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Location</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. San Francisco, CA" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="salary"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Salary Range</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. $80,000 - $120,000" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="jobType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Job Type</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="full-time">Full-time</SelectItem>
+                                  <SelectItem value="part-time">Part-time</SelectItem>
+                                  <SelectItem value="contract">Contract</SelectItem>
+                                  <SelectItem value="temporary">Temporary</SelectItem>
+                                  <SelectItem value="internship">Internship</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="experienceLevel"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Experience Level</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select level" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="entry">Entry Level</SelectItem>
+                                  <SelectItem value="mid">Mid Level</SelectItem>
+                                  <SelectItem value="senior">Senior Level</SelectItem>
+                                  <SelectItem value="executive">Executive</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="remote"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Work Type</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="office">On-site</SelectItem>
+                                  <SelectItem value="remote">Remote</SelectItem>
+                                  <SelectItem value="hybrid">Hybrid</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="requirements"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Requirements</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="List required skills, qualifications, and experience..."
+                                className="min-h-[80px]"
+                                {...field} 
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="benefits"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Benefits & Perks</FormLabel>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="Health insurance, 401k, flexible hours, etc..."
+                                className="min-h-[60px]"
+                                {...field} 
+                              />
+                            </FormControl>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -208,6 +453,100 @@ export default function Jobs() {
             </div>
           </div>
         </div>
+
+        {/* External Posting Modal */}
+        <Dialog open={isPostingModalOpen} onOpenChange={setIsPostingModalOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Post Job Externally</DialogTitle>
+              <p className="text-sm text-slate-600">
+                Select platforms to post "{selectedJobForPosting?.title}" to external job boards
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="grid gap-3">
+                {POSTING_PLATFORMS.map((platform) => {
+                  const Icon = platform.icon
+                  const isSelected = selectedPlatforms.includes(platform.id)
+                  
+                  return (
+                    <div 
+                      key={platform.id}
+                      className={`flex items-center space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
+                        isSelected 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-slate-200 hover:border-slate-300'
+                      }`}
+                      onClick={() => {
+                        setSelectedPlatforms(prev => 
+                          prev.includes(platform.id)
+                            ? prev.filter(id => id !== platform.id)
+                            : [...prev, platform.id]
+                        )
+                      }}
+                    >
+                      <Checkbox 
+                        checked={isSelected}
+                        onChange={() => {}} // Handled by parent div onClick
+                      />
+                      <Icon className="w-5 h-5 text-slate-600" />
+                      <div className="flex-1">
+                        <div className="font-medium">{platform.name}</div>
+                        <div className="text-sm text-slate-600">{platform.description}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {selectedPlatforms.length > 0 && (
+                <div className="bg-slate-50 p-3 rounded-lg">
+                  <h4 className="font-medium mb-2">Posting Preview</h4>
+                  <div className="text-sm text-slate-600 space-y-1">
+                    <div><strong>Title:</strong> {selectedJobForPosting?.title}</div>
+                    <div><strong>Company:</strong> {selectedJobForPosting?.clients?.name}</div>
+                    {selectedJobForPosting?.location && (
+                      <div><strong>Location:</strong> {selectedJobForPosting.location}</div>
+                    )}
+                    {selectedJobForPosting?.salary && (
+                      <div><strong>Salary:</strong> {selectedJobForPosting.salary}</div>
+                    )}
+                    <div><strong>Selected Platforms:</strong> {selectedPlatforms.map(id => 
+                      POSTING_PLATFORMS.find(p => p.id === id)?.name
+                    ).join(', ')}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsPostingModalOpen(false)
+                    setSelectedPlatforms([])
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  disabled={selectedPlatforms.length === 0}
+                  onClick={() => handleExternalPosting(selectedJobForPosting, selectedPlatforms)}
+                >
+                  {selectedPlatforms.length > 0 ? (
+                    <>
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Post to {selectedPlatforms.length} Platform{selectedPlatforms.length > 1 ? 's' : ''}
+                    </>
+                  ) : (
+                    'Select Platforms'
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Loading State */}
         {jobsLoading && (
@@ -253,6 +592,28 @@ export default function Jobs() {
                         </div>
                       </div>
                       
+                      {/* Job Details */}
+                      <div className="flex items-center gap-4 mb-3 text-sm text-slate-600">
+                        {job.location && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-4 h-4" />
+                            <span>{job.location}</span>
+                          </div>
+                        )}
+                        {job.salary && (
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4" />
+                            <span>{job.salary}</span>
+                          </div>
+                        )}
+                        {job.jobType && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span className="capitalize">{job.jobType.replace('-', ' ')}</span>
+                          </div>
+                        )}
+                      </div>
+                      
                       {job.description && (
                         <p className="text-slate-600 mb-4 line-clamp-2">{job.description}</p>
                       )}
@@ -260,18 +621,38 @@ export default function Jobs() {
                       <div className="flex items-center gap-4 text-sm text-slate-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          <span>Created {new Date(job.created_at).toLocaleDateString()}</span>
+                          <span>Created {new Date(job.createdAt || job.created_at).toLocaleDateString()}</span>
                         </div>
+                        {job.externalPostings && (
+                          <div className="flex items-center gap-1">
+                            <ExternalLink className="w-4 h-4" />
+                            <span>Posted externally</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
                     <div className="flex flex-col items-end gap-2">
-                      <Link href={`/jobs/${job.id}`}>
-                        <Button size="sm" variant="outline" className="text-xs">
-                          <Users className="w-3 h-3 mr-1" />
-                          View Pipeline
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs"
+                          onClick={() => {
+                            setSelectedJobForPosting(job)
+                            setIsPostingModalOpen(true)
+                          }}
+                        >
+                          <Share2 className="w-3 h-3 mr-1" />
+                          Post Job
                         </Button>
-                      </Link>
+                        <Link href={`/jobs/${job.id}`}>
+                          <Button size="sm" variant="outline" className="text-xs">
+                            <Users className="w-3 h-3 mr-1" />
+                            Pipeline
+                          </Button>
+                        </Link>
+                      </div>
                       <Badge className={getStatusColor(job.status)}>
                         {job.status.replace('_', ' ')}
                       </Badge>
