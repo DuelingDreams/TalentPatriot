@@ -6,6 +6,7 @@ import { relations } from "drizzle-orm";
 // Enums
 export const jobStatusEnum = pgEnum('job_status', ['open', 'closed', 'on_hold', 'filled']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
+export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
 
 // Tables
 export const clients = pgTable("clients", {
@@ -18,6 +19,7 @@ export const clients = pgTable("clients", {
   contactEmail: varchar("contact_email", { length: 255 }),
   contactPhone: varchar("contact_phone", { length: 50 }),
   notes: text("notes"),
+  status: recordStatusEnum("status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -27,7 +29,8 @@ export const jobs = pgTable("jobs", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   clientId: uuid("client_id").references(() => clients.id).notNull(),
-  status: jobStatusEnum("status").default('open').notNull(),
+  status: jobStatusEnum("job_status").default('open').notNull(),
+  recordStatus: recordStatusEnum("record_status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -37,6 +40,7 @@ export const candidates = pgTable("candidates", {
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 50 }),
   resumeUrl: text("resume_url"),
+  status: recordStatusEnum("status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -47,6 +51,7 @@ export const jobCandidate = pgTable("job_candidate", {
   stage: candidateStageEnum("stage").default('applied').notNull(),
   notes: text("notes"),
   assignedTo: varchar("assigned_to", { length: 255 }),
+  status: recordStatusEnum("status").default('active').notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   uniqueJobCandidate: uniqueIndex("unique_job_candidate").on(table.jobId, table.candidateId),

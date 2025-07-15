@@ -48,6 +48,10 @@ Preferred communication style: Simple, everyday language.
 - Implemented comprehensive candidate cards with skills, notes, and job information
 - Added pipeline statistics and progress tracking
 - Created navigation between demo dashboard and pipeline views
+- Updated database schema to include status columns for proper demo filtering
+- Enhanced RLS policies to use status='demo' for secure demo data access
+- Created migration script and updated schemas for demo data isolation
+- Verified demo user authentication with proper role metadata extraction
 
 ## System Architecture
 

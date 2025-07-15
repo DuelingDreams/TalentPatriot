@@ -52,11 +52,7 @@ FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND (
-    notes ILIKE '%demo%' 
-    OR name ILIKE '%demo%'
-    OR industry = 'Demo'
-  )
+  AND status = 'demo'
 );
 
 -- Policy: Deny all access to unauthenticated users
@@ -102,11 +98,7 @@ FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND (
-    description ILIKE '%demo%' 
-    OR title ILIKE '%demo%'
-    OR status = 'demo'
-  )
+  AND record_status = 'demo'
 );
 
 -- Policy: Prevent writes to demo jobs by anyone except recruiters
@@ -164,11 +156,7 @@ FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND (
-    email ILIKE '%demo%' 
-    OR name ILIKE '%demo%'
-    OR phone ILIKE '%demo%'
-  )
+  AND status = 'demo'
 );
 
 -- Policy: Prevent writes to demo candidates by non-recruiters
@@ -252,15 +240,7 @@ FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND (
-    notes ILIKE '%demo%'
-    OR stage = 'demo'
-    OR EXISTS (
-      SELECT 1 FROM jobs j 
-      WHERE j.id = job_candidate.job_id 
-      AND (j.description ILIKE '%demo%' OR j.title ILIKE '%demo%')
-    )
-  )
+  AND status = 'demo'
 );
 
 -- Policy: Prevent writes to demo job_candidate relationships
