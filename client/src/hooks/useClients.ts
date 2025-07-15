@@ -106,18 +106,7 @@ export function useCreateClient() {
 
   return useMutation({
     mutationFn: async (newClient: CreateClientData) => {
-      const response = await apiRequest('/api/clients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newClient),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create client')
-      }
-
+      const response = await apiRequest('POST', '/api/clients', newClient)
       return response.json()
     },
     onSuccess: () => {
@@ -134,18 +123,7 @@ export function useUpdateClient() {
     mutationFn: async (updateData: UpdateClientData) => {
       const { id, ...clientData } = updateData
       
-      const response = await apiRequest(`/api/clients/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(clientData),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update client')
-      }
-
+      const response = await apiRequest('PUT', `/api/clients/${id}`, clientData)
       return response.json()
     },
     onSuccess: (_, variables) => {
@@ -161,13 +139,8 @@ export function useDeleteClient() {
 
   return useMutation({
     mutationFn: async (clientId: string) => {
-      const response = await apiRequest(`/api/clients/${clientId}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete client')
-      }
+      const response = await apiRequest('DELETE', `/api/clients/${clientId}`)
+      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clients'] })
