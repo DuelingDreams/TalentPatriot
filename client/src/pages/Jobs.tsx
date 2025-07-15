@@ -56,6 +56,9 @@ export default function Jobs() {
 
   // Handle form submission
   const onSubmit = async (data: NewJobFormData) => {
+    console.log('Form submission triggered with data:', data)
+    console.log('Form errors:', form.formState.errors)
+    
     if (isDemoMode) {
       toast({
         title: "Demo Mode",
@@ -66,6 +69,7 @@ export default function Jobs() {
     }
     
     try {
+      console.log('Calling createJobMutation with data:', data)
       await createJobMutation.mutateAsync(data)
       toast({
         title: "Job Created",
@@ -74,6 +78,7 @@ export default function Jobs() {
       setIsModalOpen(false)
       form.reset()
     } catch (error) {
+      console.error('Job creation error:', error)
       toast({
         title: "Error",
         description: "Failed to create job posting. Please try again.",
