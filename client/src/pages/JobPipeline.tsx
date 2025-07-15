@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs, useCandidatesForJob, useUpdateCandidateStage } from '@/hooks/useJobs'
+import { ResumeUpload } from '@/components/ResumeUpload'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2 } from 'lucide-react'
 import { Link } from 'wouter'
 
@@ -96,6 +97,14 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                   {candidate.notes}
                 </p>
               )}
+              <div className="mt-3">
+                <ResumeUpload
+                  candidateId={candidate.candidates.id}
+                  candidateName={candidate.candidates.name}
+                  currentResumeUrl={candidate.candidates.resume_url}
+                  onResumeUploaded={() => {}} // Pipeline view is read-only for resumes
+                />
+              </div>
               {candidate.assigned_to && (
                 <div className="mt-2">
                   <Badge variant="outline" className="text-xs">

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
 import { useCandidates, useJobs, useCreateCandidate } from '@/hooks/useJobs'
+import { ResumeUpload } from '@/components/ResumeUpload'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { insertCandidateSchema } from '@/../../shared/schema'
@@ -31,7 +32,7 @@ export default function Candidates() {
   const { toast } = useToast()
 
   // Fetch data using our hooks
-  const { data: candidates, isLoading: candidatesLoading, error: candidatesError } = useCandidates()
+  const { data: candidates, isLoading: candidatesLoading, error: candidatesError, refetch: refetchCandidates } = useCandidates()
   const { data: jobs } = useJobs()
   const createCandidateMutation = useCreateCandidate()
 
@@ -104,6 +105,12 @@ export default function Candidates() {
     } finally {
       setAssigningJobs(prev => ({ ...prev, [candidateId]: false }))
     }
+  }
+
+  // Handle resume upload
+  const handleResumeUploaded = async (candidateId: string, resumeUrl: string) => {
+    // Refetch candidates to update the UI with new resume URL
+    await refetchCandidates()
   }
 
   return (
@@ -293,19 +300,12 @@ export default function Candidates() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {candidate.resume_url ? (
-                          <a 
-                            href={candidate.resume_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
-                          >
-                            <FileText className="w-4 h-4" />
-                            View Resume
-                          </a>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
+                        <ResumeUpload
+                          candidateId={candidate.id}
+                          candidateName={candidate.name}
+                          currentResumeUrl={candidate.resume_url}
+                          onResumeUploaded={(url) => handleResumeUploaded(candidate.id, url)}
+                        />
                       </TableCell>
                       <TableCell>
                         <Select 
