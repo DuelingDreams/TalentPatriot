@@ -22,7 +22,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
+    // Check for demo mode first
+    const isDemoMode = localStorage.getItem('demo_mode') === 'true'
+    const demoUserRole = localStorage.getItem('demo_user_role')
+    
+    if (isDemoMode && demoUserRole) {
+      // Set demo user state
+      const demoUser = {
+        id: 'demo-user-id',
+        email: 'demo@yourapp.com',
+        user_metadata: { role: demoUserRole, name: 'Demo User' }
+      } as User
+      
+      setUser(demoUser)
+      setUserRole(demoUserRole)
+      setLoading(false)
+      return
+    }
+
+    // Get initial session from Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
@@ -37,6 +55,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Don't override demo mode
+      if (localStorage.getItem('demo_mode') === 'true') {
+        return
+      }
+      
       setSession(session)
       setUser(session?.user ?? null)
       
@@ -76,12 +99,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    // Clear demo mode if active
+    localStorage.removeItem('demo_mode')
+    localStorage.removeItem('demo_user_role')
+    
+    // Sign out from Supabase
     const { error } = await supabase.auth.signOut()
-    if (!error) {
-      setUser(null)
-      setSession(null)
-      setUserRole(null)
-    }
+    
+    // Reset state regardless of Supabase result
+    setUser(null)
+    setSession(null)
+    setUserRole(null)
   }
 
   const updateUserRole = async (role: string) => {

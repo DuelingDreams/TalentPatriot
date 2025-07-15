@@ -237,25 +237,38 @@ export default function Login() {
           <Button 
             variant="outline" 
             className="w-full"
-            onClick={async () => {
+            onClick={() => {
+              // Set demo user role directly in auth context and redirect
               setLoading(true)
               setError('')
-              try {
-                const { error } = await signIn('demo@yourapp.com', 'Demo1234!')
-                if (error) {
-                  setError('Demo login failed. Please try again.')
-                } else {
-                  toast({
-                    title: "Demo mode activated!",
-                    description: "You're now logged in as a demo user.",
-                  })
-                  setLocation('/dashboard')
-                }
-              } catch (err) {
-                setError('Demo login failed. Please try again.')
-              } finally {
-                setLoading(false)
+              
+              // Simulate demo login by setting demo user state directly
+              const demoUser = {
+                id: 'demo-user-id',
+                email: 'demo@yourapp.com',
+                user_metadata: { role: 'demo_viewer', name: 'Demo User' }
               }
+              
+              // Use a timeout to simulate login process
+              setTimeout(() => {
+                // Create a mock session for demo mode
+                const mockSession = {
+                  user: demoUser,
+                  access_token: 'demo-token',
+                  refresh_token: 'demo-refresh'
+                }
+                
+                // Store demo session in localStorage
+                localStorage.setItem('demo_mode', 'true')
+                localStorage.setItem('demo_user_role', 'demo_viewer')
+                
+                toast({
+                  title: "Demo mode activated!",
+                  description: "You're now viewing demo data.",
+                })
+                setLocation('/dashboard')
+                setLoading(false)
+              }, 500)
             }}
             disabled={loading}
           >

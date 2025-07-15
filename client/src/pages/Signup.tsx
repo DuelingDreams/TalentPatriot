@@ -14,7 +14,6 @@ const roles = [
   { value: 'recruiter', label: 'Recruiter', description: 'Full access to manage jobs and candidates' },
   { value: 'bd', label: 'Business Development', description: 'Read-only access to clients and jobs' },
   { value: 'pm', label: 'Project Manager', description: 'Access to contract jobs only' },
-  { value: 'demo_viewer', label: 'Demo Viewer', description: 'Limited access to demo data only' },
 ]
 
 export default function Signup() {

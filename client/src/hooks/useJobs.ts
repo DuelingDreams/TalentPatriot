@@ -7,10 +7,19 @@ import type { Job, Candidate, Client } from '@/../../shared/schema'
 // Hook to fetch all jobs
 export function useJobs() {
   const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
   
   return useQuery({
-    queryKey: ['jobs', userRole],
+    queryKey: ['jobs', userRole, isDemoMode],
     queryFn: async () => {
+      // Always return demo data if in demo mode
+      if (isDemoMode || userRole === 'demo_viewer') {
+        return demoJobs.map(job => ({
+          ...job,
+          clients: demoClients.find(client => client.id === job.clientId) || demoClients[0]
+        }))
+      }
+
       let query = supabase
         .from('jobs')
         .select(`
@@ -22,26 +31,14 @@ export function useJobs() {
           )
         `)
       
-      // Filter based on user role - use recordStatus column name from schema
-      if (userRole === 'demo_viewer') {
-        query = query.eq('recordStatus', 'demo')
-      } else {
-        query = query.neq('recordStatus', 'demo').or('recordStatus.is.null')
-      }
-      
+      // Filter for real users - exclude demo data
+      query = query.neq('recordStatus', 'demo').or('recordStatus.is.null')
       query = query.order('created_at', { ascending: false })
 
       const { data, error } = await query
 
       if (error) {
-        console.warn('Supabase jobs query failed, using demo data:', error.message)
-        // Return demo data if database query fails
-        if (userRole === 'demo_viewer') {
-          return demoJobs.map(job => ({
-            ...job,
-            clients: demoClients.find(client => client.id === job.clientId) || demoClients[0]
-          }))
-        }
+        console.warn('Supabase jobs query failed:', error.message)
         throw new Error(error.message)
       }
 
@@ -59,11 +56,25 @@ export function useJobs() {
 // Hook to fetch candidates for a specific job
 export function useCandidatesForJob(jobId: string | null) {
   const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
   
   return useQuery({
-    queryKey: ['job-candidates', jobId, userRole],
+    queryKey: ['job-candidates', jobId, userRole, isDemoMode],
     queryFn: async () => {
       if (!jobId) return []
+
+      // Always return demo data if in demo mode
+      if (isDemoMode || userRole === 'demo_viewer') {
+        const demoJobCandidatesForJob = getDemoJobCandidatesByJobId(jobId)
+        return demoJobCandidatesForJob.map(jc => ({
+          id: jc.id,
+          stage: jc.stage,
+          notes: jc.notes,
+          assigned_to: jc.assignedTo,
+          updated_at: jc.updatedAt,
+          candidates: demoCandidates.find(c => c.id === jc.candidateId) || demoCandidates[0]
+        }))
+      }
 
       let query = supabase
         .from('job_candidate')
@@ -84,31 +95,14 @@ export function useCandidatesForJob(jobId: string | null) {
         `)
         .eq('job_id', jobId)
       
-      // Filter based on user role
-      if (userRole === 'demo_viewer') {
-        query = query.eq('status', 'demo')
-      } else {
-        query = query.is('status', null).or('status.neq.demo')
-      }
-      
+      // Filter for real users - exclude demo data
+      query = query.neq('status', 'demo').or('status.is.null')
       query = query.order('updated_at', { ascending: false })
 
       const { data, error } = await query
 
       if (error) {
-        console.warn('Supabase job candidates query failed, using demo data:', error.message)
-        // Return demo data if database query fails
-        if (userRole === 'demo_viewer') {
-          const demoJobCandidatesForJob = getDemoJobCandidatesByJobId(jobId)
-          return demoJobCandidatesForJob.map(jc => ({
-            id: jc.id,
-            stage: jc.stage,
-            notes: jc.notes,
-            assigned_to: jc.assignedTo,
-            updated_at: jc.updatedAt,
-            candidates: demoCandidates.find(c => c.id === jc.candidateId) || demoCandidates[0]
-          }))
-        }
+        console.warn('Supabase job candidates query failed:', error.message)
         throw new Error(error.message)
       }
 
@@ -128,31 +122,28 @@ export function useCandidatesForJob(jobId: string | null) {
 // Hook to fetch all clients
 export function useClients() {
   const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
   
   return useQuery({
-    queryKey: ['clients', userRole],
+    queryKey: ['clients', userRole, isDemoMode],
     queryFn: async () => {
+      // Always return demo data if in demo mode
+      if (isDemoMode || userRole === 'demo_viewer') {
+        return demoClients
+      }
+
       let query = supabase
         .from('clients')
         .select('*')
       
-      // Filter based on user role
-      if (userRole === 'demo_viewer') {
-        query = query.eq('status', 'demo')
-      } else {
-        query = query.neq('status', 'demo').or('status.is.null')
-      }
-      
+      // Filter for real users - exclude demo data
+      query = query.neq('status', 'demo').or('status.is.null')
       query = query.order('name', { ascending: true })
 
       const { data, error } = await query
 
       if (error) {
-        console.warn('Supabase clients query failed, using demo data:', error.message)
-        // Return demo data if database query fails
-        if (userRole === 'demo_viewer') {
-          return demoClients
-        }
+        console.warn('Supabase clients query failed:', error.message)
         throw new Error(error.message)
       }
 
@@ -164,31 +155,28 @@ export function useClients() {
 // Hook to fetch all candidates
 export function useCandidates() {
   const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
   
   return useQuery({
-    queryKey: ['candidates', userRole],
+    queryKey: ['candidates', userRole, isDemoMode],
     queryFn: async () => {
+      // Always return demo data if in demo mode
+      if (isDemoMode || userRole === 'demo_viewer') {
+        return demoCandidates
+      }
+
       let query = supabase
         .from('candidates')
         .select('*')
       
-      // Filter based on user role
-      if (userRole === 'demo_viewer') {
-        query = query.eq('status', 'demo')
-      } else {
-        query = query.neq('status', 'demo').or('status.is.null')
-      }
-      
+      // Filter for real users - exclude demo data
+      query = query.neq('status', 'demo').or('status.is.null')
       query = query.order('created_at', { ascending: false })
 
       const { data, error } = await query
 
       if (error) {
-        console.warn('Supabase candidates query failed, using demo data:', error.message)
-        // Return demo data if database query fails
-        if (userRole === 'demo_viewer') {
-          return demoCandidates
-        }
+        console.warn('Supabase candidates query failed:', error.message)
         throw new Error(error.message)
       }
 
