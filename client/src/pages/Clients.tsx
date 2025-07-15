@@ -463,7 +463,10 @@ export default function Clients() {
                         <TableCell>
                           <div className="flex items-center gap-1 text-sm text-slate-500">
                             <Calendar className="w-3 h-3" />
-                            {formatDistanceToNow(new Date(client.updatedAt), { addSuffix: true })}
+                            {client.updatedAt 
+                              ? formatDistanceToNow(new Date(client.updatedAt), { addSuffix: true })
+                              : 'Unknown'
+                            }
                           </div>
                         </TableCell>
                         
