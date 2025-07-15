@@ -15,6 +15,7 @@ import {
   type InsertJobCandidate,
   type InsertCandidateNotes
 } from "@shared/schema";
+import { createClient } from '@supabase/supabase-js';
 
 // Storage interface for ATS system
 export interface IStorage {
@@ -213,4 +214,263 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database storage implementation using Supabase
+
+const supabaseUrl = process.env.VITE_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+class DatabaseStorage implements IStorage {
+  async getClient(id: string): Promise<Client | undefined> {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined // Not found
+      throw new Error(error.message)
+    }
+    
+    return data as Client
+  }
+
+  async getClients(): Promise<Client[]> {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('name', { ascending: true })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Client[]
+  }
+
+  async createClient(insertClient: InsertClient): Promise<Client> {
+    const { data, error } = await supabase
+      .from('clients')
+      .insert(insertClient)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Client
+  }
+
+  async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
+    const { data, error } = await supabase
+      .from('clients')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Client
+  }
+
+  async deleteClient(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('clients')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async getJob(id: string): Promise<Job | undefined> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as Job
+  }
+
+  async getJobs(): Promise<Job[]> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Job[]
+  }
+
+  async getJobsByClient(clientId: string): Promise<Job[]> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Job[]
+  }
+
+  async createJob(insertJob: InsertJob): Promise<Job> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert(insertJob)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Job
+  }
+
+  async getCandidate(id: string): Promise<Candidate | undefined> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as Candidate
+  }
+
+  async getCandidates(): Promise<Candidate[]> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Candidate[]
+  }
+
+  async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .insert(insertCandidate)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Candidate
+  }
+
+  async getJobCandidate(id: string): Promise<JobCandidate | undefined> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as JobCandidate
+  }
+
+  async getJobCandidatesByJob(jobId: string): Promise<JobCandidate[]> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .select('*')
+      .eq('job_id', jobId)
+      .order('updated_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as JobCandidate[]
+  }
+
+  async getJobCandidatesByCandidate(candidateId: string): Promise<JobCandidate[]> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .select('*')
+      .eq('candidate_id', candidateId)
+      .order('updated_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as JobCandidate[]
+  }
+
+  async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .insert(insertJobCandidate)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as JobCandidate
+  }
+
+  async getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]> {
+    const { data, error } = await supabase
+      .from('candidate_notes')
+      .select('*')
+      .eq('job_candidate_id', jobCandidateId)
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as CandidateNotes[]
+  }
+
+  async createCandidateNote(insertNote: InsertCandidateNotes): Promise<CandidateNotes> {
+    const { data, error } = await supabase
+      .from('candidate_notes')
+      .insert(insertNote)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as CandidateNotes
+  }
+}
+
+export const storage = new DatabaseStorage();

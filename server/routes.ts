@@ -30,7 +30,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const client = await storage.createClient(req.body);
       res.status(201).json(client);
     } catch (error) {
-      res.status(400).json({ error: "Failed to create client" });
+      console.error('Client creation error:', error);
+      res.status(400).json({ error: "Failed to create client", details: error.message });
     }
   });
 
