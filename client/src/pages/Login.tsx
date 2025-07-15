@@ -230,27 +230,16 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 space-y-4">
-          <div className="p-4 bg-slate-100 rounded-lg">
-            <p className="text-xs font-medium text-slate-700 mb-2">Demo Accounts for Testing:</p>
-            <div className="space-y-1 text-xs text-slate-600">
-              <div><strong>Recruiter:</strong> recruiter@demo.com / password123</div>
-              <div><strong>Business Dev:</strong> bd@demo.com / password123</div>
-              <div><strong>Project Manager:</strong> pm@demo.com / password123</div>
-            </div>
-          </div>
-          
-          <div className="text-center">
-            <p className="text-sm text-slate-600 mb-3">
-              Or try the public demo without signing up
-            </p>
-            <Button variant="outline" asChild className="w-full">
-              <Link href="/demo">
-                <span className="mr-2">🔓</span>
-                View Demo Mode
-              </Link>
-            </Button>
-          </div>
+        <div className="mt-8 text-center">
+          <p className="text-sm text-slate-600 mb-3">
+            Or try the public demo without signing up
+          </p>
+          <Button variant="outline" asChild className="w-full">
+            <Link href="/demo">
+              <span className="mr-2">🔓</span>
+              View Demo Mode
+            </Link>
+          </Button>
         </div>
       </div>
     </div>
