@@ -6,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { testSupabaseConnection } from '@/lib/supabase-test'
+import { useJobs, useClients, useCandidates } from '@/hooks/useJobs'
+import { JobCandidatesTest } from '@/components/test/JobCandidatesTest'
 import { 
   Plus, 
   Briefcase, 
@@ -51,6 +53,11 @@ export default function Dashboard() {
   const [supabaseStatus, setSupabaseStatus] = useState<'testing' | 'connected' | 'error'>('testing')
   const { toast } = useToast()
 
+  // Fetch real data using our hooks
+  const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
+  const { data: clients, isLoading: clientsLoading } = useClients()
+  const { data: candidates, isLoading: candidatesLoading } = useCandidates()
+
   useEffect(() => {
     // Test Supabase connection on component mount
     testSupabaseConnection().then((result) => {
@@ -71,29 +78,34 @@ export default function Dashboard() {
     })
   }, [toast])
 
-  const [stats] = useState<StatCard[]>([
+  // Calculate real stats from data
+  const openJobsCount = jobs?.filter(job => job.status === 'open').length || 0
+  const totalCandidatesCount = candidates?.length || 0
+  const totalClientsCount = clients?.length || 0
+
+  const stats: StatCard[] = [
     {
       label: 'Open Jobs',
-      value: '24',
+      value: jobsLoading ? '...' : openJobsCount.toString(),
       icon: Briefcase,
       bgColor: 'bg-blue-100',
       iconColor: 'text-blue-600'
     },
     {
-      label: 'Active Candidates',
-      value: '156',
+      label: 'Total Candidates',
+      value: candidatesLoading ? '...' : totalCandidatesCount.toString(),
       icon: Users,
       bgColor: 'bg-emerald-100',
       iconColor: 'text-emerald-600'
     },
     {
-      label: 'Avg Time to Fill',
-      value: '18 days',
-      icon: Clock,
+      label: 'Active Clients',
+      value: clientsLoading ? '...' : totalClientsCount.toString(),
+      icon: Building2,
       bgColor: 'bg-orange-100',
       iconColor: 'text-orange-600'
     }
-  ])
+  ]
 
   const [activities] = useState<Activity[]>([
     {
@@ -219,6 +231,51 @@ export default function Dashboard() {
               </Card>
             )
           })}
+        </div>
+
+        {/* Real Jobs Data Preview */}
+        {jobs && jobs.length > 0 && (
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Recent Jobs from Database</h3>
+            <div className="grid gap-4">
+              {jobs.slice(0, 3).map((job) => (
+                <Card key={job.id} className="bg-white border border-slate-200 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-slate-900">{job.title}</h4>
+                        <p className="text-sm text-slate-600">
+                          {job.clients?.name} • {job.clients?.industry}
+                        </p>
+                      </div>
+                      <Badge variant={job.status === 'open' ? 'default' : 'secondary'}>
+                        {job.status}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Show loading state */}
+        {jobsLoading && (
+          <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-600">Loading jobs from database...</p>
+          </div>
+        )}
+
+        {/* Show error if jobs failed to load */}
+        {jobsError && (
+          <div className="mb-8 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600">Failed to load jobs: {jobsError.message}</p>
+          </div>
+        )}
+
+        {/* Hook Testing Section */}
+        <div className="mb-8">
+          <JobCandidatesTest />
         </div>
 
         {/* Content Grid */}
