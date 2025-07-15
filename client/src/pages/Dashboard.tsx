@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { useToast } from '@/hooks/use-toast'
+import { testSupabaseConnection } from '@/lib/supabase-test'
 import { 
   Plus, 
   Briefcase, 
@@ -14,7 +16,8 @@ import {
   Building2,
   Calendar,
   MessageSquare,
-  ChevronRight
+  ChevronRight,
+  Database
 } from 'lucide-react'
 
 interface StatCard {
@@ -45,6 +48,29 @@ interface TeamMember {
 }
 
 export default function Dashboard() {
+  const [supabaseStatus, setSupabaseStatus] = useState<'testing' | 'connected' | 'error'>('testing')
+  const { toast } = useToast()
+
+  useEffect(() => {
+    // Test Supabase connection on component mount
+    testSupabaseConnection().then((result) => {
+      if (result.success) {
+        setSupabaseStatus('connected')
+        toast({
+          title: "Database Connected",
+          description: "Successfully connected to Supabase database",
+        })
+      } else {
+        setSupabaseStatus('error')
+        toast({
+          title: "Database Connection Failed",
+          description: result.error || "Could not connect to database",
+          variant: "destructive",
+        })
+      }
+    })
+  }, [toast])
+
   const [stats] = useState<StatCard[]>([
     {
       label: 'Open Jobs',
@@ -144,7 +170,22 @@ export default function Dashboard() {
         <div className="mb-8">
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Welcome to ATS</h2>
+              <div className="flex items-center gap-3 mb-2">
+                <h2 className="text-2xl font-bold text-slate-900">Welcome to ATS</h2>
+                <div className="flex items-center gap-2">
+                  <Database className={`w-4 h-4 ${
+                    supabaseStatus === 'connected' ? 'text-green-600' : 
+                    supabaseStatus === 'error' ? 'text-red-600' : 'text-yellow-600'
+                  }`} />
+                  <span className={`text-xs font-medium ${
+                    supabaseStatus === 'connected' ? 'text-green-600' : 
+                    supabaseStatus === 'error' ? 'text-red-600' : 'text-yellow-600'
+                  }`}>
+                    {supabaseStatus === 'connected' ? 'Connected' : 
+                     supabaseStatus === 'error' ? 'Disconnected' : 'Connecting...'}
+                  </span>
+                </div>
+              </div>
               <p className="mt-1 text-sm text-slate-600">Manage your recruitment pipeline and track hiring progress.</p>
             </div>
             <div className="mt-4 sm:mt-0">
