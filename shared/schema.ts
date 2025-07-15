@@ -7,8 +7,6 @@ import { relations } from "drizzle-orm";
 export const jobStatusEnum = pgEnum('job_status', ['open', 'closed', 'on_hold', 'filled']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
-export const clientStatusEnum = pgEnum('client_status', ['active', 'idle', 'prospect', 'paused']);
-export const fileTypeEnum = pgEnum('file_type', ['nda', 'sow', 'msa', 'contract', 'other']);
 
 // Tables
 export const clients = pgTable("clients", {
@@ -22,11 +20,6 @@ export const clients = pgTable("clients", {
   contactPhone: varchar("contact_phone", { length: 50 }),
   notes: text("notes"),
   status: recordStatusEnum("status").default('active').notNull(),
-  clientStatus: clientStatusEnum("client_status").default('active').notNull(),
-  assignedTo: varchar("assigned_to", { length: 255 }), // Client owner
-  tags: text("tags"), // JSON array: ["SB", "8a", "Fortune500"]
-  lastContacted: timestamp("last_contacted"),
-  isFavorite: varchar("is_favorite", { length: 10 }).default('false'),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -38,15 +31,6 @@ export const jobs = pgTable("jobs", {
   clientId: uuid("client_id").references(() => clients.id).notNull(),
   status: jobStatusEnum("job_status").default('open').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
-  // External posting fields
-  salary: varchar("salary", { length: 100 }), // e.g. "$80,000 - $120,000"
-  location: varchar("location", { length: 255 }), // Job location
-  jobType: varchar("job_type", { length: 50 }).default('full-time'), // full-time, part-time, contract
-  experienceLevel: varchar("experience_level", { length: 50 }), // entry, mid, senior, executive
-  remote: varchar("remote", { length: 20 }).default('office'), // remote, office, hybrid
-  requirements: text("requirements"), // Skills and requirements
-  benefits: text("benefits"), // Benefits and perks
-  externalPostings: text("external_postings"), // JSON: [{"platform": "indeed", "url": "...", "postedAt": "..."}]
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -67,7 +51,6 @@ export const jobCandidate = pgTable("job_candidate", {
   stage: candidateStageEnum("stage").default('applied').notNull(),
   notes: text("notes"),
   assignedTo: varchar("assigned_to", { length: 255 }),
-  interviewDate: timestamp("interview_date"),
   status: recordStatusEnum("status").default('active').notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
@@ -82,49 +65,9 @@ export const candidateNotes = pgTable("candidate_notes", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// New tables for enhanced client detail functionality
-export const clientNotes = pgTable("client_notes", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  clientId: uuid("client_id").references(() => clients.id).notNull(),
-  authorId: varchar("author_id", { length: 255 }).notNull(),
-  content: text("content").notNull(),
-  type: varchar("type", { length: 50 }).default('general'), // 'general', 'relationship', 'preference'
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-export const clientFiles = pgTable("client_files", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  clientId: uuid("client_id").references(() => clients.id).notNull(),
-  fileName: varchar("file_name", { length: 255 }).notNull(),
-  fileType: fileTypeEnum("file_type").default('other').notNull(),
-  fileUrl: text("file_url").notNull(),
-  fileSize: varchar("file_size", { length: 50 }),
-  uploadedBy: varchar("uploaded_by", { length: 255 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const clientContacts = pgTable("client_contacts", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  clientId: uuid("client_id").references(() => clients.id).notNull(),
-  name: varchar("name", { length: 255 }).notNull(),
-  title: varchar("title", { length: 255 }),
-  email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 50 }),
-  linkedinUrl: varchar("linkedin_url", { length: 500 }),
-  department: varchar("department", { length: 100 }),
-  notes: text("notes"),
-  isPrimary: varchar("is_primary", { length: 10 }).default('false'),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
 // Relations
 export const clientsRelations = relations(clients, ({ many }) => ({
   jobs: many(jobs),
-  notes: many(clientNotes),
-  files: many(clientFiles),
-  contacts: many(clientContacts),
 }));
 
 export const jobsRelations = relations(jobs, ({ one, many }) => ({
@@ -158,27 +101,6 @@ export const candidateNotesRelations = relations(candidateNotes, ({ one }) => ({
   }),
 }));
 
-export const clientNotesRelations = relations(clientNotes, ({ one }) => ({
-  client: one(clients, {
-    fields: [clientNotes.clientId],
-    references: [clients.id],
-  }),
-}));
-
-export const clientFilesRelations = relations(clientFiles, ({ one }) => ({
-  client: one(clients, {
-    fields: [clientFiles.clientId],
-    references: [clients.id],
-  }),
-}));
-
-export const clientContactsRelations = relations(clientContacts, ({ one }) => ({
-  client: one(clients, {
-    fields: [clientContacts.clientId],
-    references: [clients.id],
-  }),
-}));
-
 // Insert schemas
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
@@ -189,14 +111,6 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 export const insertJobSchema = createInsertSchema(jobs).omit({
   id: true,
   createdAt: true,
-}).extend({
-  salary: z.string().optional(),
-  location: z.string().optional(),
-  jobType: z.enum(['full-time', 'part-time', 'contract', 'temporary', 'internship']).optional(),
-  experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
-  remote: z.enum(['remote', 'office', 'hybrid']).optional(),
-  requirements: z.string().optional(),
-  benefits: z.string().optional(),
 });
 
 export const insertCandidateSchema = createInsertSchema(candidates).omit({
@@ -229,29 +143,3 @@ export type InsertJobCandidate = z.infer<typeof insertJobCandidateSchema>;
 
 export type CandidateNotes = typeof candidateNotes.$inferSelect;
 export type InsertCandidateNotes = z.infer<typeof insertCandidateNotesSchema>;
-
-export const insertClientNotesSchema = createInsertSchema(clientNotes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertClientFilesSchema = createInsertSchema(clientFiles).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertClientContactsSchema = createInsertSchema(clientContacts).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export type ClientNotes = typeof clientNotes.$inferSelect;
-export type InsertClientNotes = z.infer<typeof insertClientNotesSchema>;
-
-export type ClientFiles = typeof clientFiles.$inferSelect;
-export type InsertClientFiles = z.infer<typeof insertClientFilesSchema>;
-
-export type ClientContacts = typeof clientContacts.$inferSelect;
-export type InsertClientContacts = z.infer<typeof insertClientContactsSchema>;

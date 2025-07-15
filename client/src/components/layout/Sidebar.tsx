@@ -12,16 +12,7 @@ import {
   Calendar, 
   MessageSquare,
   HelpCircle, 
-  FileText,
-  Shield,
-  BarChart3,
-  Settings,
-  UserCheck,
-  Target,
-  FileSpreadsheet,
-  Clock,
-  TrendingUp,
-  Zap
+  FileText 
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -30,49 +21,15 @@ interface SidebarProps {
   onClose?: () => void
 }
 
-// Core navigation items - always visible based on role
-const coreNavigationItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['recruiter', 'bd', 'pm', 'demo_viewer', 'admin'] },
-  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['recruiter', 'bd', 'pm', 'admin'] },
-  { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd', 'admin'] },
-  { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd', 'admin'] },
+const navigationItems = [
+  { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
+  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['recruiter', 'bd', 'pm'] },
+  { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd'] },
+  { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd'] },
+  { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm'] },
+  { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm'] },
 ]
 
-// Recruiter-specific navigation items
-const recruiterItems = [
-  { label: 'Job Pipeline', href: '/pipeline', icon: Target, roles: ['recruiter', 'admin'] },
-  { label: 'My Assignments', href: '/assignments', icon: UserCheck, roles: ['recruiter', 'admin'] },
-  { label: 'Interview Schedule', href: '/interviews', icon: Clock, roles: ['recruiter', 'admin'] },
-  { label: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['recruiter', 'admin'] },
-]
-
-// BD (Business Development) specific items
-const bdItems = [
-  { label: 'Client Reports', href: '/reports/clients', icon: FileSpreadsheet, roles: ['bd', 'admin'] },
-  { label: 'Business Metrics', href: '/metrics', icon: TrendingUp, roles: ['bd', 'admin'] },
-  { label: 'Lead Pipeline', href: '/leads', icon: Zap, roles: ['bd', 'admin'] },
-]
-
-// PM (Project Manager) specific items
-const pmItems = [
-  { label: 'Project Dashboard', href: '/projects', icon: Target, roles: ['pm', 'admin'] },
-  { label: 'Contract Jobs', href: '/contracts', icon: FileText, roles: ['pm', 'admin'] },
-  { label: 'Resource Planning', href: '/resources', icon: Calendar, roles: ['pm', 'admin'] },
-]
-
-// Communication items - available to most roles
-const communicationItems = [
-  { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm', 'admin'] },
-  { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm', 'admin'] },
-]
-
-// Admin-only items
-const adminItems = [
-  { label: 'Role Management', href: '/admin/roles', icon: Shield, roles: ['admin'] },
-  { label: 'System Settings', href: '/admin/settings', icon: Settings, roles: ['admin'] },
-]
-
-// Help and support items - available to all
 const secondaryItems = [
   { label: 'Help & Support', href: '/help', icon: HelpCircle },
   { label: 'Documentation', href: '/docs', icon: FileText },
@@ -82,69 +39,9 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const [location] = useLocation()
   const { userRole } = useAuth()
 
-  // Filter items based on user role
-  const filteredCoreItems = coreNavigationItems.filter(item => 
+  const filteredNavigationItems = navigationItems.filter(item => 
     !userRole || item.roles.includes(userRole)
   )
-  
-  const filteredRecruiterItems = recruiterItems.filter(item => 
-    !userRole || item.roles.includes(userRole)
-  )
-  
-  const filteredBdItems = bdItems.filter(item => 
-    !userRole || item.roles.includes(userRole)
-  )
-  
-  const filteredPmItems = pmItems.filter(item => 
-    !userRole || item.roles.includes(userRole)
-  )
-  
-  const filteredCommunicationItems = communicationItems.filter(item => 
-    !userRole || item.roles.includes(userRole)
-  )
-
-  const filteredAdminItems = adminItems.filter(item => 
-    !userRole || item.roles.includes(userRole)
-  )
-
-  // Helper function to render navigation section
-  const renderNavigationSection = (items: typeof coreNavigationItems, sectionTitle?: string) => {
-    if (items.length === 0) return null
-    
-    return (
-      <>
-        {sectionTitle && (
-          <div className="px-2 mb-2 mt-4">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-              {sectionTitle}
-            </p>
-          </div>
-        )}
-        {items.map((item) => {
-          const Icon = item.icon
-          const isActive = location === item.href
-          
-          return (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant={isActive ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start text-sm font-medium",
-                  isActive 
-                    ? "text-blue-600 bg-blue-50 hover:bg-blue-100" 
-                    : "text-slate-700 hover:bg-slate-100"
-                )}
-                onClick={onClose}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                {item.label}
-              </Button>
-            </Link>
-          )
-        })}
-      </>
-    )
-  }
 
   return (
     <>
@@ -174,51 +71,29 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-            {/* Core Navigation */}
-            {renderNavigationSection(filteredCoreItems)}
-
-            {/* Role-specific sections */}
-            {renderNavigationSection(filteredRecruiterItems, "Recruiting")}
-            {renderNavigationSection(filteredBdItems, "Business Development")}
-            {renderNavigationSection(filteredPmItems, "Project Management")}
-            
-            {/* Communication Tools */}
-            {renderNavigationSection(filteredCommunicationItems, "Communication")}
-
-            {/* Admin Navigation */}
-            {filteredAdminItems.length > 0 && (
-              <>
-                <div className="border-t border-slate-200 my-4" />
-                <div className="px-2 mb-2">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                    Administration
-                  </p>
-                </div>
-                {filteredAdminItems.map((item) => {
-                  const Icon = item.icon
-                  const isActive = location === item.href
-                  
-                  return (
-                    <Link key={item.href} href={item.href}>
-                      <Button
-                        variant={isActive ? "secondary" : "ghost"}
-                        className={cn(
-                          "w-full justify-start text-sm font-medium",
-                          isActive 
-                            ? "text-red-600 bg-red-50 hover:bg-red-100" 
-                            : "text-slate-700 hover:bg-slate-100"
-                        )}
-                        onClick={onClose}
-                      >
-                        <Icon className="w-5 h-5 mr-3" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  )
-                })}
-              </>
-            )}
+          <nav className="flex-1 px-4 py-4 space-y-1">
+            {filteredNavigationItems.map((item) => {
+              const Icon = item.icon
+              const isActive = location === item.href
+              
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant={isActive ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start text-sm font-medium",
+                      isActive 
+                        ? "text-blue-600 bg-blue-50 hover:bg-blue-100" 
+                        : "text-slate-700 hover:bg-slate-100"
+                    )}
+                    onClick={onClose}
+                  >
+                    <Icon className="w-5 h-5 mr-3" />
+                    {item.label}
+                  </Button>
+                </Link>
+              )
+            })}
 
             {/* Divider */}
             <div className="border-t border-slate-200 my-4" />

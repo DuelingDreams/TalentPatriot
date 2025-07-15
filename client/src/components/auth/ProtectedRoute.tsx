@@ -6,14 +6,12 @@ import { Loader2 } from 'lucide-react'
 interface ProtectedRouteProps {
   children: React.ReactNode
   requiredRole?: string
-  allowedRoles?: string[]
   redirectTo?: string
 }
 
 export function ProtectedRoute({ 
   children, 
   requiredRole, 
-  allowedRoles,
   redirectTo = '/login' 
 }: ProtectedRouteProps) {
   const { user, userRole, loading } = useAuth()
@@ -28,14 +26,7 @@ export function ProtectedRoute({
         return
       }
 
-      // Check role permissions
       if (requiredRole && userRole !== requiredRole) {
-        setLocation('/unauthorized')
-        setShouldRender(false)
-        return
-      }
-
-      if (allowedRoles && userRole && !allowedRoles.includes(userRole)) {
         setLocation('/unauthorized')
         setShouldRender(false)
         return
@@ -43,7 +34,7 @@ export function ProtectedRoute({
 
       setShouldRender(true)
     }
-  }, [user, userRole, loading, requiredRole, allowedRoles, redirectTo, setLocation])
+  }, [user, userRole, loading, requiredRole, redirectTo, setLocation])
 
   if (loading) {
     return (

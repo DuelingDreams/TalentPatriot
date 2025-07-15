@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { CandidateNotes } from '@/components/CandidateNotes'
 import { AlertCircle, Calendar, MessageSquare, User, FileText, Phone, Mail, ExternalLink } from 'lucide-react'
 import { getDemoPipelineData, getDemoClientById, getDemoJobById, getDemoCandidateById, getDemoNotesForJobCandidate } from '@/lib/demo-data'
 
@@ -87,18 +86,6 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                 Resume
               </Button>
             )}
-          </div>
-          
-          <div className="mt-3">
-            <CandidateNotes
-              jobCandidateId={candidate.id}
-              candidateName={candidateInfo.name}
-            >
-              <Button size="sm" variant="outline" className="text-xs w-full">
-                <MessageSquare className="w-3 h-3 mr-1" />
-                Notes ({notes.length})
-              </Button>
-            </CandidateNotes>
           </div>
         </div>
       </CardContent>
