@@ -164,8 +164,9 @@ export function useCreateJob() {
       return data
     },
     onSuccess: () => {
-      // Invalidate and refetch jobs list
+      // Invalidate and refetch jobs list and clients (for job counts)
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
     }
   })
 }
