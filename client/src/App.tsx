@@ -17,6 +17,11 @@ import Messages from "@/pages/Messages";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Unauthorized from "@/pages/Unauthorized";
+import DemoMode from "@/pages/DemoMode";
+import DemoJobs from "@/pages/demo/DemoJobs";
+import DemoClients from "@/pages/demo/DemoClients";
+import DemoCandidates from "@/pages/demo/DemoCandidates";
+import { DemoProvider } from "@/contexts/DemoContext";
 
 function Router() {
   return (
@@ -25,6 +30,31 @@ function Router() {
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/unauthorized" component={Unauthorized} />
+      
+      {/* Demo routes */}
+      <Route path="/demo">
+        <DemoProvider>
+          <DemoMode />
+        </DemoProvider>
+      </Route>
+      
+      <Route path="/demo/jobs">
+        <DemoProvider>
+          <DemoJobs />
+        </DemoProvider>
+      </Route>
+      
+      <Route path="/demo/clients">
+        <DemoProvider>
+          <DemoClients />
+        </DemoProvider>
+      </Route>
+      
+      <Route path="/demo/candidates">
+        <DemoProvider>
+          <DemoCandidates />
+        </DemoProvider>
+      </Route>
       
       {/* Protected routes */}
       <Route path="/dashboard">

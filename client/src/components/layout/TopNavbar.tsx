@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { UserProfile } from '@/components/auth/UserProfile'
@@ -16,6 +17,8 @@ interface TopNavbarProps {
 
 export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNavbarProps) {
   const [hasNotifications] = useState(true)
+  const [location] = useLocation()
+  const isDemoMode = location.startsWith('/demo')
 
 
 
@@ -70,7 +73,7 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
           </Button>
 
           {/* User Profile */}
-          <UserProfile />
+          {!isDemoMode && <UserProfile />}
         </div>
       </div>
     </header>

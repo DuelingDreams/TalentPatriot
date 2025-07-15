@@ -34,6 +34,12 @@ Preferred communication style: Simple, everyday language.
 - Updated sidebar navigation to show/hide links based on user roles
 - Created demo user accounts for testing different role permissions
 - Enhanced login form with "Remember Me" functionality and better UX
+- Created public demo mode at `/demo` route with read-only access to sample data
+- Built demo dashboard, jobs, clients, and candidates pages with disabled editing
+- Added demo mode banner and navigation with "Exit Demo" functionality
+- Implemented DemoProvider context for demo user state management
+- Created specialized demo layout components with demo-specific sidebar
+- Added demo mode link to login page for easy access without authentication
 
 ## System Architecture
 
