@@ -338,6 +338,44 @@ export default function DemoMode() {
           <RecentJobs />
           <RecentCandidates />
         </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              Quick Access
+            </CardTitle>
+            <CardDescription>Explore different areas of the ATS demo</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button variant="outline" asChild>
+                <a href="/demo/pipeline" className="justify-start">
+                  <Users className="w-4 h-4 mr-2" />
+                  View Candidate Pipeline
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/demo/jobs" className="justify-start">
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  Browse Job Listings
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/demo/clients" className="justify-start">
+                  <Building2 className="w-4 h-4 mr-2" />
+                  View Client Database
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/demo/candidates" className="justify-start">
+                  <Users className="w-4 h-4 mr-2" />
+                  Candidate Profiles
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         <ClientsList />
 

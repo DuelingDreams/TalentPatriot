@@ -21,6 +21,7 @@ import DemoMode from "@/pages/DemoMode";
 import DemoJobs from "@/pages/demo/DemoJobs";
 import DemoClients from "@/pages/demo/DemoClients";
 import DemoCandidates from "@/pages/demo/DemoCandidates";
+import DemoKanban from "@/pages/demo/DemoKanban";
 import { DemoProvider } from "@/contexts/DemoContext";
 
 function Router() {
@@ -53,6 +54,12 @@ function Router() {
       <Route path="/demo/candidates">
         <DemoProvider>
           <DemoCandidates />
+        </DemoProvider>
+      </Route>
+      
+      <Route path="/demo/pipeline">
+        <DemoProvider>
+          <DemoKanban />
         </DemoProvider>
       </Route>
       

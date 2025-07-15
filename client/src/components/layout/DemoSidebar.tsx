@@ -27,6 +27,7 @@ const navigationItems = [
   { label: 'Jobs (Demo)', href: '/demo/jobs', icon: Briefcase },
   { label: 'Clients (Demo)', href: '/demo/clients', icon: Building2 },
   { label: 'Candidates (Demo)', href: '/demo/candidates', icon: Users },
+  { label: 'Pipeline (Demo)', href: '/demo/pipeline', icon: Users },
 ]
 
 const secondaryItems = [

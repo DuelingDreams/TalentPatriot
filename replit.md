@@ -43,6 +43,11 @@ Preferred communication style: Simple, everyday language.
 - Set up authenticated demo user in Supabase Auth (demo@yourapp.com)
 - Enhanced login page with "Try Demo Account" button for immediate access
 - Created security recommendations document for demo mode protection
+- Built read-only Kanban pipeline dashboard for demo mode
+- Added candidate pipeline visualization with 8 stages (Applied → Hired/Rejected)
+- Implemented comprehensive candidate cards with skills, notes, and job information
+- Added pipeline statistics and progress tracking
+- Created navigation between demo dashboard and pipeline views
 
 ## System Architecture
 
