@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
+import { demoClients, demoCandidates, demoJobs, demoJobCandidates, getDemoJobCandidatesByJobId } from '@/lib/demo-data'
 import type { Job, Candidate, Client } from '@/../../shared/schema'
 
 // Hook to fetch all jobs
@@ -21,11 +22,11 @@ export function useJobs() {
           )
         `)
       
-      // Filter based on user role
+      // Filter based on user role - use recordStatus column name from schema
       if (userRole === 'demo_viewer') {
-        query = query.eq('record_status', 'demo')
+        query = query.eq('recordStatus', 'demo')
       } else {
-        query = query.is('record_status', null).or('record_status.neq.demo')
+        query = query.neq('recordStatus', 'demo').or('recordStatus.is.null')
       }
       
       query = query.order('created_at', { ascending: false })
@@ -33,6 +34,14 @@ export function useJobs() {
       const { data, error } = await query
 
       if (error) {
+        console.warn('Supabase jobs query failed, using demo data:', error.message)
+        // Return demo data if database query fails
+        if (userRole === 'demo_viewer') {
+          return demoJobs.map(job => ({
+            ...job,
+            clients: demoClients.find(client => client.id === job.clientId) || demoClients[0]
+          }))
+        }
         throw new Error(error.message)
       }
 
@@ -87,6 +96,19 @@ export function useCandidatesForJob(jobId: string | null) {
       const { data, error } = await query
 
       if (error) {
+        console.warn('Supabase job candidates query failed, using demo data:', error.message)
+        // Return demo data if database query fails
+        if (userRole === 'demo_viewer') {
+          const demoJobCandidatesForJob = getDemoJobCandidatesByJobId(jobId)
+          return demoJobCandidatesForJob.map(jc => ({
+            id: jc.id,
+            stage: jc.stage,
+            notes: jc.notes,
+            assigned_to: jc.assignedTo,
+            updated_at: jc.updatedAt,
+            candidates: demoCandidates.find(c => c.id === jc.candidateId) || demoCandidates[0]
+          }))
+        }
         throw new Error(error.message)
       }
 
@@ -118,7 +140,7 @@ export function useClients() {
       if (userRole === 'demo_viewer') {
         query = query.eq('status', 'demo')
       } else {
-        query = query.is('status', null).or('status.neq.demo')
+        query = query.neq('status', 'demo').or('status.is.null')
       }
       
       query = query.order('name', { ascending: true })
@@ -126,6 +148,11 @@ export function useClients() {
       const { data, error } = await query
 
       if (error) {
+        console.warn('Supabase clients query failed, using demo data:', error.message)
+        // Return demo data if database query fails
+        if (userRole === 'demo_viewer') {
+          return demoClients
+        }
         throw new Error(error.message)
       }
 
@@ -149,7 +176,7 @@ export function useCandidates() {
       if (userRole === 'demo_viewer') {
         query = query.eq('status', 'demo')
       } else {
-        query = query.is('status', null).or('status.neq.demo')
+        query = query.neq('status', 'demo').or('status.is.null')
       }
       
       query = query.order('created_at', { ascending: false })
@@ -157,6 +184,11 @@ export function useCandidates() {
       const { data, error } = await query
 
       if (error) {
+        console.warn('Supabase candidates query failed, using demo data:', error.message)
+        // Return demo data if database query fails
+        if (userRole === 'demo_viewer') {
+          return demoCandidates
+        }
         throw new Error(error.message)
       }
 
