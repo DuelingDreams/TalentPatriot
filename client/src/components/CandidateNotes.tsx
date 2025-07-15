@@ -52,11 +52,14 @@ export function CandidateNotes({ jobCandidateId, candidateName, children }: Cand
   }
 
   const formatAuthorId = (authorId: string) => {
-    // For now, show a user-friendly name based on the author ID
-    // In a real app, you'd fetch user profiles from auth
+    // Show a user-friendly name based on the author ID
     if (authorId.startsWith('recruiter-user-')) {
       return 'Recruiter'
     }
+    if (authorId.startsWith('anonymous-user-')) {
+      return 'Anonymous'
+    }
+    // For real user IDs from Supabase Auth, show first 8 characters
     return authorId.slice(0, 8) + '...'
   }
 

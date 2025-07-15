@@ -286,9 +286,9 @@ export function useCreateCandidateNote() {
   
   return useMutation({
     mutationFn: async ({ jobCandidateId, content }: { jobCandidateId: string, content: string }) => {
-      // For now, use a placeholder author ID since auth isn't set up yet
-      // In a real app, this would get the authenticated user ID
-      const authorId = 'recruiter-user-' + Date.now().toString().slice(-4)
+      // Get the current authenticated user
+      const { data: { user } } = await supabase.auth.getUser()
+      const authorId = user?.id || 'anonymous-user-' + Date.now().toString().slice(-4)
 
       const { data, error } = await supabase
         .from('candidate_notes')
