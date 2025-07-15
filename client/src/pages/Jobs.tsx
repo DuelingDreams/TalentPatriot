@@ -10,11 +10,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs, useClients, useCreateJob } from '@/hooks/useJobs'
+import { useAuth } from '@/contexts/AuthContext'
+import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { insertJobSchema } from '@/../../shared/schema'
 import { z } from 'zod'
-import { Plus, Briefcase, Building2, Calendar, Loader2, Users } from 'lucide-react'
+import { Plus, Briefcase, Building2, Calendar, Loader2, Users, AlertCircle } from 'lucide-react'
 import { Link } from 'wouter'
 
 // Form schema for new job creation
@@ -28,11 +30,17 @@ type NewJobFormData = z.infer<typeof newJobSchema>
 export default function Jobs() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { toast } = useToast()
+  const { userRole } = useAuth()
 
   // Fetch data using our hooks
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
   const { data: clients, isLoading: clientsLoading } = useClients()
   const createJobMutation = useCreateJob()
+  
+  // Use demo data for demo users
+  const displayJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
+  const displayClients = userRole === 'demo_viewer' ? getDemoClientStats() : clients || []
+  const isDemoMode = userRole === 'demo_viewer'
 
   // Form setup
   const form = useForm<NewJobFormData>({
@@ -47,6 +55,15 @@ export default function Jobs() {
 
   // Handle form submission
   const onSubmit = async (data: NewJobFormData) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Creating jobs is disabled in demo mode.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     try {
       await createJobMutation.mutateAsync(data)
       toast({
@@ -213,9 +230,9 @@ export default function Jobs() {
         )}
 
         {/* Jobs Grid */}
-        {jobs && jobs.length > 0 ? (
+        {displayJobs && displayJobs.length > 0 ? (
           <div className="grid gap-6">
-            {jobs.map((job) => (
+            {displayJobs.map((job) => (
               <Card key={job.id} className="bg-white shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
@@ -228,11 +245,11 @@ export default function Jobs() {
                           <h3 className="text-lg font-semibold text-slate-900">{job.title}</h3>
                           <div className="flex items-center gap-2 text-sm text-slate-600">
                             <Building2 className="w-4 h-4" />
-                            <span>{job.clients?.name}</span>
-                            {job.clients?.industry && (
+                            <span>{job.client?.name}</span>
+                            {job.client?.industry && (
                               <>
                                 <span>•</span>
-                                <span>{job.clients.industry}</span>
+                                <span>{job.client.industry}</span>
                               </>
                             )}
                           </div>
@@ -246,7 +263,7 @@ export default function Jobs() {
                       <div className="flex items-center gap-4 text-sm text-slate-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          <span>Created {new Date(job.created_at).toLocaleDateString()}</span>
+                          <span>Created {new Date(job.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>

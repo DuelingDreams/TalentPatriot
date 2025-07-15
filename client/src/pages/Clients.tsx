@@ -13,7 +13,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients'
-import { Plus, Search, Building2, MapPin, Globe, User, Mail, Phone, Calendar, Briefcase, MoreHorizontal, Edit, Trash2, Loader2 } from 'lucide-react'
+import { useAuth } from '@/contexts/AuthContext'
+import { getDemoClientStats } from '@/lib/demo-data'
+import { Plus, Search, Building2, MapPin, Globe, User, Mail, Phone, Calendar, Briefcase, MoreHorizontal, Edit, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Link } from 'wouter'
@@ -53,12 +55,17 @@ export default function Clients() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
+  const { userRole } = useAuth()
   const { toast } = useToast()
 
   const { data: clients, isLoading } = useClients()
   const createClientMutation = useCreateClient()
   const updateClientMutation = useUpdateClient()
   const deleteClientMutation = useDeleteClient()
+  
+  // Use demo data for demo users
+  const displayClients = userRole === 'demo_viewer' ? getDemoClientStats() : clients || []
+  const isDemoMode = userRole === 'demo_viewer'
 
   const form = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
@@ -74,13 +81,22 @@ export default function Clients() {
     },
   })
 
-  const filteredClients = clients?.filter(client =>
+  const filteredClients = displayClients?.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.location?.toLowerCase().includes(searchQuery.toLowerCase())
   ) || []
 
   const onSubmit = async (data: ClientFormData) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Adding/editing clients is disabled in demo mode.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     try {
       if (editingClient) {
         await updateClientMutation.mutateAsync({ id: editingClient.id, ...data })
@@ -109,6 +125,15 @@ export default function Clients() {
   }
 
   const handleEdit = (client: Client) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Editing clients is disabled in demo mode.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     setEditingClient(client)
     form.reset({
       name: client.name,
@@ -123,6 +148,15 @@ export default function Clients() {
   }
 
   const handleDelete = async (clientId: string) => {
+    if (isDemoMode) {
+      toast({
+        title: "Demo Mode",
+        description: "Deleting clients is disabled in demo mode.",
+        variant: "destructive",
+      })
+      return
+    }
+    
     if (window.confirm('Are you sure you want to delete this client?')) {
       try {
         await deleteClientMutation.mutateAsync(clientId)
@@ -288,6 +322,19 @@ export default function Clients() {
   return (
     <DashboardLayout pageTitle="Clients">
       <div className="space-y-6">
+        {/* Demo Mode Banner */}
+        {isDemoMode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-blue-600" />
+              <span className="text-blue-800 font-medium">Demo Mode - Read Only</span>
+            </div>
+            <p className="text-sm text-blue-600 mt-1">
+              You're viewing sample client data. All editing features are disabled in demo mode.
+            </p>
+          </div>
+        )}
+        
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
           <div>
@@ -308,7 +355,7 @@ export default function Clients() {
             
             <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button disabled={isDemoMode}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add Client
                 </Button>

@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast'
 import { useJobs, useCandidatesForJob, useUpdateCandidateStage } from '@/hooks/useJobs'
 import { ResumeUpload } from '@/components/ResumeUpload'
 import { CandidateNotes } from '@/components/CandidateNotes'
+import { DemoKanbanBoard } from '@/components/DemoKanbanBoard'
+import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare } from 'lucide-react'
 import { Link } from 'wouter'
 
@@ -180,6 +182,16 @@ export default function JobPipeline() {
   const [activeCandidate, setActiveCandidate] = useState<CandidateCardProps['candidate'] | null>(null)
   const [activeTab, setActiveTab] = useState('candidates')
   const { toast } = useToast()
+  const { userRole } = useAuth()
+
+  // Show demo kanban board for demo viewers
+  if (userRole === 'demo_viewer') {
+    return (
+      <DashboardLayout>
+        <DemoKanbanBoard />
+      </DashboardLayout>
+    )
+  }
 
   // Fetch data
   const { data: jobs } = useJobs()
