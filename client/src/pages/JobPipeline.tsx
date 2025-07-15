@@ -13,7 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs, useCandidatesForJob, useUpdateCandidateStage } from '@/hooks/useJobs'
 import { ResumeUpload } from '@/components/ResumeUpload'
-import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2 } from 'lucide-react'
+import { CandidateNotes } from '@/components/CandidateNotes'
+import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare } from 'lucide-react'
 import { Link } from 'wouter'
 
 // Define the pipeline stages
@@ -97,13 +98,22 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                   {candidate.notes}
                 </p>
               )}
-              <div className="mt-3">
+              <div className="mt-3 space-y-2">
                 <ResumeUpload
                   candidateId={candidate.candidates.id}
                   candidateName={candidate.candidates.name}
                   currentResumeUrl={candidate.candidates.resume_url}
                   onResumeUploaded={() => {}} // Pipeline view is read-only for resumes
                 />
+                <CandidateNotes
+                  jobCandidateId={candidate.id}
+                  candidateName={candidate.candidates.name}
+                >
+                  <Button size="sm" variant="outline" className="text-xs w-full">
+                    <MessageSquare className="w-3 h-3 mr-1" />
+                    Notes
+                  </Button>
+                </CandidateNotes>
               </div>
               {candidate.assigned_to && (
                 <div className="mt-2">

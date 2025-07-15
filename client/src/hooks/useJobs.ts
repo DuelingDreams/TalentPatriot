@@ -203,3 +203,62 @@ export function useUpdateCandidateStage() {
     }
   })
 }
+
+// Hook to fetch candidate notes for a specific job candidate
+export function useCandidateNotes(jobCandidateId: string | null) {
+  return useQuery({
+    queryKey: ['candidate-notes', jobCandidateId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .select('*')
+        .eq('job_candidate_id', jobCandidateId)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data as {
+        id: string
+        job_candidate_id: string
+        author_id: string
+        content: string
+        created_at: string
+      }[]
+    },
+    enabled: !!jobCandidateId
+  })
+}
+
+// Hook to create a new candidate note
+export function useCreateCandidateNote() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ jobCandidateId, content }: { jobCandidateId: string, content: string }) => {
+      // For now, use a placeholder author ID since auth isn't set up yet
+      // In a real app, this would get the authenticated user ID
+      const authorId = 'recruiter-user-' + Date.now().toString().slice(-4)
+
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .insert({
+          job_candidate_id: jobCandidateId,
+          author_id: authorId,
+          content
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['candidate-notes', variables.jobCandidateId] })
+    }
+  })
+}
