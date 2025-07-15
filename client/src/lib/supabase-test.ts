@@ -3,19 +3,29 @@ import { supabase } from './supabase'
 
 export async function testSupabaseConnection() {
   try {
-    // Test basic connectivity
+    // Test basic connectivity with a simple select
     const { data, error } = await supabase
       .from('clients')
-      .select('count(*)')
+      .select('id')
       .limit(1)
 
     if (error) {
       console.error('Supabase connection error:', error)
+      
+      // Check if it's a table not found error
+      if (error.code === 'PGRST116' || error.message.includes('does not exist')) {
+        return { 
+          success: false, 
+          error: 'Database tables not found. Please run the SQL schema first.',
+          needsSchema: true
+        }
+      }
+      
       return { success: false, error: error.message }
     }
 
     console.log('✅ Supabase connection successful')
-    return { success: true, data }
+    return { success: true, data, tablesExist: true }
   } catch (error) {
     console.error('Supabase connection failed:', error)
     return { success: false, error: String(error) }
