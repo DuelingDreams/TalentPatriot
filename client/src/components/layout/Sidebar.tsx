@@ -12,7 +12,8 @@ import {
   Calendar, 
   MessageSquare,
   HelpCircle, 
-  FileText 
+  FileText,
+  Shield
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -22,12 +23,16 @@ interface SidebarProps {
 }
 
 const navigationItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
-  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['recruiter', 'bd', 'pm'] },
-  { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd'] },
-  { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd'] },
-  { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm'] },
-  { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm'] },
+  { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['recruiter', 'bd', 'pm', 'demo_viewer', 'admin'] },
+  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['recruiter', 'bd', 'pm', 'admin'] },
+  { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd', 'admin'] },
+  { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd', 'admin'] },
+  { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm', 'admin'] },
+  { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm', 'admin'] },
+]
+
+const adminItems = [
+  { label: 'Role Management', href: '/admin/roles', icon: Shield, roles: ['admin'] },
 ]
 
 const secondaryItems = [
@@ -40,6 +45,10 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const { userRole } = useAuth()
 
   const filteredNavigationItems = navigationItems.filter(item => 
+    !userRole || item.roles.includes(userRole)
+  )
+
+  const filteredAdminItems = adminItems.filter(item => 
     !userRole || item.roles.includes(userRole)
   )
 
@@ -94,6 +103,40 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                 </Link>
               )
             })}
+
+            {/* Admin Navigation */}
+            {filteredAdminItems.length > 0 && (
+              <>
+                <div className="border-t border-slate-200 my-4" />
+                <div className="px-2 mb-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    Administration
+                  </p>
+                </div>
+                {filteredAdminItems.map((item) => {
+                  const Icon = item.icon
+                  const isActive = location === item.href
+                  
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <Button
+                        variant={isActive ? "secondary" : "ghost"}
+                        className={cn(
+                          "w-full justify-start text-sm font-medium",
+                          isActive 
+                            ? "text-red-600 bg-red-50 hover:bg-red-100" 
+                            : "text-slate-700 hover:bg-slate-100"
+                        )}
+                        onClick={onClose}
+                      >
+                        <Icon className="w-5 h-5 mr-3" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                  )
+                })}
+              </>
+            )}
 
             {/* Divider */}
             <div className="border-t border-slate-200 my-4" />

@@ -17,6 +17,7 @@ import Messages from "@/pages/Messages";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Unauthorized from "@/pages/Unauthorized";
+import RoleManagement from "@/pages/RoleManagement";
 // Demo components removed - using authenticated demo account instead
 
 function Router() {
@@ -82,6 +83,12 @@ function Router() {
       <Route path="/messages">
         <ProtectedRoute>
           <Messages />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/admin/roles">
+        <ProtectedRoute requiredRole="admin">
+          <RoleManagement />
         </ProtectedRoute>
       </Route>
       
