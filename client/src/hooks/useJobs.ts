@@ -16,29 +16,12 @@ export function useJobs() {
         return getDemoJobStats() as any[]
       }
       
-      const { data, error } = await supabase
-        .from('jobs')
-        .select(`
-          *,
-          clients (
-            id,
-            name,
-            industry
-          )
-        `)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        throw new Error(error.message)
+      const response = await fetch('/api/jobs')
+      if (!response.ok) {
+        throw new Error('Failed to fetch jobs')
       }
-
-      return data as (Job & {
-        clients: {
-          id: string
-          name: string
-          industry: string | null
-        }
-      })[]
+      
+      return await response.json()
     }
   })
 }
