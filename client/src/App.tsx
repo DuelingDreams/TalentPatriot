@@ -3,6 +3,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
@@ -12,18 +14,73 @@ import ClientDetail from "@/pages/ClientDetail";
 import Candidates from "@/pages/Users";
 import Calendar from "@/pages/Calendar";
 import Messages from "@/pages/Messages";
+import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
+import Unauthorized from "@/pages/Unauthorized";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/jobs" component={Jobs} />
-      <Route path="/jobs/:id" component={JobPipeline} />
-      <Route path="/clients" component={Clients} />
-      <Route path="/clients/:id" component={ClientDetail} />
-      <Route path="/candidates" component={Candidates} />
-      <Route path="/calendar" component={Calendar} />
-      <Route path="/messages" component={Messages} />
+      {/* Public routes */}
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/unauthorized" component={Unauthorized} />
+      
+      {/* Protected routes */}
+      <Route path="/dashboard">
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/">
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/jobs">
+        <ProtectedRoute>
+          <Jobs />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/jobs/:id">
+        <ProtectedRoute>
+          <JobPipeline />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/clients">
+        <ProtectedRoute>
+          <Clients />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/clients/:id">
+        <ProtectedRoute>
+          <ClientDetail />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/candidates">
+        <ProtectedRoute>
+          <Candidates />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/calendar">
+        <ProtectedRoute>
+          <Calendar />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route path="/messages">
+        <ProtectedRoute>
+          <Messages />
+        </ProtectedRoute>
+      </Route>
+      
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
@@ -33,10 +90,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'wouter'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '@/contexts/AuthContext'
 import { 
   Home, 
   Briefcase, 
@@ -21,12 +22,12 @@ interface SidebarProps {
 }
 
 const navigationItems = [
-  { label: 'Dashboard', href: '/', icon: Home },
-  { label: 'Jobs', href: '/jobs', icon: Briefcase },
-  { label: 'Clients', href: '/clients', icon: Building2 },
-  { label: 'Candidates', href: '/candidates', icon: Users },
-  { label: 'Calendar', href: '/calendar', icon: Calendar },
-  { label: 'Messages', href: '/messages', icon: MessageSquare },
+  { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
+  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['recruiter', 'bd', 'pm'] },
+  { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd'] },
+  { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd'] },
+  { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm'] },
+  { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm'] },
 ]
 
 const secondaryItems = [
@@ -36,6 +37,11 @@ const secondaryItems = [
 
 export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const [location] = useLocation()
+  const { userRole } = useAuth()
+
+  const filteredNavigationItems = navigationItems.filter(item => 
+    !userRole || item.roles.includes(userRole)
+  )
 
   return (
     <>
@@ -66,7 +72,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-4 space-y-1">
-            {navigationItems.map((item) => {
+            {filteredNavigationItems.map((item) => {
               const Icon = item.icon
               const isActive = location === item.href
               

@@ -1,23 +1,11 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { UserProfile } from '@/components/auth/UserProfile'
 import { 
   Menu, 
   Search, 
   Bell, 
-  ChevronDown, 
-  User, 
-  Settings, 
-  CreditCard, 
-  LogOut,
   Briefcase 
 } from 'lucide-react'
 
@@ -29,10 +17,7 @@ interface TopNavbarProps {
 export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNavbarProps) {
   const [hasNotifications] = useState(true)
 
-  const handleSignOut = () => {
-    // TODO: Implement Supabase auth.signOut()
-    console.log('Sign out clicked')
-  }
+
 
   return (
     <header className="bg-white border-b border-slate-200">
@@ -84,38 +69,8 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
             )}
           </Button>
 
-          {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center space-x-3 p-2 hover:bg-slate-100">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=64&h=64" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <span className="hidden sm:block text-sm font-medium text-slate-700">John Doe</span>
-                <ChevronDown className="w-4 h-4 text-slate-500" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem>
-                <User className="w-4 h-4 mr-3" />
-                Your Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="w-4 h-4 mr-3" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard className="w-4 h-4 mr-3" />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSignOut}>
-                <LogOut className="w-4 h-4 mr-3" />
-                Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* User Profile */}
+          <UserProfile />
         </div>
       </div>
     </header>
