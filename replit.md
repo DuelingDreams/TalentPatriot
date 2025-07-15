@@ -1,20 +1,31 @@
 # Project Overview
 
-This is a full-stack web application built with React frontend and Express backend, featuring a modern dashboard interface with user management capabilities. The application uses TypeScript throughout and implements a clean, component-based architecture.
+This is a full-stack ATS (Applicant Tracking System) web application built with React frontend and Express backend, featuring a modern dashboard interface for managing recruitment pipelines. The application uses TypeScript throughout and implements a clean, component-based architecture.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+**July 15, 2025**: 
+- Converted from generic dashboard to ATS (Applicant Tracking System)
+- Updated navigation: Dashboard, Jobs, Clients, Candidates, Calendar, Messages
+- Created comprehensive database schema with 5 tables (clients, jobs, candidates, job_candidate, candidate_notes)
+- Implemented UUID-based primary keys with proper foreign key relationships
+- Added job status and candidate stage enums
+- Generated complete SQL schema for Supabase deployment
+
 ## System Architecture
 
 ### Frontend Architecture
 - **Framework**: React with TypeScript
-- **Routing**: Wouter for client-side routing
+- **Routing**: Wouter for client-side routing  
 - **UI Framework**: Radix UI components with Tailwind CSS styling
 - **Component Library**: Shadcn/ui component system
 - **State Management**: TanStack React Query for server state
 - **Build Tool**: Vite with custom configuration
+- **Design**: Light mode with soft gray backgrounds and rounded cards
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
@@ -25,14 +36,18 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 - **ORM**: Drizzle ORM for type-safe database operations
-- **Database**: PostgreSQL (via Neon Database serverless)
+- **Database**: PostgreSQL via Supabase
+- **Schema**: ATS-specific tables with UUID primary keys
 - **Migrations**: Drizzle-kit for schema migrations
-- **Development Storage**: In-memory storage interface for development
+- **Development Storage**: In-memory storage interface for ATS entities
 
-### Authentication & Session Management
-- **Provider**: Supabase integration prepared
-- **Session Storage**: PostgreSQL session store (connect-pg-simple)
-- **User Management**: Basic user schema with username/password
+### Database Schema
+- **clients**: Company information with contact details
+- **jobs**: Job postings linked to clients with status tracking
+- **candidates**: Candidate profiles with contact and resume information
+- **job_candidate**: Many-to-many relationship with application stage and notes
+- **candidate_notes**: Detailed notes for each job application
+- **Constraints**: Unique constraint on (job_id, candidate_id) pairs
 
 ## Key Components
 
