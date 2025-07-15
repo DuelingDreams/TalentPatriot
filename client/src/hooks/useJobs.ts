@@ -141,6 +141,31 @@ export function useCreateJob() {
   })
 }
 
+// Hook to create a new candidate
+export function useCreateCandidate() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (newCandidate: { name: string; email: string; phone?: string; resume_url?: string }) => {
+      const { data, error } = await supabase
+        .from('candidates')
+        .insert(newCandidate)
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      return data
+    },
+    onSuccess: () => {
+      // Invalidate and refetch candidates list
+      queryClient.invalidateQueries({ queryKey: ['candidates'] })
+    }
+  })
+}
+
 // Hook to update candidate stage in a job
 export function useUpdateCandidateStage() {
   const queryClient = useQueryClient()
