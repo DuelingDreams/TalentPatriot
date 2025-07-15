@@ -1,12 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
+import { getDemoJobStats, getDemoPipelineData } from '@/lib/demo-data'
 import type { Job, Candidate, Client } from '@/../../shared/schema'
 
 // Hook to fetch all jobs
 export function useJobs() {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['jobs'],
+    queryKey: ['jobs', userRole],
     queryFn: async () => {
+      // Return demo data for demo users
+      if (userRole === 'demo_viewer') {
+        return getDemoJobStats() as any[]
+      }
+      
       const { data, error } = await supabase
         .from('jobs')
         .select(`
@@ -36,10 +45,19 @@ export function useJobs() {
 
 // Hook to fetch candidates for a specific job
 export function useCandidatesForJob(jobId: string | null) {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['job-candidates', jobId],
+    queryKey: ['job-candidates', jobId, userRole],
     queryFn: async () => {
       if (!jobId) return []
+
+      // Return demo data for demo users
+      if (userRole === 'demo_viewer') {
+        const pipelineData = getDemoPipelineData()
+        const allCandidates = pipelineData.flatMap(stage => stage.candidates)
+        return allCandidates
+      }
 
       const { data, error } = await supabase
         .from('job_candidate')
@@ -99,9 +117,20 @@ export function useClients() {
 
 // Hook to fetch all candidates
 export function useCandidates() {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['candidates'],
+    queryKey: ['candidates', userRole],
     queryFn: async () => {
+      // Return demo data for demo users
+      if (userRole === 'demo_viewer') {
+        const pipelineData = getDemoPipelineData()
+        const allCandidates = pipelineData.flatMap(stage => 
+          stage.candidates.map(c => c.candidates)
+        )
+        return allCandidates
+      }
+      
       const { data, error } = await supabase
         .from('candidates')
         .select('*')

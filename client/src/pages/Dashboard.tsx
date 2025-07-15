@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/contexts/AuthContext'
 import { testSupabaseConnection } from '@/lib/supabase-test'
 import { useJobs, useClients, useCandidates } from '@/hooks/useJobs'
+import { getDemoClientStats, getDemoJobStats, getDemoPipelineData } from '@/lib/demo-data'
 import { JobCandidatesTest } from '@/components/test/JobCandidatesTest'
 import { 
   Plus, 
@@ -52,6 +54,7 @@ interface TeamMember {
 export default function Dashboard() {
   const [supabaseStatus, setSupabaseStatus] = useState<'testing' | 'connected' | 'error'>('testing')
   const { toast } = useToast()
+  const { userRole } = useAuth()
 
   // Fetch real data using our hooks
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
@@ -78,10 +81,24 @@ export default function Dashboard() {
     })
   }, [toast])
 
-  // Calculate real stats from data
-  const openJobsCount = jobs?.filter(job => job.status === 'open').length || 0
-  const totalCandidatesCount = candidates?.length || 0
-  const totalClientsCount = clients?.length || 0
+  // Calculate real stats from data or demo data
+  let openJobsCount = 0
+  let totalCandidatesCount = 0
+  let totalClientsCount = 0
+  
+  if (userRole === 'demo_viewer') {
+    const demoJobs = getDemoJobStats()
+    const demoClients = getDemoClientStats()
+    const demoPipeline = getDemoPipelineData()
+    
+    openJobsCount = demoJobs.filter(job => job.status === 'open').length
+    totalClientsCount = demoClients.length
+    totalCandidatesCount = demoPipeline.reduce((total, stage) => total + stage.candidates.length, 0)
+  } else {
+    openJobsCount = jobs?.filter(job => job.status === 'open').length || 0
+    totalCandidatesCount = candidates?.length || 0
+    totalClientsCount = clients?.length || 0
+  }
 
   const stats: StatCard[] = [
     {

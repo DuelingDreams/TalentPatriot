@@ -55,6 +55,12 @@ function Router() {
         </ProtectedRoute>
       </Route>
       
+      <Route path="/pipeline">
+        <ProtectedRoute>
+          <JobPipeline />
+        </ProtectedRoute>
+      </Route>
+      
       <Route path="/clients">
         <ProtectedRoute>
           <Clients />

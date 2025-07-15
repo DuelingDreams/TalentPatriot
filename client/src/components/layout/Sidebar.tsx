@@ -12,7 +12,8 @@ import {
   Calendar, 
   MessageSquare,
   HelpCircle, 
-  FileText 
+  FileText,
+  BarChart3
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -23,9 +24,10 @@ interface SidebarProps {
 
 const navigationItems = [
   { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
-  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['recruiter', 'bd', 'pm'] },
-  { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd'] },
-  { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd'] },
+  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
+  { label: 'Pipeline', href: '/pipeline', icon: BarChart3, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
+  { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd', 'demo_viewer'] },
+  { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd', 'demo_viewer'] },
   { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm'] },
   { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm'] },
 ]

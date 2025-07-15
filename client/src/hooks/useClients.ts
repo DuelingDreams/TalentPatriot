@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
+import { useAuth } from '@/contexts/AuthContext'
+import { getDemoClientStats } from '@/lib/demo-data'
 
 interface Client {
   id: string
@@ -35,9 +37,16 @@ interface UpdateClientData extends CreateClientData {
 
 // Hook to fetch all clients
 export function useClients() {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', userRole],
     queryFn: async () => {
+      // Return demo data for demo users
+      if (userRole === 'demo_viewer') {
+        return getDemoClientStats() as Client[]
+      }
+      
       const response = await fetch('/api/clients')
       if (!response.ok) {
         throw new Error('Failed to fetch clients')
