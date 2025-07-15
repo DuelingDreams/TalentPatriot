@@ -151,17 +151,22 @@ export function useCreateJob() {
 
   return useMutation({
     mutationFn: async (newJob: { title: string; description?: string; client_id: string; status?: string }) => {
-      const { data, error } = await supabase
-        .from('jobs')
-        .insert(newJob)
-        .select()
-        .single()
+      const response = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newJob.title,
+          description: newJob.description,
+          clientId: newJob.client_id, // Map client_id to clientId for backend API
+          status: newJob.status || 'open'
+        })
+      })
 
-      if (error) {
-        throw new Error(error.message)
+      if (!response.ok) {
+        throw new Error('Failed to create job')
       }
 
-      return data
+      return await response.json()
     },
     onSuccess: () => {
       // Invalidate and refetch jobs list and clients (for job counts)
