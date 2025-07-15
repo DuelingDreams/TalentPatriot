@@ -17,12 +17,7 @@ import Messages from "@/pages/Messages";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Unauthorized from "@/pages/Unauthorized";
-import DemoMode from "@/pages/DemoMode";
-import DemoJobs from "@/pages/demo/DemoJobs";
-import DemoClients from "@/pages/demo/DemoClients";
-import DemoCandidates from "@/pages/demo/DemoCandidates";
-import DemoKanban from "@/pages/demo/DemoKanban";
-import { DemoProvider } from "@/contexts/DemoContext";
+// Demo components removed - using authenticated demo account instead
 
 function Router() {
   return (
@@ -33,35 +28,7 @@ function Router() {
       <Route path="/unauthorized" component={Unauthorized} />
       
       {/* Demo routes */}
-      <Route path="/demo">
-        <DemoProvider>
-          <DemoMode />
-        </DemoProvider>
-      </Route>
-      
-      <Route path="/demo/jobs">
-        <DemoProvider>
-          <DemoJobs />
-        </DemoProvider>
-      </Route>
-      
-      <Route path="/demo/clients">
-        <DemoProvider>
-          <DemoClients />
-        </DemoProvider>
-      </Route>
-      
-      <Route path="/demo/candidates">
-        <DemoProvider>
-          <DemoCandidates />
-        </DemoProvider>
-      </Route>
-      
-      <Route path="/demo/pipeline">
-        <DemoProvider>
-          <DemoKanban />
-        </DemoProvider>
-      </Route>
+      {/* Demo routes no longer needed since we use authenticated demo account */}
       
       {/* Protected routes */}
       <Route path="/dashboard">

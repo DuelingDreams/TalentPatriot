@@ -34,12 +34,10 @@ Preferred communication style: Simple, everyday language.
 - Updated sidebar navigation to show/hide links based on user roles
 - Created demo user accounts for testing different role permissions
 - Enhanced login form with "Remember Me" functionality and better UX
-- Created public demo mode at `/demo` route with read-only access to sample data
-- Built demo dashboard, jobs, clients, and candidates pages with disabled editing
-- Added demo mode banner and navigation with "Exit Demo" functionality
-- Implemented DemoProvider context for demo user state management
-- Created specialized demo layout components with demo-specific sidebar
-- Added demo mode link to login page for easy access without authentication
+- Removed unauthenticated demo routes in favor of authenticated demo account
+- Simplified login UI to single "Try Demo Account" button for better UX
+- Authenticated demo provides full ATS experience with proper role-based restrictions
+- Cleaned up unused demo components and files for simpler codebase
 - Set up authenticated demo user in Supabase Auth (demo@yourapp.com)
 - Enhanced login page with "Try Demo Account" button for immediate access
 - Created security recommendations document for demo mode protection
