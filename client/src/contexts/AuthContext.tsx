@@ -68,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       options: {
         data: {
           role: role,
+          name: email.split('@')[0], // Use email prefix as default name
         },
       },
     })

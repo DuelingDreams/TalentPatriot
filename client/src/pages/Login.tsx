@@ -1,20 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'wouter'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Building2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { Loader2, Building2, Eye, EyeOff } from 'lucide-react'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   
   const { signIn, user } = useAuth()
   const [, setLocation] = useLocation()
@@ -27,8 +31,41 @@ export default function Login() {
     }
   }, [user, setLocation])
 
+  const validateForm = () => {
+    let isValid = true
+    setEmailError('')
+    setPasswordError('')
+    setError('')
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email) {
+      setEmailError('Email is required')
+      isValid = false
+    } else if (!emailRegex.test(email)) {
+      setEmailError('Please enter a valid email address')
+      isValid = false
+    }
+
+    // Password validation
+    if (!password) {
+      setPasswordError('Password is required')
+      isValid = false
+    } else if (password.length < 6) {
+      setPasswordError('Password must be at least 6 characters')
+      isValid = false
+    }
+
+    return isValid
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -36,8 +73,24 @@ export default function Login() {
       const { error } = await signIn(email, password)
       
       if (error) {
-        setError(error.message)
+        // Handle specific Supabase errors
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.')
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link before signing in.')
+        } else if (error.message.includes('Too many requests')) {
+          setError('Too many login attempts. Please wait a moment before trying again.')
+        } else {
+          setError(error.message)
+        }
       } else {
+        // Save remember me preference
+        if (rememberMe) {
+          localStorage.setItem('rememberMe', 'true')
+        } else {
+          localStorage.removeItem('rememberMe')
+        }
+        
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
@@ -45,11 +98,22 @@ export default function Login() {
         setLocation('/dashboard')
       }
     } catch (err) {
-      setError('An unexpected error occurred')
+      setError('Network error. Please check your connection and try again.')
     } finally {
       setLoading(false)
     }
   }
+
+  // Load saved email if remember me was checked
+  useEffect(() => {
+    const savedRememberMe = localStorage.getItem('rememberMe')
+    const savedEmail = localStorage.getItem('savedEmail')
+    
+    if (savedRememberMe === 'true' && savedEmail) {
+      setEmail(savedEmail)
+      setRememberMe(true)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
@@ -78,29 +142,69 @@ export default function Login() {
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="name@company.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    if (emailError) setEmailError('')
+                  }}
                   disabled={loading}
+                  className={emailError ? 'border-red-500 focus-visible:ring-red-500' : ''}
                 />
+                {emailError && (
+                  <p className="text-sm text-red-600">{emailError}</p>
+                )}
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      if (passwordError) setPasswordError('')
+                    }}
+                    disabled={loading}
+                    className={passwordError ? 'border-red-500 focus-visible:ring-red-500 pr-10' : 'pr-10'}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-slate-500" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-slate-500" />
+                    )}
+                  </Button>
+                </div>
+                {passwordError && (
+                  <p className="text-sm text-red-600">{passwordError}</p>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="remember"
+                  checked={rememberMe}
+                  onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   disabled={loading}
                 />
+                <Label htmlFor="remember" className="text-sm text-slate-600">
+                  Remember me for 30 days
+                </Label>
               </div>
               
               <Button 
@@ -126,14 +230,13 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center">
-          <p className="text-xs text-slate-500">
-            Demo Accounts: 
-            <br />
-            Recruiter: recruiter@demo.com / password123
-            <br />
-            BD: bd@demo.com / password123
-          </p>
+        <div className="mt-8 p-4 bg-slate-100 rounded-lg">
+          <p className="text-xs font-medium text-slate-700 mb-2">Demo Accounts for Testing:</p>
+          <div className="space-y-1 text-xs text-slate-600">
+            <div><strong>Recruiter:</strong> recruiter@demo.com / password123</div>
+            <div><strong>Business Dev:</strong> bd@demo.com / password123</div>
+            <div><strong>Project Manager:</strong> pm@demo.com / password123</div>
+          </div>
         </div>
       </div>
     </div>
