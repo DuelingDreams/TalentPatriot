@@ -12,10 +12,10 @@ interface CandidateCardProps {
 }
 
 function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
-  const candidateInfo = getDemoCandidateById(candidate.candidateId)
-  const jobInfo = getDemoJobById(candidate.jobId)
-  const clientInfo = jobInfo ? getDemoClientById(jobInfo.clientId) : null
-  const notes = getDemoNotesForJobCandidate(candidate.id)
+  const candidateInfo = candidate.candidates || getDemoCandidateById(candidate.candidateId)
+  const jobInfo = candidate.jobs || getDemoJobById(candidate.jobId)
+  const clientInfo = candidate.client || (jobInfo ? getDemoClientById(jobInfo.clientId) : null)
+  const candidateNotes = Array.isArray(candidate.notes) ? candidate.notes : getDemoNotesForJobCandidate(candidate.id)
   
   if (!candidateInfo || !jobInfo || !clientInfo) return null
 
@@ -57,7 +57,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
             </div>
           )}
           
-          {candidate.notes && (
+          {candidate.notes && typeof candidate.notes === 'string' && (
             <div className="bg-slate-50 p-2 rounded text-xs">
               <div className="flex items-center mb-1">
                 <MessageSquare className="w-3 h-3 mr-1" />
@@ -67,10 +67,10 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
             </div>
           )}
           
-          {notes.length > 0 && (
+          {candidateNotes && candidateNotes.length > 0 && (
             <div className="flex items-center text-xs text-slate-500">
               <FileText className="w-3 h-3 mr-1" />
-              {notes.length} note{notes.length > 1 ? 's' : ''}
+              {candidateNotes.length} note{candidateNotes.length > 1 ? 's' : ''}
             </div>
           )}
           
