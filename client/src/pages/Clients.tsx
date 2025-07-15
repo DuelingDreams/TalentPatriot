@@ -28,7 +28,6 @@ const clientSchema = z.object({
   website: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
   contactName: z.string().optional(),
   contactEmail: z.string().email('Please enter a valid email').optional().or(z.literal('')),
-  contactPhone: z.string().optional(),
   notes: z.string().optional(),
 })
 
@@ -42,7 +41,6 @@ interface Client {
   website?: string | null
   contactName?: string | null
   contactEmail?: string | null
-  contactPhone?: string | null
   notes?: string | null
   createdAt: string
   updatedAt: string
@@ -76,7 +74,6 @@ export default function Clients() {
       website: '',
       contactName: '',
       contactEmail: '',
-      contactPhone: '',
       notes: '',
     },
   })
@@ -142,7 +139,7 @@ export default function Clients() {
       website: client.website || '',
       contactName: client.contactName || '',
       contactEmail: client.contactEmail || '',
-      contactPhone: client.contactPhone || '',
+
       notes: client.notes || '',
     })
   }
@@ -268,19 +265,7 @@ export default function Clients() {
             )}
           />
           
-          <FormField
-            control={form.control}
-            name="contactPhone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact Phone</FormLabel>
-                <FormControl>
-                  <Input placeholder="+1 (555) 123-4567" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+
         </div>
         
         <FormField

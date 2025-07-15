@@ -258,7 +258,6 @@ class DatabaseStorage implements IStorage {
       website: insertClient.website,
       contact_name: insertClient.contactName,
       contact_email: insertClient.contactEmail,
-      contact_phone: insertClient.contactPhone,
       notes: insertClient.notes,
     }
     
@@ -284,7 +283,6 @@ class DatabaseStorage implements IStorage {
     if (updateData.website !== undefined) dbUpdate.website = updateData.website
     if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
     if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
-    if (updateData.contactPhone !== undefined) dbUpdate.contact_phone = updateData.contactPhone
     if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
     
     const { data, error } = await supabase
