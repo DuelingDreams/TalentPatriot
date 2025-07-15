@@ -250,9 +250,21 @@ class DatabaseStorage implements IStorage {
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
+    // Map the camelCase fields to snake_case for database
+    const dbClient = {
+      name: insertClient.name,
+      industry: insertClient.industry,
+      location: insertClient.location,
+      website: insertClient.website,
+      contact_name: insertClient.contactName,
+      contact_email: insertClient.contactEmail,
+      contact_phone: insertClient.contactPhone,
+      notes: insertClient.notes,
+    }
+    
     const { data, error } = await supabase
       .from('clients')
-      .insert(insertClient)
+      .insert(dbClient)
       .select()
       .single()
     
@@ -264,9 +276,20 @@ class DatabaseStorage implements IStorage {
   }
 
   async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
+    // Map the camelCase fields to snake_case for database
+    const dbUpdate: any = {}
+    if (updateData.name !== undefined) dbUpdate.name = updateData.name
+    if (updateData.industry !== undefined) dbUpdate.industry = updateData.industry
+    if (updateData.location !== undefined) dbUpdate.location = updateData.location
+    if (updateData.website !== undefined) dbUpdate.website = updateData.website
+    if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
+    if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
+    if (updateData.contactPhone !== undefined) dbUpdate.contact_phone = updateData.contactPhone
+    if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
+    
     const { data, error } = await supabase
       .from('clients')
-      .update(updateData)
+      .update(dbUpdate)
       .eq('id', id)
       .select()
       .single()
@@ -332,9 +355,16 @@ class DatabaseStorage implements IStorage {
   }
 
   async createJob(insertJob: InsertJob): Promise<Job> {
+    // Map the camelCase fields to snake_case for database
+    const dbJob = {
+      title: insertJob.title,
+      description: insertJob.description,
+      client_id: insertJob.clientId,
+    }
+    
     const { data, error } = await supabase
       .from('jobs')
-      .insert(insertJob)
+      .insert(dbJob)
       .select()
       .single()
     

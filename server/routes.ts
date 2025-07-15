@@ -80,7 +80,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const job = await storage.createJob(req.body);
       res.status(201).json(job);
     } catch (error) {
-      res.status(400).json({ error: "Failed to create job" });
+      console.error('Job creation error:', error);
+      res.status(400).json({ error: "Failed to create job", details: error.message });
     }
   });
 
