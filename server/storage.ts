@@ -22,6 +22,8 @@ export interface IStorage {
   getClient(id: string): Promise<Client | undefined>;
   getClients(): Promise<Client[]>;
   createClient(client: InsertClient): Promise<Client>;
+  updateClient(id: string, client: Partial<InsertClient>): Promise<Client>;
+  deleteClient(id: string): Promise<void>;
   
   // Jobs
   getJob(id: string): Promise<Job | undefined>;
@@ -71,16 +73,52 @@ export class MemStorage implements IStorage {
 
   async createClient(insertClient: InsertClient): Promise<Client> {
     const id = crypto.randomUUID();
+    const now = new Date();
     const client: Client = { 
       ...insertClient,
       industry: insertClient.industry ?? null,
+      location: insertClient.location ?? null,
+      website: insertClient.website ?? null,
       contactName: insertClient.contactName ?? null,
       contactEmail: insertClient.contactEmail ?? null,
+      contactPhone: insertClient.contactPhone ?? null,
+      notes: insertClient.notes ?? null,
       id, 
-      createdAt: new Date() 
+      createdAt: now,
+      updatedAt: now
     };
     this.clients.set(id, client);
     return client;
+  }
+
+  async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
+    const existingClient = this.clients.get(id);
+    if (!existingClient) {
+      throw new Error(`Client with id ${id} not found`);
+    }
+    
+    const updatedClient: Client = {
+      ...existingClient,
+      ...updateData,
+      industry: updateData.industry ?? existingClient.industry,
+      location: updateData.location ?? existingClient.location,
+      website: updateData.website ?? existingClient.website,
+      contactName: updateData.contactName ?? existingClient.contactName,
+      contactEmail: updateData.contactEmail ?? existingClient.contactEmail,
+      contactPhone: updateData.contactPhone ?? existingClient.contactPhone,
+      notes: updateData.notes ?? existingClient.notes,
+      updatedAt: new Date()
+    };
+    
+    this.clients.set(id, updatedClient);
+    return updatedClient;
+  }
+
+  async deleteClient(id: string): Promise<void> {
+    if (!this.clients.has(id)) {
+      throw new Error(`Client with id ${id} not found`);
+    }
+    this.clients.delete(id);
   }
 
   // Jobs

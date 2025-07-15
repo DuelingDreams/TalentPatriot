@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import Jobs from "@/pages/Jobs";
 import JobPipeline from "@/pages/JobPipeline";
 import Clients from "@/pages/Clients";
+import ClientDetail from "@/pages/ClientDetail";
 import Candidates from "@/pages/Users";
 import Calendar from "@/pages/Calendar";
 import Messages from "@/pages/Messages";
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/jobs" component={Jobs} />
       <Route path="/jobs/:id" component={JobPipeline} />
       <Route path="/clients" component={Clients} />
+      <Route path="/clients/:id" component={ClientDetail} />
       <Route path="/candidates" component={Candidates} />
       <Route path="/calendar" component={Calendar} />
       <Route path="/messages" component={Messages} />

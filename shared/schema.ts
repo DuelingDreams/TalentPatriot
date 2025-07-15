@@ -12,9 +12,14 @@ export const clients = pgTable("clients", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 255 }).notNull(),
   industry: varchar("industry", { length: 100 }),
+  location: varchar("location", { length: 255 }),
+  website: varchar("website", { length: 255 }),
   contactName: varchar("contact_name", { length: 255 }),
   contactEmail: varchar("contact_email", { length: 255 }),
+  contactPhone: varchar("contact_phone", { length: 50 }),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 export const jobs = pgTable("jobs", {
@@ -95,6 +100,7 @@ export const candidateNotesRelations = relations(candidateNotes, ({ one }) => ({
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export const insertJobSchema = createInsertSchema(jobs).omit({

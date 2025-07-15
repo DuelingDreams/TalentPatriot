@@ -22,9 +22,14 @@ CREATE TABLE IF NOT EXISTS clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     industry VARCHAR(100),
+    location VARCHAR(255),
+    website VARCHAR(255),
     contact_name VARCHAR(255),
     contact_email VARCHAR(255),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+    contact_phone VARCHAR(50),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
 );
 
 -- Jobs table
