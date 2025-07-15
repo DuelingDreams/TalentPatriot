@@ -230,16 +230,55 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-slate-600 mb-3">
-            Or try the public demo without signing up
-          </p>
-          <Button variant="outline" asChild className="w-full">
-            <Link href="/demo">
-              <span className="mr-2">🔓</span>
-              View Demo Mode
-            </Link>
-          </Button>
+        <div className="mt-8 space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-slate-600 mb-3">
+              Or try the demo with a pre-configured account
+            </p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={async () => {
+                setLoading(true)
+                setError('')
+                try {
+                  const { error } = await signIn('demo@yourapp.com', 'Demo1234!')
+                  if (error) {
+                    setError('Demo login failed. Please try again.')
+                  } else {
+                    toast({
+                      title: "Demo mode activated!",
+                      description: "You're now logged in as a demo user.",
+                    })
+                    setLocation('/dashboard')
+                  }
+                } catch (err) {
+                  setError('Demo login failed. Please try again.')
+                } finally {
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <span className="mr-2">🔓</span>
+              )}
+              Try Demo Account
+            </Button>
+          </div>
+          
+          <div className="text-center">
+            <p className="text-sm text-slate-600 mb-3">
+              Or explore without authentication
+            </p>
+            <Button variant="ghost" asChild className="w-full">
+              <Link href="/demo">
+                View Read-Only Demo
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

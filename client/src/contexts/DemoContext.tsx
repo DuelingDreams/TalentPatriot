@@ -18,9 +18,9 @@ interface DemoProviderProps {
 
 export function DemoProvider({ children }: DemoProviderProps) {
   const demoUser = {
-    id: 'demo-user-001',
-    email: 'demo@viewer.com',
-    name: 'Demo Viewer',
+    id: 'cd99579b-1b80-4802-9651-e881fb707583',
+    email: 'demo@yourapp.com',
+    name: 'Demo User',
     role: 'demo_viewer'
   }
 
