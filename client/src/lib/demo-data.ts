@@ -89,6 +89,15 @@ export const demoCandidates = [
     status: 'demo',
     resumeUrl: 'https://example.com/resume/david.pdf',
     createdAt: '2024-01-14T00:00:00Z'
+  },
+  {
+    id: '99999999-9999-9999-9999-999999999999',
+    name: 'Lisa Chen',
+    email: 'lisa.demo@example.com',
+    phone: '+1 (555) 777-8888',
+    status: 'demo',
+    resumeUrl: 'https://example.com/resume/lisa.pdf',
+    createdAt: '2024-01-15T00:00:00Z'
   }
 ];
 
@@ -185,7 +194,7 @@ export const demoJobCandidates = [
   {
     id: '40404040-4040-4040-4040-404040404040',
     jobId: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
-    candidateId: '44444444-4444-4444-4444-444444444444',
+    candidateId: '99999999-9999-9999-9999-999999999999',
     stage: 'hired',
     notes: 'Excellent product sense, started last week',
     assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',

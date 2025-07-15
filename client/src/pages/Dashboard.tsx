@@ -9,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { testSupabaseConnection } from '@/lib/supabase-test'
 import { useJobs, useClients, useCandidates } from '@/hooks/useJobs'
 import { getDemoClientStats, getDemoJobStats, getDemoPipelineData } from '@/lib/demo-data'
-import { JobCandidatesTest } from '@/components/test/JobCandidatesTest'
+
 import { 
   Plus, 
   Briefcase, 
@@ -289,11 +289,6 @@ export default function Dashboard() {
             <p className="text-red-600">Failed to load jobs: {jobsError.message}</p>
           </div>
         )}
-
-        {/* Hook Testing Section */}
-        <div className="mb-8">
-          <JobCandidatesTest />
-        </div>
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

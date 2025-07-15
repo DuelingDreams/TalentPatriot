@@ -88,7 +88,7 @@ export function JobCandidatesTest() {
                           )}
                         </div>
                       </div>
-                      {jobCandidate.notes && (
+                      {jobCandidate.notes && typeof jobCandidate.notes === 'string' && (
                         <p className="text-sm text-slate-600 mt-2 italic">
                           "{jobCandidate.notes}"
                         </p>
