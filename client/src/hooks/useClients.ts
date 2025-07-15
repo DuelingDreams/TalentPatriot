@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Client {
   id: string
@@ -35,24 +37,47 @@ interface UpdateClientData extends CreateClientData {
 
 // Hook to fetch all clients
 export function useClients() {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', userRole],
     queryFn: async () => {
-      const response = await fetch('/api/clients')
-      if (!response.ok) {
-        throw new Error('Failed to fetch clients')
-      }
-      const clients = await response.json()
+      let clientsQuery = supabase
+        .from('clients')
+        .select('*')
       
-      // Get jobs to calculate counts
-      const jobsResponse = await fetch('/api/jobs')
-      const jobs = jobsResponse.ok ? await jobsResponse.json() : []
+      let jobsQuery = supabase
+        .from('jobs')
+        .select('client_id')
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        clientsQuery = clientsQuery.eq('status', 'demo')
+        jobsQuery = jobsQuery.eq('record_status', 'demo')
+      } else {
+        clientsQuery = clientsQuery.is('status', null).or('status.neq.demo')
+        jobsQuery = jobsQuery.is('record_status', null).or('record_status.neq.demo')
+      }
+      
+      clientsQuery = clientsQuery.order('name', { ascending: true })
+      
+      const [clientsResponse, jobsResponse] = await Promise.all([
+        clientsQuery,
+        jobsQuery
+      ])
+      
+      if (clientsResponse.error) {
+        throw new Error('Failed to fetch clients: ' + clientsResponse.error.message)
+      }
+      
+      const clients = clientsResponse.data
+      const jobs = jobsResponse.data || []
       
       // Add job counts to clients
       const clientsWithCounts = clients.map((client: any) => ({
         ...client,
         _count: {
-          jobs: jobs.filter((job: any) => job.clientId === client.id).length
+          jobs: jobs.filter((job: any) => job.client_id === client.id).length
         }
       }))
       

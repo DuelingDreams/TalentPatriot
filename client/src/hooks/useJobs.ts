@@ -1,13 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 import type { Job, Candidate, Client } from '@/../../shared/schema'
 
 // Hook to fetch all jobs
 export function useJobs() {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['jobs'],
+    queryKey: ['jobs', userRole],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('jobs')
         .select(`
           *,
@@ -17,7 +20,17 @@ export function useJobs() {
             industry
           )
         `)
-        .order('created_at', { ascending: false })
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        query = query.eq('record_status', 'demo')
+      } else {
+        query = query.is('record_status', null).or('record_status.neq.demo')
+      }
+      
+      query = query.order('created_at', { ascending: false })
+
+      const { data, error } = await query
 
       if (error) {
         throw new Error(error.message)
@@ -36,12 +49,14 @@ export function useJobs() {
 
 // Hook to fetch candidates for a specific job
 export function useCandidatesForJob(jobId: string | null) {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['job-candidates', jobId],
+    queryKey: ['job-candidates', jobId, userRole],
     queryFn: async () => {
       if (!jobId) return []
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('job_candidate')
         .select(`
           id,
@@ -59,7 +74,17 @@ export function useCandidatesForJob(jobId: string | null) {
           )
         `)
         .eq('job_id', jobId)
-        .order('updated_at', { ascending: false })
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        query = query.eq('status', 'demo')
+      } else {
+        query = query.is('status', null).or('status.neq.demo')
+      }
+      
+      query = query.order('updated_at', { ascending: false })
+
+      const { data, error } = await query
 
       if (error) {
         throw new Error(error.message)
@@ -80,13 +105,25 @@ export function useCandidatesForJob(jobId: string | null) {
 
 // Hook to fetch all clients
 export function useClients() {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['clients'],
+    queryKey: ['clients', userRole],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('clients')
         .select('*')
-        .order('name', { ascending: true })
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        query = query.eq('status', 'demo')
+      } else {
+        query = query.is('status', null).or('status.neq.demo')
+      }
+      
+      query = query.order('name', { ascending: true })
+
+      const { data, error } = await query
 
       if (error) {
         throw new Error(error.message)
@@ -99,13 +136,25 @@ export function useClients() {
 
 // Hook to fetch all candidates
 export function useCandidates() {
+  const { userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['candidates'],
+    queryKey: ['candidates', userRole],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('candidates')
         .select('*')
-        .order('created_at', { ascending: false })
+      
+      // Filter based on user role
+      if (userRole === 'demo_viewer') {
+        query = query.eq('status', 'demo')
+      } else {
+        query = query.is('status', null).or('status.neq.demo')
+      }
+      
+      query = query.order('created_at', { ascending: false })
+
+      const { data, error } = await query
 
       if (error) {
         throw new Error(error.message)

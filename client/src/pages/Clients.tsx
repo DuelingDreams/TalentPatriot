@@ -63,8 +63,6 @@ export default function Clients() {
   const updateClientMutation = useUpdateClient()
   const deleteClientMutation = useDeleteClient()
   
-  // Use demo data for demo users
-  const displayClients = userRole === 'demo_viewer' ? getDemoClientStats() : clients || []
   const isDemoMode = userRole === 'demo_viewer'
 
   const form = useForm<ClientFormData>({
@@ -81,7 +79,7 @@ export default function Clients() {
     },
   })
 
-  const filteredClients = displayClients?.filter(client =>
+  const filteredClients = clients?.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.location?.toLowerCase().includes(searchQuery.toLowerCase())

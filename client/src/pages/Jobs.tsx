@@ -37,9 +37,6 @@ export default function Jobs() {
   const { data: clients, isLoading: clientsLoading } = useClients()
   const createJobMutation = useCreateJob()
   
-  // Use demo data for demo users
-  const displayJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
-  const displayClients = userRole === 'demo_viewer' ? getDemoClientStats() : clients || []
   const isDemoMode = userRole === 'demo_viewer'
 
   // Form setup
@@ -230,9 +227,9 @@ export default function Jobs() {
         )}
 
         {/* Jobs Grid */}
-        {displayJobs && displayJobs.length > 0 ? (
+        {jobs && jobs.length > 0 ? (
           <div className="grid gap-6">
-            {displayJobs.map((job) => (
+            {jobs.map((job) => (
               <Card key={job.id} className="bg-white shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
@@ -245,11 +242,11 @@ export default function Jobs() {
                           <h3 className="text-lg font-semibold text-slate-900">{job.title}</h3>
                           <div className="flex items-center gap-2 text-sm text-slate-600">
                             <Building2 className="w-4 h-4" />
-                            <span>{job.client?.name}</span>
-                            {job.client?.industry && (
+                            <span>{job.clients?.name}</span>
+                            {job.clients?.industry && (
                               <>
                                 <span>•</span>
-                                <span>{job.client.industry}</span>
+                                <span>{job.clients.industry}</span>
                               </>
                             )}
                           </div>
@@ -263,7 +260,7 @@ export default function Jobs() {
                       <div className="flex items-center gap-4 text-sm text-slate-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          <span>Created {new Date(job.createdAt).toLocaleDateString()}</span>
+                          <span>Created {new Date(job.created_at).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
