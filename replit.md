@@ -55,6 +55,12 @@ Preferred communication style: Simple, everyday language.
 - Removed client-side demo data fallbacks from pages since hooks now handle proper filtering
 - Created comprehensive demo data structures with proper status field values for database-level access control
 - Enhanced security with role-based database filtering instead of client-side demo data switching
+- Generated comprehensive Supabase Row-Level Security (RLS) policies for all ATS tables
+- Created role-based access control policies supporting recruiter, bd, pm, demo_viewer, and admin roles
+- Implemented assignment-based access for recruiters (job_candidate.assigned_to = auth.uid())
+- Added author-only write access for candidate_notes (author_id = auth.uid())
+- Created strict demo data protection preventing writes to demo records
+- Established hierarchical permissions with admin override capabilities
 
 ## System Architecture
 
