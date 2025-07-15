@@ -188,12 +188,30 @@ export function useCandidates() {
 // Hook to create a new job
 export function useCreateJob() {
   const queryClient = useQueryClient()
+  const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
 
   return useMutation({
     mutationFn: async (newJob: { title: string; description?: string; client_id: string; status?: string }) => {
+      // Prevent demo users from creating real data
+      if (isDemoMode || userRole === 'demo_viewer') {
+        throw new Error('Demo users cannot create new jobs. Please sign up for a real account.')
+      }
+
+      // Ensure only authorized roles can create jobs
+      if (!userRole || !['recruiter', 'bd', 'admin'].includes(userRole)) {
+        throw new Error('You do not have permission to create jobs.')
+      }
+
+      // Ensure new job is not marked as demo
+      const jobData = {
+        ...newJob,
+        recordStatus: 'active' // Explicitly set as active, never demo
+      }
+
       const { data, error } = await supabase
         .from('jobs')
-        .insert(newJob)
+        .insert(jobData)
         .select()
         .single()
 
@@ -213,12 +231,30 @@ export function useCreateJob() {
 // Hook to create a new candidate
 export function useCreateCandidate() {
   const queryClient = useQueryClient()
+  const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
 
   return useMutation({
     mutationFn: async (newCandidate: { name: string; email: string; phone?: string; resume_url?: string }) => {
+      // Prevent demo users from creating real data
+      if (isDemoMode || userRole === 'demo_viewer') {
+        throw new Error('Demo users cannot create new candidates. Please sign up for a real account.')
+      }
+
+      // Ensure only authorized roles can create candidates
+      if (!userRole || !['recruiter', 'admin'].includes(userRole)) {
+        throw new Error('You do not have permission to create candidates.')
+      }
+
+      // Ensure new candidate is not marked as demo
+      const candidateData = {
+        ...newCandidate,
+        status: 'active' // Explicitly set as active, never demo
+      }
+
       const { data, error } = await supabase
         .from('candidates')
-        .insert(newCandidate)
+        .insert(candidateData)
         .select()
         .single()
 
@@ -238,6 +274,8 @@ export function useCreateCandidate() {
 // Hook to update candidate stage in a job
 export function useUpdateCandidateStage() {
   const queryClient = useQueryClient()
+  const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
 
   return useMutation({
     mutationFn: async ({ 
@@ -249,6 +287,16 @@ export function useUpdateCandidateStage() {
       stage: string
       notes?: string 
     }) => {
+      // Prevent demo users from modifying real data
+      if (isDemoMode || userRole === 'demo_viewer') {
+        throw new Error('Demo users cannot update candidates. Please sign up for a real account.')
+      }
+
+      // Ensure only authorized roles can update candidates
+      if (!userRole || !['recruiter', 'admin'].includes(userRole)) {
+        throw new Error('You do not have permission to update candidates.')
+      }
+
       const { data, error } = await supabase
         .from('job_candidate')
         .update({ 
@@ -257,6 +305,7 @@ export function useUpdateCandidateStage() {
           updated_at: new Date().toISOString()
         })
         .eq('id', jobCandidateId)
+        .neq('status', 'demo') // Ensure we never update demo data
         .select()
         .single()
 

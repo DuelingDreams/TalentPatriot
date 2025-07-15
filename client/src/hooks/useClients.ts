@@ -35,13 +35,25 @@ interface UpdateClientData extends CreateClientData {
   id: string
 }
 
-// Hook to fetch all clients
+// Hook to fetch all clients - replaced with the new secured version from useJobs.ts
 export function useClients() {
   const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
   
   return useQuery({
-    queryKey: ['clients', userRole],
+    queryKey: ['clients', userRole, isDemoMode],
     queryFn: async () => {
+      // Always return demo data if in demo mode
+      if (isDemoMode || userRole === 'demo_viewer') {
+        const { demoClients, demoJobs } = await import('@/lib/demo-data')
+        return demoClients.map(client => ({
+          ...client,
+          _count: {
+            jobs: demoJobs.filter(job => job.clientId === client.id).length
+          }
+        }))
+      }
+
       let clientsQuery = supabase
         .from('clients')
         .select('*')
@@ -50,14 +62,9 @@ export function useClients() {
         .from('jobs')
         .select('client_id')
       
-      // Filter based on user role
-      if (userRole === 'demo_viewer') {
-        clientsQuery = clientsQuery.eq('status', 'demo')
-        jobsQuery = jobsQuery.eq('record_status', 'demo')
-      } else {
-        clientsQuery = clientsQuery.is('status', null).or('status.neq.demo')
-        jobsQuery = jobsQuery.is('record_status', null).or('record_status.neq.demo')
-      }
+      // Filter for real users - exclude demo data
+      clientsQuery = clientsQuery.neq('status', 'demo').or('status.is.null')
+      jobsQuery = jobsQuery.neq('recordStatus', 'demo').or('recordStatus.is.null')
       
       clientsQuery = clientsQuery.order('name', { ascending: true })
       
@@ -67,6 +74,7 @@ export function useClients() {
       ])
       
       if (clientsResponse.error) {
+        console.warn('Supabase clients query failed:', clientsResponse.error.message)
         throw new Error('Failed to fetch clients: ' + clientsResponse.error.message)
       }
       
@@ -119,15 +127,30 @@ export function useClient(clientId: string | null) {
 // Hook to create a new client
 export function useCreateClient() {
   const queryClient = useQueryClient()
+  const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
 
   return useMutation({
     mutationFn: async (newClient: CreateClientData) => {
+      // Prevent demo users from creating real data
+      if (isDemoMode || userRole === 'demo_viewer') {
+        throw new Error('Demo users cannot create new clients. Please sign up for a real account.')
+      }
+
+      // Ensure only authorized roles can create clients
+      if (!userRole || !['bd', 'admin'].includes(userRole)) {
+        throw new Error('You do not have permission to create clients.')
+      }
+
       const response = await apiRequest('/api/clients', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newClient),
+        body: JSON.stringify({
+          ...newClient,
+          status: 'active' // Explicitly set as active, never demo
+        }),
       })
 
       if (!response.ok) {
@@ -145,9 +168,21 @@ export function useCreateClient() {
 // Hook to update a client
 export function useUpdateClient() {
   const queryClient = useQueryClient()
+  const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
 
   return useMutation({
     mutationFn: async (updateData: UpdateClientData) => {
+      // Prevent demo users from modifying real data
+      if (isDemoMode || userRole === 'demo_viewer') {
+        throw new Error('Demo users cannot update clients. Please sign up for a real account.')
+      }
+
+      // Ensure only authorized roles can update clients
+      if (!userRole || !['bd', 'admin'].includes(userRole)) {
+        throw new Error('You do not have permission to update clients.')
+      }
+
       const { id, ...clientData } = updateData
       
       const response = await apiRequest(`/api/clients/${id}`, {
@@ -174,9 +209,21 @@ export function useUpdateClient() {
 // Hook to delete a client
 export function useDeleteClient() {
   const queryClient = useQueryClient()
+  const { userRole } = useAuth()
+  const isDemoMode = localStorage.getItem('demo_mode') === 'true'
 
   return useMutation({
     mutationFn: async (clientId: string) => {
+      // Prevent demo users from deleting real data
+      if (isDemoMode || userRole === 'demo_viewer') {
+        throw new Error('Demo users cannot delete clients. Please sign up for a real account.')
+      }
+
+      // Ensure only admin can delete clients (high-risk operation)
+      if (!userRole || userRole !== 'admin') {
+        throw new Error('Only administrators can delete clients.')
+      }
+
       const response = await apiRequest(`/api/clients/${clientId}`, {
         method: 'DELETE',
       })
