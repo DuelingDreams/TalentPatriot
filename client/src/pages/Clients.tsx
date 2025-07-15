@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
@@ -30,6 +32,7 @@ const clientSchema = z.object({
   contactEmail: z.string().email('Please enter a valid email').optional().or(z.literal('')),
   contactPhone: z.string().optional(),
   notes: z.string().optional(),
+  tags: z.array(z.string()).optional(),
 })
 
 type ClientFormData = z.infer<typeof clientSchema>
@@ -76,8 +79,26 @@ export default function Clients() {
       contactEmail: '',
       contactPhone: '',
       notes: '',
+      tags: [],
     },
   })
+
+  // Available tags for clients
+  const availableTags = [
+    'Small Business',
+    '8(a)',
+    'Veteran-Owned',
+    'Women-Owned',
+    'Minority-Owned',
+    'HUBZone',
+    'Service-Disabled Veteran-Owned',
+    'Disadvantaged Business Enterprise',
+    'Fortune 500',
+    'Startup',
+    'Government Contractor',
+    'Defense',
+    'Healthcare',
+  ]
 
   const filteredClients = clients?.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,6 +163,7 @@ export default function Clients() {
       contactEmail: client.contactEmail || '',
       contactPhone: client.contactPhone || '',
       notes: client.notes || '',
+      tags: [], // Would be populated from client data in production
     })
   }
 
@@ -298,6 +320,40 @@ export default function Clients() {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="tags"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tags & Classifications</FormLabel>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-2">
+                {availableTags.map((tag) => (
+                  <div key={tag} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={tag}
+                      checked={field.value?.includes(tag) || false}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          field.onChange([...(field.value || []), tag])
+                        } else {
+                          field.onChange(field.value?.filter((t) => t !== tag) || [])
+                        }
+                      }}
+                    />
+                    <label
+                      htmlFor={tag}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {tag}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         
         <div className="flex justify-end gap-3 pt-4">
           <Button type="button" variant="outline" onClick={closeModal}>
@@ -446,11 +502,19 @@ export default function Clients() {
                         </TableCell>
                         
                         <TableCell>
-                          {client.industry ? (
-                            <Badge variant="outline">{client.industry}</Badge>
-                          ) : (
-                            <span className="text-slate-400">—</span>
-                          )}
+                          <div className="space-y-1">
+                            {client.industry ? (
+                              <Badge variant="outline">{client.industry}</Badge>
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                            {/* Mock tags display - would come from client data in production */}
+                            <div className="flex flex-wrap gap-1">
+                              {client.name.includes('TechCorp') && <Badge variant="secondary" className="text-xs">8(a)</Badge>}
+                              {client.name.includes('Defense') && <Badge variant="secondary" className="text-xs">Veteran-Owned</Badge>}
+                              {client.name.includes('Solutions') && <Badge variant="secondary" className="text-xs">Small Business</Badge>}
+                            </div>
+                          </div>
                         </TableCell>
                         
                         <TableCell>
