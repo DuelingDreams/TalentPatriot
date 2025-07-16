@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { testSupabaseConnection } from '@/lib/supabase-test'
-import { useJobs, useClients, useCandidates } from '@/hooks/useJobs'
+import { useJobs } from '@/hooks/useJobs'
+import { useClients } from '@/hooks/useClients'
+import { useCandidates } from '@/hooks/useCandidates'
 import { getDemoClientStats, getDemoJobStats, getDemoPipelineData } from '@/lib/demo-data'
 
 import { 

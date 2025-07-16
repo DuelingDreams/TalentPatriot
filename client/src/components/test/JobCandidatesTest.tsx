@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useJobs, useCandidatesForJob } from '@/hooks/useJobs'
+import { useJobs } from '@/hooks/useJobs'
+import { useCandidatesForJob } from '@/hooks/useJobCandidates'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
