@@ -142,7 +142,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const jobCandidate = await storage.createJobCandidate(req.body);
       res.status(201).json(jobCandidate);
     } catch (error) {
-      res.status(400).json({ error: "Failed to create job candidate relationship" });
+      console.error('Job candidate creation error:', error);
+      res.status(400).json({ error: "Failed to create job candidate relationship", details: error.message });
+    }
+  });
+
+  app.put("/api/job-candidates/:id", writeLimiter, async (req, res) => {
+    try {
+      const jobCandidate = await storage.updateJobCandidate(req.params.id, req.body);
+      res.json(jobCandidate);
+    } catch (error) {
+      console.error('Job candidate update error:', error);
+      res.status(400).json({ error: "Failed to update job candidate", details: error.message });
     }
   });
 

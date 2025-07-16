@@ -9,12 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import { useCandidates, useJobs, useCreateCandidate } from '@/hooks/useJobs'
+import { useCandidates, useJobs, useCreateCandidate, useCreateJobCandidate } from '@/hooks/useJobs'
 import { ResumeUpload } from '@/components/ResumeUpload'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { insertCandidateSchema } from '@/../../shared/schema'
-import { supabase } from '@/lib/supabase'
+
 import { z } from 'zod'
 import { Plus, Users, Mail, Phone, FileText, Loader2, UserPlus } from 'lucide-react'
 
@@ -35,6 +35,7 @@ export default function Candidates() {
   const { data: candidates, isLoading: candidatesLoading, error: candidatesError, refetch: refetchCandidates } = useCandidates()
   const { data: jobs } = useJobs()
   const createCandidateMutation = useCreateCandidate()
+  const createJobCandidateMutation = useCreateJobCandidate()
 
   // Form setup
   const form = useForm<NewCandidateFormData>({
@@ -71,37 +72,31 @@ export default function Candidates() {
     setAssigningJobs(prev => ({ ...prev, [candidateId]: true }))
     
     try {
-      const { error } = await supabase
-        .from('job_candidate')
-        .insert({
-          job_id: jobId,
-          candidate_id: candidateId,
-          stage: 'applied'
-        })
+      await createJobCandidateMutation.mutateAsync({
+        jobId,
+        candidateId,
+        stage: 'applied'
+      })
 
-      if (error) {
-        if (error.code === '23505') { // Unique constraint violation
-          toast({
-            title: "Already Applied",
-            description: "This candidate has already been assigned to this job.",
-            variant: "destructive",
-          })
-        } else {
-          throw error
-        }
-      } else {
-        const job = jobs?.find(j => j.id === jobId)
+      const job = jobs?.find(j => j.id === jobId)
+      toast({
+        title: "Candidate Assigned",
+        description: `Successfully assigned candidate to ${job?.title}.`,
+      })
+    } catch (error: any) {
+      if (error.message?.includes('unique') || error.message?.includes('duplicate')) {
         toast({
-          title: "Candidate Assigned",
-          description: `Successfully assigned candidate to ${job?.title}.`,
+          title: "Already Applied",
+          description: "This candidate has already been assigned to this job.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Assignment Failed",
+          description: "Failed to assign candidate to job. Please try again.",
+          variant: "destructive",
         })
       }
-    } catch (error) {
-      toast({
-        title: "Assignment Failed",
-        description: "Failed to assign candidate to job. Please try again.",
-        variant: "destructive",
-      })
     } finally {
       setAssigningJobs(prev => ({ ...prev, [candidateId]: false }))
     }

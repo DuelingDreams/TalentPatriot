@@ -45,6 +45,7 @@ export interface IStorage {
   getJobCandidatesByJob(jobId: string): Promise<JobCandidate[]>;
   getJobCandidatesByCandidate(candidateId: string): Promise<JobCandidate[]>;
   createJobCandidate(jobCandidate: InsertJobCandidate): Promise<JobCandidate>;
+  updateJobCandidate(id: string, jobCandidate: Partial<InsertJobCandidate>): Promise<JobCandidate>;
   
   // Candidate Notes
   getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]>;
@@ -207,6 +208,23 @@ export class MemStorage implements IStorage {
     };
     this.jobCandidates.set(id, jobCandidate);
     return jobCandidate;
+  }
+
+  async updateJobCandidate(id: string, updateData: Partial<InsertJobCandidate>): Promise<JobCandidate> {
+    const existing = this.jobCandidates.get(id);
+    if (!existing) {
+      throw new Error(`Job candidate with id ${id} not found`);
+    }
+
+    const updated: JobCandidate = {
+      ...existing,
+      ...updateData,
+      id,
+      updatedAt: new Date()
+    };
+    
+    this.jobCandidates.set(id, updated);
+    return updated;
   }
 
   // Candidate Notes
@@ -553,6 +571,36 @@ class DatabaseStorage implements IStorage {
       return data as JobCandidate
     } catch (err) {
       console.error('Job candidate creation exception:', err)
+      throw err
+    }
+  }
+
+  async updateJobCandidate(id: string, updateData: Partial<InsertJobCandidate>): Promise<JobCandidate> {
+    try {
+      // Map the camelCase fields to snake_case for database
+      const dbUpdate: any = {}
+      if (updateData.stage !== undefined) dbUpdate.stage = updateData.stage
+      if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
+      if (updateData.assignedTo !== undefined) dbUpdate.assigned_to = updateData.assignedTo
+      
+      // Always update the timestamp
+      dbUpdate.updated_at = new Date().toISOString()
+      
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database job candidate update error:', error)
+        throw new Error(`Failed to update job candidate: ${error.message}`)
+      }
+      
+      return data as JobCandidate
+    } catch (err) {
+      console.error('Job candidate update exception:', err)
       throw err
     }
   }

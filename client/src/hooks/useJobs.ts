@@ -186,6 +186,35 @@ export function useCandidateNotes(jobCandidateId: string | null) {
   })
 }
 
+// Hook to create a new job candidate assignment
+export function useCreateJobCandidate() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async ({ 
+      jobId, 
+      candidateId, 
+      stage = 'applied' 
+    }: { 
+      jobId: string
+      candidateId: string
+      stage?: string 
+    }) => {
+      const response = await apiRequest('POST', '/api/job-candidates', {
+        jobId,
+        candidateId, 
+        stage
+      })
+      return response.json()
+    },
+    onSuccess: () => {
+      // Invalidate job candidates queries
+      queryClient.invalidateQueries({ queryKey: ['job-candidates'] })
+      queryClient.invalidateQueries({ queryKey: ['candidates'] })
+    }
+  })
+}
+
 // Hook to create a new candidate note
 export function useCreateCandidateNote() {
   const queryClient = useQueryClient()
