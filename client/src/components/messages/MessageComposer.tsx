@@ -190,14 +190,14 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
               <div className="space-y-2">
                 <Label className="text-sm">Client</Label>
                 <Select
-                  value={formData.clientId || ''}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, clientId: value || null }))}
+                  value={formData.clientId || 'none'}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, clientId: value === 'none' ? null : value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select client" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {clients.map(client => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name}
@@ -210,14 +210,14 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
               <div className="space-y-2">
                 <Label className="text-sm">Job</Label>
                 <Select
-                  value={formData.jobId || ''}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, jobId: value || null }))}
+                  value={formData.jobId || 'none'}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, jobId: value === 'none' ? null : value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select job" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {jobs.map(job => (
                       <SelectItem key={job.id} value={job.id}>
                         {job.title}
@@ -230,14 +230,14 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
               <div className="space-y-2">
                 <Label className="text-sm">Candidate</Label>
                 <Select
-                  value={formData.candidateId || ''}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, candidateId: value || null }))}
+                  value={formData.candidateId || 'none'}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, candidateId: value === 'none' ? null : value }))}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select candidate" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {candidates.map(candidate => (
                       <SelectItem key={candidate.id} value={candidate.id}>
                         {candidate.name}

@@ -28,15 +28,24 @@ export async function apiRequest(
     body = urlOrOptions.body;
   }
 
-  const res = await fetch(url, {
-    method,
-    headers: body ? { "Content-Type": "application/json" } : {},
-    body,
-    credentials: "include",
-  });
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: body ? { "Content-Type": "application/json" } : {},
+      body,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return await res.json();
+    await throwIfResNotOk(res);
+    return await res.json();
+  } catch (error) {
+    // Handle network errors, CORS issues, and DOM exceptions
+    if (error instanceof DOMException) {
+      console.warn('Network DOM exception caught:', error.name, error.message);
+      throw new Error(`Network error: ${error.message}`);
+    }
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -45,16 +54,25 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-    });
+    try {
+      const res = await fetch(queryKey.join("/") as string, {
+        credentials: "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (error) {
+      // Handle network errors and DOM exceptions in query functions
+      if (error instanceof DOMException) {
+        console.warn('Query network DOM exception caught:', error.name, error.message);
+        throw new Error(`Network error: ${error.message}`);
+      }
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
