@@ -7,6 +7,7 @@ import { relations } from "drizzle-orm";
 export const jobStatusEnum = pgEnum('job_status', ['open', 'closed', 'on_hold', 'filled']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
+export const userRoleEnum = pgEnum('user_role', ['recruiter', 'bd', 'pm', 'demo_viewer', 'admin']);
 
 // Tables
 export const clients = pgTable("clients", {
@@ -21,6 +22,7 @@ export const clients = pgTable("clients", {
   status: recordStatusEnum("status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
 });
 
 export const jobs = pgTable("jobs", {
@@ -28,9 +30,12 @@ export const jobs = pgTable("jobs", {
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   clientId: uuid("client_id").references(() => clients.id).notNull(),
-  status: jobStatusEnum("job_status").default('open').notNull(),
+  status: jobStatusEnum("status").default('open').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
+  assignedTo: uuid("assigned_to"),
 });
 
 export const candidates = pgTable("candidates", {
@@ -41,6 +46,8 @@ export const candidates = pgTable("candidates", {
   resumeUrl: text("resume_url"),
   status: recordStatusEnum("status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdBy: uuid("created_by"),
 });
 
 export const jobCandidate = pgTable("job_candidate", {
@@ -49,8 +56,9 @@ export const jobCandidate = pgTable("job_candidate", {
   candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
   stage: candidateStageEnum("stage").default('applied').notNull(),
   notes: text("notes"),
-  assignedTo: varchar("assigned_to", { length: 255 }),
+  assignedTo: uuid("assigned_to"),
   status: recordStatusEnum("status").default('active').notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   uniqueJobCandidate: uniqueIndex("unique_job_candidate").on(table.jobId, table.candidateId),
@@ -59,9 +67,11 @@ export const jobCandidate = pgTable("job_candidate", {
 export const candidateNotes = pgTable("candidate_notes", {
   id: uuid("id").primaryKey().defaultRandom(),
   jobCandidateId: uuid("job_candidate_id").references(() => jobCandidate.id).notNull(),
-  authorId: varchar("author_id", { length: 255 }).notNull(),
+  authorId: uuid("author_id").notNull(),
   content: text("content").notNull(),
+  isPrivate: varchar("is_private", { length: 10 }).default('false').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Relations
