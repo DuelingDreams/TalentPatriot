@@ -176,6 +176,66 @@ function PipelineColumn({ stage, candidates }: PipelineColumnProps) {
   )
 }
 
+// Component for individual job cards in pipeline overview
+function JobPipelineCard({ job }: { job: any }) {
+  const { data: jobCandidates } = useCandidatesForJob(job.id)
+  const totalCandidates = jobCandidates?.length || 0
+
+  return (
+    <Card className="hover:shadow-md transition-shadow cursor-pointer">
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Briefcase className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">{job.title}</CardTitle>
+              <div className="flex items-center gap-1 text-sm text-slate-600 mt-1">
+                <Building2 className="w-4 h-4" />
+                <span>{job.clients?.name}</span>
+              </div>
+            </div>
+          </div>
+          <Badge className={
+            job.status === 'open' ? 'bg-green-100 text-green-800' :
+            job.status === 'closed' ? 'bg-gray-100 text-gray-800' :
+            job.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-blue-100 text-blue-800'
+          }>
+            {job.status.replace('_', ' ')}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {job.description && (
+          <p className="text-slate-600 text-sm mb-4 line-clamp-2">{job.description}</p>
+        )}
+        
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4 text-sm text-slate-600">
+            <div className="flex items-center gap-1">
+              <Users className="w-4 h-4" />
+              <span>{totalCandidates} candidate{totalCandidates !== 1 ? 's' : ''}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="w-4 h-4" />
+              <span>{new Date(job.created_at).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+        
+        <Link href={`/pipeline/${job.id}`}>
+          <Button className="w-full">
+            View Pipeline
+            <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function JobPipeline() {
   const params = useParams<{ id: string }>()
   const jobId = params?.id
@@ -262,6 +322,45 @@ export default function JobPipeline() {
     }
   }
 
+  // If no job ID is provided, show pipeline overview with job selection
+  if (!jobId) {
+    return (
+      <DashboardLayout pageTitle="Pipeline Overview">
+        <div className="p-6">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Pipeline Overview</h1>
+            <p className="text-slate-600">Select a job to view its recruitment pipeline and manage candidates.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs?.map(job => {
+              return (
+                <JobPipelineCard key={job.id} job={job} />
+              );
+            })}
+          </div>
+
+          {(!jobs || jobs.length === 0) && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Briefcase className="w-8 h-8 text-slate-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">No Jobs Available</h3>
+              <p className="text-slate-600 mb-6">Create a job to start managing candidates in the pipeline.</p>
+              <Link href="/jobs">
+                <Button>
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  Go to Jobs
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  // If job ID is provided but job not found, show error
   if (!currentJob) {
     return (
       <DashboardLayout pageTitle="Job Pipeline">
@@ -269,9 +368,15 @@ export default function JobPipeline() {
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Job Not Found</h2>
             <p className="text-slate-600 mb-6">The job you're looking for doesn't exist.</p>
+            <Link href="/pipeline">
+              <Button variant="outline" className="mr-3">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Pipeline Overview
+              </Button>
+            </Link>
             <Link href="/jobs">
               <Button>
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <Briefcase className="w-4 h-4 mr-2" />
                 Back to Jobs
               </Button>
             </Link>
@@ -287,10 +392,16 @@ export default function JobPipeline() {
         {/* Job Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <Link href="/jobs">
+            <Link href="/pipeline">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Jobs
+                Pipeline Overview
+              </Button>
+            </Link>
+            <Link href="/jobs">
+              <Button variant="ghost" size="sm">
+                <Briefcase className="w-4 h-4 mr-2" />
+                All Jobs
               </Button>
             </Link>
           </div>
