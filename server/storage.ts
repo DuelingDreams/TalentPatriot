@@ -520,7 +520,17 @@ class DatabaseStorage implements IStorage {
   async getJobCandidatesByJob(jobId: string): Promise<JobCandidate[]> {
     const { data, error } = await supabase
       .from('job_candidate')
-      .select('*')
+      .select(`
+        *,
+        candidates (
+          id,
+          name,
+          email,
+          phone,
+          resume_url,
+          created_at
+        )
+      `)
       .eq('job_id', jobId)
       .order('updated_at', { ascending: false })
     

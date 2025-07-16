@@ -78,18 +78,18 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                {candidate.candidates.name.split(' ').map(n => n[0]).join('')}
+                {candidate.candidates?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-slate-900 truncate">
-                {candidate.candidates.name}
+                {candidate.candidates?.name || 'Unknown Candidate'}
               </h4>
               <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
                 <Mail className="w-3 h-3" />
-                <span className="truncate">{candidate.candidates.email}</span>
+                <span className="truncate">{candidate.candidates?.email || 'No email'}</span>
               </div>
-              {candidate.candidates.phone && (
+              {candidate.candidates?.phone && (
                 <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
                   <Phone className="w-3 h-3" />
                   <span>{candidate.candidates.phone}</span>
@@ -102,14 +102,14 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
               )}
               <div className="mt-3 space-y-2">
                 <ResumeUpload
-                  candidateId={candidate.candidates.id}
-                  candidateName={candidate.candidates.name}
-                  currentResumeUrl={candidate.candidates.resume_url}
+                  candidateId={candidate.candidates?.id || candidate.candidateId}
+                  candidateName={candidate.candidates?.name || 'Unknown'}
+                  currentResumeUrl={candidate.candidates?.resume_url || null}
                   onResumeUploaded={() => {}} // Pipeline view is read-only for resumes
                 />
                 <CandidateNotes
                   jobCandidateId={candidate.id}
-                  candidateName={candidate.candidates.name}
+                  candidateName={candidate.candidates?.name || 'Unknown'}
                 >
                   <Button size="sm" variant="outline" className="text-xs w-full">
                     <MessageSquare className="w-3 h-3 mr-1" />
@@ -311,7 +311,7 @@ export default function JobPipeline() {
 
       toast({
         title: "Stage Updated",
-        description: `Moved ${candidate.candidates.name} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`,
+        description: `Moved ${candidate.candidates?.name || 'candidate'} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`,
       })
     } catch (error) {
       toast({
