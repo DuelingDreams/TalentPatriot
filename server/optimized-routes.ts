@@ -14,7 +14,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import rateLimit from "express-rate-limit";
 import { createServer, type Server } from "http";
 import { WebSocketServer } from 'ws';
-import { createOptimizedStorage, type IOptimizedStorage } from "./optimized-storage";
+import { createOptimizedStorage } from "./optimized-storage";
 
 // Enhanced rate limiters
 const readLimiter = rateLimit({

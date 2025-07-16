@@ -37,7 +37,7 @@ import {
   type InsertInterview,
   type InsertMessage,
   type InsertMessageRecipient
-} from "@shared/schema";
+} from "../shared/schema";
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 
@@ -321,15 +321,7 @@ export class OptimizedDatabaseStorage implements IOptimizedStorage {
     }
 
     // Optimized database connection with pooling
-    const sql = neon(process.env.DATABASE_URL, {
-      poolConfig: {
-        max: 20,
-        min: 5,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
-      },
-      fetchConnectionCache: true,
-    });
+    const sql = neon(process.env.DATABASE_URL!);
     
     this.db = drizzle(sql);
     this.cache = new CacheManager();
