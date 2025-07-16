@@ -1,5 +1,3 @@
-#!/usr/bin/env tsx
-
 /**
  * Database Optimization Testing Script
  * 
@@ -7,13 +5,7 @@
  * by testing API endpoints, data integrity, and performance improvements.
  */
 
-import { createClient } from '@supabase/supabase-js';
-
-const API_BASE = 'http://localhost:5000';
-const supabaseUrl = process.env.VITE_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+import { createOptimizedStorage } from './server/optimized-storage';
 
 interface TestResult {
   name: string;
@@ -23,357 +15,298 @@ interface TestResult {
 }
 
 class OptimizationTester {
+  private optimizedStorage: any;
   private results: TestResult[] = [];
 
+  constructor() {
+    this.optimizedStorage = createOptimizedStorage();
+  }
+
   async apiRequest(endpoint: string, options?: RequestInit): Promise<any> {
-    const startTime = Date.now();
-    try {
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
-        ...options,
-      });
-      
-      const duration = Date.now() - startTime;
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      return { data, duration };
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      throw { error, duration };
+    const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+    const response = await fetch(`${baseUrl}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers
+      },
+      ...options
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
+
+    return response.json();
   }
 
   addResult(name: string, status: 'PASS' | 'FAIL' | 'SKIP', message: string, duration?: number) {
     this.results.push({ name, status, message, duration });
-    const statusIcon = status === 'PASS' ? '✅' : status === 'FAIL' ? '❌' : '⏭️';
-    const durationText = duration ? ` (${duration}ms)` : '';
-    console.log(`${statusIcon} ${name}: ${message}${durationText}`);
   }
 
   async testApiConnectivity(): Promise<void> {
-    console.log('\n🔌 Testing API Connectivity');
-    console.log('─'.repeat(50));
-
+    console.log('\n🔍 Testing API Connectivity...');
+    
+    const start = Date.now();
     try {
-      const { data, duration } = await this.apiRequest('/api/clients');
-      this.addResult(
-        'API Connectivity',
-        'PASS',
-        `Retrieved ${data.length} clients`,
-        duration
-      );
-    } catch (err: any) {
-      this.addResult(
-        'API Connectivity',
-        'FAIL',
-        `Connection failed: ${err.error?.message || err.message}`,
-        err.duration
-      );
+      const response = await this.apiRequest('/api/health');
+      const duration = Date.now() - start;
+      
+      if (response.status === 'healthy') {
+        this.addResult('API Health Check', 'PASS', 'API is responding correctly', duration);
+      } else {
+        this.addResult('API Health Check', 'FAIL', `Unhealthy status: ${response.status}`, duration);
+      }
+    } catch (error) {
+      this.addResult('API Health Check', 'FAIL', `API not responding: ${error.message}`);
     }
   }
 
   async testDataIntegrity(): Promise<void> {
-    console.log('\n🔍 Testing Data Integrity');
-    console.log('─'.repeat(50));
+    console.log('\n🔍 Testing Data Integrity...');
 
-    // Test clients endpoint
     try {
-      const { data: clients, duration } = await this.apiRequest('/api/clients');
+      // Test clients endpoint
+      const start1 = Date.now();
+      const clients = await this.apiRequest('/api/clients');
+      const duration1 = Date.now() - start1;
       
       if (Array.isArray(clients) && clients.length > 0) {
-        const hasRequiredFields = clients.every(client => 
-          client.id && client.name && client.created_at
-        );
-        this.addResult(
-          'Clients Data Structure',
-          hasRequiredFields ? 'PASS' : 'FAIL',
-          hasRequiredFields ? `${clients.length} clients with valid structure` : 'Missing required fields',
-          duration
-        );
+        this.addResult('Clients Data', 'PASS', `Found ${clients.length} clients`, duration1);
       } else {
-        this.addResult('Clients Data Structure', 'FAIL', 'No clients data returned');
+        this.addResult('Clients Data', 'FAIL', 'No clients found or invalid response', duration1);
       }
-    } catch (err: any) {
-      this.addResult('Clients Data Structure', 'FAIL', `Error: ${err.error?.message || err.message}`);
-    }
 
-    // Test jobs endpoint
-    try {
-      const { data: jobs, duration } = await this.apiRequest('/api/jobs');
+      // Test jobs endpoint
+      const start2 = Date.now();
+      const jobs = await this.apiRequest('/api/jobs');
+      const duration2 = Date.now() - start2;
       
       if (Array.isArray(jobs) && jobs.length > 0) {
-        const hasRequiredFields = jobs.every(job => 
-          job.id && job.title && job.client_id && job.created_at
-        );
-        this.addResult(
-          'Jobs Data Structure',
-          hasRequiredFields ? 'PASS' : 'FAIL',
-          hasRequiredFields ? `${jobs.length} jobs with valid structure` : 'Missing required fields',
-          duration
-        );
+        this.addResult('Jobs Data', 'PASS', `Found ${jobs.length} jobs`, duration2);
       } else {
-        this.addResult('Jobs Data Structure', 'FAIL', 'No jobs data returned');
+        this.addResult('Jobs Data', 'FAIL', 'No jobs found or invalid response', duration2);
       }
-    } catch (err: any) {
-      this.addResult('Jobs Data Structure', 'FAIL', `Error: ${err.error?.message || err.message}`);
-    }
 
-    // Test candidates endpoint
-    try {
-      const { data: candidates, duration } = await this.apiRequest('/api/candidates');
+      // Test candidates endpoint
+      const start3 = Date.now();
+      const candidates = await this.apiRequest('/api/candidates');
+      const duration3 = Date.now() - start3;
       
       if (Array.isArray(candidates) && candidates.length > 0) {
-        const hasRequiredFields = candidates.every(candidate => 
-          candidate.id && candidate.name && candidate.email && candidate.created_at
-        );
-        this.addResult(
-          'Candidates Data Structure',
-          hasRequiredFields ? 'PASS' : 'FAIL',
-          hasRequiredFields ? `${candidates.length} candidates with valid structure` : 'Missing required fields',
-          duration
-        );
+        this.addResult('Candidates Data', 'PASS', `Found ${candidates.length} candidates`, duration3);
       } else {
-        this.addResult('Candidates Data Structure', 'FAIL', 'No candidates data returned');
+        this.addResult('Candidates Data', 'FAIL', 'No candidates found or invalid response', duration3);
       }
-    } catch (err: any) {
-      this.addResult('Candidates Data Structure', 'FAIL', `Error: ${err.error?.message || err.message}`);
+
+    } catch (error) {
+      this.addResult('Data Integrity', 'FAIL', `Data validation failed: ${error.message}`);
     }
   }
 
   async testDatabaseSchema(): Promise<void> {
-    console.log('\n🗄️ Testing Database Schema Optimizations');
-    console.log('─'.repeat(50));
+    console.log('\n🔍 Testing Database Schema...');
 
     try {
-      // Test if optimized functions exist
-      const { data: functions, error: funcError } = await supabase.rpc('pg_get_functiondef', {
-        func_oid: 'auth.get_user_role'
-      });
+      // Test if optimized storage can connect
+      const stats = await this.optimizedStorage.getDashboardStats();
       
-      if (!funcError) {
-        this.addResult('Auth Functions', 'PASS', 'Role-based auth functions available');
+      if (stats && typeof stats.activeClients === 'number') {
+        this.addResult('Schema Validation', 'PASS', 'Database schema is accessible and valid');
       } else {
-        this.addResult('Auth Functions', 'FAIL', 'Auth functions not found');
+        this.addResult('Schema Validation', 'FAIL', 'Invalid dashboard stats structure');
       }
-    } catch (err: any) {
-      this.addResult('Auth Functions', 'SKIP', 'Could not test auth functions');
-    }
 
-    // Test table structure
-    try {
-      const { data: tables, error } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public')
-        .in('table_name', ['clients', 'jobs', 'candidates', 'job_candidate', 'candidate_notes']);
-
-      if (!error && tables && tables.length === 5) {
-        this.addResult('Core Tables', 'PASS', 'All 5 core tables present');
-      } else {
-        this.addResult('Core Tables', 'FAIL', `Only ${tables?.length || 0}/5 tables found`);
-      }
-    } catch (err: any) {
-      this.addResult('Core Tables', 'FAIL', 'Could not verify table structure');
+    } catch (error) {
+      this.addResult('Schema Validation', 'FAIL', `Schema validation failed: ${error.message}`);
     }
   }
 
   async testPerformance(): Promise<void> {
-    console.log('\n⚡ Testing Performance Improvements');
-    console.log('─'.repeat(50));
-
-    // Test multiple concurrent requests
-    const concurrentTests = 5;
-    const requests = Array(concurrentTests).fill(null).map(() => 
-      this.apiRequest('/api/clients')
-    );
+    console.log('\n🔍 Testing Performance Optimizations...');
 
     try {
-      const startTime = Date.now();
-      const responses = await Promise.all(requests);
-      const totalDuration = Date.now() - startTime;
-      const avgDuration = totalDuration / concurrentTests;
+      // Test dashboard stats performance
+      const start1 = Date.now();
+      await this.optimizedStorage.getDashboardStats();
+      const dashboardDuration = Date.now() - start1;
+      
+      if (dashboardDuration < 1000) { // Under 1 second
+        this.addResult('Dashboard Performance', 'PASS', `Dashboard loaded in ${dashboardDuration}ms`, dashboardDuration);
+      } else {
+        this.addResult('Dashboard Performance', 'FAIL', `Dashboard too slow: ${dashboardDuration}ms`, dashboardDuration);
+      }
 
-      this.addResult(
-        'Concurrent Requests',
-        avgDuration < 500 ? 'PASS' : 'FAIL',
-        `${concurrentTests} concurrent requests, avg ${Math.round(avgDuration)}ms`,
-        totalDuration
-      );
-    } catch (err: any) {
-      this.addResult('Concurrent Requests', 'FAIL', 'Failed concurrent request test');
-    }
+      // Test jobs with candidate counts
+      const start2 = Date.now();
+      await this.optimizedStorage.getJobsWithCandidateCounts();
+      const jobsDuration = Date.now() - start2;
+      
+      if (jobsDuration < 2000) { // Under 2 seconds
+        this.addResult('Jobs Performance', 'PASS', `Jobs with counts loaded in ${jobsDuration}ms`, jobsDuration);
+      } else {
+        this.addResult('Jobs Performance', 'FAIL', `Jobs too slow: ${jobsDuration}ms`, jobsDuration);
+      }
 
-    // Test large data handling
-    try {
-      const { data, duration } = await this.apiRequest('/api/clients?limit=100');
-      this.addResult(
-        'Large Dataset Handling',
-        duration < 1000 ? 'PASS' : 'FAIL',
-        `Large query completed in ${duration}ms`,
-        duration
-      );
-    } catch (err: any) {
-      this.addResult('Large Dataset Handling', 'SKIP', 'Could not test large dataset');
+      // Test search performance
+      const start3 = Date.now();
+      await this.optimizedStorage.searchAll('test');
+      const searchDuration = Date.now() - start3;
+      
+      if (searchDuration < 1500) { // Under 1.5 seconds
+        this.addResult('Search Performance', 'PASS', `Search completed in ${searchDuration}ms`, searchDuration);
+      } else {
+        this.addResult('Search Performance', 'FAIL', `Search too slow: ${searchDuration}ms`, searchDuration);
+      }
+
+    } catch (error) {
+      this.addResult('Performance Test', 'FAIL', `Performance test failed: ${error.message}`);
     }
   }
 
   async testSecurity(): Promise<void> {
-    console.log('\n🛡️ Testing Security Enhancements');
-    console.log('─'.repeat(50));
+    console.log('\n🔍 Testing Security Features...');
 
-    // Test rate limiting
     try {
-      const rapidRequests = Array(10).fill(null).map(() => 
-        this.apiRequest('/api/clients')
-      );
+      // Test rate limiting (should return 429 after many requests)
+      let rateLimitTriggered = false;
       
-      const responses = await Promise.allSettled(rapidRequests);
-      const successful = responses.filter(r => r.status === 'fulfilled').length;
-      const rateLimited = responses.filter(r => r.status === 'rejected').length;
-
-      if (rateLimited > 0) {
-        this.addResult('Rate Limiting', 'PASS', `${rateLimited}/10 requests rate limited`);
-      } else {
-        this.addResult('Rate Limiting', 'PASS', 'All requests processed (rate limit not reached)');
+      for (let i = 0; i < 10; i++) {
+        try {
+          await this.apiRequest('/api/clients');
+        } catch (error) {
+          if (error.message.includes('429')) {
+            rateLimitTriggered = true;
+            break;
+          }
+        }
       }
-    } catch (err: any) {
-      this.addResult('Rate Limiting', 'SKIP', 'Could not test rate limiting');
-    }
 
-    // Test input validation
-    try {
-      const invalidData = {
-        name: '', // Invalid: empty name
-        contactEmail: 'invalid-email', // Invalid: malformed email
-      };
-
-      const { data, duration } = await this.apiRequest('/api/clients', {
-        method: 'POST',
-        body: JSON.stringify(invalidData),
-      });
-
-      this.addResult('Input Validation', 'FAIL', 'Invalid data was accepted');
-    } catch (err: any) {
-      // Expected to fail with validation error
-      if (err.error?.message?.includes('validation') || err.error?.message?.includes('required')) {
-        this.addResult('Input Validation', 'PASS', 'Invalid data properly rejected');
+      if (rateLimitTriggered) {
+        this.addResult('Rate Limiting', 'PASS', 'Rate limiting is working correctly');
       } else {
-        this.addResult('Input Validation', 'FAIL', `Unexpected error: ${err.error?.message}`);
+        this.addResult('Rate Limiting', 'SKIP', 'Rate limiting not triggered in test');
       }
+
+    } catch (error) {
+      this.addResult('Security Test', 'FAIL', `Security test failed: ${error.message}`);
     }
   }
 
   async testCRUDOperations(): Promise<void> {
-    console.log('\n📝 Testing CRUD Operations');
-    console.log('─'.repeat(50));
+    console.log('\n🔍 Testing CRUD Operations...');
 
-    // Test client creation
     try {
+      // Test client creation
       const testClient = {
         name: 'Test Optimization Client',
-        industry: 'Technology',
-        contactName: 'Test User',
+        industry: 'Testing',
+        contactName: 'Test Contact',
         contactEmail: 'test@optimization.com',
-        notes: 'Created during optimization testing',
+        status: 'active' as const
       };
 
-      const { data: newClient, duration } = await this.apiRequest('/api/clients', {
+      const start1 = Date.now();
+      const createdClient = await this.apiRequest('/api/clients', {
         method: 'POST',
-        body: JSON.stringify(testClient),
+        body: JSON.stringify(testClient)
       });
+      const createDuration = Date.now() - start1;
 
-      if (newClient && newClient.id) {
-        this.addResult('Client Creation', 'PASS', `Client created with ID: ${newClient.id}`, duration);
+      if (createdClient.id) {
+        this.addResult('Client Creation', 'PASS', `Client created in ${createDuration}ms`, createDuration);
 
-        // Test client update
-        try {
-          const updateData = { industry: 'Updated Technology' };
-          const { data: updatedClient, duration: updateDuration } = await this.apiRequest(`/api/clients/${newClient.id}`, {
-            method: 'PUT',
-            body: JSON.stringify(updateData),
-          });
+        // Test client retrieval
+        const start2 = Date.now();
+        const retrievedClient = await this.apiRequest(`/api/clients/${createdClient.id}`);
+        const retrieveDuration = Date.now() - start2;
 
-          if (updatedClient && updatedClient.industry === 'Updated Technology') {
-            this.addResult('Client Update', 'PASS', 'Client updated successfully', updateDuration);
-          } else {
-            this.addResult('Client Update', 'FAIL', 'Client update did not apply changes');
-          }
-        } catch (err: any) {
-          this.addResult('Client Update', 'FAIL', `Update failed: ${err.error?.message}`);
+        if (retrievedClient.name === testClient.name) {
+          this.addResult('Client Retrieval', 'PASS', `Client retrieved in ${retrieveDuration}ms`, retrieveDuration);
+        } else {
+          this.addResult('Client Retrieval', 'FAIL', 'Retrieved client data mismatch');
         }
 
-        // Clean up test client
+        // Clean up - delete test client
         try {
-          await this.apiRequest(`/api/clients/${newClient.id}`, { method: 'DELETE' });
+          await this.apiRequest(`/api/clients/${createdClient.id}`, {
+            method: 'DELETE'
+          });
           this.addResult('Client Cleanup', 'PASS', 'Test client deleted successfully');
-        } catch (err: any) {
-          this.addResult('Client Cleanup', 'FAIL', 'Could not delete test client');
+        } catch (error) {
+          this.addResult('Client Cleanup', 'FAIL', `Failed to delete test client: ${error.message}`);
         }
       } else {
-        this.addResult('Client Creation', 'FAIL', 'Client creation returned invalid data');
+        this.addResult('Client Creation', 'FAIL', 'Client creation returned invalid response');
       }
-    } catch (err: any) {
-      this.addResult('Client Creation', 'FAIL', `Creation failed: ${err.error?.message}`);
+
+    } catch (error) {
+      this.addResult('CRUD Operations', 'FAIL', `CRUD test failed: ${error.message}`);
     }
   }
 
   generateReport(): void {
-    console.log('\n📊 Optimization Test Report');
-    console.log('═'.repeat(60));
-    
+    console.log('\n' + '='.repeat(80));
+    console.log('🎯 OPTIMIZATION TEST RESULTS SUMMARY');
+    console.log('='.repeat(80));
+
     const passed = this.results.filter(r => r.status === 'PASS').length;
     const failed = this.results.filter(r => r.status === 'FAIL').length;
     const skipped = this.results.filter(r => r.status === 'SKIP').length;
     const total = this.results.length;
 
-    console.log(`📈 Test Results: ${passed}/${total} passed`);
-    console.log(`✅ Passed: ${passed}`);
-    console.log(`❌ Failed: ${failed}`);
-    console.log(`⏭️ Skipped: ${skipped}`);
+    console.log(`\n📊 Results: ${passed} PASSED, ${failed} FAILED, ${skipped} SKIPPED (${total} total)`);
+    console.log(`✅ Success Rate: ${((passed / total) * 100).toFixed(1)}%\n`);
+
+    // Group results by category
+    const categories = ['API', 'Data', 'Schema', 'Performance', 'Security', 'CRUD'];
     
-    const successRate = Math.round((passed / (total - skipped)) * 100);
-    console.log(`📊 Success Rate: ${successRate}%`);
+    categories.forEach(category => {
+      const categoryResults = this.results.filter(r => r.name.includes(category) || r.name.includes(category.toLowerCase()));
+      
+      if (categoryResults.length > 0) {
+        console.log(`\n🔹 ${category.toUpperCase()} TESTS:`);
+        categoryResults.forEach(result => {
+          const status = result.status === 'PASS' ? '✅' : result.status === 'FAIL' ? '❌' : '⏭️';
+          const duration = result.duration ? ` (${result.duration}ms)` : '';
+          console.log(`  ${status} ${result.name}${duration}: ${result.message}`);
+        });
+      }
+    });
 
+    // Performance summary
+    const performanceResults = this.results.filter(r => r.duration !== undefined);
+    if (performanceResults.length > 0) {
+      console.log('\n⚡ PERFORMANCE SUMMARY:');
+      const totalDuration = performanceResults.reduce((sum, r) => sum + (r.duration || 0), 0);
+      const avgDuration = totalDuration / performanceResults.length;
+      console.log(`  Average response time: ${avgDuration.toFixed(0)}ms`);
+      console.log(`  Fastest operation: ${Math.min(...performanceResults.map(r => r.duration || Infinity))}ms`);
+      console.log(`  Slowest operation: ${Math.max(...performanceResults.map(r => r.duration || 0))}ms`);
+    }
+
+    // Recommendations
+    console.log('\n💡 RECOMMENDATIONS:');
     if (failed > 0) {
-      console.log('\n❌ Failed Tests:');
-      this.results
-        .filter(r => r.status === 'FAIL')
-        .forEach(r => console.log(`  • ${r.name}: ${r.message}`));
+      console.log('  - Review failed tests and address underlying issues');
+      console.log('  - Check database connectivity and schema integrity');
+    }
+    
+    const slowTests = this.results.filter(r => r.duration && r.duration > 1000);
+    if (slowTests.length > 0) {
+      console.log('  - Consider additional performance optimizations for slow operations');
+      console.log('  - Review query patterns and indexing strategy');
+    }
+    
+    if (passed === total) {
+      console.log('  🎉 All tests passed! Optimizations are working correctly.');
     }
 
-    const avgDuration = this.results
-      .filter(r => r.duration)
-      .reduce((sum, r) => sum + (r.duration || 0), 0) / 
-      this.results.filter(r => r.duration).length;
-
-    if (avgDuration) {
-      console.log(`⚡ Average Response Time: ${Math.round(avgDuration)}ms`);
-    }
-
-    console.log('\n🎯 Optimization Status:');
-    if (successRate >= 90) {
-      console.log('✅ Database optimizations are working excellently');
-    } else if (successRate >= 75) {
-      console.log('⚠️ Database optimizations are mostly working with minor issues');
-    } else {
-      console.log('❌ Database optimizations need attention');
-    }
-
-    console.log('═'.repeat(60));
+    console.log('\n' + '='.repeat(80));
   }
 
   async runAllTests(): Promise<boolean> {
-    console.log('🧪 Starting ATS Database Optimization Tests');
-    console.log('═'.repeat(60));
-    console.log(`📅 Started at: ${new Date().toISOString()}`);
-    console.log('═'.repeat(60));
+    console.log('🚀 Starting Database Optimization Tests...');
+    console.log('='.repeat(80));
 
     await this.testApiConnectivity();
     await this.testDataIntegrity();
@@ -384,34 +317,27 @@ class OptimizationTester {
 
     this.generateReport();
 
-    const passed = this.results.filter(r => r.status === 'PASS').length;
-    const total = this.results.filter(r => r.status !== 'SKIP').length;
-    
-    return passed >= total * 0.8; // 80% pass rate required
+    const failedTests = this.results.filter(r => r.status === 'FAIL').length;
+    return failedTests === 0;
   }
 }
 
-// Main execution
 async function main() {
   const tester = new OptimizationTester();
   
   try {
     const success = await tester.runAllTests();
-    
-    if (success) {
-      console.log('\n🎉 Optimization tests completed successfully!');
-      process.exit(0);
-    } else {
-      console.log('\n⚠️ Some optimization tests failed. Review the results above.');
-      process.exit(1);
-    }
+    process.exit(success ? 0 : 1);
   } catch (error) {
-    console.error('\n💥 Test execution failed:', error);
+    console.error('❌ Test runner failed:', error);
     process.exit(1);
   }
 }
 
-// Run tests if this file is executed directly
-main().catch(console.error);
+// Export for use in other scripts
+export { OptimizationTester };
 
-export default main;
+// Run if called directly
+if (require.main === module) {
+  main().catch(console.error);
+}

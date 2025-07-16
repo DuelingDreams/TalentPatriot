@@ -2,6 +2,7 @@ import type { Express } from "express";
 import rateLimit from "express-rate-limit";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { registerOptimizedRoutes } from "./optimized-routes";
 
 // Write operation rate limiter
 const writeLimiter = rateLimit({
@@ -26,6 +27,16 @@ const authLimiter = rateLimit({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Check if we should use optimized routes
+  const useOptimizedRoutes = process.env.USE_OPTIMIZED_ROUTES === 'true';
+  
+  if (useOptimizedRoutes) {
+    console.log('🚀 Using optimized routes with performance enhancements');
+    return await registerOptimizedRoutes(app);
+  }
+  
+  console.log('📡 Using standard routes');
+  // Continue with existing implementation...
   // Clients routes
   app.get("/api/clients", async (req, res) => {
     try {

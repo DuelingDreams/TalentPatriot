@@ -1,5 +1,3 @@
-#!/usr/bin/env tsx
-
 /**
  * Database Optimization Deployment Script
  * 
@@ -7,25 +5,10 @@
  * It includes comprehensive logging, validation, and rollback capabilities.
  */
 
-import { createClient } from '@supabase/supabase-js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
-
-const supabaseUrl = process.env.VITE_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  console.error('❌ Missing required environment variables: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY');
-  process.exit(1);
-}
-
-// Create Supabase client with admin privileges
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-  },
-});
+import { drizzle } from 'drizzle-orm/neon-http';
+import { neon } from '@neondatabase/serverless';
+import fs from 'fs';
+import path from 'path';
 
 interface MigrationStep {
   name: string;
@@ -35,170 +18,327 @@ interface MigrationStep {
 }
 
 class DatabaseMigrator {
+  private db: any;
   private steps: MigrationStep[] = [];
   private executedSteps: string[] = [];
 
   constructor() {
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is required');
+    }
+    
+    const sql = neon(process.env.DATABASE_URL);
+    this.db = drizzle(sql);
     this.loadMigrationSteps();
   }
 
   private loadMigrationSteps() {
-    try {
-      // Load the migration SQL file
-      const migrationSql = readFileSync(join(process.cwd(), 'supabase-migration-optimized.sql'), 'utf-8');
+    this.steps = [
+      {
+        name: "fix_boolean_types",
+        sql: `
+          -- Fix boolean type for candidate_notes.is_private
+          ALTER TABLE candidate_notes 
+          ALTER COLUMN is_private TYPE BOOLEAN 
+          USING CASE 
+            WHEN is_private = 'true' THEN true 
+            WHEN is_private = 'false' THEN false 
+            ELSE false 
+          END;
+          
+          -- Update default constraint
+          ALTER TABLE candidate_notes 
+          ALTER COLUMN is_private SET DEFAULT false;
+        `,
+        rollback: `
+          ALTER TABLE candidate_notes 
+          ALTER COLUMN is_private TYPE VARCHAR(10) 
+          USING is_private::VARCHAR;
+        `
+      },
       
-      // Load the RLS policies SQL file
-      const rlsSql = readFileSync(join(process.cwd(), 'supabase-optimized-rls.sql'), 'utf-8');
-
-      this.steps = [
-        {
-          name: 'Pre-migration Validation',
-          sql: `
-            -- Validate current schema state
-            SELECT table_name, column_name, data_type 
-            FROM information_schema.columns 
-            WHERE table_name IN ('clients', 'jobs', 'candidates', 'job_candidate', 'candidate_notes')
-            ORDER BY table_name, ordinal_position;
-          `,
-          validate: async () => {
-            const { data, error } = await supabase.rpc('validate_schema_state');
-            return !error;
-          }
-        },
-        {
-          name: 'Backup Current Data',
-          sql: `
-            -- Create backup tables
-            CREATE TABLE IF NOT EXISTS backup_clients AS SELECT * FROM clients;
-            CREATE TABLE IF NOT EXISTS backup_jobs AS SELECT * FROM jobs;
-            CREATE TABLE IF NOT EXISTS backup_candidates AS SELECT * FROM candidates;
-            CREATE TABLE IF NOT EXISTS backup_job_candidate AS SELECT * FROM job_candidate;
-            CREATE TABLE IF NOT EXISTS backup_candidate_notes AS SELECT * FROM candidate_notes;
-          `,
-          rollback: `
-            DROP TABLE IF EXISTS backup_clients;
-            DROP TABLE IF EXISTS backup_jobs;
-            DROP TABLE IF EXISTS backup_candidates;
-            DROP TABLE IF EXISTS backup_job_candidate;
-            DROP TABLE IF EXISTS backup_candidate_notes;
-          `
-        },
-        {
-          name: 'Apply Schema Optimizations',
-          sql: migrationSql,
-          validate: async () => {
-            // Check if new columns exist
-            const { data, error } = await supabase.rpc('validate_migration');
-            if (error) {
-              console.error('Validation error:', error);
-              return false;
-            }
-            return data && data.length > 0;
-          }
-        },
-        {
-          name: 'Apply Optimized RLS Policies',
-          sql: rlsSql,
-          validate: async () => {
-            // Check if policies are applied correctly
-            const { data, error } = await supabase.rpc('audit_rls_policies');
-            if (error) {
-              console.error('RLS validation error:', error);
-              return false;
-            }
-            return data && data.every((table: any) => table.policy_count > 0);
-          }
-        },
-        {
-          name: 'Final Validation and Cleanup',
-          sql: `
-            -- Run final validation
-            SELECT * FROM validate_migration();
+      {
+        name: "create_composite_indexes",
+        sql: `
+          -- Composite indexes for common query patterns
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_jobs_client_status_created 
+          ON jobs(client_id, status, created_at DESC);
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_job_candidate_compound 
+          ON job_candidate(job_id, stage, status, updated_at DESC);
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_candidates_email_status 
+          ON candidates(email, status) WHERE status = 'active';
+        `,
+        rollback: `
+          DROP INDEX IF EXISTS idx_jobs_client_status_created;
+          DROP INDEX IF EXISTS idx_job_candidate_compound;
+          DROP INDEX IF EXISTS idx_candidates_email_status;
+        `
+      },
+      
+      {
+        name: "create_partial_indexes",
+        sql: `
+          -- Partial indexes for filtered queries
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_active_jobs 
+          ON jobs(created_at DESC) WHERE record_status = 'active';
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_demo_jobs 
+          ON jobs(created_at DESC) WHERE record_status = 'demo';
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_active_candidates 
+          ON candidates(created_at DESC) WHERE status = 'active';
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_pipeline_stage_status 
+          ON job_candidate(stage, status, updated_at DESC) WHERE status IN ('active', 'demo');
+        `,
+        rollback: `
+          DROP INDEX IF EXISTS idx_active_jobs;
+          DROP INDEX IF EXISTS idx_demo_jobs;
+          DROP INDEX IF EXISTS idx_active_candidates;
+          DROP INDEX IF EXISTS idx_pipeline_stage_status;
+        `
+      },
+      
+      {
+        name: "create_search_vectors",
+        sql: `
+          -- Enhanced search vectors for candidates
+          ALTER TABLE candidates ADD COLUMN IF NOT EXISTS search_vector tsvector 
+          GENERATED ALWAYS AS (
+            setweight(to_tsvector('english', name), 'A') ||
+            setweight(to_tsvector('english', email), 'B') ||
+            setweight(to_tsvector('english', COALESCE(phone, '')), 'C')
+          ) STORED;
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_candidates_search 
+          ON candidates USING gin(search_vector);
+          
+          -- Enhanced search vectors for clients
+          ALTER TABLE clients ADD COLUMN IF NOT EXISTS search_vector tsvector 
+          GENERATED ALWAYS AS (
+            setweight(to_tsvector('english', name), 'A') ||
+            setweight(to_tsvector('english', COALESCE(industry, '')), 'B') ||
+            setweight(to_tsvector('english', COALESCE(contact_name, '')), 'C') ||
+            setweight(to_tsvector('english', COALESCE(contact_email, '')), 'D')
+          ) STORED;
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_clients_search 
+          ON clients USING gin(search_vector);
+        `,
+        rollback: `
+          DROP INDEX IF EXISTS idx_candidates_search;
+          DROP INDEX IF EXISTS idx_clients_search;
+          ALTER TABLE candidates DROP COLUMN IF EXISTS search_vector;
+          ALTER TABLE clients DROP COLUMN IF EXISTS search_vector;
+        `
+      },
+      
+      {
+        name: "create_dashboard_materialized_view",
+        sql: `
+          -- Create materialized view for dashboard statistics
+          CREATE MATERIALIZED VIEW IF NOT EXISTS dashboard_stats AS
+          SELECT 
+            -- Client statistics
+            (SELECT COUNT(*) FROM clients WHERE status = 'active') as active_clients,
+            (SELECT COUNT(*) FROM clients WHERE status = 'demo') as demo_clients,
             
-            -- Test demo access
-            SELECT * FROM test_demo_access();
+            -- Job statistics
+            (SELECT COUNT(*) FROM jobs WHERE record_status = 'active' AND status = 'open') as open_jobs,
+            (SELECT COUNT(*) FROM jobs WHERE record_status = 'active' AND status = 'filled') as filled_jobs,
+            (SELECT COUNT(*) FROM jobs WHERE record_status = 'demo') as demo_jobs,
             
-            -- Clean up backup tables after successful migration
-            DROP TABLE IF EXISTS backup_clients;
-            DROP TABLE IF EXISTS backup_jobs;
-            DROP TABLE IF EXISTS backup_candidates;
-            DROP TABLE IF EXISTS backup_job_candidate;
-            DROP TABLE IF EXISTS backup_candidate_notes;
+            -- Candidate statistics
+            (SELECT COUNT(*) FROM candidates WHERE status = 'active') as active_candidates,
+            (SELECT COUNT(*) FROM candidates WHERE status = 'demo') as demo_candidates,
             
-            -- Run database maintenance
-            SELECT maintain_ats_database();
-          `,
-          validate: async () => {
-            // Final comprehensive validation
-            try {
-              const { data: clients } = await supabase.from('clients').select('count').single();
-              const { data: jobs } = await supabase.from('jobs').select('count').single();
-              const { data: candidates } = await supabase.from('candidates').select('count').single();
+            -- Pipeline statistics by stage
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'applied') as applied_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'screening') as screening_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'interview') as interview_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'technical') as technical_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'final') as final_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'offer') as offer_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'hired') as hired_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND stage = 'rejected') as rejected_count,
+            
+            -- Demo pipeline statistics
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'demo' AND stage = 'applied') as demo_applied_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'demo' AND stage = 'screening') as demo_screening_count,
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'demo' AND stage = 'interview') as demo_interview_count,
+            
+            -- Recent activity
+            (SELECT COUNT(*) FROM job_candidate WHERE status = 'active' AND updated_at > NOW() - INTERVAL '7 days') as recent_activity_count,
+            
+            -- Last updated
+            NOW() as last_updated;
+          
+          -- Create unique index for materialized view
+          CREATE UNIQUE INDEX IF NOT EXISTS idx_dashboard_stats_unique ON dashboard_stats(last_updated);
+        `,
+        rollback: `
+          DROP MATERIALIZED VIEW IF EXISTS dashboard_stats;
+        `
+      },
+      
+      {
+        name: "create_optimization_functions",
+        sql: `
+          -- Function to refresh dashboard statistics
+          CREATE OR REPLACE FUNCTION refresh_dashboard_stats()
+          RETURNS void AS $$
+          BEGIN
+            REFRESH MATERIALIZED VIEW CONCURRENTLY dashboard_stats;
+          END;
+          $$ LANGUAGE plpgsql;
+          
+          -- Function to update table statistics
+          CREATE OR REPLACE FUNCTION update_table_stats()
+          RETURNS void AS $$
+          BEGIN
+            ANALYZE clients;
+            ANALYZE jobs;
+            ANALYZE candidates;
+            ANALYZE job_candidate;
+            ANALYZE candidate_notes;
+          END;
+          $$ LANGUAGE plpgsql;
+          
+          -- Performance monitoring view
+          CREATE OR REPLACE VIEW performance_metrics AS
+          SELECT 
+            schemaname,
+            tablename,
+            seq_scan,
+            seq_tup_read,
+            idx_scan,
+            idx_tup_fetch,
+            n_tup_ins,
+            n_tup_upd,
+            n_tup_del,
+            n_live_tup,
+            n_dead_tup
+          FROM pg_stat_user_tables
+          WHERE schemaname = 'public'
+          ORDER BY seq_scan DESC;
+        `,
+        rollback: `
+          DROP FUNCTION IF EXISTS refresh_dashboard_stats();
+          DROP FUNCTION IF EXISTS update_table_stats();
+          DROP VIEW IF EXISTS performance_metrics;
+        `
+      },
+      
+      {
+        name: "optimize_rls_functions",
+        sql: `
+          -- Optimized role caching function
+          CREATE OR REPLACE FUNCTION auth.get_user_role_cached()
+          RETURNS TEXT
+          LANGUAGE plpgsql
+          SECURITY DEFINER
+          STABLE
+          AS $$
+          DECLARE
+            cached_role TEXT;
+          BEGIN
+            -- Try to get cached role from session
+            BEGIN
+              cached_role := current_setting('app.cached_user_role', true);
+            EXCEPTION
+              WHEN others THEN
+                cached_role := null;
+            END;
+            
+            -- If no cache or empty, compute and cache
+            IF cached_role IS NULL OR cached_role = '' THEN
+              SELECT COALESCE(
+                (auth.jwt() ->> 'user_metadata')::jsonb ->> 'role',
+                CASE 
+                  WHEN auth.uid() IS NOT NULL THEN 'authenticated'
+                  ELSE 'anonymous'
+                END
+              ) INTO cached_role;
               
-              return clients && jobs && candidates;
-            } catch (error) {
-              console.error('Final validation failed:', error);
-              return false;
-            }
-          }
-        }
-      ];
-    } catch (error) {
-      console.error('❌ Failed to load migration files:', error);
-      process.exit(1);
-    }
+              -- Set session-level cache
+              PERFORM set_config('app.cached_user_role', cached_role, false);
+            END IF;
+            
+            RETURN cached_role;
+          END;
+          $$;
+          
+          -- RLS-optimized indexes
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_rls_clients_status 
+          ON clients(status) WHERE status IN ('active', 'demo');
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_rls_jobs_status_assigned 
+          ON jobs(record_status, assigned_to) WHERE record_status IN ('active', 'demo');
+          
+          CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_rls_candidate_notes_private_author 
+          ON candidate_notes(is_private, author_id);
+        `,
+        rollback: `
+          DROP INDEX IF EXISTS idx_rls_clients_status;
+          DROP INDEX IF EXISTS idx_rls_jobs_status_assigned;
+          DROP INDEX IF EXISTS idx_rls_candidate_notes_private_author;
+        `
+      },
+      
+      {
+        name: "initial_optimization",
+        sql: `
+          -- Initial table optimization
+          SELECT refresh_dashboard_stats();
+          SELECT update_table_stats();
+        `,
+        rollback: ``
+      }
+    ];
   }
 
   async executeSql(sql: string): Promise<{ success: boolean; error?: any }> {
     try {
-      const { error } = await supabase.rpc('exec_sql', { sql_string: sql });
-      return { success: !error, error };
+      await this.db.execute(sql);
+      return { success: true };
     } catch (error) {
+      console.error('SQL execution failed:', error);
       return { success: false, error };
     }
   }
 
   async executeStep(step: MigrationStep): Promise<boolean> {
-    console.log(`\n🔄 Executing: ${step.name}`);
-    console.log('─'.repeat(60));
-
-    const startTime = Date.now();
+    console.log(`🔄 Executing step: ${step.name}`);
+    
     const result = await this.executeSql(step.sql);
-    const duration = Date.now() - startTime;
-
-    if (!result.success) {
-      console.error(`❌ Failed to execute ${step.name}:`, result.error);
+    
+    if (result.success) {
+      console.log(`✅ Step completed: ${step.name}`);
+      this.executedSteps.push(step.name);
+      return true;
+    } else {
+      console.error(`❌ Step failed: ${step.name}`, result.error);
       return false;
     }
-
-    console.log(`✅ ${step.name} completed in ${duration}ms`);
-
-    // Run validation if provided
-    if (step.validate) {
-      console.log(`🔍 Validating ${step.name}...`);
-      const isValid = await step.validate();
-      if (!isValid) {
-        console.error(`❌ Validation failed for ${step.name}`);
-        return false;
-      }
-      console.log(`✅ ${step.name} validation passed`);
-    }
-
-    this.executedSteps.push(step.name);
-    return true;
   }
 
   async rollback(): Promise<void> {
-    console.log('\n🔄 Rolling back migration...');
-    console.log('═'.repeat(60));
-
-    for (const stepName of this.executedSteps.reverse()) {
-      const step = this.steps.find(s => s.name === stepName);
-      if (step?.rollback) {
+    console.log('🔄 Starting rollback...');
+    
+    // Execute rollback in reverse order
+    const stepsToRollback = this.steps
+      .filter(step => this.executedSteps.includes(step.name) && step.rollback)
+      .reverse();
+    
+    for (const step of stepsToRollback) {
+      if (step.rollback) {
         console.log(`🔄 Rolling back: ${step.name}`);
         const result = await this.executeSql(step.rollback);
+        
         if (result.success) {
-          console.log(`✅ Rollback successful: ${step.name}`);
+          console.log(`✅ Rollback completed: ${step.name}`);
         } else {
           console.error(`❌ Rollback failed: ${step.name}`, result.error);
         }
@@ -207,147 +347,104 @@ class DatabaseMigrator {
   }
 
   async migrate(): Promise<boolean> {
-    console.log('🚀 Starting ATS Database Optimization Migration');
-    console.log('═'.repeat(60));
-    console.log(`📅 Started at: ${new Date().toISOString()}`);
-    console.log(`🎯 Target: ${supabaseUrl}`);
-    console.log(`📋 Steps: ${this.steps.length}`);
-    console.log('═'.repeat(60));
-
-    try {
-      for (let i = 0; i < this.steps.length; i++) {
-        const step = this.steps[i];
-        console.log(`\n📍 Step ${i + 1}/${this.steps.length}: ${step.name}`);
-        
-        const success = await this.executeStep(step);
-        if (!success) {
-          console.error(`\n❌ Migration failed at step: ${step.name}`);
-          console.log('\n🔄 Initiating rollback...');
-          await this.rollback();
-          return false;
-        }
-
-        // Progress indicator
-        const progress = Math.round(((i + 1) / this.steps.length) * 100);
-        console.log(`📊 Progress: ${progress}% (${i + 1}/${this.steps.length})`);
+    console.log('🚀 Starting database optimization migration...');
+    
+    for (const step of this.steps) {
+      const success = await this.executeStep(step);
+      
+      if (!success) {
+        console.error(`❌ Migration failed at step: ${step.name}`);
+        console.log('🔄 Starting automatic rollback...');
+        await this.rollback();
+        return false;
       }
-
-      console.log('\n🎉 Migration completed successfully!');
-      console.log('═'.repeat(60));
-      console.log('✅ All optimizations applied');
-      console.log('✅ RLS policies updated');
-      console.log('✅ Performance indexes created');
-      console.log('✅ Demo data isolated');
-      console.log('✅ Audit functions deployed');
-      console.log('═'.repeat(60));
-      console.log(`🏁 Completed at: ${new Date().toISOString()}`);
-
-      return true;
-    } catch (error) {
-      console.error('\n💥 Unexpected error during migration:', error);
-      console.log('\n🔄 Initiating emergency rollback...');
-      await this.rollback();
-      return false;
     }
+    
+    console.log('✅ All optimization steps completed successfully!');
+    return true;
   }
 
   async testConnectivity(): Promise<boolean> {
-    console.log('🔌 Testing database connectivity...');
     try {
-      const { data, error } = await supabase.from('clients').select('count').limit(1);
-      if (error) {
-        console.error('❌ Connectivity test failed:', error.message);
-        return false;
-      }
-      console.log('✅ Database connectivity verified');
+      await this.db.execute('SELECT 1');
+      console.log('✅ Database connectivity test passed');
       return true;
     } catch (error) {
-      console.error('❌ Connectivity test failed:', error);
+      console.error('❌ Database connectivity test failed:', error);
       return false;
     }
   }
 
   async generateReport(): Promise<void> {
-    console.log('\n📊 Generating Migration Report');
-    console.log('═'.repeat(60));
-
+    console.log('\n📊 Optimization Report:');
+    console.log('================================');
+    
     try {
-      // Get table information
-      const { data: tables } = await supabase.rpc('validate_migration');
-      if (tables) {
-        console.log('\n📋 Table Status:');
-        tables.forEach((table: any) => {
-          console.log(`  ${table.table_name}: ${table.has_status_column ? '✅' : '❌'} status, ${table.has_updated_at ? '✅' : '❌'} updated_at, ${table.policy_count} policies`);
-        });
-      }
-
-      // Get demo access status
-      const { data: demoAccess } = await supabase.rpc('test_demo_access');
-      if (demoAccess) {
-        console.log('\n🎭 Demo Data Status:');
-        demoAccess.forEach((access: any) => {
-          console.log(`  ${access.table_name}: ${access.demo_record_count} demo records, ${access.access_granted ? '✅' : '❌'} access`);
-        });
-      }
-
-      // Get policy audit
-      const { data: policies } = await supabase.rpc('audit_rls_policies');
-      if (policies) {
-        console.log('\n🛡️ Security Policy Status:');
-        policies.forEach((policy: any) => {
-          console.log(`  ${policy.table_name}: ${policy.policy_count} policies (${policy.has_select_policy ? '✅' : '❌'} SELECT, ${policy.has_insert_policy ? '✅' : '❌'} INSERT)`);
-        });
-      }
-
+      // Check index usage
+      const indexUsage = await this.db.execute(`
+        SELECT 
+          tablename,
+          indexname,
+          idx_tup_read,
+          idx_tup_fetch
+        FROM pg_stat_user_indexes 
+        WHERE schemaname = 'public'
+        ORDER BY idx_tup_read DESC
+        LIMIT 10;
+      `);
+      
+      console.log('\n🔍 Top 10 Most Used Indexes:');
+      indexUsage.forEach((row: any) => {
+        console.log(`  ${row.tablename}.${row.indexname}: ${row.idx_tup_read} reads`);
+      });
+      
+      // Check table sizes
+      const tableSizes = await this.db.execute(`
+        SELECT 
+          tablename,
+          pg_size_pretty(pg_total_relation_size('public.'||tablename)) as size
+        FROM pg_tables 
+        WHERE schemaname = 'public'
+        ORDER BY pg_total_relation_size('public.'||tablename) DESC;
+      `);
+      
+      console.log('\n📦 Table Sizes:');
+      tableSizes.forEach((row: any) => {
+        console.log(`  ${row.tablename}: ${row.size}`);
+      });
+      
     } catch (error) {
-      console.error('❌ Failed to generate report:', error);
+      console.error('❌ Report generation failed:', error);
     }
   }
 }
 
-// Main execution
 async function main() {
   const migrator = new DatabaseMigrator();
-
+  
   // Test connectivity first
-  const isConnected = await migrator.testConnectivity();
-  if (!isConnected) {
-    console.error('❌ Cannot connect to database. Aborting migration.');
+  const connected = await migrator.testConnectivity();
+  if (!connected) {
+    console.error('❌ Cannot connect to database. Please check DATABASE_URL');
     process.exit(1);
   }
-
-  // Run migration
+  
+  // Run migrations
   const success = await migrator.migrate();
   
-  // Generate report
-  await migrator.generateReport();
-
   if (success) {
-    console.log('\n🎯 Next Steps:');
-    console.log('  1. Test application functionality with optimized schema');
-    console.log('  2. Monitor query performance improvements');
-    console.log('  3. Verify role-based access control');
-    console.log('  4. Schedule weekly maintenance with maintain_ats_database()');
-    process.exit(0);
+    console.log('\n🎉 Database optimization completed successfully!');
+    await migrator.generateReport();
   } else {
-    console.error('\n❌ Migration failed. Database state restored.');
+    console.error('\n❌ Database optimization failed. Check logs above.');
     process.exit(1);
   }
 }
 
-// Handle process termination
-process.on('SIGINT', async () => {
-  console.log('\n⚠️ Migration interrupted. Cleaning up...');
-  process.exit(1);
-});
+// Export for use in other scripts
+export { DatabaseMigrator };
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled rejection in migration:', reason);
-  process.exit(1);
-});
-
+// Run if called directly
 if (require.main === module) {
   main().catch(console.error);
 }
-
-export default main;
