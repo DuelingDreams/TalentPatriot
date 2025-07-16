@@ -11,6 +11,10 @@ import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useCandidates } from '@/hooks/useCandidates'
 import { getDemoClientStats, getDemoJobStats, getDemoPipelineData } from '@/lib/demo-data'
+import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
+import { AddClientDialog } from '@/components/dialogs/AddClientDialog'
+import { ScheduleInterviewDialog } from '@/components/calendar/ScheduleInterviewDialog'
+import { SendMessageDialog } from '@/components/dialogs/SendMessageDialog'
 
 import { 
   Plus, 
@@ -331,34 +335,45 @@ export default function Dashboard() {
                 <h3 className="text-lg font-semibold text-slate-900">Quick Actions</h3>
               </div>
               <CardContent className="p-6 space-y-3">
-                <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  <span className="flex items-center">
-                    <UserPlus className="w-4 h-4 mr-3 text-slate-500" />
-                    Add Candidate
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Button>
-                <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  <span className="flex items-center">
-                    <Building2 className="w-4 h-4 mr-3 text-slate-500" />
-                    Add Client
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Button>
-                <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  <span className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-3 text-slate-500" />
-                    Schedule Interview
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Button>
-                <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                  <span className="flex items-center">
-                    <MessageSquare className="w-4 h-4 mr-3 text-slate-500" />
-                    Send Message
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-slate-400" />
-                </Button>
+                <AddCandidateDialog>
+                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <span className="flex items-center">
+                      <UserPlus className="w-4 h-4 mr-3 text-slate-500" />
+                      Add Candidate
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </AddCandidateDialog>
+                
+                <AddClientDialog>
+                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <span className="flex items-center">
+                      <Building2 className="w-4 h-4 mr-3 text-slate-500" />
+                      Add Client
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </AddClientDialog>
+                
+                <ScheduleInterviewDialog>
+                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <span className="flex items-center">
+                      <Calendar className="w-4 h-4 mr-3 text-slate-500" />
+                      Schedule Interview
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </ScheduleInterviewDialog>
+                
+                <SendMessageDialog>
+                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
+                    <span className="flex items-center">
+                      <MessageSquare className="w-4 h-4 mr-3 text-slate-500" />
+                      Send Message
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </SendMessageDialog>
               </CardContent>
             </Card>
 
