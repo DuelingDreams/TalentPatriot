@@ -75,6 +75,8 @@ Preferred communication style: Simple, everyday language.
 - **CREATED PIPELINE OVERVIEW PAGE**: Built intelligent job selection interface for `/pipeline` route with candidate counts
 - **ENHANCED NAVIGATION FLOW**: Added bidirectional navigation between Pipeline Overview and specific job pipelines
 - **IMPROVED USER EXPERIENCE**: Users can now seamlessly navigate between all jobs and individual pipeline views
+- **RESOLVED AUTHENTICATION ISSUE**: Fixed demo_viewer role override by debugging authentication context and confirming proper role detection
+- **BUILT TALENTPATRIOT LANDING PAGE**: Created modern, responsive marketing homepage with brand-compliant design, hero section, value propositions, and complete navigation structure
 
 ## System Architecture
 

@@ -17,27 +17,20 @@ import Messages from "@/pages/Messages";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Unauthorized from "@/pages/Unauthorized";
+import Landing from "@/pages/Landing";
 // Demo components removed - using authenticated demo account instead
 
 function Router() {
   return (
     <Switch>
       {/* Public routes */}
+      <Route path="/" component={Landing} />
       <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/unauthorized" component={Unauthorized} />
       
-      {/* Demo routes */}
-      {/* Demo routes no longer needed since we use authenticated demo account */}
-      
       {/* Protected routes */}
       <Route path="/dashboard">
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/">
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>
