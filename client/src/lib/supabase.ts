@@ -19,6 +19,31 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // Handle storage errors gracefully in Replit environment
+    storage: {
+      getItem: (key: string) => {
+        try {
+          return localStorage.getItem(key)
+        } catch (err) {
+          console.warn('localStorage.getItem failed:', err)
+          return null
+        }
+      },
+      setItem: (key: string, value: string) => {
+        try {
+          localStorage.setItem(key, value)
+        } catch (err) {
+          console.warn('localStorage.setItem failed:', err)
+        }
+      },
+      removeItem: (key: string) => {
+        try {
+          localStorage.removeItem(key)
+        } catch (err) {
+          console.warn('localStorage.removeItem failed:', err)
+        }
+      }
+    }
   }
 })

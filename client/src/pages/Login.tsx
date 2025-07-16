@@ -85,10 +85,16 @@ export default function Login() {
         }
       } else {
         // Save remember me preference
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true')
-        } else {
-          localStorage.removeItem('rememberMe')
+        try {
+          if (rememberMe) {
+            localStorage.setItem('rememberMe', 'true')
+            localStorage.setItem('savedEmail', email)
+          } else {
+            localStorage.removeItem('rememberMe')
+            localStorage.removeItem('savedEmail')
+          }
+        } catch (err) {
+          console.warn('Failed to save preferences to localStorage:', err)
         }
         
         toast({
@@ -106,12 +112,16 @@ export default function Login() {
 
   // Load saved email if remember me was checked
   useEffect(() => {
-    const savedRememberMe = localStorage.getItem('rememberMe')
-    const savedEmail = localStorage.getItem('savedEmail')
-    
-    if (savedRememberMe === 'true' && savedEmail) {
-      setEmail(savedEmail)
-      setRememberMe(true)
+    try {
+      const savedRememberMe = localStorage.getItem('rememberMe')
+      const savedEmail = localStorage.getItem('savedEmail')
+      
+      if (savedRememberMe === 'true' && savedEmail) {
+        setEmail(savedEmail)
+        setRememberMe(true)
+      }
+    } catch (err) {
+      console.warn('Failed to load preferences from localStorage:', err)
     }
   }, [])
 
