@@ -17,7 +17,6 @@ export const clients = pgTable("clients", {
   website: varchar("website", { length: 255 }),
   contactName: varchar("contact_name", { length: 255 }),
   contactEmail: varchar("contact_email", { length: 255 }),
-  contactPhone: varchar("contact_phone", { length: 50 }),
   notes: text("notes"),
   status: recordStatusEnum("status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -1,6 +1,29 @@
 import type { Express } from "express";
+import rateLimit from "express-rate-limit";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+
+// Write operation rate limiter
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 write operations per windowMs
+  message: {
+    error: "Too many write operations from this IP, please try again later."
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Authentication rate limiter (if we add auth endpoints)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 auth attempts per windowMs
+  message: {
+    error: "Too many authentication attempts from this IP, please try again later."
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Clients routes
@@ -25,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/clients", async (req, res) => {
+  app.post("/api/clients", writeLimiter, async (req, res) => {
     try {
       const client = await storage.createClient(req.body);
       res.status(201).json(client);
@@ -35,7 +58,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/clients/:id", async (req, res) => {
+  app.put("/api/clients/:id", writeLimiter, async (req, res) => {
     try {
       const client = await storage.updateClient(req.params.id, req.body);
       res.json(client);
@@ -44,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/clients/:id", async (req, res) => {
+  app.delete("/api/clients/:id", writeLimiter, async (req, res) => {
     try {
       await storage.deleteClient(req.params.id);
       res.status(204).send();
@@ -75,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/jobs", async (req, res) => {
+  app.post("/api/jobs", writeLimiter, async (req, res) => {
     try {
       const job = await storage.createJob(req.body);
       res.status(201).json(job);
@@ -95,7 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/candidates", async (req, res) => {
+  app.post("/api/candidates", writeLimiter, async (req, res) => {
     try {
       const candidate = await storage.createCandidate(req.body);
       res.status(201).json(candidate);
@@ -114,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/job-candidates", async (req, res) => {
+  app.post("/api/job-candidates", writeLimiter, async (req, res) => {
     try {
       const jobCandidate = await storage.createJobCandidate(req.body);
       res.status(201).json(jobCandidate);
@@ -133,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/candidate-notes", async (req, res) => {
+  app.post("/api/candidate-notes", writeLimiter, async (req, res) => {
     try {
       const note = await storage.createCandidateNote(req.body);
       res.status(201).json(note);

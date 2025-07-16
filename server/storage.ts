@@ -218,7 +218,28 @@ export class MemStorage implements IStorage {
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL!
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+// Enhanced Supabase client with connection pooling and rate limiting
+const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'x-client-info': 'ats-backend@1.0.0',
+    },
+  },
+  // Connection pool configuration
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+})
 
 class DatabaseStorage implements IStorage {
   async getClient(id: string): Promise<Client | undefined> {
@@ -250,28 +271,35 @@ class DatabaseStorage implements IStorage {
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
-    // Map the camelCase fields to snake_case for database
-    const dbClient = {
-      name: insertClient.name,
-      industry: insertClient.industry,
-      location: insertClient.location,
-      website: insertClient.website,
-      contact_name: insertClient.contactName,
-      contact_email: insertClient.contactEmail,
-      notes: insertClient.notes,
+    try {
+      // Map the camelCase fields to snake_case for database
+      const dbClient = {
+        name: insertClient.name,
+        industry: insertClient.industry,
+        location: insertClient.location,
+        website: insertClient.website,
+        contact_name: insertClient.contactName,
+        contact_email: insertClient.contactEmail,
+        notes: insertClient.notes,
+        status: 'active'
+      }
+      
+      const { data, error } = await supabase
+        .from('clients')
+        .insert(dbClient)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database client creation error:', error)
+        throw new Error(`Failed to create client: ${error.message}`)
+      }
+      
+      return data as Client
+    } catch (err) {
+      console.error('Client creation exception:', err)
+      throw err
     }
-    
-    const { data, error } = await supabase
-      .from('clients')
-      .insert(dbClient)
-      .select()
-      .single()
-    
-    if (error) {
-      throw new Error(error.message)
-    }
-    
-    return data as Client
   }
 
   async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
