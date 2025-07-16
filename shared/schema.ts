@@ -8,6 +8,8 @@ export const jobStatusEnum = pgEnum('job_status', ['open', 'closed', 'on_hold', 
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
 export const userRoleEnum = pgEnum('user_role', ['recruiter', 'bd', 'pm', 'demo_viewer', 'admin']);
+export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'onsite', 'technical', 'cultural']);
+export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
 
 // Tables
 export const clients = pgTable("clients", {
@@ -74,6 +76,24 @@ export const candidateNotes = pgTable("candidate_notes", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const interviews = pgTable("interviews", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobCandidateId: uuid("job_candidate_id").references(() => jobCandidate.id).notNull(),
+  title: text("title").notNull(),
+  type: interviewTypeEnum("type").notNull(),
+  status: interviewStatusEnum("status").default('scheduled').notNull(),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  duration: text("duration").default('60'), // Duration in minutes as text for now
+  location: text("location"), // Meeting room, video link, etc.
+  interviewerId: uuid("interviewer_id"), // References auth.users
+  notes: text("notes"),
+  feedback: text("feedback"), // Post-interview feedback
+  rating: text("rating"), // 1-10 rating scale as text for now
+  recordStatus: recordStatusEnum("record_status").default('active'),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const clientsRelations = relations(clients, ({ many }) => ({
   jobs: many(jobs),
@@ -101,11 +121,19 @@ export const jobCandidateRelations = relations(jobCandidate, ({ one, many }) => 
     references: [candidates.id],
   }),
   notes: many(candidateNotes),
+  interviews: many(interviews),
 }));
 
 export const candidateNotesRelations = relations(candidateNotes, ({ one }) => ({
   jobCandidate: one(jobCandidate, {
     fields: [candidateNotes.jobCandidateId],
+    references: [jobCandidate.id],
+  }),
+}));
+
+export const interviewsRelations = relations(interviews, ({ one }) => ({
+  jobCandidate: one(jobCandidate, {
+    fields: [interviews.jobCandidateId],
     references: [jobCandidate.id],
   }),
 }));
@@ -137,6 +165,12 @@ export const insertCandidateNotesSchema = createInsertSchema(candidateNotes).omi
   createdAt: true,
 });
 
+export const insertInterviewSchema = createInsertSchema(interviews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
@@ -152,3 +186,6 @@ export type InsertJobCandidate = z.infer<typeof insertJobCandidateSchema>;
 
 export type CandidateNotes = typeof candidateNotes.$inferSelect;
 export type InsertCandidateNotes = z.infer<typeof insertCandidateNotesSchema>;
+
+export type Interview = typeof interviews.$inferSelect;
+export type InsertInterview = z.infer<typeof insertInterviewSchema>;
