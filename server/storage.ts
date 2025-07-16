@@ -272,7 +272,7 @@ class DatabaseStorage implements IStorage {
 
   async createClient(insertClient: InsertClient): Promise<Client> {
     try {
-      // Map the camelCase fields to snake_case for database
+      // Map the camelCase fields to snake_case for database with optimized structure
       const dbClient = {
         name: insertClient.name,
         industry: insertClient.industry,
@@ -281,7 +281,7 @@ class DatabaseStorage implements IStorage {
         contact_name: insertClient.contactName,
         contact_email: insertClient.contactEmail,
         notes: insertClient.notes,
-        status: 'active'
+        // Note: status and created_by fields will be added after schema migration
       }
       
       const { data, error } = await supabase
@@ -303,28 +303,35 @@ class DatabaseStorage implements IStorage {
   }
 
   async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
-    // Map the camelCase fields to snake_case for database
-    const dbUpdate: any = {}
-    if (updateData.name !== undefined) dbUpdate.name = updateData.name
-    if (updateData.industry !== undefined) dbUpdate.industry = updateData.industry
-    if (updateData.location !== undefined) dbUpdate.location = updateData.location
-    if (updateData.website !== undefined) dbUpdate.website = updateData.website
-    if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
-    if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
-    if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
-    
-    const { data, error } = await supabase
-      .from('clients')
-      .update(dbUpdate)
-      .eq('id', id)
-      .select()
-      .single()
-    
-    if (error) {
-      throw new Error(error.message)
+    try {
+      // Map the camelCase fields to snake_case for database
+      const dbUpdate: any = {}
+      if (updateData.name !== undefined) dbUpdate.name = updateData.name
+      if (updateData.industry !== undefined) dbUpdate.industry = updateData.industry
+      if (updateData.location !== undefined) dbUpdate.location = updateData.location
+      if (updateData.website !== undefined) dbUpdate.website = updateData.website
+      if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
+      if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
+      if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
+      if (updateData.status !== undefined) dbUpdate.status = updateData.status
+      
+      const { data, error } = await supabase
+        .from('clients')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database client update error:', error)
+        throw new Error(`Failed to update client: ${error.message}`)
+      }
+      
+      return data as Client
+    } catch (err) {
+      console.error('Client update exception:', err)
+      throw err
     }
-    
-    return data as Client
   }
 
   async deleteClient(id: string): Promise<void> {
@@ -381,24 +388,31 @@ class DatabaseStorage implements IStorage {
   }
 
   async createJob(insertJob: InsertJob): Promise<Job> {
-    // Map the camelCase fields to snake_case for database
-    const dbJob = {
-      title: insertJob.title,
-      description: insertJob.description,
-      client_id: insertJob.clientId,
+    try {
+      // Map the camelCase fields to snake_case for database with optimized structure
+      const dbJob = {
+        title: insertJob.title,
+        description: insertJob.description,
+        client_id: insertJob.clientId,
+        // Note: status, record_status, created_by, assigned_to fields will be added after schema migration
+      }
+      
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert(dbJob)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database job creation error:', error)
+        throw new Error(`Failed to create job: ${error.message}`)
+      }
+      
+      return data as Job
+    } catch (err) {
+      console.error('Job creation exception:', err)
+      throw err
     }
-    
-    const { data, error } = await supabase
-      .from('jobs')
-      .insert(dbJob)
-      .select()
-      .single()
-    
-    if (error) {
-      throw new Error(error.message)
-    }
-    
-    return data as Job
   }
 
   async getCandidate(id: string): Promise<Candidate | undefined> {
@@ -430,17 +444,32 @@ class DatabaseStorage implements IStorage {
   }
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
-    const { data, error } = await supabase
-      .from('candidates')
-      .insert(insertCandidate)
-      .select()
-      .single()
-    
-    if (error) {
-      throw new Error(error.message)
+    try {
+      // Map the camelCase fields to snake_case for database with optimized structure
+      const dbCandidate = {
+        name: insertCandidate.name,
+        email: insertCandidate.email,
+        phone: insertCandidate.phone,
+        resume_url: insertCandidate.resumeUrl,
+        // Note: status and created_by fields will be added after schema migration
+      }
+      
+      const { data, error } = await supabase
+        .from('candidates')
+        .insert(dbCandidate)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database candidate creation error:', error)
+        throw new Error(`Failed to create candidate: ${error.message}`)
+      }
+      
+      return data as Candidate
+    } catch (err) {
+      console.error('Candidate creation exception:', err)
+      throw err
     }
-    
-    return data as Candidate
   }
 
   async getJobCandidate(id: string): Promise<JobCandidate | undefined> {
@@ -487,17 +516,33 @@ class DatabaseStorage implements IStorage {
   }
 
   async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
-    const { data, error } = await supabase
-      .from('job_candidate')
-      .insert(insertJobCandidate)
-      .select()
-      .single()
-    
-    if (error) {
-      throw new Error(error.message)
+    try {
+      // Map the camelCase fields to snake_case for database with optimized structure
+      const dbJobCandidate = {
+        job_id: insertJobCandidate.jobId,
+        candidate_id: insertJobCandidate.candidateId,
+        stage: insertJobCandidate.stage || 'applied',
+        notes: insertJobCandidate.notes,
+        assigned_to: insertJobCandidate.assignedTo || null,
+        // Note: status field will be added after schema migration
+      }
+      
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .insert(dbJobCandidate)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database job candidate creation error:', error)
+        throw new Error(`Failed to create job candidate: ${error.message}`)
+      }
+      
+      return data as JobCandidate
+    } catch (err) {
+      console.error('Job candidate creation exception:', err)
+      throw err
     }
-    
-    return data as JobCandidate
   }
 
   async getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]> {
@@ -515,17 +560,31 @@ class DatabaseStorage implements IStorage {
   }
 
   async createCandidateNote(insertNote: InsertCandidateNotes): Promise<CandidateNotes> {
-    const { data, error } = await supabase
-      .from('candidate_notes')
-      .insert(insertNote)
-      .select()
-      .single()
-    
-    if (error) {
-      throw new Error(error.message)
+    try {
+      // Map the camelCase fields to snake_case for database with optimized structure
+      const dbNote = {
+        job_candidate_id: insertNote.jobCandidateId,
+        author_id: insertNote.authorId,
+        content: insertNote.content,
+        // Note: is_private field will be added after schema migration
+      }
+      
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .insert(dbNote)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database candidate note creation error:', error)
+        throw new Error(`Failed to create candidate note: ${error.message}`)
+      }
+      
+      return data as CandidateNotes
+    } catch (err) {
+      console.error('Candidate note creation exception:', err)
+      throw err
     }
-    
-    return data as CandidateNotes
   }
 }
 
