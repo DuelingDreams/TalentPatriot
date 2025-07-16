@@ -22,28 +22,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session with error handling
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
+    // Get initial session with robust error handling
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.warn('Supabase auth error:', error.message)
+          setLoading(false)
+          return
+        }
+
         setSession(session)
         setUser(session?.user ?? null)
+        
         if (session?.user) {
           const role = session.user.user_metadata?.role || null
           console.log('Auth Debug - User:', session.user.email, 'Role from metadata:', role)
-          console.log('Auth Debug - Full user metadata:', session.user.user_metadata)
           setUserRole(role)
         }
+        
         setLoading(false)
-      })
-      .catch((error) => {
-        console.warn('Failed to get initial session:', error)
+      } catch (error) {
+        console.warn('Failed to initialize auth:', error)
         setLoading(false)
-      })
+      }
+    }
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    initializeAuth()
+
+    // Listen for auth changes with error handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       try {
         setSession(session)
         setUser(session?.user ?? null)
@@ -51,7 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           const role = session.user.user_metadata?.role || null
           console.log('Auth State Change - User:', session.user.email, 'Role:', role)
-          console.log('Auth State Change - Event:', event)
           setUserRole(role)
         } else {
           setUserRole(null)
