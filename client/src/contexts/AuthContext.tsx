@@ -28,6 +28,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(session?.user ?? null)
       if (session?.user) {
         const role = session.user.user_metadata?.role || null
+        console.log('Auth Debug - User:', session.user.email, 'Role from metadata:', role)
+        console.log('Auth Debug - Full user metadata:', session.user.user_metadata)
         setUserRole(role)
       }
       setLoading(false)
@@ -42,6 +44,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         const role = session.user.user_metadata?.role || null
+        console.log('Auth State Change - User:', session.user.email, 'Role:', role)
+        console.log('Auth State Change - Event:', event)
         setUserRole(role)
       } else {
         setUserRole(null)
