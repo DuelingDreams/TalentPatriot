@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDemoJobStats, getDemoPipelineData } from '@/lib/demo-data'
+import { apiRequest } from '@/lib/queryClient'
 import type { Job, Candidate, Client } from '@/../../shared/schema'
 
 // Hook to fetch all jobs
@@ -42,38 +42,13 @@ export function useCandidatesForJob(jobId: string | null) {
         return allCandidates
       }
 
-      const { data, error } = await supabase
-        .from('job_candidate')
-        .select(`
-          id,
-          stage,
-          notes,
-          assigned_to,
-          updated_at,
-          candidates (
-            id,
-            name,
-            email,
-            phone,
-            resume_url,
-            created_at
-          )
-        `)
-        .eq('job_id', jobId)
-        .order('updated_at', { ascending: false })
-
-      if (error) {
-        throw new Error(error.message)
+      // Use backend API instead of direct Supabase
+      const response = await fetch(`/api/jobs/${jobId}/candidates`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch job candidates')
       }
-
-      return data as {
-        id: string
-        stage: string
-        notes: string | null
-        assigned_to: string | null
-        updated_at: string
-        candidates: Candidate
-      }[]
+      
+      return await response.json()
     },
     enabled: !!jobId // Only run query if jobId is provided
   })
@@ -84,16 +59,12 @@ export function useClients() {
   return useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('name', { ascending: true })
-
-      if (error) {
-        throw new Error(error.message)
+      const response = await fetch('/api/clients')
+      if (!response.ok) {
+        throw new Error('Failed to fetch clients')
       }
-
-      return data as Client[]
+      
+      return await response.json()
     }
   })
 }
@@ -114,16 +85,12 @@ export function useCandidates() {
         return allCandidates
       }
       
-      const { data, error } = await supabase
-        .from('candidates')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        throw new Error(error.message)
+      const response = await fetch('/api/candidates')
+      if (!response.ok) {
+        throw new Error('Failed to fetch candidates')
       }
-
-      return data as Candidate[]
+      
+      return await response.json()
     }
   })
 }
@@ -165,17 +132,8 @@ export function useCreateCandidate() {
 
   return useMutation({
     mutationFn: async (newCandidate: { name: string; email: string; phone?: string; resume_url?: string }) => {
-      const { data, error } = await supabase
-        .from('candidates')
-        .insert(newCandidate)
-        .select()
-        .single()
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return data
+      const response = await apiRequest('POST', '/api/candidates', newCandidate)
+      return response.json()
     },
     onSuccess: () => {
       // Invalidate and refetch candidates list
@@ -198,22 +156,12 @@ export function useUpdateCandidateStage() {
       stage: string
       notes?: string 
     }) => {
-      const { data, error } = await supabase
-        .from('job_candidate')
-        .update({ 
-          stage, 
-          notes,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', jobCandidateId)
-        .select()
-        .single()
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return data
+      const response = await apiRequest('PUT', `/api/job-candidates/${jobCandidateId}`, {
+        stage,
+        notes,
+        updated_at: new Date().toISOString()
+      })
+      return response.json()
     },
     onSuccess: (_, variables) => {
       // Invalidate job candidates queries
@@ -227,23 +175,12 @@ export function useCandidateNotes(jobCandidateId: string | null) {
   return useQuery({
     queryKey: ['candidate-notes', jobCandidateId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('candidate_notes')
-        .select('*')
-        .eq('job_candidate_id', jobCandidateId)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        throw new Error(error.message)
+      const response = await fetch(`/api/candidate-notes/${jobCandidateId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch candidate notes')
       }
-
-      return data as {
-        id: string
-        job_candidate_id: string
-        author_id: string
-        content: string
-        created_at: string
-      }[]
+      
+      return await response.json()
     },
     enabled: !!jobCandidateId
   })
@@ -255,25 +192,12 @@ export function useCreateCandidateNote() {
   
   return useMutation({
     mutationFn: async ({ jobCandidateId, content }: { jobCandidateId: string, content: string }) => {
-      // For now, use a placeholder author ID since auth isn't set up yet
-      // In a real app, this would get the authenticated user ID
-      const authorId = 'recruiter-user-' + Date.now().toString().slice(-4)
-
-      const { data, error } = await supabase
-        .from('candidate_notes')
-        .insert({
-          job_candidate_id: jobCandidateId,
-          author_id: authorId,
-          content
-        })
-        .select()
-        .single()
-
-      if (error) {
-        throw new Error(error.message)
-      }
-
-      return data
+      const response = await apiRequest('POST', '/api/candidate-notes', {
+        job_candidate_id: jobCandidateId,
+        author_id: 'recruiter-user-' + Date.now().toString().slice(-4),
+        content
+      })
+      return response.json()
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['candidate-notes', variables.jobCandidateId] })
