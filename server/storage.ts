@@ -5,18 +5,24 @@ import {
   jobCandidate, 
   candidateNotes,
   interviews,
+  messages,
+  messageRecipients,
   type Client, 
   type Job, 
   type Candidate, 
   type JobCandidate, 
   type CandidateNotes,
   type Interview,
+  type Message,
+  type MessageRecipient,
   type InsertClient,
   type InsertJob,
   type InsertCandidate,
   type InsertJobCandidate,
   type InsertCandidateNotes,
-  type InsertInterview
+  type InsertInterview,
+  type InsertMessage,
+  type InsertMessageRecipient
 } from "@shared/schema";
 import { createClient } from '@supabase/supabase-js';
 
@@ -59,6 +65,20 @@ export interface IStorage {
   createInterview(interview: InsertInterview): Promise<Interview>;
   updateInterview(id: string, interview: Partial<InsertInterview>): Promise<Interview>;
   deleteInterview(id: string): Promise<void>;
+  
+  // Messages
+  getMessage(id: string): Promise<Message | undefined>;
+  getMessages(userId?: string): Promise<Message[]>;
+  getMessagesByThread(threadId: string): Promise<Message[]>;
+  getMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string }): Promise<Message[]>;
+  createMessage(message: InsertMessage): Promise<Message>;
+  updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message>;
+  markMessageAsRead(messageId: string, userId: string): Promise<void>;
+  archiveMessage(messageId: string): Promise<void>;
+  
+  // Message Recipients
+  addMessageRecipients(messageId: string, recipientIds: string[]): Promise<MessageRecipient[]>;
+  getUnreadMessageCount(userId: string): Promise<number>;
 }
 
 export class MemStorage implements IStorage {
@@ -718,6 +738,93 @@ class DatabaseStorage implements IStorage {
   async deleteInterview(id: string): Promise<void> {
     // For now, do nothing since table doesn't exist yet
     return
+  }
+
+  // Messages implementation - using in-memory storage for now since table doesn't exist yet
+  async getMessage(id: string): Promise<Message | undefined> {
+    // For now, return undefined as messages table doesn't exist yet
+    return undefined
+  }
+
+  async getMessages(userId?: string): Promise<Message[]> {
+    // For now, return empty array as messages table doesn't exist yet
+    return []
+  }
+
+  async getMessagesByThread(threadId: string): Promise<Message[]> {
+    // For now, return empty array as messages table doesn't exist yet
+    return []
+  }
+
+  async getMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string }): Promise<Message[]> {
+    // For now, return empty array as messages table doesn't exist yet
+    return []
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    // For now, create a mock message since table doesn't exist yet
+    const id = crypto.randomUUID()
+    const now = new Date()
+    const message: Message = {
+      ...insertMessage,
+      id,
+      isRead: false,
+      readAt: null,
+      isArchived: false,
+      createdAt: now,
+      updatedAt: now,
+      recordStatus: insertMessage.recordStatus || 'active'
+    }
+    return message
+  }
+
+  async updateMessage(id: string, updateData: Partial<InsertMessage>): Promise<Message> {
+    // For now, return a mock updated message since table doesn't exist yet
+    const now = new Date()
+    const message: Message = {
+      id,
+      type: updateData.type || 'internal',
+      priority: updateData.priority || 'normal',
+      subject: updateData.subject || '',
+      content: updateData.content || '',
+      senderId: updateData.senderId || '',
+      recipientId: updateData.recipientId || null,
+      clientId: updateData.clientId || null,
+      jobId: updateData.jobId || null,
+      candidateId: updateData.candidateId || null,
+      jobCandidateId: updateData.jobCandidateId || null,
+      isRead: updateData.isRead || false,
+      readAt: updateData.readAt || null,
+      isArchived: updateData.isArchived || false,
+      threadId: updateData.threadId || null,
+      replyToId: updateData.replyToId || null,
+      attachments: updateData.attachments || null,
+      tags: updateData.tags || null,
+      recordStatus: updateData.recordStatus || 'active',
+      createdAt: now,
+      updatedAt: now,
+    }
+    return message
+  }
+
+  async markMessageAsRead(messageId: string, userId: string): Promise<void> {
+    // For now, do nothing since table doesn't exist yet
+    return
+  }
+
+  async archiveMessage(messageId: string): Promise<void> {
+    // For now, do nothing since table doesn't exist yet
+    return
+  }
+
+  async addMessageRecipients(messageId: string, recipientIds: string[]): Promise<MessageRecipient[]> {
+    // For now, return empty array as table doesn't exist yet
+    return []
+  }
+
+  async getUnreadMessageCount(userId: string): Promise<number> {
+    // For now, return 0 as table doesn't exist yet
+    return 0
   }
 }
 

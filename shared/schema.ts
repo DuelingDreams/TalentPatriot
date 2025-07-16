@@ -10,6 +10,8 @@ export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'arch
 export const userRoleEnum = pgEnum('user_role', ['recruiter', 'bd', 'pm', 'demo_viewer', 'admin']);
 export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'onsite', 'technical', 'cultural']);
 export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
+export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'candidate', 'system']);
+export const messagePriorityEnum = pgEnum('message_priority', ['low', 'normal', 'high', 'urgent']);
 
 // Tables
 export const clients = pgTable("clients", {
@@ -94,6 +96,47 @@ export const interviews = pgTable("interviews", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const messages = pgTable("messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  type: messageTypeEnum("type").notNull(),
+  priority: messagePriorityEnum("priority").default('normal').notNull(),
+  subject: text("subject").notNull(),
+  content: text("content").notNull(),
+  senderId: uuid("sender_id").notNull(), // References auth.users
+  recipientId: uuid("recipient_id"), // References auth.users (null for broadcasts)
+  
+  // Context references
+  clientId: uuid("client_id").references(() => clients.id),
+  jobId: uuid("job_id").references(() => jobs.id),
+  candidateId: uuid("candidate_id").references(() => candidates.id),
+  jobCandidateId: uuid("job_candidate_id").references(() => jobCandidate.id),
+  
+  isRead: boolean("is_read").default(false).notNull(),
+  readAt: timestamp("read_at"),
+  isArchived: boolean("is_archived").default(false).notNull(),
+  
+  // Thread support
+  threadId: uuid("thread_id"), // References parent message
+  replyToId: uuid("reply_to_id"), // References message being replied to
+  
+  // Metadata
+  attachments: text("attachments").array(), // JSON array of file URLs
+  tags: text("tags").array(), // Array of tags for categorization
+  
+  recordStatus: recordStatusEnum("record_status").default('active'),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const messageRecipients = pgTable("message_recipients", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  messageId: uuid("message_id").references(() => messages.id).notNull(),
+  recipientId: uuid("recipient_id").notNull(), // References auth.users
+  isRead: boolean("is_read").default(false).notNull(),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const clientsRelations = relations(clients, ({ many }) => ({
   jobs: many(jobs),
@@ -138,6 +181,33 @@ export const interviewsRelations = relations(interviews, ({ one }) => ({
   }),
 }));
 
+export const messagesRelations = relations(messages, ({ one, many }) => ({
+  client: one(clients, {
+    fields: [messages.clientId],
+    references: [clients.id],
+  }),
+  job: one(jobs, {
+    fields: [messages.jobId],
+    references: [jobs.id],
+  }),
+  candidate: one(candidates, {
+    fields: [messages.candidateId],
+    references: [candidates.id],
+  }),
+  jobCandidate: one(jobCandidate, {
+    fields: [messages.jobCandidateId],
+    references: [jobCandidate.id],
+  }),
+  recipients: many(messageRecipients),
+}));
+
+export const messageRecipientsRelations = relations(messageRecipients, ({ one }) => ({
+  message: one(messages, {
+    fields: [messageRecipients.messageId],
+    references: [messages.id],
+  }),
+}));
+
 // Insert schemas
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
@@ -171,6 +241,17 @@ export const insertInterviewSchema = createInsertSchema(interviews).omit({
   updatedAt: true,
 });
 
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMessageRecipientSchema = createInsertSchema(messageRecipients).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
@@ -189,3 +270,9 @@ export type InsertCandidateNotes = z.infer<typeof insertCandidateNotesSchema>;
 
 export type Interview = typeof interviews.$inferSelect;
 export type InsertInterview = z.infer<typeof insertInterviewSchema>;
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+export type MessageRecipient = typeof messageRecipients.$inferSelect;
+export type InsertMessageRecipient = z.infer<typeof insertMessageRecipientSchema>;

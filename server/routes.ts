@@ -176,6 +176,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Messages routes
+  app.get("/api/messages", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      const messages = await storage.getMessages(userId);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  app.get("/api/messages/thread/:threadId", async (req, res) => {
+    try {
+      const messages = await storage.getMessagesByThread(req.params.threadId);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch thread messages" });
+    }
+  });
+
+  app.get("/api/messages/context", async (req, res) => {
+    try {
+      const { clientId, jobId, candidateId } = req.query as Record<string, string>;
+      const messages = await storage.getMessagesByContext({ clientId, jobId, candidateId });
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch context messages" });
+    }
+  });
+
+  app.get("/api/messages/unread-count", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      const count = await storage.getUnreadMessageCount(userId);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch unread count" });
+    }
+  });
+
+  app.post("/api/messages", writeLimiter, async (req, res) => {
+    try {
+      const message = await storage.createMessage(req.body);
+      res.status(201).json(message);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to create message" });
+    }
+  });
+
+  app.patch("/api/messages/:id", writeLimiter, async (req, res) => {
+    try {
+      const message = await storage.updateMessage(req.params.id, req.body);
+      res.json(message);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update message" });
+    }
+  });
+
+  app.post("/api/messages/:id/read", writeLimiter, async (req, res) => {
+    try {
+      const { userId } = req.body;
+      await storage.markMessageAsRead(req.params.id, userId);
+      res.status(204).send();
+    } catch (error) {
+      res.status(400).json({ error: "Failed to mark message as read" });
+    }
+  });
+
+  app.post("/api/messages/:id/archive", writeLimiter, async (req, res) => {
+    try {
+      await storage.archiveMessage(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(400).json({ error: "Failed to archive message" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
