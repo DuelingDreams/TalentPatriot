@@ -37,6 +37,7 @@ export const userOrganizations = pgTable("user_organizations", {
 
 export const clients = pgTable("clients", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   industry: varchar("industry", { length: 100 }),
   location: varchar("location", { length: 255 }),
@@ -52,6 +53,7 @@ export const clients = pgTable("clients", {
 
 export const jobs = pgTable("jobs", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
   clientId: uuid("client_id").references(() => clients.id).notNull(),
@@ -65,6 +67,7 @@ export const jobs = pgTable("jobs", {
 
 export const candidates = pgTable("candidates", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
   phone: varchar("phone", { length: 50 }),
@@ -77,6 +80,7 @@ export const candidates = pgTable("candidates", {
 
 export const jobCandidate = pgTable("job_candidate", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   jobId: uuid("job_id").references(() => jobs.id).notNull(),
   candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
   stage: candidateStageEnum("stage").default('applied').notNull(),
@@ -91,6 +95,7 @@ export const jobCandidate = pgTable("job_candidate", {
 
 export const candidateNotes = pgTable("candidate_notes", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   jobCandidateId: uuid("job_candidate_id").references(() => jobCandidate.id).notNull(),
   authorId: uuid("author_id").notNull(),
   content: text("content").notNull(),
@@ -101,6 +106,7 @@ export const candidateNotes = pgTable("candidate_notes", {
 
 export const interviews = pgTable("interviews", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   jobCandidateId: uuid("job_candidate_id").references(() => jobCandidate.id).notNull(),
   title: text("title").notNull(),
   type: interviewTypeEnum("type").notNull(),
@@ -119,6 +125,7 @@ export const interviews = pgTable("interviews", {
 
 export const messages = pgTable("messages", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   type: messageTypeEnum("type").notNull(),
   priority: messagePriorityEnum("priority").default('normal').notNull(),
   subject: text("subject").notNull(),
@@ -151,6 +158,7 @@ export const messages = pgTable("messages", {
 
 export const messageRecipients = pgTable("message_recipients", {
   id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
   messageId: uuid("message_id").references(() => messages.id).notNull(),
   recipientId: uuid("recipient_id").notNull(), // References auth.users
   isRead: boolean("is_read").default(false).notNull(),
