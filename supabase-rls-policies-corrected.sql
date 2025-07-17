@@ -1,7 +1,8 @@
 -- =============================================================================
--- SUPABASE RLS POLICIES SETUP - COPY & PASTE INTO SQL EDITOR
+-- SUPABASE RLS POLICIES SETUP - CORRECTED VERSION
 -- =============================================================================
 -- This file contains all Row-Level Security policies for TalentPatriot ATS
+-- with proper UUID casting and demo_viewer role support
 -- Execute this entire script in Supabase SQL Editor
 
 -- =============================================================================
@@ -78,14 +79,14 @@ FOR SELECT
 TO authenticated
 USING (auth.get_user_role() = 'bd');
 
--- Demo viewers: Read access to demo clients only
+-- Demo viewers: Read access to demo clients only (status column)
 CREATE POLICY "demo_viewer_read_clients"
 ON clients
 FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND status = 'demo'
+  AND status = 'demo'::record_status
 );
 
 -- Block unauthenticated users
@@ -102,7 +103,7 @@ USING (false);
 -- Drop existing policies if they exist
 DROP POLICY IF EXISTS "recruiters_full_access_jobs" ON jobs;
 DROP POLICY IF EXISTS "bd_read_access_jobs" ON jobs;
-DROP POLICY IF EXISTS "pm_read_contract_jobs" ON jobs;
+DROP POLICY IF EXISTS "pm_read_assigned_jobs" ON jobs;
 DROP POLICY IF EXISTS "demo_viewer_read_jobs" ON jobs;
 DROP POLICY IF EXISTS "deny_unauthenticated_jobs" ON jobs;
 
@@ -121,7 +122,7 @@ FOR SELECT
 TO authenticated
 USING (auth.get_user_role() = 'bd');
 
--- PM: Read access to assigned jobs only
+-- PM: Read access to assigned jobs only (UUID comparison)
 CREATE POLICY "pm_read_assigned_jobs"
 ON jobs
 FOR SELECT
@@ -131,14 +132,14 @@ USING (
   AND assigned_to = auth.uid()
 );
 
--- Demo viewers: Read access to demo jobs only
+-- Demo viewers: Read access to demo jobs only (record_status column)
 CREATE POLICY "demo_viewer_read_jobs"
 ON jobs
 FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND record_status = 'demo'
+  AND record_status = 'demo'::record_status
 );
 
 -- Block unauthenticated users
@@ -173,14 +174,14 @@ FOR SELECT
 TO authenticated
 USING (auth.get_user_role() = 'bd');
 
--- Demo viewers: Read access to demo candidates only
+-- Demo viewers: Read access to demo candidates only (status column)
 CREATE POLICY "demo_viewer_read_candidates"
 ON candidates
 FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND status = 'demo'
+  AND status = 'demo'::record_status
 );
 
 -- Block unauthenticated users
@@ -216,7 +217,7 @@ FOR SELECT
 TO authenticated
 USING (auth.get_user_role() = 'bd');
 
--- PM: Read access to job_candidates they're assigned to
+-- PM: Read access to job_candidates they're assigned to (UUID comparison)
 CREATE POLICY "pm_read_assigned_job_candidates"
 ON job_candidate
 FOR SELECT
@@ -226,14 +227,14 @@ USING (
   AND assigned_to = auth.uid()
 );
 
--- Demo viewers: Read access to demo job_candidates only
+-- Demo viewers: Read access to demo job_candidates only (status column)
 CREATE POLICY "demo_viewer_read_job_candidates"
 ON job_candidate
 FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND status = 'demo'
+  AND status = 'demo'::record_status
 );
 
 -- Block unauthenticated users
@@ -261,7 +262,7 @@ FOR SELECT
 TO authenticated
 USING (auth.get_user_role() = 'recruiter');
 
--- Authors only: Write/update/delete own notes
+-- Authors only: Write/update/delete own notes (UUID comparison - no casting needed)
 CREATE POLICY "authors_write_own_candidate_notes"
 ON candidate_notes
 FOR INSERT, UPDATE, DELETE
@@ -282,7 +283,7 @@ FOR SELECT
 TO authenticated
 USING (auth.get_user_role() = 'bd');
 
--- Demo viewers: Read access to demo notes only
+-- Demo viewers: Read access to demo notes only (content check)
 CREATE POLICY "demo_viewer_read_candidate_notes"
 ON candidate_notes
 FOR SELECT
@@ -325,7 +326,7 @@ FOR SELECT
 TO authenticated
 USING (auth.get_user_role() = 'bd');
 
--- Interviewers: Full access to their assigned interviews
+-- Interviewers: Full access to their assigned interviews (UUID comparison)
 CREATE POLICY "interviewer_access_own_interviews"
 ON interviews
 FOR ALL
@@ -339,14 +340,14 @@ WITH CHECK (
   AND interviewer_id = auth.uid()
 );
 
--- Demo viewers: Read access to demo interviews only
+-- Demo viewers: Read access to demo interviews only (record_status column)
 CREATE POLICY "demo_viewer_read_interviews"
 ON interviews
 FOR SELECT
 TO authenticated
 USING (
   auth.get_user_role() = 'demo_viewer' 
-  AND record_status = 'demo'
+  AND record_status = 'demo'::record_status
 );
 
 -- Block unauthenticated users
@@ -373,7 +374,7 @@ TO authenticated
 USING (auth.get_user_role() = 'recruiter')
 WITH CHECK (auth.get_user_role() = 'recruiter');
 
--- Users: Access to messages they sent or received
+-- Users: Access to messages they sent or received (UUID comparison)
 CREATE POLICY "users_access_own_messages"
 ON messages
 FOR ALL
@@ -419,7 +420,7 @@ TO authenticated
 USING (auth.get_user_role() = 'recruiter')
 WITH CHECK (auth.get_user_role() = 'recruiter');
 
--- Users: Access to their own recipient records
+-- Users: Access to their own recipient records (UUID comparison)
 CREATE POLICY "users_access_own_message_recipients"
 ON message_recipients
 FOR ALL
@@ -451,23 +452,30 @@ USING (false);
 -- ORDER BY tablename, policyname;
 
 -- =============================================================================
--- SETUP COMPLETE
+-- SETUP COMPLETE - VERIFICATION CHECKLIST
 -- =============================================================================
 -- 
--- ✅ All RLS policies have been created
--- ✅ Helper functions are available
--- ✅ Role-based access control is active
+-- ✅ UUID CASTING HANDLED CORRECTLY:
+--    - All UUID comparisons use auth.uid() directly (no ::text casting)
+--    - author_id, assigned_to, interviewer_id, sender_id, recipient_id all compared as UUIDs
 --
--- ROLE SUMMARY:
--- • RECRUITER: Full CRUD access to all tables
--- • BD: Read-only access to most tables  
--- • PM: Limited access to assigned jobs/interviews
--- • DEMO_VIEWER: Read-only access to demo data only
--- • UNAUTHENTICATED: No access to any data
+-- ✅ DEMO_VIEWER ROLE FULLY SUPPORTED:
+--    - Filters on status = 'demo' for clients, candidates, job_candidate tables
+--    - Filters on record_status = 'demo' for jobs, interviews, messages tables
+--    - Special content check for candidate_notes using is_demo_content() function
+--    - Explicit casting to ::record_status enum where needed
+--
+-- ✅ STRUCTURED ACCESS FOR ALL ROLES:
+--    • RECRUITER: Full CRUD access to all tables
+--    • BD: Read-only access to most tables  
+--    • PM: Limited access to assigned jobs/interviews/job_candidates
+--    • DEMO_VIEWER: Read-only access to demo data only
+--    • UNAUTHENTICATED: No access to any data
 --
 -- Next steps:
--- 1. Test with different user roles
--- 2. Verify demo data isolation
--- 3. Check candidate note authorship restrictions
+-- 1. Run this script in Supabase SQL Editor
+-- 2. Test with different user roles
+-- 3. Verify demo data isolation works correctly
+-- 4. Check PM assignment-based access
 --
 -- =============================================================================
