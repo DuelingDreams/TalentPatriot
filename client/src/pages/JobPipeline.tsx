@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useParams } from 'wouter'
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core'
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, TouchSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -60,10 +60,13 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
     isDragging: isSortableDragging,
   } = useSortable({ id: candidate.id })
 
+  const isCurrentlyDragging = isDragging || isSortableDragging
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging || isSortableDragging ? 0.5 : 1,
+    opacity: isCurrentlyDragging ? 0.5 : 1,
+    cursor: isCurrentlyDragging ? 'grabbing' : 'grab',
   }
 
   return (
@@ -72,10 +75,24 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-grab active:cursor-grabbing"
+      className={`
+        touch-none select-none
+        ${isCurrentlyDragging ? 'z-50' : 'z-0'}
+      `}
     >
-      <Card className="bg-white shadow-sm border border-slate-200 hover:shadow-md transition-shadow mb-3">
+      <Card className={`
+        bg-white shadow-sm border mb-3 transition-all group relative
+        ${isCurrentlyDragging 
+          ? 'border-blue-500 shadow-xl scale-105 rotate-3' 
+          : 'border-slate-200 hover:shadow-md hover:border-blue-300'
+        }
+      `}>
         <CardContent className="p-4">
+          <div className="absolute top-2 right-2 opacity-40 group-hover:opacity-100 transition-opacity">
+            <svg className="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
+            </svg>
+          </div>
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
@@ -144,19 +161,27 @@ function PipelineColumn({ stage, candidates }: PipelineColumnProps) {
   })
 
   return (
-    <div className="flex-1 min-w-[280px]">
-      <div className={`p-4 rounded-t-lg border-2 ${stage.color}`}>
+    <div className="flex-1 min-w-[280px] md:min-w-[300px]">
+      <div className={`p-4 rounded-t-lg border-2 ${stage.color} ${
+        isOver ? 'border-blue-500 shadow-lg' : ''
+      }`}>
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-slate-900">{stage.label}</h3>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className={`text-xs transition-all ${
+            isOver ? 'bg-blue-500 text-white scale-110' : ''
+          }`}>
             {candidates.length}
           </Badge>
         </div>
       </div>
       <div 
         ref={setNodeRef}
-        className={`min-h-[400px] p-4 border-2 border-t-0 rounded-b-lg ${stage.color} bg-opacity-20 transition-colors ${
-          isOver ? 'bg-opacity-40 border-blue-400' : ''
+        className={`min-h-[400px] p-4 border-2 border-t-0 rounded-b-lg transition-all duration-200 ${
+          stage.color
+        } ${
+          isOver 
+            ? 'bg-opacity-60 border-blue-500 shadow-inner scale-[1.02]' 
+            : 'bg-opacity-20'
         }`}
       >
         <SortableContext items={candidates.map(c => c.id)} strategy={verticalListSortingStrategy}>
@@ -276,11 +301,17 @@ export default function JobPipeline() {
     }, {} as Record<string, typeof jobCandidates>)
   }, [jobCandidates])
 
-  // DnD sensors
+  // DnD sensors - support both mouse and touch
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     })
   )
@@ -305,9 +336,8 @@ export default function JobPipeline() {
 
     try {
       await updateCandidateStage.mutateAsync({
-        jobCandidateId: candidateId,
-        stage: newStage,
-        notes: candidate.notes || undefined
+        id: candidateId,
+        stage: newStage
       })
 
       toast({
@@ -500,7 +530,7 @@ export default function JobPipeline() {
                 onDragStart={handleDragStart}
                 onDragEnd={handleDragEnd}
               >
-                <div className="flex gap-4 overflow-x-auto pb-4">
+                <div className="flex gap-4 overflow-x-auto pb-4 px-2 md:px-0 -mx-2 md:mx-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                   {PIPELINE_STAGES.map(stage => (
                     <PipelineColumn
                       key={stage.id}
@@ -512,7 +542,9 @@ export default function JobPipeline() {
                 
                 <DragOverlay>
                   {activeCandidate ? (
-                    <CandidateCard candidate={activeCandidate} isDragging />
+                    <div className="cursor-grabbing">
+                      <CandidateCard candidate={activeCandidate} isDragging />
+                    </div>
                   ) : null}
                 </DragOverlay>
               </DndContext>
