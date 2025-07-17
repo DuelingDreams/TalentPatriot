@@ -356,14 +356,18 @@ export function getDemoJobCandidateWithDetails(jobCandidateId: string) {
   const candidate = getDemoCandidateById(jc.candidateId);
   const job = getDemoJobById(jc.jobId);
   const client = job ? getDemoClientById(job.clientId) : null;
-  const notes = getDemoNotesForJobCandidate(jc.id);
+  const candidateNotes = getDemoNotesForJobCandidate(jc.id);
   
   return {
     ...jc,
+    candidateId: jc.candidateId,
+    jobId: jc.jobId,
     candidates: candidate,
     jobs: job,
     client: client,
-    notes: notes
+    candidateNotes: candidateNotes,
+    // Keep the original notes as a string from the job candidate record
+    notes: jc.notes
   };
 }
 

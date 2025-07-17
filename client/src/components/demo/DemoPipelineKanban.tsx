@@ -93,7 +93,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                   <span>{candidateInfo.phone}</span>
                 </div>
               )}
-              {candidate.notes && (
+              {candidate.notes && typeof candidate.notes === 'string' && (
                 <p className="text-xs text-slate-500 mt-2 line-clamp-2">
                   {candidate.notes}
                 </p>
@@ -184,8 +184,9 @@ export function DemoPipelineKanban() {
     })
     
     pipelineData.forEach(stageData => {
-      if (grouped[stageData.stage]) {
-        grouped[stageData.stage] = stageData.candidates
+      // stageData has structure: { id: 'applied', name: 'Applied', color: '...', candidates: [...] }
+      if (grouped[stageData.id]) {
+        grouped[stageData.id] = stageData.candidates
       }
     })
     
@@ -237,7 +238,7 @@ export function DemoPipelineKanban() {
     for (const stageData of pipelineData) {
       const candidateIndex = stageData.candidates.findIndex(c => c.id === candidateId)
       if (candidateIndex !== -1) {
-        currentStage = stageData.stage
+        currentStage = stageData.id
         candidateToMove = stageData.candidates[candidateIndex]
         break
       }
@@ -248,13 +249,13 @@ export function DemoPipelineKanban() {
     // Update the pipeline data
     setPipelineData(prevData => {
       const newData = prevData.map(stageData => {
-        if (stageData.stage === currentStage) {
+        if (stageData.id === currentStage) {
           // Remove from current stage
           return {
             ...stageData,
             candidates: stageData.candidates.filter(c => c.id !== candidateId)
           }
-        } else if (stageData.stage === newStage) {
+        } else if (stageData.id === newStage) {
           // Add to new stage
           return {
             ...stageData,
