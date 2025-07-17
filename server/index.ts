@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import compression from "compression";
 import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import { registerRoutes } from "./routes";
@@ -39,10 +40,37 @@ const speedLimiter = slowDown({
   maxDelayMs: 5000, // Maximum delay of 5 seconds
 });
 
+// Enable compression for better performance
+app.use(compression({
+  level: 6, // Default compression level
+  threshold: 1024, // Only compress responses > 1KB
+  filter: (req, res) => {
+    // Don't compress responses with this request header
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    // Use compression filter function
+    return compression.filter(req, res);
+  }
+}));
+
 app.use(generalLimiter);
 app.use(speedLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Add cache control headers
+app.use((req, res, next) => {
+  // Cache static assets
+  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
+  }
+  // Cache API responses for 5 minutes
+  else if (req.path.startsWith('/api') && req.method === 'GET') {
+    res.setHeader('Cache-Control', 'private, max-age=300'); // 5 minutes
+  }
+  next();
+});
 
 app.use((req, res, next) => {
   const start = Date.now();

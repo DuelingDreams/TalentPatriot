@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { useDebounce } from '@/hooks/useDebounce'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -160,31 +161,40 @@ export default function ProfessionalCandidates() {
   const [selectedSkill, setSelectedSkill] = useState<string>('all')
   const { userRole } = useAuth()
   
+  // Debounce search query for better performance
+  const debouncedSearchQuery = useDebounce(searchQuery, 300)
+  
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
   const { data: jobCandidates, isLoading: jobCandidatesLoading } = useJobCandidates()
 
-  // Create a map of candidate applications
-  const candidateApplications = jobCandidates?.reduce((acc, jc) => {
-    if (!acc[jc.candidate_id]) {
-      acc[jc.candidate_id] = []
-    }
-    acc[jc.candidate_id].push(jc)
-    return acc
-  }, {} as Record<string, typeof jobCandidates>)
+  // Create a map of candidate applications - memoized for performance
+  const candidateApplications = useMemo(() => {
+    return jobCandidates?.reduce((acc, jc) => {
+      if (!acc[jc.candidate_id]) {
+        acc[jc.candidate_id] = []
+      }
+      acc[jc.candidate_id].push(jc)
+      return acc
+    }, {} as Record<string, typeof jobCandidates>)
+  }, [jobCandidates])
 
-  // Filter candidates
-  const filteredCandidates = candidates?.filter(candidate => {
-    const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      candidate.email.toLowerCase().includes(searchQuery.toLowerCase())
+  // Filter candidates - memoized for performance
+  const filteredCandidates = useMemo(() => {
+    if (!candidates) return []
     
-    if (selectedStage !== 'all') {
-      const applications = candidateApplications?.[candidate.id] || []
-      const hasStage = applications.some(app => app.stage === selectedStage)
-      if (!hasStage) return false
-    }
+    return candidates.filter(candidate => {
+      const matchesSearch = candidate.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        candidate.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+      
+      if (selectedStage !== 'all') {
+        const applications = candidateApplications?.[candidate.id] || []
+        const hasStage = applications.some(app => app.stage === selectedStage)
+        if (!hasStage) return false
+      }
 
-    return matchesSearch
-  }) || []
+      return matchesSearch
+    })
+  }, [candidates, debouncedSearchQuery, selectedStage, candidateApplications])
 
   const stages = [
     { value: 'all', label: 'All Stages' },

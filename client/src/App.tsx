@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -5,94 +6,104 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import NotFound from "@/pages/not-found";
-import Dashboard from "@/pages/Dashboard";
-import Jobs from "@/pages/Jobs";
-import JobPipeline from "@/pages/JobPipeline";
-import Clients from "@/pages/Clients";
-import ClientDetail from "@/pages/ClientDetail";
-import ProfessionalCandidates from "@/pages/ProfessionalCandidates";
-import Calendar from "@/pages/Calendar";
-import Messages from "@/pages/Messages";
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
-import Unauthorized from "@/pages/Unauthorized";
-import Landing from "@/pages/Landing";
-// Demo components removed - using authenticated demo account instead
+
+// Loading component for suspense fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+  </div>
+);
+
+// Lazy load all pages for better performance
+const NotFound = lazy(() => import("@/pages/not-found"));
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Jobs = lazy(() => import("@/pages/Jobs"));
+const JobPipeline = lazy(() => import("@/pages/JobPipeline"));
+const Clients = lazy(() => import("@/pages/Clients"));
+const ClientDetail = lazy(() => import("@/pages/ClientDetail"));
+const ProfessionalCandidates = lazy(() => import("@/pages/ProfessionalCandidates"));
+const Calendar = lazy(() => import("@/pages/Calendar"));
+const Messages = lazy(() => import("@/pages/Messages"));
+const Login = lazy(() => import("@/pages/Login"));
+const Signup = lazy(() => import("@/pages/Signup"));
+const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
+const Landing = lazy(() => import("@/pages/Landing"));
 
 function Router() {
   return (
-    <Switch>
-      {/* Public routes */}
-      <Route path="/" component={Landing} />
-      <Route path="/login" component={Login} />
-      <Route path="/signup" component={Signup} />
-      <Route path="/unauthorized" component={Unauthorized} />
-      
-      {/* Protected routes */}
-      <Route path="/dashboard">
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/jobs">
-        <ProtectedRoute>
-          <Jobs />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/jobs/:id">
-        <ProtectedRoute>
-          <JobPipeline />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/pipeline">
-        <ProtectedRoute>
-          <JobPipeline />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/pipeline/:id">
-        <ProtectedRoute>
-          <JobPipeline />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/clients">
-        <ProtectedRoute>
-          <Clients />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/clients/:id">
-        <ProtectedRoute>
-          <ClientDetail />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/candidates">
-        <ProtectedRoute>
-          <ProfessionalCandidates />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/calendar">
-        <ProtectedRoute>
-          <Calendar />
-        </ProtectedRoute>
-      </Route>
-      
-      <Route path="/messages">
-        <ProtectedRoute>
-          <Messages />
-        </ProtectedRoute>
-      </Route>
-      
-      {/* Fallback to 404 */}
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        {/* Public routes */}
+        <Route path="/" component={Landing} />
+        <Route path="/login" component={Login} />
+        <Route path="/signup" component={Signup} />
+        <Route path="/unauthorized" component={Unauthorized} />
+        
+        {/* Protected routes */}
+        <Route path="/dashboard">
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/jobs">
+          <ProtectedRoute>
+            <Jobs />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/jobs/:id">
+          <ProtectedRoute>
+            <JobPipeline />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/pipeline">
+          <ProtectedRoute>
+            <JobPipeline />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/pipeline/:id">
+          <ProtectedRoute>
+            <JobPipeline />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/clients">
+          <ProtectedRoute>
+            <Clients />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/clients/:id">
+          <ProtectedRoute>
+            <ClientDetail />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/candidates">
+          <ProtectedRoute>
+            <ProfessionalCandidates />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/calendar">
+          <ProtectedRoute>
+            <Calendar />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/messages">
+          <ProtectedRoute>
+            <Messages />
+          </ProtectedRoute>
+        </Route>
+        
+        {/* Fallback to 404 */}
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
