@@ -11,9 +11,21 @@ import { useMessages, useUnreadMessageCount } from '@/hooks/useMessages'
 import { useAuth } from '@/contexts/AuthContext'
 import { format } from 'date-fns'
 import type { Message } from '@/../../shared/schema'
+import { DemoMessages } from '@/components/demo/DemoMessages'
 
 export default function Messages() {
-  const { user } = useAuth()
+  const { user, userRole } = useAuth()
+  
+  // Show demo messages for demo viewers
+  if (userRole === 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Demo Messages">
+        <div className="p-6">
+          <DemoMessages />
+        </div>
+      </DashboardLayout>
+    )
+  }
   const { data: allMessages = [] } = useMessages()
   const { data: unreadData } = useUnreadMessageCount(user?.id)
   const unreadCount = unreadData?.count || 0
