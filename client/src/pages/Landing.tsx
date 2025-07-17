@@ -40,14 +40,14 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Link href="/login">
-                <Button variant="ghost" className="text-slate-700 hover:text-slate-900 font-medium">
+                <Button variant="ghost" className="text-slate-700 hover:text-slate-900 font-medium text-sm sm:text-base px-2 sm:px-4">
                   Sign In
                 </Button>
               </Link>
               <Link href="/signup">
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg">
+                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg text-sm sm:text-base px-3 sm:px-4 whitespace-nowrap">
                   Get Started Free
                 </Button>
               </Link>
@@ -119,64 +119,112 @@ export default function Landing() {
       </section>
 
       {/* Mission Section */}
-      <section className="py-20 bg-white relative">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+      <section className="py-24 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-32 h-32 bg-blue-300 rounded-full opacity-10 blur-2xl"></div>
+          <div className="absolute bottom-20 left-20 w-40 h-40 bg-purple-300 rounded-full opacity-10 blur-2xl"></div>
+        </div>
+        
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <div className="inline-flex items-center gap-2 bg-blue-100 border border-blue-200 rounded-full px-6 py-3 mb-8">
+            <Target className="w-5 h-5 text-blue-600" />
+            <span className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Our Mission</span>
+          </div>
+          
+          <h2 className="text-4xl md:text-5xl font-bold mb-12 leading-tight">
             <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-              Our Mission
+              To create a lightweight, candidate-friendly ATS
+            </span>
+            <br />
+            <span className="text-slate-600">that gives small and mid-sized teams</span>
+            <br />
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-extrabold">
+              everything they need
+            </span>
+            <span className="text-slate-600"> — and </span>
+            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-extrabold">
+              nothing they don't
             </span>
           </h2>
-          <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-4xl mx-auto">
-            To create a lightweight, candidate-friendly ATS that gives small and mid-sized teams 
-            <span className="font-semibold text-slate-800"> everything they need</span> — and 
-            <span className="font-semibold text-slate-800"> nothing they don't</span>.
-          </p>
+          
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/50 max-w-4xl mx-auto">
+            <p className="text-lg md:text-xl text-slate-700 leading-relaxed">
+              We believe hiring should be about <span className="font-semibold text-blue-600">human connection</span>, 
+              not navigating complex software. TalentPatriot strips away the bloat and focuses on what matters: 
+              <span className="font-semibold text-slate-800"> helping great people find great opportunities</span>.
+            </p>
+          </div>
         </div>
       </section>
 
       {/* What It Replaces Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                What It Replaces
-              </span>
+      <section className="py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-40 left-1/4 w-64 h-64 bg-blue-500 rounded-full opacity-5 blur-3xl"></div>
+          <div className="absolute bottom-40 right-1/4 w-48 h-48 bg-purple-500 rounded-full opacity-5 blur-3xl"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-red-100 border border-red-200 rounded-full px-6 py-3 mb-8">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-semibold text-red-700 uppercase tracking-wide">Problem Solved</span>
+            </div>
+            
+            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-white">
+              What It Replaces
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Most ATS/CRMs are overloaded. You just need to hire. TalentPatriot replaces:
+            <p className="text-xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
+              Most ATS/CRMs are overloaded. You just need to hire. 
+              <span className="text-white font-semibold"> TalentPatriot eliminates the chaos:</span>
             </p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-red-100">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                <FileText className="w-6 h-6 text-red-600" />
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+            <div className="group bg-gradient-to-br from-red-50 to-red-100 rounded-2xl p-8 shadow-xl border border-red-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <FileText className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">Traditional ATS</h3>
-              <p className="text-slate-600">Bloated dashboards and complex workflows that slow you down</p>
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">Traditional ATS</h3>
+              <p className="text-slate-700 text-lg leading-relaxed">
+                Bloated dashboards with 50+ features you'll never use. Complex workflows that require training manuals.
+              </p>
             </div>
             
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-red-100">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                <BarChart3 className="w-6 h-6 text-red-600" />
+            <div className="group bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-8 shadow-xl border border-orange-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <BarChart3 className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">Spreadsheet chaos</h3>
-              <p className="text-slate-600">Job and candidate silos that create duplicate work and confusion</p>
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">Spreadsheet Chaos</h3>
+              <p className="text-slate-700 text-lg leading-relaxed">
+                Job boards, candidate lists, and client data scattered across multiple Excel files and Google Sheets.
+              </p>
             </div>
             
-            <div className="bg-white rounded-2xl p-8 shadow-lg border border-red-100">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                <Users className="w-6 h-6 text-red-600" />
+            <div className="group bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-8 shadow-xl border border-purple-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Users className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">BD/PM misalignment</h3>
-              <p className="text-slate-600">Handoff breakdowns where context gets lost between teams</p>
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">Team Misalignment</h3>
+              <p className="text-slate-700 text-lg leading-relaxed">
+                BDs, PMs, and Recruiters working in silos. Context gets lost in handoffs, candidates slip through cracks.
+              </p>
             </div>
           </div>
           
-          <p className="text-center mt-12 text-xl text-slate-700 font-medium">
-            With TalentPatriot, everything is in one place. Organized. Searchable. Collaborative.
-          </p>
+          <div className="text-center">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-10 max-w-4xl mx-auto shadow-2xl">
+              <h3 className="text-3xl font-bold text-white mb-4">With TalentPatriot</h3>
+              <p className="text-xl text-blue-100 leading-relaxed">
+                Everything is in one place. <span className="font-semibold text-white">Organized</span>. 
+                <span className="font-semibold text-white"> Searchable</span>. 
+                <span className="font-semibold text-white"> Collaborative</span>. 
+                Your team works from the same source of truth, every time.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
