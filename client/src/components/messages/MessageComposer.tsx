@@ -98,7 +98,7 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
     const contexts = []
     
     if (formData.clientId) {
-      const client = clients.find(c => c.id === formData.clientId)
+      const client = clients.find((c: any) => c.id === formData.clientId)
       if (client) {
         contexts.push({
           type: 'client',
@@ -109,7 +109,7 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
     }
     
     if (formData.jobId) {
-      const job = jobs.find(j => j.id === formData.jobId)
+      const job = jobs.find((j: any) => j.id === formData.jobId)
       if (job) {
         contexts.push({
           type: 'job',
@@ -120,7 +120,7 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
     }
     
     if (formData.candidateId) {
-      const candidate = candidates.find(c => c.id === formData.candidateId)
+      const candidate = candidates.find((c: any) => c.id === formData.candidateId)
       if (candidate) {
         contexts.push({
           type: 'candidate',
@@ -198,7 +198,7 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {clients.map(client => (
+                    {clients.map((client: any) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name}
                       </SelectItem>
@@ -218,7 +218,7 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {jobs.map(job => (
+                    {jobs.map((job: any) => (
                       <SelectItem key={job.id} value={job.id}>
                         {job.title}
                       </SelectItem>
@@ -238,7 +238,7 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>
-                    {candidates.map(candidate => (
+                    {candidates.map((candidate: any) => (
                       <SelectItem key={candidate.id} value={candidate.id}>
                         {candidate.name}
                       </SelectItem>

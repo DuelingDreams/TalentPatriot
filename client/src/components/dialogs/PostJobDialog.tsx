@@ -143,7 +143,7 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
                           </div>
                         </SelectItem>
                       ) : clients && clients.length > 0 ? (
-                        clients.map((client) => (
+                        clients.map((client: any) => (
                           <SelectItem key={client.id} value={client.id}>
                             {client.name}
                           </SelectItem>

@@ -10,7 +10,7 @@ export function JobCandidatesTest() {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null)
   
   const { data: jobs, isLoading: jobsLoading } = useJobs()
-  const { data: candidates, isLoading: candidatesLoading } = useCandidatesForJob(selectedJobId)
+  const { data: candidates, isLoading: candidatesLoading } = useCandidatesForJob(selectedJobId || undefined)
 
   return (
     <div className="space-y-6">
@@ -36,7 +36,7 @@ export function JobCandidatesTest() {
                     </div>
                   </SelectItem>
                 ) : (
-                  jobs?.map((job) => (
+                  jobs?.map((job: any) => (
                     <SelectItem key={job.id} value={job.id}>
                       {job.title} - {job.clients?.name}
                     </SelectItem>
@@ -59,7 +59,7 @@ export function JobCandidatesTest() {
                 </div>
               ) : candidates && candidates.length > 0 ? (
                 <div className="space-y-3">
-                  {candidates.map((jobCandidate) => (
+                  {candidates.map((jobCandidate: any) => (
                     <div 
                       key={jobCandidate.id}
                       className="p-3 border border-slate-200 rounded-lg bg-slate-50"

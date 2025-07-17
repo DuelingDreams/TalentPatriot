@@ -84,7 +84,7 @@ export const queryClient = new QueryClient({
       // Optimize caching - data is fresh for 5 minutes
       staleTime: 5 * 60 * 1000, // 5 minutes
       // Keep data in cache for 10 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
       // Retry once on failure with exponential backoff
       retry: 1,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),

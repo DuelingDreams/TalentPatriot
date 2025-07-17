@@ -13,11 +13,11 @@ import { formatDistanceToNow } from 'date-fns'
 
 export default function ClientDetail() {
   const { id } = useParams<{ id: string }>()
-  const { data: client, isLoading: clientLoading } = useClient(id || null)
+  const { data: client, isLoading: clientLoading } = useClient(id || undefined)
   const { data: allJobs } = useJobs()
 
   // Filter jobs for this client
-  const clientJobs = allJobs?.filter(job => job.client_id === id) || []
+  const clientJobs = allJobs?.filter((job: any) => job.client_id === id) || []
 
   if (clientLoading) {
     return (

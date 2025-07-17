@@ -61,7 +61,7 @@ export function MessagesList({ selectedMessage, onMessageSelect, filterContext }
   }
 
   // Filter messages by context if provided
-  const filteredMessages = messages.filter(message => {
+  const filteredMessages = messages.filter((message: any) => {
     if (!filterContext) return true
     
     if (filterContext.clientId && message.clientId !== filterContext.clientId) return false
