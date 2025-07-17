@@ -41,7 +41,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           const role = session.user.user_metadata?.role || null
-          const orgId = session.user.user_metadata?.currentOrgId || null
+          let orgId = session.user.user_metadata?.currentOrgId || null
+          
+          // For demo viewers, always assign to demo organization
+          if (role === 'demo_viewer') {
+            orgId = 'demo-org-fixed'
+          }
+          
           console.log('Auth Debug - User:', session.user.email, 'Role from metadata:', role, 'OrgId:', orgId)
           setUserRole(role)
           setCurrentOrgIdState(orgId)
@@ -64,7 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           const role = session.user.user_metadata?.role || null
-          const orgId = session.user.user_metadata?.currentOrgId || null
+          let orgId = session.user.user_metadata?.currentOrgId || null
+          
+          // For demo viewers, always assign to demo organization
+          if (role === 'demo_viewer') {
+            orgId = 'demo-org-fixed'
+          }
+          
           console.log('Auth State Change - User:', session.user.email, 'Role:', role, 'OrgId:', orgId)
           setUserRole(role)
           setCurrentOrgIdState(orgId)

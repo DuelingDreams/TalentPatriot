@@ -26,9 +26,19 @@ export function OrganizationSwitcher() {
   const { data: currentOrg, isLoading: currentOrgLoading } = useCurrentOrganization()
   const [switching, setSwitching] = useState(false)
 
-  // Don't show for demo users
+  // For demo users, show fixed demo organization name without switcher
   if (userRole === 'demo_viewer') {
-    return null
+    return (
+      <div className="flex items-center gap-2 px-2 py-1 bg-blue-100 rounded-lg">
+        <Building2 className="w-3 h-3 text-blue-600" />
+        <span className="text-xs font-medium text-blue-900 max-w-24 truncate lg:max-w-32 lg:text-sm">
+          TalentPatriot Demo
+        </span>
+        <Badge variant="secondary" className="text-xs bg-blue-200 text-blue-800">
+          Demo
+        </Badge>
+      </div>
+    )
   }
 
   if (orgsLoading || currentOrgLoading || !userOrgs || !currentOrg) {

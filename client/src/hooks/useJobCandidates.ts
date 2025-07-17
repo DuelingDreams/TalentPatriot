@@ -4,12 +4,40 @@ import { useAuth } from '@/contexts/AuthContext'
 import type { JobCandidate, InsertJobCandidate } from '@/../../shared/schema'
 
 export function useJobCandidates() {
-  const { currentOrgId } = useAuth()
+  const { currentOrgId, userRole } = useAuth()
   
   return useQuery({
     queryKey: ['/api/job-candidates', { orgId: currentOrgId }],
-    queryFn: () => apiRequest(`/api/job-candidates?orgId=${currentOrgId}`),
-    enabled: !!currentOrgId,
+    queryFn: () => {
+      if (userRole === 'demo_viewer') {
+        // Return demo job-candidate relationships
+        return [
+          {
+            id: 'demo-job-candidate-1',
+            jobId: 'demo-job-1',
+            candidateId: 'demo-candidate-1',
+            stage: 'interview',
+            notes: 'Strong technical skills, moving to final round',
+            appliedAt: new Date('2024-07-05').toISOString(),
+            orgId: 'demo-org-fixed'
+          },
+          {
+            id: 'demo-job-candidate-2',
+            jobId: 'demo-job-2',
+            candidateId: 'demo-candidate-2',
+            stage: 'phone_screen',
+            notes: 'Great product experience, scheduling technical interview',
+            appliedAt: new Date('2024-07-12').toISOString(),
+            orgId: 'demo-org-fixed'
+          }
+        ]
+      }
+      if (!currentOrgId) {
+        return []
+      }
+      return apiRequest(`/api/job-candidates?orgId=${currentOrgId}`)
+    },
+    enabled: true,
   })
 }
 
@@ -22,12 +50,61 @@ export function useJobCandidate(id?: string) {
 }
 
 export function useCandidatesForJob(jobId?: string) {
-  const { currentOrgId } = useAuth()
+  const { currentOrgId, userRole } = useAuth()
   
   return useQuery({
     queryKey: ['/api/jobs', jobId, 'candidates', { orgId: currentOrgId }],
-    queryFn: () => apiRequest(`/api/jobs/${jobId}/candidates?orgId=${currentOrgId}`),
-    enabled: !!jobId && !!currentOrgId,
+    queryFn: () => {
+      if (userRole === 'demo_viewer') {
+        // Return demo candidates for specific job
+        if (jobId === 'demo-job-1') {
+          return [
+            {
+              id: 'demo-job-candidate-1',
+              jobId: 'demo-job-1',
+              candidateId: 'demo-candidate-1',
+              stage: 'interview',
+              notes: 'Strong technical skills, moving to final round',
+              appliedAt: new Date('2024-07-05').toISOString(),
+              orgId: 'demo-org-fixed',
+              candidate: {
+                id: 'demo-candidate-1',
+                firstName: 'Emily',
+                lastName: 'Rodriguez',
+                email: 'emily.rodriguez@email.com',
+                skills: ['React', 'TypeScript', 'Node.js', 'Python']
+              }
+            }
+          ]
+        }
+        if (jobId === 'demo-job-2') {
+          return [
+            {
+              id: 'demo-job-candidate-2',
+              jobId: 'demo-job-2',
+              candidateId: 'demo-candidate-2',
+              stage: 'phone_screen',
+              notes: 'Great product experience, scheduling technical interview',
+              appliedAt: new Date('2024-07-12').toISOString(),
+              orgId: 'demo-org-fixed',
+              candidate: {
+                id: 'demo-candidate-2',
+                firstName: 'James',
+                lastName: 'Wilson',
+                email: 'james.wilson@email.com',
+                skills: ['Product Management', 'Agile', 'Data Analysis']
+              }
+            }
+          ]
+        }
+        return []
+      }
+      if (!jobId || !currentOrgId) {
+        return []
+      }
+      return apiRequest(`/api/jobs/${jobId}/candidates?orgId=${currentOrgId}`)
+    },
+    enabled: true,
   })
 }
 

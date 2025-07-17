@@ -9,13 +9,45 @@ export function useJobs() {
   return useQuery({
     queryKey: ['/api/jobs', { orgId: currentOrgId }],
     queryFn: () => {
-      if (userRole === 'demo_viewer' || !currentOrgId) {
-        // Return empty array for demo users or users without org
+      if (userRole === 'demo_viewer') {
+        // Return demo jobs data
+        return [
+          {
+            id: 'demo-job-1',
+            title: 'Senior Software Engineer',
+            description: 'We are looking for an experienced software engineer to join our growing team.',
+            requirements: 'React, TypeScript, Node.js experience required',
+            clientId: 'demo-client-1',
+            status: 'open',
+            priority: 'high',
+            location: 'San Francisco, CA',
+            salaryMin: 120000,
+            salaryMax: 180000,
+            orgId: 'demo-org-fixed',
+            createdAt: new Date('2024-07-01').toISOString()
+          },
+          {
+            id: 'demo-job-2',
+            title: 'Product Manager',
+            description: 'Lead product development for our clean energy platform.',
+            requirements: 'Product management experience, energy sector knowledge preferred',
+            clientId: 'demo-client-2',
+            status: 'open',
+            priority: 'medium',
+            location: 'Austin, TX',
+            salaryMin: 100000,
+            salaryMax: 150000,
+            orgId: 'demo-org-fixed',
+            createdAt: new Date('2024-07-10').toISOString()
+          }
+        ]
+      }
+      if (!currentOrgId) {
         return []
       }
       return apiRequest(`/api/jobs?orgId=${currentOrgId}`)
     },
-    enabled: true, // Always enabled, but conditional data fetching
+    enabled: true,
   })
 }
 

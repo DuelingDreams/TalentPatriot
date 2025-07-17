@@ -25,19 +25,22 @@ export function useCurrentOrganization() {
   return useQuery({
     queryKey: ['/api/organizations', currentOrgId],
     queryFn: () => {
-      if (userRole === 'demo_viewer' || !currentOrgId) {
-        // Return mock org for demo users or users without org
+      if (userRole === 'demo_viewer') {
+        // Return fixed demo org for demo users
         return {
-          id: 'demo-org',
-          name: 'Demo Organization',
+          id: 'demo-org-fixed',
+          name: 'TalentPatriot Demo',
           ownerId: 'demo-user',
-          slug: 'demo-org',
+          slug: 'talentpatriot-demo',
           createdAt: new Date().toISOString()
         }
       }
+      if (!currentOrgId) {
+        return null
+      }
       return apiRequest(`/api/organizations/${currentOrgId}`)
     },
-    enabled: true, // Always enabled, but conditional data fetching
+    enabled: true,
   })
 }
 

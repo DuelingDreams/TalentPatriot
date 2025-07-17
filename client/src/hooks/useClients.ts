@@ -9,13 +9,41 @@ export function useClients() {
   return useQuery({
     queryKey: ['/api/clients', { orgId: currentOrgId }],
     queryFn: () => {
-      if (userRole === 'demo_viewer' || !currentOrgId) {
-        // Return empty array for demo users or users without org
+      if (userRole === 'demo_viewer') {
+        // Return demo clients data
+        return [
+          {
+            id: 'demo-client-1',
+            name: 'TechCorp Solutions',
+            industry: 'Technology',
+            contactName: 'Sarah Johnson',
+            contactEmail: 'sarah@techcorp.com',
+            contactPhone: '+1-555-0123',
+            website: 'https://techcorp.com',
+            address: '123 Innovation Drive, Tech Valley, CA 94025',
+            orgId: 'demo-org-fixed',
+            createdAt: new Date('2024-01-15').toISOString()
+          },
+          {
+            id: 'demo-client-2',
+            name: 'Green Energy Inc',
+            industry: 'Energy',
+            contactName: 'Michael Chen',
+            contactEmail: 'michael@greenenergy.com',
+            contactPhone: '+1-555-0456',
+            website: 'https://greenenergy.com',
+            address: '456 Solar Plaza, Austin, TX 78701',
+            orgId: 'demo-org-fixed',
+            createdAt: new Date('2024-02-20').toISOString()
+          }
+        ]
+      }
+      if (!currentOrgId) {
         return []
       }
       return apiRequest(`/api/clients?orgId=${currentOrgId}`)
     },
-    enabled: true, // Always enabled, but conditional data fetching
+    enabled: true,
   })
 }
 

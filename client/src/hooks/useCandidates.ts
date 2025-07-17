@@ -9,13 +9,45 @@ export function useCandidates() {
   return useQuery({
     queryKey: ['/api/candidates', { orgId: currentOrgId }],
     queryFn: () => {
-      if (userRole === 'demo_viewer' || !currentOrgId) {
-        // Return empty array for demo users or users without org
+      if (userRole === 'demo_viewer') {
+        // Return demo candidates data
+        return [
+          {
+            id: 'demo-candidate-1',
+            firstName: 'Emily',
+            lastName: 'Rodriguez',
+            email: 'emily.rodriguez@email.com',
+            phone: '+1-555-0789',
+            resumeUrl: null,
+            linkedinUrl: 'https://linkedin.com/in/emilyrodriguez',
+            skills: ['React', 'TypeScript', 'Node.js', 'Python'],
+            experience: 'Senior',
+            location: 'San Francisco, CA',
+            orgId: 'demo-org-fixed',
+            createdAt: new Date('2024-07-05').toISOString()
+          },
+          {
+            id: 'demo-candidate-2',
+            firstName: 'James',
+            lastName: 'Wilson',
+            email: 'james.wilson@email.com',
+            phone: '+1-555-0321',
+            resumeUrl: null,
+            linkedinUrl: 'https://linkedin.com/in/jameswilson',
+            skills: ['Product Management', 'Agile', 'Data Analysis'],
+            experience: 'Mid',
+            location: 'Austin, TX',
+            orgId: 'demo-org-fixed',
+            createdAt: new Date('2024-07-12').toISOString()
+          }
+        ]
+      }
+      if (!currentOrgId) {
         return []
       }
       return apiRequest(`/api/candidates?orgId=${currentOrgId}`)
     },
-    enabled: true, // Always enabled, but conditional data fetching
+    enabled: true,
   })
 }
 
