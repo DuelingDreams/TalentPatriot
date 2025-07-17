@@ -200,6 +200,77 @@ export const demoJobCandidates = [
     assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
     status: 'demo',
     updatedAt: '2024-01-25T08:00:00Z'
+  },
+  // Additional candidates for better pipeline visualization
+  {
+    id: 'app1app1-app1-app1-app1-app1app1app1',
+    jobId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    candidateId: '11111111-1111-1111-1111-111111111111',
+    stage: 'applied',
+    notes: 'Recent graduate with strong portfolio',
+    assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
+    status: 'demo',
+    updatedAt: '2024-01-26T09:00:00Z'
+  },
+  {
+    id: 'app2app2-app2-app2-app2-app2app2app2',
+    jobId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    candidateId: '22222222-2222-2222-2222-222222222222',
+    stage: 'applied',
+    notes: 'Senior developer with 8 years experience',
+    assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
+    status: 'demo',
+    updatedAt: '2024-01-26T10:30:00Z'
+  },
+  {
+    id: 'scr1scr1-scr1-scr1-scr1-scr1scr1scr1',
+    jobId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    candidateId: '33333333-3333-3333-3333-333333333333',
+    stage: 'screening',
+    notes: 'Good communication skills, scheduling interview',
+    assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
+    status: 'demo',
+    updatedAt: '2024-01-25T14:00:00Z'
+  },
+  {
+    id: 'int1int1-int1-int1-int1-int1int1int1',
+    jobId: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+    candidateId: '11111111-1111-1111-1111-111111111111',
+    stage: 'interview',
+    notes: 'Strong problem-solving skills demonstrated',
+    assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
+    status: 'demo',
+    updatedAt: '2024-01-24T16:30:00Z'
+  },
+  {
+    id: 'tec1tec1-tec1-tec1-tec1-tec1tec1tec1',
+    jobId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    candidateId: '22222222-2222-2222-2222-222222222222',
+    stage: 'technical',
+    notes: 'Completed coding challenge, awaiting review',
+    assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
+    status: 'demo',
+    updatedAt: '2024-01-25T11:45:00Z'
+  },
+  {
+    id: 'off1off1-off1-off1-off1-off1off1off1',
+    jobId: 'cccccccc-cccc-cccc-cccc-cccccccccccc',
+    candidateId: '44444444-4444-4444-4444-444444444444',
+    stage: 'offer',
+    notes: 'Negotiating start date and compensation',
+    assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
+    status: 'demo',
+    updatedAt: '2024-01-26T13:20:00Z'
+  },
+  {
+    id: 'rej1rej1-rej1-rej1-rej1-rej1rej1rej1',
+    jobId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    candidateId: '33333333-3333-3333-3333-333333333333',
+    stage: 'rejected',
+    notes: 'Skills not aligned with current requirements',
+    assignedTo: 'cd99579b-1b80-4802-9651-e881fb707583',
+    status: 'demo',
+    updatedAt: '2024-01-23T10:15:00Z'
   }
 ];
 
