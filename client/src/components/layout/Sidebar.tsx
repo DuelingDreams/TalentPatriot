@@ -57,18 +57,21 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0",
+        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl",
         isOpen ? "translate-x-0" : "-translate-x-full",
         className
       )}>
         <div className="flex h-full flex-col">
           {/* Logo/Brand */}
-          <div className="flex h-16 items-center px-6 border-b border-slate-200">
+          <div className="flex h-16 items-center px-6 border-b border-slate-200 bg-gradient-to-r from-blue-600 to-blue-700">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center">
+                <Briefcase className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-semibold text-slate-900">ATS Pro</span>
+              <div>
+                <span className="text-xl font-bold text-white">TalentPatriot</span>
+                <p className="text-xs text-blue-100">Professional ATS</p>
+              </div>
             </div>
           </div>
 

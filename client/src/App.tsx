@@ -11,7 +11,7 @@ import Jobs from "@/pages/Jobs";
 import JobPipeline from "@/pages/JobPipeline";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
-import Candidates from "@/pages/Users";
+import ProfessionalCandidates from "@/pages/ProfessionalCandidates";
 import Calendar from "@/pages/Calendar";
 import Messages from "@/pages/Messages";
 import Login from "@/pages/Login";
@@ -74,7 +74,7 @@ function Router() {
       
       <Route path="/candidates">
         <ProtectedRoute>
-          <Candidates />
+          <ProfessionalCandidates />
         </ProtectedRoute>
       </Route>
       

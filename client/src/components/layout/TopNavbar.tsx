@@ -35,12 +35,9 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
           <Menu className="w-6 h-6" />
         </Button>
 
-        {/* Logo for desktop */}
-        <div className="hidden lg:flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <Briefcase className="w-5 h-5 text-white" />
-          </div>
-          <span className="text-xl font-semibold text-slate-900">ATS Pro</span>
+        {/* Page Title and Breadcrumb */}
+        <div className="hidden lg:flex items-center space-x-4">
+          <h1 className="text-xl font-semibold text-slate-900">{pageTitle}</h1>
         </div>
 
         {/* Spacer for mobile */}
