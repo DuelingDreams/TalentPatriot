@@ -257,7 +257,9 @@ export class MemStorage implements IStorage {
     const note: CandidateNotes = { 
       ...insertNote, 
       id, 
-      createdAt: new Date() 
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isPrivate: insertNote.isPrivate || 'no'
     };
     this.candidateNotes.set(id, note);
     return note;
@@ -707,7 +709,13 @@ class DatabaseStorage implements IStorage {
       id,
       createdAt: now,
       updatedAt: now,
-      recordStatus: insertInterview.recordStatus || 'active'
+      recordStatus: insertInterview.recordStatus || 'active',
+      duration: insertInterview.duration || null,
+      location: insertInterview.location || null,
+      interviewerId: insertInterview.interviewerId || null,
+      notes: insertInterview.notes || null,
+      feedback: insertInterview.feedback || null,
+      rating: insertInterview.rating || null
     }
     return interview
   }
@@ -773,7 +781,16 @@ class DatabaseStorage implements IStorage {
       isArchived: false,
       createdAt: now,
       updatedAt: now,
-      recordStatus: insertMessage.recordStatus || 'active'
+      recordStatus: insertMessage.recordStatus || 'active',
+      clientId: insertMessage.clientId || null,
+      jobId: insertMessage.jobId || null,
+      candidateId: insertMessage.candidateId || null,
+      jobCandidateId: insertMessage.jobCandidateId || null,
+      recipientId: insertMessage.recipientId || null,
+      threadId: insertMessage.threadId || null,
+      replyToId: insertMessage.replyToId || null,
+      attachments: insertMessage.attachments || null,
+      tags: insertMessage.tags || null
     }
     return message
   }
