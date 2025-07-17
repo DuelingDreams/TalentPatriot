@@ -28,8 +28,8 @@ const navigationItems = [
   { label: 'Pipeline', href: '/pipeline', icon: BarChart3, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
   { label: 'Clients', href: '/clients', icon: Building2, roles: ['recruiter', 'bd', 'demo_viewer'] },
   { label: 'Candidates', href: '/candidates', icon: Users, roles: ['recruiter', 'bd', 'demo_viewer'] },
-  { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm'] },
-  { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm'] },
+  { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
+  { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['recruiter', 'bd', 'pm', 'demo_viewer'] },
 ]
 
 const secondaryItems = [

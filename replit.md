@@ -146,6 +146,7 @@ Preferred communication style: Simple, everyday language.
 - **BUILT DEMO CALENDAR**: Comprehensive interview calendar with monthly view, scheduled interviews, statistics tracking, and realistic sample data
 - **IMPLEMENTED DEMO MESSAGES**: Complete messaging system with priority filtering, category tabs, statistics overview, and sample team communications
 - **UNIFIED DEMO INTERFACE**: All demo pages now feature consistent professional styling, interactive elements, and comprehensive statistics matching authenticated user experience
+- **FIXED DEMO NAVIGATION**: Added Calendar and Messages links to sidebar navigation for demo_viewer role ensuring complete feature access
 
 ## System Architecture
 
