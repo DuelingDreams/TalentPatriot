@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
-import { testSupabaseConnection } from '@/lib/supabase-test'
+
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useCandidates } from '@/hooks/useCandidates'
@@ -30,8 +28,6 @@ import { Button } from '@/components/ui/button'
 
 
 export default function Dashboard() {
-  const [supabaseStatus, setSupabaseStatus] = useState<'testing' | 'connected' | 'error'>('testing')
-  const { toast } = useToast()
   const { userRole } = useAuth()
   
   // Fetch real data using our hooks - MUST be called before any conditional returns
@@ -39,22 +35,6 @@ export default function Dashboard() {
   const { data: clients, isLoading: clientsLoading } = useClients()
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
   const { data: jobCandidates, isLoading: jobCandidatesLoading } = useJobCandidates()
-
-  useEffect(() => {
-    // Test Supabase connection on component mount
-    testSupabaseConnection().then((result) => {
-      if (result.success) {
-        setSupabaseStatus('connected')
-      } else {
-        setSupabaseStatus('error')
-        toast({
-          title: "Database Connection Failed",
-          description: result.error || "Could not connect to database",
-          variant: "destructive",
-        })
-      }
-    })
-  }, [toast])
 
   // Calculate real stats from data
   const openJobsCount = jobs?.filter(job => job.status === 'open').length || 0
