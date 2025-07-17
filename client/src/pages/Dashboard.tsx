@@ -34,18 +34,7 @@ export default function Dashboard() {
   const { toast } = useToast()
   const { userRole } = useAuth()
   
-  // Show demo dashboard for demo viewers
-  if (userRole === 'demo_viewer') {
-    return (
-      <DashboardLayout pageTitle="Demo Dashboard">
-        <div className="p-6">
-          <DemoDashboard />
-        </div>
-      </DashboardLayout>
-    )
-  }
-
-  // Fetch real data using our hooks
+  // Fetch real data using our hooks - MUST be called before any conditional returns
   const { data: jobs, isLoading: jobsLoading } = useJobs()
   const { data: clients, isLoading: clientsLoading } = useClients()
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
@@ -102,6 +91,16 @@ export default function Dashboard() {
     { name: 'Filled', value: jobs?.filter(j => j.status === 'filled').length || 0, color: '#8b5cf6' },
   ]
 
+  // Show demo dashboard for demo viewers (after all hooks are called)
+  if (userRole === 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Demo Dashboard">
+        <div className="p-6">
+          <DemoDashboard />
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   return (
     <DashboardLayout pageTitle="Dashboard">
