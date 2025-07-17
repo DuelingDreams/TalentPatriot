@@ -89,6 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       return { error }
     } catch (error) {
+      // Handle DOM exceptions and network errors gracefully
+      if (error instanceof DOMException) {
+        console.warn('DOM exception during sign in:', error.name)
+        return { error: { message: 'Connection error. Please try again.' } }
+      }
       console.warn('Sign in error:', error)
       return { error }
     }
@@ -108,6 +113,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       })
       return { error }
     } catch (error) {
+      // Handle DOM exceptions and network errors gracefully
+      if (error instanceof DOMException) {
+        console.warn('DOM exception during sign up:', error.name)
+        return { error: { message: 'Connection error. Please try again.' } }
+      }
       console.warn('Sign up error:', error)
       return { error }
     }
