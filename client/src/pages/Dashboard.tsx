@@ -15,6 +15,7 @@ import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
 import { AddClientDialog } from '@/components/dialogs/AddClientDialog'
 import { ScheduleInterviewDialog } from '@/components/calendar/ScheduleInterviewDialog'
 import { SendMessageDialog } from '@/components/dialogs/SendMessageDialog'
+import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 
 import { 
   Plus, 
@@ -224,10 +225,7 @@ export default function Dashboard() {
               <p className="mt-1 text-sm text-slate-600">Manage your recruitment pipeline and track hiring progress.</p>
             </div>
             <div className="mt-4 sm:mt-0">
-              <Button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                Post New Job
-              </Button>
+              <PostJobDialog />
             </div>
           </div>
         </div>
