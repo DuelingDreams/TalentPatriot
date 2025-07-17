@@ -199,6 +199,7 @@ export default function Landing() {
             
             <blockquote className="mt-8 text-lg text-slate-700 font-medium italic max-w-2xl mx-auto">
               "After 10 years in recruiting, I built the ATS I always wanted. Simple. Fast. It just works."
+              <span className="block mt-2 text-base not-italic">— Mike Hildebrand</span>
             </blockquote>
           </div>
           
@@ -225,7 +226,7 @@ export default function Landing() {
               {
                 icon: Shield,
                 title: 'Enterprise Security',
-                description: 'SOC 2 compliant with role-based access control',
+                description: 'Role-based access control to keep your data secure',
                 color: 'red'
               },
               {
