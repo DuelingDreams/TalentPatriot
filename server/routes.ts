@@ -175,7 +175,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Clients routes
   app.get("/api/clients", async (req, res) => {
     try {
-      const clients = await storage.getClients();
+      const orgId = req.query.orgId as string;
+      if (!orgId) {
+        res.status(400).json({ error: "Organization ID is required" });
+        return;
+      }
+      const clients = await storage.getClientsByOrg(orgId);
       res.json(clients);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clients" });
@@ -225,7 +230,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Jobs routes
   app.get("/api/jobs", async (req, res) => {
     try {
-      const jobs = await storage.getJobs();
+      const orgId = req.query.orgId as string;
+      if (!orgId) {
+        res.status(400).json({ error: "Organization ID is required" });
+        return;
+      }
+      const jobs = await storage.getJobsByOrg(orgId);
       res.json(jobs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch jobs" });
@@ -257,7 +267,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Candidates routes
   app.get("/api/candidates", async (req, res) => {
     try {
-      const candidates = await storage.getCandidates();
+      const orgId = req.query.orgId as string;
+      if (!orgId) {
+        res.status(400).json({ error: "Organization ID is required" });
+        return;
+      }
+      const candidates = await storage.getCandidatesByOrg(orgId);
       res.json(candidates);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch candidates" });

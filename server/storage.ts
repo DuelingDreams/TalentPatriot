@@ -54,6 +54,7 @@ export interface IStorage {
   // Clients
   getClient(id: string): Promise<Client | undefined>;
   getClients(): Promise<Client[]>;
+  getClientsByOrg(orgId: string): Promise<Client[]>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, client: Partial<InsertClient>): Promise<Client>;
   deleteClient(id: string): Promise<void>;
@@ -61,12 +62,14 @@ export interface IStorage {
   // Jobs
   getJob(id: string): Promise<Job | undefined>;
   getJobs(): Promise<Job[]>;
+  getJobsByOrg(orgId: string): Promise<Job[]>;
   getJobsByClient(clientId: string): Promise<Job[]>;
   createJob(job: InsertJob): Promise<Job>;
   
   // Candidates
   getCandidate(id: string): Promise<Candidate | undefined>;
   getCandidates(): Promise<Candidate[]>;
+  getCandidatesByOrg(orgId: string): Promise<Candidate[]>;
   createCandidate(candidate: InsertCandidate): Promise<Candidate>;
   
   // Job-Candidate relationships
@@ -247,6 +250,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.clients.values());
   }
 
+  async getClientsByOrg(orgId: string): Promise<Client[]> {
+    return Array.from(this.clients.values()).filter(client => client.orgId === orgId);
+  }
+
   async createClient(insertClient: InsertClient): Promise<Client> {
     const id = crypto.randomUUID();
     const now = new Date();
@@ -306,6 +313,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.jobs.values());
   }
 
+  async getJobsByOrg(orgId: string): Promise<Job[]> {
+    return Array.from(this.jobs.values()).filter(job => job.orgId === orgId);
+  }
+
   async getJobsByClient(clientId: string): Promise<Job[]> {
     return Array.from(this.jobs.values()).filter(job => job.clientId === clientId);
   }
@@ -330,6 +341,10 @@ export class MemStorage implements IStorage {
 
   async getCandidates(): Promise<Candidate[]> {
     return Array.from(this.candidates.values());
+  }
+
+  async getCandidatesByOrg(orgId: string): Promise<Candidate[]> {
+    return Array.from(this.candidates.values()).filter(candidate => candidate.orgId === orgId);
   }
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {

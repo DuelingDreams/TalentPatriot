@@ -3,6 +3,7 @@ import { useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { UserProfile } from '@/components/auth/UserProfile'
+import { OrganizationSwitcher } from '@/components/organization/OrganizationSwitcher'
 import { 
   Menu, 
   Search, 
@@ -35,13 +36,25 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
           <Menu className="w-6 h-6" />
         </Button>
 
-        {/* Page Title and Breadcrumb */}
+        {/* Page Title and Organization */}
         <div className="hidden lg:flex items-center space-x-4">
           <h1 className="text-xl font-semibold text-slate-900">{pageTitle}</h1>
+          {!isDemoMode && (
+            <div className="flex items-center">
+              <span className="text-slate-400 mx-2">|</span>
+              <OrganizationSwitcher />
+            </div>
+          )}
         </div>
 
-        {/* Spacer for mobile */}
-        <div className="flex-1 lg:hidden"></div>
+        {/* Mobile Organization Switcher */}
+        <div className="flex-1 lg:hidden flex items-center justify-center">
+          {!isDemoMode && (
+            <div className="flex items-center justify-center">
+              <OrganizationSwitcher />
+            </div>
+          )}
+        </div>
 
         {/* Right side nav */}
         <div className="flex items-center space-x-4">

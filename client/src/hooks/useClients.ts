@@ -1,11 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
+import { useAuth } from '@/contexts/AuthContext'
 import type { Client, InsertClient } from '@/../../shared/schema'
 
 export function useClients() {
+  const { currentOrgId, userRole } = useAuth()
+  
   return useQuery({
-    queryKey: ['/api/clients'],
-    queryFn: () => apiRequest('/api/clients'),
+    queryKey: ['/api/clients', { orgId: currentOrgId }],
+    queryFn: () => {
+      if (userRole === 'demo_viewer' || !currentOrgId) {
+        // Return empty array for demo users or users without org
+        return []
+      }
+      return apiRequest(`/api/clients?orgId=${currentOrgId}`)
+    },
+    enabled: true, // Always enabled, but conditional data fetching
   })
 }
 
@@ -19,12 +29,16 @@ export function useClient(id?: string) {
 
 export function useCreateClient() {
   const queryClient = useQueryClient()
+  const { currentOrgId } = useAuth()
   
   return useMutation({
     mutationFn: (client: InsertClient) =>
       apiRequest('/api/clients', {
         method: 'POST',
-        body: JSON.stringify(client),
+        body: JSON.stringify({
+          ...client,
+          orgId: currentOrgId,
+        }),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/clients'] })
