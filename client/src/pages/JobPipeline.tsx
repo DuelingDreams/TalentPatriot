@@ -15,7 +15,7 @@ import { useJobs } from '@/hooks/useJobs'
 import { useCandidatesForJob, useUpdateCandidateStage } from '@/hooks/useJobCandidates'
 import { ResumeUpload } from '@/components/ResumeUpload'
 import { CandidateNotes } from '@/components/CandidateNotes'
-import { DemoKanbanBoard } from '@/components/DemoKanbanBoard'
+import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare } from 'lucide-react'
 import { Link } from 'wouter'
@@ -273,8 +273,14 @@ export default function JobPipeline() {
   // Show demo kanban board for demo viewers
   if (userRole === 'demo_viewer') {
     return (
-      <DashboardLayout>
-        <DemoKanbanBoard />
+      <DashboardLayout pageTitle="Demo Pipeline">
+        <div className="p-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-900">Recruitment Pipeline</h1>
+            <p className="text-slate-600 mt-1">Experience the ATS pipeline with interactive drag and drop functionality</p>
+          </div>
+          <DemoPipelineKanban />
+        </div>
       </DashboardLayout>
     )
   }

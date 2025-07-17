@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDemoClientStats } from '@/lib/demo-data'
+import { DemoClients } from '@/components/demo/DemoClients'
 import { Plus, Search, Building2, MapPin, Globe, User, Mail, Phone, Calendar, Briefcase, MoreHorizontal, Edit, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -55,6 +56,21 @@ export default function Clients() {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const { userRole } = useAuth()
   const { toast } = useToast()
+  
+  // Show demo clients view for demo viewers
+  if (userRole === 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Demo Clients">
+        <div className="p-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-900">Client Directory</h1>
+            <p className="text-slate-600 mt-1">Explore our demo client database</p>
+          </div>
+          <DemoClients />
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   const { data: clients, isLoading } = useClients()
   const createClientMutation = useCreateClient()

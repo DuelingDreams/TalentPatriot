@@ -11,6 +11,7 @@ import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useCandidates } from '@/hooks/useCandidates'
 import { getDemoClientStats, getDemoJobStats, getDemoPipelineData } from '@/lib/demo-data'
+import { DemoDashboard } from '@/components/demo/DemoDashboard'
 import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
 import { AddClientDialog } from '@/components/dialogs/AddClientDialog'
 import { ScheduleInterviewDialog } from '@/components/calendar/ScheduleInterviewDialog'
@@ -62,6 +63,17 @@ export default function Dashboard() {
   const [supabaseStatus, setSupabaseStatus] = useState<'testing' | 'connected' | 'error'>('testing')
   const { toast } = useToast()
   const { userRole } = useAuth()
+  
+  // Show demo dashboard for demo viewers
+  if (userRole === 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Demo Dashboard">
+        <div className="p-6">
+          <DemoDashboard />
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   // Fetch real data using our hooks
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
