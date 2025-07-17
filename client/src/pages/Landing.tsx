@@ -67,23 +67,23 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-4 py-2 mb-8">
             <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-700">Trusted by 500+ recruiting teams</span>
+            <span className="text-sm font-medium text-blue-700">Built for humans. Not just headcounts.</span>
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold leading-tight mb-8 tracking-tight">
             <span className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 bg-clip-text text-transparent">
-              The ATS that actually
+              Finally, an ATS/CRM that
             </span>
             <br />
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              respects your workflow
+              gets out of your way
             </span>
           </h1>
           
           <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Built by recruiters, for recruiters. TalentPatriot brings clarity to your hiring process with 
-            <span className="font-semibold text-slate-800"> intelligent automation</span> and 
-            <span className="font-semibold text-slate-800"> seamless collaboration</span>.
+            TalentPatriot is a clean, modern hiring platform for <span className="font-semibold text-slate-800">recruiters, 
+            BDs, and PMs</span> who want clarity — not clutter. Track jobs, 
+            candidates, and clients in one place, without the bloat of enterprise systems.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -103,40 +103,80 @@ export default function Landing() {
           {/* Trust indicators */}
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-600">
             <div className="flex items-center gap-2">
-              <Shield className="w-5 h-5 text-green-600" />
-              <span>SOC 2 Compliant</span>
+              <Zap className="w-5 h-5 text-yellow-600" />
+              <span>Try the Demo Instantly</span>
             </div>
             <div className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-600" />
-              <span>5-minute setup</span>
+              <Shield className="w-5 h-5 text-green-600" />
+              <span>No Credit Card Required</span>
             </div>
             <div className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-blue-600" />
-              <span>Works everywhere</span>
+              <span>Sign Up Free</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
+      {/* Mission Section */}
       <section className="py-20 bg-white relative">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-8">
+            <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+              Our Mission
+            </span>
+          </h2>
+          <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-4xl mx-auto">
+            To create a lightweight, candidate-friendly ATS that gives small and mid-sized teams 
+            <span className="font-semibold text-slate-800"> everything they need</span> — and 
+            <span className="font-semibold text-slate-800"> nothing they don't</span>.
+          </p>
+        </div>
+      </section>
+
+      {/* What It Replaces Section */}
+      <section className="py-20 bg-gradient-to-b from-white to-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { value: '10,000+', label: 'Placements Made', icon: Users },
-              { value: '500+', label: 'Companies Trust Us', icon: Building2 },
-              { value: '99.9%', label: 'Uptime SLA', icon: Shield },
-              { value: '< 5min', label: 'Average Setup Time', icon: Zap }
-            ].map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
-                  <stat.icon className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="text-3xl font-bold text-slate-900 mb-1">{stat.value}</div>
-                <div className="text-sm text-slate-600">{stat.label}</div>
-              </div>
-            ))}
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                What It Replaces
+              </span>
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Most ATS/CRMs are overloaded. You just need to hire. TalentPatriot replaces:
+            </p>
           </div>
+          
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-red-100">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                <FileText className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Traditional ATS</h3>
+              <p className="text-slate-600">Bloated dashboards and complex workflows that slow you down</p>
+            </div>
+            
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-red-100">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">Spreadsheet chaos</h3>
+              <p className="text-slate-600">Job and candidate silos that create duplicate work and confusion</p>
+            </div>
+            
+            <div className="bg-white rounded-2xl p-8 shadow-lg border border-red-100">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 mb-3">BD/PM misalignment</h3>
+              <p className="text-slate-600">Handoff breakdowns where context gets lost between teams</p>
+            </div>
+          </div>
+          
+          <p className="text-center mt-12 text-xl text-slate-700 font-medium">
+            With TalentPatriot, everything is in one place. Organized. Searchable. Collaborative.
+          </p>
         </div>
       </section>
 
@@ -156,6 +196,10 @@ export default function Landing() {
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Designed to eliminate friction, not add complexity. Every feature serves a purpose.
             </p>
+            
+            <blockquote className="mt-8 text-lg text-slate-700 font-medium italic max-w-2xl mx-auto">
+              "After 10 years in recruiting, I built the ATS I always wanted. Simple. Fast. It just works."
+            </blockquote>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
@@ -310,38 +354,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonial */}
-      <section className="py-24 bg-gradient-to-b from-slate-50 to-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl shadow-2xl p-12 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full opacity-50 blur-3xl"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-center mb-8">
-                <div className="flex -space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
-                  ))}
-                </div>
-              </div>
-              
-              <blockquote className="text-2xl md:text-3xl font-medium text-slate-900 text-center mb-8 leading-relaxed">
-                "After 10 years in recruiting, I built the ATS I always wanted. 
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent font-bold"> Simple. Fast. It just works."</span>
-              </blockquote>
-              
-              <div className="flex items-center justify-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                  <Briefcase className="w-8 h-8 text-white" />
-                </div>
-                <div className="ml-4 text-left">
-                  <p className="font-semibold text-slate-900 text-lg">Sarah Chen</p>
-                  <p className="text-slate-600">Founder & CEO, TalentPatriot</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* CTA Section */}
       <section className="py-32 relative overflow-hidden">
@@ -351,7 +364,7 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur border border-white/30 rounded-full px-4 py-2 mb-8">
             <Sparkles className="w-4 h-4 text-white" />
-            <span className="text-sm font-medium text-white">30-day money-back guarantee</span>
+            <span className="text-sm font-medium text-white">Built for humans. Not just headcounts.</span>
           </div>
           
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-8 leading-tight">
@@ -363,7 +376,7 @@ export default function Landing() {
           </h2>
           
           <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
-            Join 500+ recruiting teams who've ditched the complexity for clarity.
+            Built for small to mid-sized teams who want to focus on hiring, not wrestling with software.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
