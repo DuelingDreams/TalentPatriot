@@ -28,7 +28,63 @@ const authLimiter = rateLimit({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log('📡 Registered all API routes');
-  // Continue with existing implementation...
+  
+  // Organizations routes
+  app.get("/api/organizations", async (req, res) => {
+    try {
+      const ownerId = req.query.ownerId as string;
+      const organizations = await storage.getOrganizations(ownerId);
+      res.json(organizations);
+    } catch (error) {
+      console.error("Error fetching organizations:", error);
+      res.status(500).json({ error: "Failed to fetch organizations" });
+    }
+  });
+
+  app.get("/api/organizations/:id", async (req, res) => {
+    try {
+      const organization = await storage.getOrganization(req.params.id);
+      if (!organization) {
+        res.status(404).json({ error: "Organization not found" });
+        return;
+      }
+      res.json(organization);
+    } catch (error) {
+      console.error("Error fetching organization:", error);
+      res.status(500).json({ error: "Failed to fetch organization" });
+    }
+  });
+
+  app.post("/api/organizations", writeLimiter, async (req, res) => {
+    try {
+      const organization = await storage.createOrganization(req.body);
+      res.status(201).json(organization);
+    } catch (error) {
+      console.error("Error creating organization:", error);
+      res.status(400).json({ error: "Failed to create organization" });
+    }
+  });
+
+  app.put("/api/organizations/:id", writeLimiter, async (req, res) => {
+    try {
+      const organization = await storage.updateOrganization(req.params.id, req.body);
+      res.json(organization);
+    } catch (error) {
+      console.error("Error updating organization:", error);
+      res.status(400).json({ error: "Failed to update organization" });
+    }
+  });
+
+  app.delete("/api/organizations/:id", writeLimiter, async (req, res) => {
+    try {
+      await storage.deleteOrganization(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting organization:", error);
+      res.status(400).json({ error: "Failed to delete organization" });
+    }
+  });
+
   // Clients routes
   app.get("/api/clients", async (req, res) => {
     try {

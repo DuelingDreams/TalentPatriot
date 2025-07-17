@@ -7,6 +7,7 @@
 -- STEP 1: ENABLE ROW LEVEL SECURITY
 -- =============================================================================
 
+ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE candidates ENABLE ROW LEVEL SECURITY;
@@ -14,7 +15,44 @@ ALTER TABLE job_candidate ENABLE ROW LEVEL SECURITY;
 ALTER TABLE candidate_notes ENABLE ROW LEVEL SECURITY;
 
 -- =============================================================================
--- STEP 2: CLIENTS TABLE POLICIES
+-- STEP 2: ORGANIZATIONS TABLE POLICIES
+-- =============================================================================
+
+-- Clear existing policies
+DROP POLICY IF EXISTS "org_owners_read" ON organizations;
+DROP POLICY IF EXISTS "org_owners_write" ON organizations;
+DROP POLICY IF EXISTS "org_owners_update" ON organizations;
+DROP POLICY IF EXISTS "org_owners_delete" ON organizations;
+DROP POLICY IF EXISTS "deny_unauthenticated_organizations" ON organizations;
+
+-- Organization owners can read their organizations
+CREATE POLICY "org_owners_read"
+ON organizations FOR SELECT TO authenticated
+USING (auth.uid() = owner_id);
+
+-- Organization owners can create organizations
+CREATE POLICY "org_owners_write"
+ON organizations FOR INSERT TO authenticated
+WITH CHECK (auth.uid() = owner_id);
+
+-- Organization owners can update their organizations
+CREATE POLICY "org_owners_update"
+ON organizations FOR UPDATE TO authenticated
+USING (auth.uid() = owner_id)
+WITH CHECK (auth.uid() = owner_id);
+
+-- Organization owners can delete their organizations
+CREATE POLICY "org_owners_delete"
+ON organizations FOR DELETE TO authenticated
+USING (auth.uid() = owner_id);
+
+-- Block unauthenticated access
+CREATE POLICY "deny_unauthenticated_organizations"
+ON organizations FOR ALL TO anon
+USING (false);
+
+-- =============================================================================
+-- STEP 3: CLIENTS TABLE POLICIES
 -- =============================================================================
 
 -- Clear existing policies

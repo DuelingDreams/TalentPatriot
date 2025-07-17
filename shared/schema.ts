@@ -14,6 +14,16 @@ export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'ca
 export const messagePriorityEnum = pgEnum('message_priority', ['low', 'normal', 'high', 'urgent']);
 
 // Tables
+export const organizations = pgTable("organizations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  ownerId: uuid("owner_id").notNull(), // references users.id from Supabase auth
+  slug: text("slug"),
+}, (table) => ({
+  uniqueSlug: uniqueIndex("unique_org_slug").on(table.slug),
+}));
+
 export const clients = pgTable("clients", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: varchar("name", { length: 255 }).notNull(),
@@ -209,6 +219,11 @@ export const messageRecipientsRelations = relations(messageRecipients, ({ one })
 }));
 
 // Insert schemas
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true,
@@ -253,6 +268,9 @@ export const insertMessageRecipientSchema = createInsertSchema(messageRecipients
 });
 
 // Types
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
 

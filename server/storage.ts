@@ -1,4 +1,5 @@
 import { 
+  organizations,
   clients, 
   jobs, 
   candidates, 
@@ -7,6 +8,7 @@ import {
   interviews,
   messages,
   messageRecipients,
+  type Organization,
   type Client, 
   type Job, 
   type Candidate, 
@@ -15,6 +17,7 @@ import {
   type Interview,
   type Message,
   type MessageRecipient,
+  type InsertOrganization,
   type InsertClient,
   type InsertJob,
   type InsertCandidate,
@@ -28,6 +31,13 @@ import { createClient } from '@supabase/supabase-js';
 
 // Storage interface for ATS system
 export interface IStorage {
+  // Organizations
+  getOrganization(id: string): Promise<Organization | undefined>;
+  getOrganizations(ownerId?: string): Promise<Organization[]>;
+  createOrganization(organization: InsertOrganization): Promise<Organization>;
+  updateOrganization(id: string, organization: Partial<InsertOrganization>): Promise<Organization>;
+  deleteOrganization(id: string): Promise<void>;
+  
   // Clients
   getClient(id: string): Promise<Client | undefined>;
   getClients(): Promise<Client[]>;
@@ -82,6 +92,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private organizations: Map<string, Organization>;
   private clients: Map<string, Client>;
   private jobs: Map<string, Job>;
   private candidates: Map<string, Candidate>;
@@ -89,11 +100,61 @@ export class MemStorage implements IStorage {
   private candidateNotes: Map<string, CandidateNotes>;
 
   constructor() {
+    this.organizations = new Map();
     this.clients = new Map();
     this.jobs = new Map();
     this.candidates = new Map();
     this.jobCandidates = new Map();
     this.candidateNotes = new Map();
+  }
+
+  // Organizations
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    return this.organizations.get(id);
+  }
+
+  async getOrganizations(ownerId?: string): Promise<Organization[]> {
+    const allOrgs = Array.from(this.organizations.values());
+    if (ownerId) {
+      return allOrgs.filter(org => org.ownerId === ownerId);
+    }
+    return allOrgs;
+  }
+
+  async createOrganization(insertOrganization: InsertOrganization): Promise<Organization> {
+    const id = crypto.randomUUID();
+    const organization: Organization = { 
+      ...insertOrganization,
+      slug: insertOrganization.slug ?? null,
+      id, 
+      createdAt: new Date()
+    };
+    this.organizations.set(id, organization);
+    return organization;
+  }
+
+  async updateOrganization(id: string, updateData: Partial<InsertOrganization>): Promise<Organization> {
+    const existingOrg = this.organizations.get(id);
+    if (!existingOrg) {
+      throw new Error(`Organization with id ${id} not found`);
+    }
+    
+    const updatedOrg: Organization = {
+      ...existingOrg,
+      ...updateData,
+      slug: updateData.slug ?? existingOrg.slug,
+      id,
+    };
+    
+    this.organizations.set(id, updatedOrg);
+    return updatedOrg;
+  }
+
+  async deleteOrganization(id: string): Promise<void> {
+    if (!this.organizations.has(id)) {
+      throw new Error(`Organization with id ${id} not found`);
+    }
+    this.organizations.delete(id);
   }
 
   // Clients
@@ -294,6 +355,104 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 class DatabaseStorage implements IStorage {
+  // Organizations
+  async getOrganization(id: string): Promise<Organization | undefined> {
+    const { data, error } = await supabase
+      .from('organizations')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined // Not found
+      throw new Error(error.message)
+    }
+    
+    return data as Organization
+  }
+
+  async getOrganizations(ownerId?: string): Promise<Organization[]> {
+    let query = supabase
+      .from('organizations')
+      .select('*')
+      .order('name', { ascending: true })
+    
+    if (ownerId) {
+      query = query.eq('owner_id', ownerId)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Organization[]
+  }
+
+  async createOrganization(insertOrganization: InsertOrganization): Promise<Organization> {
+    try {
+      const dbOrganization = {
+        name: insertOrganization.name,
+        owner_id: insertOrganization.ownerId,
+        slug: insertOrganization.slug,
+      }
+      
+      const { data, error } = await supabase
+        .from('organizations')
+        .insert(dbOrganization)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database organization creation error:', error)
+        throw new Error(`Failed to create organization: ${error.message}`)
+      }
+      
+      return data as Organization
+    } catch (err) {
+      console.error('Organization creation exception:', err)
+      throw err
+    }
+  }
+
+  async updateOrganization(id: string, updateData: Partial<InsertOrganization>): Promise<Organization> {
+    try {
+      const dbUpdate: any = {}
+      if (updateData.name !== undefined) dbUpdate.name = updateData.name
+      if (updateData.ownerId !== undefined) dbUpdate.owner_id = updateData.ownerId
+      if (updateData.slug !== undefined) dbUpdate.slug = updateData.slug
+      
+      const { data, error } = await supabase
+        .from('organizations')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database organization update error:', error)
+        throw new Error(`Failed to update organization: ${error.message}`)
+      }
+      
+      return data as Organization
+    } catch (err) {
+      console.error('Organization update exception:', err)
+      throw err
+    }
+  }
+
+  async deleteOrganization(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('organizations')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
   async getClient(id: string): Promise<Client | undefined> {
     const { data, error } = await supabase
       .from('clients')
