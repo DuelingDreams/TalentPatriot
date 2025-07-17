@@ -332,42 +332,62 @@ export default function Dashboard() {
               <div className="px-6 py-4 border-b border-slate-200">
                 <h3 className="text-lg font-semibold text-slate-900">Quick Actions</h3>
               </div>
-              <CardContent className="p-6 space-y-3">
+              <CardContent className="p-4 space-y-2">
                 <AddCandidateDialog>
-                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    <span className="flex items-center">
-                      <UserPlus className="w-4 h-4 mr-3 text-slate-500" />
-                      Add Candidate
+                  <Button 
+                    variant="ghost" 
+                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 rounded-lg transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                        <UserPlus className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <span className="text-sm font-medium text-slate-900">Add Candidate</span>
                     </span>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
                   </Button>
                 </AddCandidateDialog>
                 
                 <AddClientDialog>
-                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    <span className="flex items-center">
-                      <Building2 className="w-4 h-4 mr-3 text-slate-500" />
-                      Add Client
+                  <Button 
+                    variant="ghost" 
+                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 rounded-lg transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-green-600" />
+                      </div>
+                      <span className="text-sm font-medium text-slate-900">Add Client</span>
                     </span>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
                   </Button>
                 </AddClientDialog>
                 
                 <ScheduleInterviewDialog>
-                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    <span className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-3 text-slate-500" />
-                      Schedule Interview
+                  <Button 
+                    variant="ghost" 
+                    className="w-full flex items-center justify-between px-4 py-3 text-left bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                        <Calendar className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <span className="text-sm font-medium text-blue-900">Schedule Interview</span>
                     </span>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                    <ChevronRight className="w-4 h-4 text-blue-600" />
                   </Button>
                 </ScheduleInterviewDialog>
                 
                 <SendMessageDialog>
-                  <Button variant="ghost" className="w-full flex items-center justify-between p-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-50">
-                    <span className="flex items-center">
-                      <MessageSquare className="w-4 h-4 mr-3 text-slate-500" />
-                      Send Message
+                  <Button 
+                    variant="ghost" 
+                    className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50 rounded-lg transition-colors"
+                  >
+                    <span className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center">
+                        <MessageSquare className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <span className="text-sm font-medium text-slate-900">Send Message</span>
                     </span>
                     <ChevronRight className="w-4 h-4 text-slate-400" />
                   </Button>
