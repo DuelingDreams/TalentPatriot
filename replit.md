@@ -106,6 +106,9 @@ Preferred communication style: Simple, everyday language.
 - **CREATED DEMO VIEWS**: Added DemoClients and DemoCandidates components with search functionality and realistic sample data
 - **ENHANCED DEMO PIPELINE**: Built DemoPipelineKanban with full drag-and-drop functionality that works in demo mode
 - **UPDATED NAVIGATION**: Integrated demo-specific views into all main pages with appropriate role-based rendering
+- **FIXED CANDIDATE NOTES FOR AUTHENTICATED USERS**: Added proper authorId field extraction from auth context when creating notes
+- **RESOLVED HOOKS ORDER VIOLATION**: Fixed JobPipeline component by calling all hooks before conditional returns
+- **ENHANCED NOTE AUTHOR DISPLAY**: Improved author name formatting to show "You" for current user and email usernames appropriately
 
 ## System Architecture
 

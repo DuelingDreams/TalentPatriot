@@ -269,6 +269,11 @@ export default function JobPipeline() {
   const [activeTab, setActiveTab] = useState('candidates')
   const { toast } = useToast()
   const { userRole } = useAuth()
+  
+  // Fetch data - must be called before any conditional returns
+  const { data: jobs } = useJobs()
+  const { data: jobCandidates, isLoading: candidatesLoading } = useCandidatesForJob(jobId || null)
+  const updateCandidateStage = useUpdateCandidateStage()
 
   // Show demo kanban board for demo viewers
   if (userRole === 'demo_viewer') {
@@ -284,11 +289,6 @@ export default function JobPipeline() {
       </DashboardLayout>
     )
   }
-
-  // Fetch data
-  const { data: jobs } = useJobs()
-  const { data: jobCandidates, isLoading: candidatesLoading } = useCandidatesForJob(jobId || null)
-  const updateCandidateStage = useUpdateCandidateStage()
 
   // Find the current job
   const currentJob = jobs?.find(job => job.id === jobId)

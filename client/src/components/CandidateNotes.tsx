@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useCandidateNotes, useCreateCandidateNote } from '@/hooks/useCandidateNotes'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useAuth } from '@/contexts/AuthContext'
 import { MessageSquare, Send, Loader2, Plus, Calendar } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -24,6 +25,7 @@ export function CandidateNotes({ jobCandidateId, candidateName, children }: Cand
   const [newNote, setNewNote] = useState('')
   const isMobile = useIsMobile()
   const { toast } = useToast()
+  const { user } = useAuth()
   
   const { data: notes, isLoading } = useCandidateNotes(jobCandidateId)
   const createNoteMutation = useCreateCandidateNote()
@@ -34,7 +36,8 @@ export function CandidateNotes({ jobCandidateId, candidateName, children }: Cand
     try {
       await createNoteMutation.mutateAsync({
         jobCandidateId,
-        content: newNote.trim()
+        content: newNote.trim(),
+        authorId: user?.id || 'unknown-user' // Use actual user ID from auth
       })
       
       setNewNote('')
@@ -52,11 +55,16 @@ export function CandidateNotes({ jobCandidateId, candidateName, children }: Cand
   }
 
   const formatAuthorId = (authorId: string) => {
-    // For now, show a user-friendly name based on the author ID
-    // In a real app, you'd fetch user profiles from auth
-    if (authorId.startsWith('recruiter-user-')) {
-      return 'Recruiter'
+    // Show user-friendly names based on the author ID
+    // This matches the user IDs from the auth system
+    if (authorId === user?.id) {
+      return 'You'
     }
+    if (authorId.includes('@')) {
+      // If it's an email, show the name part
+      return authorId.split('@')[0]
+    }
+    // For UUIDs, show first 8 characters
     return authorId.slice(0, 8) + '...'
   }
 
