@@ -167,31 +167,63 @@ export default function Dashboard() {
               <CardHeader>
                 <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left"
+              <CardContent className="space-y-3">
+                <button
                   onClick={() => window.location.href = '/jobs'}
+                  className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
                 >
-                  <Briefcase className="mr-2 h-4 w-4" />
-                  View All Jobs
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left"
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-orange-500 flex items-center justify-center">
+                      <Briefcase className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-gray-900 group-hover:text-gray-700">
+                        View All Jobs
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Browse open positions and requirements
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button
                   onClick={() => window.location.href = '/pipeline'}
+                  className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
                 >
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Pipeline Overview
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left"
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-gray-900 group-hover:text-gray-700">
+                        Pipeline Overview
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Drag and drop candidates between stages
+                      </div>
+                    </div>
+                  </div>
+                </button>
+                
+                <button
                   onClick={() => window.location.href = '/candidates'}
+                  className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
                 >
-                  <Users className="mr-2 h-4 w-4" />
-                  Browse Candidates
-                </Button>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-purple-500 flex items-center justify-center">
+                      <Users className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="font-medium text-gray-900 group-hover:text-gray-700">
+                        Browse Candidates
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Search and view candidate profiles
+                      </div>
+                    </div>
+                  </div>
+                </button>
               </CardContent>
             </Card>
           </div>
