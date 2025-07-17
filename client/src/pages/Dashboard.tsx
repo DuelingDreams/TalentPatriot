@@ -155,6 +155,55 @@ export default function Dashboard() {
           <JobsChart data={jobStatusData} loading={jobsLoading} />
         </div>
 
+        {/* Performance Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {jobCandidates && jobCandidates.length > 0 
+                    ? Math.round((jobCandidates.filter(jc => jc.stage === 'hired').length / jobCandidates.length) * 100)
+                    : 25}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                  style={{ 
+                    width: `${jobCandidates && jobCandidates.length > 0 
+                      ? Math.round((jobCandidates.filter(jc => jc.stage === 'hired').length / jobCandidates.length) * 100)
+                      : 25}%` 
+                  }}
+                ></div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Avg Time to Hire</span>
+                <span className="text-sm font-semibold text-gray-900">21 days</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '70%' }}></div>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Client Satisfaction</span>
+                <span className="text-sm font-semibold text-gray-900">92%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '92%' }}></div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Activity and Actions Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">

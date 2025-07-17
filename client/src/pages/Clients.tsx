@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients'
+import { useJobs } from '@/hooks/useJobs'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDemoClientStats } from '@/lib/demo-data'
 import { DemoClients } from '@/components/demo/DemoClients'
@@ -73,6 +74,15 @@ export default function Clients() {
   }
 
   const { data: clients, isLoading } = useClients()
+  const { data: jobs } = useJobs()
+  
+  // Calculate client statistics
+  const totalClients = clients?.length || 0
+  const activeClients = clients?.filter(client => 
+    jobs?.some(job => job.clientId === client.id && job.status === 'open')
+  ).length || 0
+  const industries = [...new Set(clients?.map(c => c.industry).filter(Boolean))].length || 0
+  const totalOpenPositions = jobs?.filter(job => job.status === 'open').length || 0
   const createClientMutation = useCreateClient()
   const updateClientMutation = useUpdateClient()
   const deleteClientMutation = useDeleteClient()
@@ -339,7 +349,7 @@ export default function Clients() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Clients</h1>
+            <h1 className="text-2xl font-semibold text-slate-900">Client Directory</h1>
             <p className="text-slate-600 mt-1">Manage your client organizations</p>
           </div>
           
@@ -369,6 +379,48 @@ export default function Clients() {
               </DialogContent>
             </Dialog>
           </div>
+        </div>
+
+        {/* Client Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">Total Clients</CardTitle>
+                <Building2 className="w-4 h-4 text-blue-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">{totalClients}</div>
+              <p className="text-xs text-slate-500 mt-1">Active partnerships</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">Industries</CardTitle>
+                <Globe className="w-4 h-4 text-green-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">{industries}</div>
+              <p className="text-xs text-slate-500 mt-1">Diverse sectors</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">Open Positions</CardTitle>
+                <Briefcase className="w-4 h-4 text-purple-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">{totalOpenPositions}</div>
+              <p className="text-xs text-slate-500 mt-1">Across all clients</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content */}

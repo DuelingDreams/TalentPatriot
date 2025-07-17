@@ -27,7 +27,9 @@ import {
   Eye,
   MoreVertical,
   Star,
-  FileText
+  FileText,
+  Users,
+  UserCheck
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -224,7 +226,7 @@ export default function ProfessionalCandidates() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Candidates</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Candidate Database</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Manage and track your candidate pipeline
             </p>
@@ -233,6 +235,72 @@ export default function ProfessionalCandidates() {
             <Plus className="w-4 h-4 mr-2" />
             Add Candidate
           </Button>
+        </div>
+
+        {/* Candidate Statistics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">All Candidates</CardTitle>
+                <Users className="w-4 h-4 text-blue-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">{filteredCandidates.length}</div>
+              <p className="text-xs text-slate-500 mt-1">Total profiles</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">Active</CardTitle>
+                <UserCheck className="w-4 h-4 text-green-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">
+                {jobCandidates?.filter(jc => 
+                  ['screening', 'interview', 'technical', 'reference', 'offer'].includes(jc.stage)
+                ).length || 0}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">In process</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">New This Week</CardTitle>
+                <Calendar className="w-4 h-4 text-purple-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">
+                {candidates?.filter(candidate => {
+                  const createdDate = new Date(candidate.createdAt)
+                  const weekAgo = new Date()
+                  weekAgo.setDate(weekAgo.getDate() - 7)
+                  return createdDate >= weekAgo
+                }).length || 0}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Recent additions</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-slate-600">Favorites</CardTitle>
+                <Star className="w-4 h-4 text-yellow-600" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-slate-900">0</div>
+              <p className="text-xs text-slate-500 mt-1">Starred profiles</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
