@@ -8,6 +8,7 @@
 -- =============================================================================
 
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE candidates ENABLE ROW LEVEL SECURITY;
@@ -52,7 +53,86 @@ ON organizations FOR ALL TO anon
 USING (false);
 
 -- =============================================================================
--- STEP 3: CLIENTS TABLE POLICIES
+-- STEP 3: USER ORGANIZATIONS TABLE POLICIES
+-- =============================================================================
+
+-- Clear existing policies
+DROP POLICY IF EXISTS "users_can_read_their_orgs" ON user_organizations;
+DROP POLICY IF EXISTS "org_admins_can_read_users" ON user_organizations;
+DROP POLICY IF EXISTS "org_owners_admins_can_invite_users" ON user_organizations;
+DROP POLICY IF EXISTS "org_owners_admins_can_update_roles" ON user_organizations;
+DROP POLICY IF EXISTS "users_can_leave_orgs" ON user_organizations;
+DROP POLICY IF EXISTS "org_owners_admins_can_remove_users" ON user_organizations;
+DROP POLICY IF EXISTS "deny_unauthenticated_user_orgs" ON user_organizations;
+
+-- Users can read their own organization memberships
+CREATE POLICY "users_can_read_their_orgs"
+ON user_organizations FOR SELECT TO authenticated
+USING (auth.uid() = user_id);
+
+-- Organization admins and owners can read all users in their organizations
+CREATE POLICY "org_admins_can_read_users"
+ON user_organizations FOR SELECT TO authenticated
+USING (
+  org_id IN (
+    SELECT org_id FROM user_organizations uo2
+    WHERE uo2.user_id = auth.uid()
+    AND uo2.role IN ('owner', 'admin')
+  )
+);
+
+-- Organization owners and admins can invite users
+CREATE POLICY "org_owners_admins_can_invite_users"
+ON user_organizations FOR INSERT TO authenticated
+WITH CHECK (
+  org_id IN (
+    SELECT org_id FROM user_organizations uo2
+    WHERE uo2.user_id = auth.uid()
+    AND uo2.role IN ('owner', 'admin')
+  )
+);
+
+-- Organization owners and admins can update user roles
+CREATE POLICY "org_owners_admins_can_update_roles"
+ON user_organizations FOR UPDATE TO authenticated
+USING (
+  org_id IN (
+    SELECT org_id FROM user_organizations uo2
+    WHERE uo2.user_id = auth.uid()
+    AND uo2.role IN ('owner', 'admin')
+  )
+)
+WITH CHECK (
+  org_id IN (
+    SELECT org_id FROM user_organizations uo2
+    WHERE uo2.user_id = auth.uid()
+    AND uo2.role IN ('owner', 'admin')
+  )
+);
+
+-- Users can leave organizations
+CREATE POLICY "users_can_leave_orgs"
+ON user_organizations FOR DELETE TO authenticated
+USING (auth.uid() = user_id);
+
+-- Organization owners and admins can remove users
+CREATE POLICY "org_owners_admins_can_remove_users"
+ON user_organizations FOR DELETE TO authenticated
+USING (
+  org_id IN (
+    SELECT org_id FROM user_organizations uo2
+    WHERE uo2.user_id = auth.uid()
+    AND uo2.role IN ('owner', 'admin')
+  )
+);
+
+-- Block unauthenticated access
+CREATE POLICY "deny_unauthenticated_user_orgs"
+ON user_organizations FOR ALL TO anon
+USING (false);
+
+-- =============================================================================
+-- STEP 4: CLIENTS TABLE POLICIES
 -- =============================================================================
 
 -- Clear existing policies

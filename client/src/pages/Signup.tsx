@@ -21,6 +21,7 @@ export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [orgName, setOrgName] = useState('')
   const [role, setRole] = useState('recruiter')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -109,7 +110,7 @@ export default function Signup() {
     setError('')
 
     try {
-      const { error } = await signUp(email, password, role)
+      const { error } = await signUp(email, password, role, orgName || undefined)
       
       if (error) {
         // Handle specific Supabase errors
@@ -179,6 +180,24 @@ export default function Signup() {
                 {emailError && (
                   <p className="text-sm text-red-600">{emailError}</p>
                 )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="orgName">Organization Name (Optional)</Label>
+                <Input
+                  id="orgName"
+                  type="text"
+                  placeholder="Your Company Name"
+                  value={orgName}
+                  onChange={(e) => setOrgName(e.target.value)}
+                  disabled={loading || role === 'demo_viewer'}
+                />
+                <p className="text-xs text-slate-500">
+                  {role === 'demo_viewer' 
+                    ? 'Demo viewers don\'t need an organization' 
+                    : 'We\'ll create an organization for you. Leave blank to use your email prefix.'
+                  }
+                </p>
               </div>
               
               <div className="space-y-2">

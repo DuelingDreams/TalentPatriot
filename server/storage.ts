@@ -1,5 +1,6 @@
 import { 
   organizations,
+  userOrganizations,
   clients, 
   jobs, 
   candidates, 
@@ -9,6 +10,7 @@ import {
   messages,
   messageRecipients,
   type Organization,
+  type UserOrganization,
   type Client, 
   type Job, 
   type Candidate, 
@@ -18,6 +20,7 @@ import {
   type Message,
   type MessageRecipient,
   type InsertOrganization,
+  type InsertUserOrganization,
   type InsertClient,
   type InsertJob,
   type InsertCandidate,
@@ -37,6 +40,16 @@ export interface IStorage {
   createOrganization(organization: InsertOrganization): Promise<Organization>;
   updateOrganization(id: string, organization: Partial<InsertOrganization>): Promise<Organization>;
   deleteOrganization(id: string): Promise<void>;
+  
+  // User Organizations
+  getUserOrganization(id: string): Promise<UserOrganization | undefined>;
+  getUserOrganizations(userId?: string, orgId?: string): Promise<UserOrganization[]>;
+  getUserOrganizationsByUser(userId: string): Promise<UserOrganization[]>;
+  getUserOrganizationsByOrg(orgId: string): Promise<UserOrganization[]>;
+  createUserOrganization(userOrganization: InsertUserOrganization): Promise<UserOrganization>;
+  updateUserOrganization(id: string, userOrganization: Partial<InsertUserOrganization>): Promise<UserOrganization>;
+  deleteUserOrganization(id: string): Promise<void>;
+  deleteUserOrganizationByUserAndOrg(userId: string, orgId: string): Promise<void>;
   
   // Clients
   getClient(id: string): Promise<Client | undefined>;
@@ -93,6 +106,7 @@ export interface IStorage {
 
 export class MemStorage implements IStorage {
   private organizations: Map<string, Organization>;
+  private userOrganizations: Map<string, UserOrganization>;
   private clients: Map<string, Client>;
   private jobs: Map<string, Job>;
   private candidates: Map<string, Candidate>;
@@ -101,6 +115,7 @@ export class MemStorage implements IStorage {
 
   constructor() {
     this.organizations = new Map();
+    this.userOrganizations = new Map();
     this.clients = new Map();
     this.jobs = new Map();
     this.candidates = new Map();
@@ -155,6 +170,72 @@ export class MemStorage implements IStorage {
       throw new Error(`Organization with id ${id} not found`);
     }
     this.organizations.delete(id);
+  }
+
+  // User Organizations
+  async getUserOrganization(id: string): Promise<UserOrganization | undefined> {
+    return this.userOrganizations.get(id);
+  }
+
+  async getUserOrganizations(userId?: string, orgId?: string): Promise<UserOrganization[]> {
+    let userOrgs = Array.from(this.userOrganizations.values());
+    if (userId) {
+      userOrgs = userOrgs.filter(uo => uo.userId === userId);
+    }
+    if (orgId) {
+      userOrgs = userOrgs.filter(uo => uo.orgId === orgId);
+    }
+    return userOrgs;
+  }
+
+  async getUserOrganizationsByUser(userId: string): Promise<UserOrganization[]> {
+    return Array.from(this.userOrganizations.values()).filter(uo => uo.userId === userId);
+  }
+
+  async getUserOrganizationsByOrg(orgId: string): Promise<UserOrganization[]> {
+    return Array.from(this.userOrganizations.values()).filter(uo => uo.orgId === orgId);
+  }
+
+  async createUserOrganization(insertUserOrganization: InsertUserOrganization): Promise<UserOrganization> {
+    const id = crypto.randomUUID();
+    const userOrganization: UserOrganization = { 
+      ...insertUserOrganization,
+      id, 
+      joinedAt: new Date()
+    };
+    this.userOrganizations.set(id, userOrganization);
+    return userOrganization;
+  }
+
+  async updateUserOrganization(id: string, updateData: Partial<InsertUserOrganization>): Promise<UserOrganization> {
+    const existingUserOrg = this.userOrganizations.get(id);
+    if (!existingUserOrg) {
+      throw new Error(`User organization with id ${id} not found`);
+    }
+    
+    const updatedUserOrg: UserOrganization = {
+      ...existingUserOrg,
+      ...updateData,
+      id,
+    };
+    
+    this.userOrganizations.set(id, updatedUserOrg);
+    return updatedUserOrg;
+  }
+
+  async deleteUserOrganization(id: string): Promise<void> {
+    if (!this.userOrganizations.has(id)) {
+      throw new Error(`User organization with id ${id} not found`);
+    }
+    this.userOrganizations.delete(id);
+  }
+
+  async deleteUserOrganizationByUserAndOrg(userId: string, orgId: string): Promise<void> {
+    const userOrg = Array.from(this.userOrganizations.values())
+      .find(uo => uo.userId === userId && uo.orgId === orgId);
+    if (userOrg) {
+      this.userOrganizations.delete(userOrg.id);
+    }
   }
 
   // Clients
@@ -447,6 +528,147 @@ class DatabaseStorage implements IStorage {
       .from('organizations')
       .delete()
       .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  // User Organizations
+  async getUserOrganization(id: string): Promise<UserOrganization | undefined> {
+    const { data, error } = await supabase
+      .from('user_organizations')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as UserOrganization
+  }
+
+  async getUserOrganizations(userId?: string, orgId?: string): Promise<UserOrganization[]> {
+    let query = supabase
+      .from('user_organizations')
+      .select('*')
+      .order('joined_at', { ascending: false })
+    
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+    if (orgId) {
+      query = query.eq('org_id', orgId)
+    }
+    
+    const { data, error } = await query
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as UserOrganization[]
+  }
+
+  async getUserOrganizationsByUser(userId: string): Promise<UserOrganization[]> {
+    const { data, error } = await supabase
+      .from('user_organizations')
+      .select('*')
+      .eq('user_id', userId)
+      .order('joined_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as UserOrganization[]
+  }
+
+  async getUserOrganizationsByOrg(orgId: string): Promise<UserOrganization[]> {
+    const { data, error } = await supabase
+      .from('user_organizations')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('joined_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as UserOrganization[]
+  }
+
+  async createUserOrganization(insertUserOrganization: InsertUserOrganization): Promise<UserOrganization> {
+    try {
+      const dbUserOrganization = {
+        user_id: insertUserOrganization.userId,
+        org_id: insertUserOrganization.orgId,
+        role: insertUserOrganization.role,
+      }
+      
+      const { data, error } = await supabase
+        .from('user_organizations')
+        .insert(dbUserOrganization)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database user organization creation error:', error)
+        throw new Error(`Failed to create user organization: ${error.message}`)
+      }
+      
+      return data as UserOrganization
+    } catch (err) {
+      console.error('User organization creation exception:', err)
+      throw err
+    }
+  }
+
+  async updateUserOrganization(id: string, updateData: Partial<InsertUserOrganization>): Promise<UserOrganization> {
+    try {
+      const dbUpdate: any = {}
+      if (updateData.userId !== undefined) dbUpdate.user_id = updateData.userId
+      if (updateData.orgId !== undefined) dbUpdate.org_id = updateData.orgId
+      if (updateData.role !== undefined) dbUpdate.role = updateData.role
+      
+      const { data, error } = await supabase
+        .from('user_organizations')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database user organization update error:', error)
+        throw new Error(`Failed to update user organization: ${error.message}`)
+      }
+      
+      return data as UserOrganization
+    } catch (err) {
+      console.error('User organization update exception:', err)
+      throw err
+    }
+  }
+
+  async deleteUserOrganization(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('user_organizations')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  async deleteUserOrganizationByUserAndOrg(userId: string, orgId: string): Promise<void> {
+    const { error } = await supabase
+      .from('user_organizations')
+      .delete()
+      .eq('user_id', userId)
+      .eq('org_id', orgId)
     
     if (error) {
       throw new Error(error.message)

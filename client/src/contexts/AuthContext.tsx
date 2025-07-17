@@ -6,11 +6,13 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   userRole: string | null
+  currentOrgId: string | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, role?: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, role?: string, orgName?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateUserRole: (role: string) => Promise<{ error: any }>
+  setCurrentOrgId: (orgId: string) => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -19,6 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [currentOrgId, setCurrentOrgIdState] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -38,8 +41,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           const role = session.user.user_metadata?.role || null
-          console.log('Auth Debug - User:', session.user.email, 'Role from metadata:', role)
+          const orgId = session.user.user_metadata?.currentOrgId || null
+          console.log('Auth Debug - User:', session.user.email, 'Role from metadata:', role, 'OrgId:', orgId)
           setUserRole(role)
+          setCurrentOrgIdState(orgId)
         }
         
         setLoading(false)
@@ -59,10 +64,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           const role = session.user.user_metadata?.role || null
-          console.log('Auth State Change - User:', session.user.email, 'Role:', role)
+          const orgId = session.user.user_metadata?.currentOrgId || null
+          console.log('Auth State Change - User:', session.user.email, 'Role:', role, 'OrgId:', orgId)
           setUserRole(role)
+          setCurrentOrgIdState(orgId)
         } else {
           setUserRole(null)
+          setCurrentOrgIdState(null)
         }
         
         setLoading(false)
@@ -99,9 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string, role = 'recruiter') => {
+  const signUp = async (email: string, password: string, role = 'recruiter', orgName?: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      // Step 1: Create the user account
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -111,7 +120,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           },
         },
       })
-      return { error }
+
+      if (authError) {
+        return { error: authError }
+      }
+
+      // Step 2: If not a demo viewer and user was created, create organization
+      if (role !== 'demo_viewer' && data.user) {
+        try {
+          // Create organization name from email domain or provided name
+          const defaultOrgName = orgName || `${email.split('@')[0]}'s Organization`
+          const orgSlug = defaultOrgName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
+          
+          // Create organization via API
+          const orgResponse = await fetch('/api/organizations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: defaultOrgName,
+              ownerId: data.user.id,
+              slug: orgSlug,
+            }),
+          })
+
+          if (orgResponse.ok) {
+            const organization = await orgResponse.json()
+            
+            // Step 3: Add user to organization as owner
+            await fetch('/api/user-organizations', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: data.user.id,
+                orgId: organization.id,
+                role: 'owner',
+              }),
+            })
+
+            // Step 4: Update user metadata with current org ID
+            await supabase.auth.updateUser({
+              data: { 
+                currentOrgId: organization.id,
+                role: role,
+                name: email.split('@')[0],
+              }
+            })
+
+            console.log('Organization created and user added as owner:', organization.id)
+          } else {
+            console.warn('Failed to create organization, but user account was created')
+          }
+        } catch (orgError) {
+          console.warn('Error creating organization for new user:', orgError)
+          // Don't fail signup if organization creation fails
+        }
+      }
+
+      return { error: null }
     } catch (error) {
       // Handle DOM exceptions and network errors gracefully
       if (error instanceof DOMException) {
@@ -130,6 +199,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null)
         setSession(null)
         setUserRole(null)
+        setCurrentOrgIdState(null)
       }
     } catch (error) {
       console.warn('Sign out error:', error)
@@ -137,6 +207,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null)
       setSession(null)
       setUserRole(null)
+      setCurrentOrgIdState(null)
     }
   }
 
@@ -159,15 +230,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const setCurrentOrgId = async (orgId: string) => {
+    if (!user) return { error: new Error('No user logged in') }
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        data: { 
+          ...user.user_metadata,
+          currentOrgId: orgId 
+        }
+      })
+
+      if (!error) {
+        setCurrentOrgIdState(orgId)
+      }
+
+      return { error }
+    } catch (error) {
+      console.warn('Update current org ID error:', error)
+      return { error }
+    }
+  }
+
   const value = {
     user,
     session,
     userRole,
+    currentOrgId,
     loading,
     signIn,
     signUp,
     signOut,
     updateUserRole,
+    setCurrentOrgId,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

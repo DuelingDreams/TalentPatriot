@@ -85,6 +85,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Organizations routes
+  app.get("/api/user-organizations", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      const orgId = req.query.orgId as string;
+      const userOrganizations = await storage.getUserOrganizations(userId, orgId);
+      res.json(userOrganizations);
+    } catch (error) {
+      console.error("Error fetching user organizations:", error);
+      res.status(500).json({ error: "Failed to fetch user organizations" });
+    }
+  });
+
+  app.get("/api/user-organizations/:id", async (req, res) => {
+    try {
+      const userOrganization = await storage.getUserOrganization(req.params.id);
+      if (!userOrganization) {
+        res.status(404).json({ error: "User organization not found" });
+        return;
+      }
+      res.json(userOrganization);
+    } catch (error) {
+      console.error("Error fetching user organization:", error);
+      res.status(500).json({ error: "Failed to fetch user organization" });
+    }
+  });
+
+  app.get("/api/users/:userId/organizations", async (req, res) => {
+    try {
+      const userOrganizations = await storage.getUserOrganizationsByUser(req.params.userId);
+      res.json(userOrganizations);
+    } catch (error) {
+      console.error("Error fetching user organizations by user:", error);
+      res.status(500).json({ error: "Failed to fetch user organizations" });
+    }
+  });
+
+  app.get("/api/organizations/:orgId/users", async (req, res) => {
+    try {
+      const userOrganizations = await storage.getUserOrganizationsByOrg(req.params.orgId);
+      res.json(userOrganizations);
+    } catch (error) {
+      console.error("Error fetching user organizations by org:", error);
+      res.status(500).json({ error: "Failed to fetch organization users" });
+    }
+  });
+
+  app.post("/api/user-organizations", writeLimiter, async (req, res) => {
+    try {
+      const userOrganization = await storage.createUserOrganization(req.body);
+      res.status(201).json(userOrganization);
+    } catch (error) {
+      console.error("Error creating user organization:", error);
+      res.status(400).json({ error: "Failed to create user organization" });
+    }
+  });
+
+  app.put("/api/user-organizations/:id", writeLimiter, async (req, res) => {
+    try {
+      const userOrganization = await storage.updateUserOrganization(req.params.id, req.body);
+      res.json(userOrganization);
+    } catch (error) {
+      console.error("Error updating user organization:", error);
+      res.status(400).json({ error: "Failed to update user organization" });
+    }
+  });
+
+  app.delete("/api/user-organizations/:id", writeLimiter, async (req, res) => {
+    try {
+      await storage.deleteUserOrganization(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting user organization:", error);
+      res.status(400).json({ error: "Failed to delete user organization" });
+    }
+  });
+
+  app.delete("/api/users/:userId/organizations/:orgId", writeLimiter, async (req, res) => {
+    try {
+      await storage.deleteUserOrganizationByUserAndOrg(req.params.userId, req.params.orgId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error removing user from organization:", error);
+      res.status(400).json({ error: "Failed to remove user from organization" });
+    }
+  });
+
   // Clients routes
   app.get("/api/clients", async (req, res) => {
     try {

@@ -8,6 +8,7 @@ export const jobStatusEnum = pgEnum('job_status', ['open', 'closed', 'on_hold', 
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
 export const userRoleEnum = pgEnum('user_role', ['recruiter', 'bd', 'pm', 'demo_viewer', 'admin']);
+export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'recruiter', 'viewer']);
 export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'onsite', 'technical', 'cultural']);
 export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
 export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'candidate', 'system']);
@@ -22,6 +23,16 @@ export const organizations = pgTable("organizations", {
   slug: text("slug"),
 }, (table) => ({
   uniqueSlug: uniqueIndex("unique_org_slug").on(table.slug),
+}));
+
+export const userOrganizations = pgTable("user_organizations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(), // references auth.users(id)
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  role: orgRoleEnum("role").notNull(),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserOrg: uniqueIndex("unique_user_org").on(table.userId, table.orgId),
 }));
 
 export const clients = pgTable("clients", {
@@ -224,6 +235,11 @@ export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   createdAt: true,
 });
 
+export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({
+  id: true,
+  joinedAt: true,
+});
+
 export const insertClientSchema = createInsertSchema(clients).omit({
   id: true,
   createdAt: true,
@@ -270,6 +286,9 @@ export const insertMessageRecipientSchema = createInsertSchema(messageRecipients
 // Types
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+
+export type UserOrganization = typeof userOrganizations.$inferSelect;
+export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
 
 export type Client = typeof clients.$inferSelect;
 export type InsertClient = z.infer<typeof insertClientSchema>;
