@@ -147,6 +147,9 @@ Preferred communication style: Simple, everyday language.
 - **IMPLEMENTED DEMO MESSAGES**: Complete messaging system with priority filtering, category tabs, statistics overview, and sample team communications
 - **UNIFIED DEMO INTERFACE**: All demo pages now feature consistent professional styling, interactive elements, and comprehensive statistics matching authenticated user experience
 - **FIXED DEMO NAVIGATION**: Added Calendar and Messages links to sidebar navigation for demo_viewer role ensuring complete feature access
+- **ENHANCED DEMO PIPELINE CANDIDATES**: Added comprehensive demo candidates across all pipeline stages with realistic data, names, and progression notes
+- **FIXED DEMO PIPELINE DATA STRUCTURE**: Resolved data mapping issues preventing candidates from displaying in kanban view
+- **COMPLETED DEMO KANBAN FUNCTIONALITY**: Demo pipeline now displays candidates in all stages (Applied, Phone Screen, Interview, Technical, Offer, Hired, Rejected) with full drag-and-drop interaction
 
 ## System Architecture
 
