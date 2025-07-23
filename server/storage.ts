@@ -42,6 +42,13 @@ export interface IStorage {
   createUserProfile(userProfile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile>;
   
+  // Performance-optimized methods
+  getDashboardStats(orgId: string): Promise<any>;
+  getPipelineCandidates(jobId: string, orgId: string): Promise<any[]>;
+  searchClients(searchTerm: string, orgId: string): Promise<Client[]>;
+  searchJobs(searchTerm: string, orgId: string): Promise<Job[]>;
+  searchCandidates(searchTerm: string, orgId: string): Promise<Candidate[]>;
+  
   // Organizations
   getOrganization(id: string): Promise<Organization | undefined>;
   getOrganizations(ownerId?: string): Promise<Organization[]>;
@@ -136,10 +143,7 @@ export class MemStorage implements IStorage {
     this.candidateNotes = new Map();
   }
 
-  // User Profiles
-  async getUserProfile(id: string): Promise<UserProfile | undefined> {
-    return this.userProfiles.get(id);
-  }
+
 
   async createUserProfile(userProfile: InsertUserProfile): Promise<UserProfile> {
     const profile: UserProfile = {
@@ -165,6 +169,86 @@ export class MemStorage implements IStorage {
     
     this.userProfiles.set(id, updated);
     return updated;
+  }
+
+  // Performance-optimized methods
+  async getDashboardStats(orgId: string): Promise<any> {
+    // Simulate optimized dashboard stats query
+    const clients = Array.from(this.clients.values()).filter(c => c.orgId === orgId);
+    const jobs = Array.from(this.jobs.values()).filter(j => j.orgId === orgId);
+    const candidates = Array.from(this.candidates.values()).filter(c => c.orgId === orgId);
+    const jobCandidates = Array.from(this.jobCandidates.values()).filter(jc => jc.orgId === orgId);
+    
+    const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const candidatesThisWeek = candidates.filter(c => c.createdAt >= oneWeekAgo);
+    
+    const pipelineSummary = jobCandidates.reduce((acc, jc) => {
+      const stage = jc.stage;
+      acc[stage] = (acc[stage] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return {
+      total_clients: clients.length,
+      active_jobs: jobs.filter(j => j.status === 'open').length,
+      total_candidates: candidates.length,
+      candidates_this_week: candidatesThisWeek.length,
+      pipeline_summary: Object.entries(pipelineSummary).map(([stage, count]) => ({ stage, count }))
+    };
+  }
+
+  async getPipelineCandidates(jobId: string, orgId: string): Promise<any[]> {
+    const jobCandidates = Array.from(this.jobCandidates.values())
+      .filter(jc => jc.jobId === jobId && jc.orgId === orgId);
+    
+    return jobCandidates.map(jc => {
+      const candidate = this.candidates.get(jc.candidateId);
+      const notesCount = Array.from(this.candidateNotes.values())
+        .filter(note => note.jobCandidateId === jc.id).length;
+      
+      return {
+        candidate_id: jc.candidateId,
+        candidate_name: candidate?.name || 'Unknown',
+        candidate_email: candidate?.email || '',
+        stage: jc.stage,
+        notes_count: notesCount,
+        last_update: jc.updatedAt || jc.createdAt
+      };
+    });
+  }
+
+  async searchClients(searchTerm: string, orgId: string): Promise<Client[]> {
+    const clients = Array.from(this.clients.values())
+      .filter(c => c.orgId === orgId);
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return clients.filter(client => 
+      client.name.toLowerCase().includes(lowerSearchTerm) ||
+      (client.industry || '').toLowerCase().includes(lowerSearchTerm) ||
+      (client.location || '').toLowerCase().includes(lowerSearchTerm)
+    );
+  }
+
+  async searchJobs(searchTerm: string, orgId: string): Promise<Job[]> {
+    const jobs = Array.from(this.jobs.values())
+      .filter(j => j.orgId === orgId);
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return jobs.filter(job => 
+      job.title.toLowerCase().includes(lowerSearchTerm) ||
+      (job.description || '').toLowerCase().includes(lowerSearchTerm)
+    );
+  }
+
+  async searchCandidates(searchTerm: string, orgId: string): Promise<Candidate[]> {
+    const candidates = Array.from(this.candidates.values())
+      .filter(c => c.orgId === orgId);
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return candidates.filter(candidate => 
+      candidate.name.toLowerCase().includes(lowerSearchTerm) ||
+      (candidate.email || '').toLowerCase().includes(lowerSearchTerm)
+    );
   }
 
   // Organizations

@@ -63,6 +63,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Performance-optimized dashboard stats endpoint
+  app.get("/api/dashboard/stats", async (req, res) => {
+    try {
+      const orgId = req.query.org_id as string;
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+      
+      // Use optimized single-query function
+      const stats = await storage.getDashboardStats(orgId);
+      
+      // Cache for 5 minutes
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard stats" });
+    }
+  });
+
+  // Optimized pipeline candidates endpoint
+  app.get("/api/pipeline/candidates", async (req, res) => {
+    try {
+      const { job_id, org_id } = req.query;
+      if (!job_id || !org_id) {
+        return res.status(400).json({ error: 'Job ID and Organization ID required' });
+      }
+      
+      const candidates = await storage.getPipelineCandidates(job_id as string, org_id as string);
+      
+      // Cache for 2 minutes
+      res.setHeader('Cache-Control', 'public, max-age=120');
+      res.json(candidates);
+    } catch (error) {
+      console.error("Error fetching pipeline candidates:", error);
+      res.status(500).json({ error: "Failed to fetch pipeline candidates" });
+    }
+  });
+
+  // Batch user organization data endpoint
+  app.get("/api/user/:id/organization-data", async (req, res) => {
+    try {
+      const userId = req.params.id;
+      const userOrgs = await storage.getUserOrganizationsByUser(userId);
+      const currentOrg = userOrgs.length > 0 ? await storage.getOrganization(userOrgs[0].orgId) : null;
+      
+      // Cache for 15 minutes
+      res.setHeader('Cache-Control', 'public, max-age=900');
+      res.json({
+        organizations: userOrgs,
+        current_org: currentOrg
+      });
+    } catch (error) {
+      console.error("Error fetching user organization data:", error);
+      res.status(500).json({ error: "Failed to fetch organization data" });
+    }
+  });
+
+  // Optimized search endpoint with full-text search
+  app.get("/api/search/:type", async (req, res) => {
+    try {
+      const { type } = req.params;
+      const { q: searchTerm, org_id } = req.query;
+      
+      if (!searchTerm || !org_id) {
+        return res.status(400).json({ error: 'Search term and organization ID required' });
+      }
+      
+      let results = [];
+      switch (type) {
+        case 'clients':
+          results = await storage.searchClients(searchTerm as string, org_id as string);
+          break;
+        case 'jobs':
+          results = await storage.searchJobs(searchTerm as string, org_id as string);
+          break;
+        case 'candidates':
+          results = await storage.searchCandidates(searchTerm as string, org_id as string);
+          break;
+        default:
+          return res.status(400).json({ error: 'Invalid search type' });
+      }
+      
+      // Cache for 30 seconds
+      res.setHeader('Cache-Control', 'public, max-age=30');
+      res.json(results);
+    } catch (error) {
+      console.error("Error performing search:", error);
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
   // Organizations routes
   app.get("/api/organizations", async (req, res) => {
     try {
