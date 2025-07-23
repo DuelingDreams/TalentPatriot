@@ -40,17 +40,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         
         if (session?.user) {
-          const role = session.user.user_metadata?.role || null
-          let orgId = session.user.user_metadata?.currentOrgId || null
-          
-          // For demo viewers, always assign to demo organization
-          if (role === 'demo_viewer') {
-            orgId = '550e8400-e29b-41d4-a716-446655440000'
+          // Fetch user role from secure user_profiles table
+          try {
+            const response = await fetch(`/api/user-profiles/${session.user.id}`)
+            if (response.ok) {
+              const userProfile = await response.json()
+              const role = userProfile.role || 'recruiter'
+              let orgId = session.user.user_metadata?.currentOrgId || null
+              
+              // For demo viewers, always assign to demo organization
+              if (role === 'demo_viewer') {
+                orgId = '550e8400-e29b-41d4-a716-446655440000'
+              }
+              
+              console.log('Auth Debug - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
+              setUserRole(role)
+              setCurrentOrgIdState(orgId)
+            } else {
+              // Fallback for new users without profiles
+              setUserRole('recruiter')
+              setCurrentOrgIdState(null)
+            }
+          } catch (error) {
+            console.warn('Failed to fetch user profile:', error)
+            setUserRole('recruiter')
+            setCurrentOrgIdState(null)
           }
-          
-          console.log('Auth Debug - User:', session.user.email, 'Role from metadata:', role, 'OrgId:', orgId)
-          setUserRole(role)
-          setCurrentOrgIdState(orgId)
         }
         
         setLoading(false)
@@ -63,23 +78,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth()
 
     // Listen for auth changes with error handling
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
         setSession(session)
         setUser(session?.user ?? null)
         
         if (session?.user) {
-          const role = session.user.user_metadata?.role || null
-          let orgId = session.user.user_metadata?.currentOrgId || null
-          
-          // For demo viewers, always assign to demo organization
-          if (role === 'demo_viewer') {
-            orgId = '550e8400-e29b-41d4-a716-446655440000'
+          // Fetch user role from secure user_profiles table  
+          try {
+            const response = await fetch(`/api/user-profiles/${session.user.id}`)
+            if (response.ok) {
+              const userProfile = await response.json()
+              const role = userProfile.role || 'recruiter'
+              let orgId = session.user.user_metadata?.currentOrgId || null
+              
+              // For demo viewers, always assign to demo organization
+              if (role === 'demo_viewer') {
+                orgId = '550e8400-e29b-41d4-a716-446655440000'
+              }
+              
+              console.log('Auth State Change - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
+              setUserRole(role)
+              setCurrentOrgIdState(orgId)
+            } else {
+              // Fallback for new users without profiles
+              setUserRole('recruiter')
+              setCurrentOrgIdState(null)
+            }
+          } catch (error) {
+            console.warn('Failed to fetch user profile:', error)
+            setUserRole('recruiter')
+            setCurrentOrgIdState(null)
           }
-          
-          console.log('Auth State Change - User:', session.user.email, 'Role:', role, 'OrgId:', orgId)
-          setUserRole(role)
-          setCurrentOrgIdState(orgId)
         } else {
           setUserRole(null)
           setCurrentOrgIdState(null)

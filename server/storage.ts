@@ -1,4 +1,5 @@
 import { 
+  userProfiles,
   organizations,
   userOrganizations,
   clients, 
@@ -9,6 +10,7 @@ import {
   interviews,
   messages,
   messageRecipients,
+  type UserProfile,
   type Organization,
   type UserOrganization,
   type Client, 
@@ -19,6 +21,7 @@ import {
   type Interview,
   type Message,
   type MessageRecipient,
+  type InsertUserProfile,
   type InsertOrganization,
   type InsertUserOrganization,
   type InsertClient,
@@ -34,6 +37,11 @@ import { createClient } from '@supabase/supabase-js';
 
 // Storage interface for ATS system
 export interface IStorage {
+  // User Profiles
+  getUserProfile(id: string): Promise<UserProfile | undefined>;
+  createUserProfile(userProfile: InsertUserProfile): Promise<UserProfile>;
+  updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile>;
+  
   // Organizations
   getOrganization(id: string): Promise<Organization | undefined>;
   getOrganizations(ownerId?: string): Promise<Organization[]>;
@@ -108,6 +116,7 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private userProfiles: Map<string, UserProfile>;
   private organizations: Map<string, Organization>;
   private userOrganizations: Map<string, UserOrganization>;
   private clients: Map<string, Client>;
@@ -117,6 +126,7 @@ export class MemStorage implements IStorage {
   private candidateNotes: Map<string, CandidateNotes>;
 
   constructor() {
+    this.userProfiles = new Map();
     this.organizations = new Map();
     this.userOrganizations = new Map();
     this.clients = new Map();
@@ -124,6 +134,37 @@ export class MemStorage implements IStorage {
     this.candidates = new Map();
     this.jobCandidates = new Map();
     this.candidateNotes = new Map();
+  }
+
+  // User Profiles
+  async getUserProfile(id: string): Promise<UserProfile | undefined> {
+    return this.userProfiles.get(id);
+  }
+
+  async createUserProfile(userProfile: InsertUserProfile): Promise<UserProfile> {
+    const profile: UserProfile = {
+      ...userProfile,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.userProfiles.set(profile.id, profile);
+    return profile;
+  }
+
+  async updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile> {
+    const existing = this.userProfiles.get(id);
+    if (!existing) {
+      throw new Error(`User profile with id ${id} not found`);
+    }
+    
+    const updated: UserProfile = {
+      ...existing,
+      ...userProfile,
+      updatedAt: new Date(),
+    };
+    
+    this.userProfiles.set(id, updated);
+    return updated;
   }
 
   // Organizations

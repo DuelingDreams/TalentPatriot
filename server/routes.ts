@@ -29,6 +29,40 @@ const authLimiter = rateLimit({
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log('📡 Registered all API routes');
   
+  // User Profile routes
+  app.get("/api/user-profiles/:id", async (req, res) => {
+    try {
+      const userProfile = await storage.getUserProfile(req.params.id);
+      if (!userProfile) {
+        return res.status(404).json({ error: 'User profile not found' });
+      }
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ error: 'Failed to fetch user profile' });
+    }
+  });
+
+  app.post("/api/user-profiles", writeLimiter, async (req, res) => {
+    try {
+      const userProfile = await storage.createUserProfile(req.body);
+      res.status(201).json(userProfile);
+    } catch (error) {
+      console.error("Error creating user profile:", error);
+      res.status(500).json({ error: 'Failed to create user profile' });
+    }
+  });
+
+  app.put("/api/user-profiles/:id", writeLimiter, async (req, res) => {
+    try {
+      const userProfile = await storage.updateUserProfile(req.params.id, req.body);
+      res.json(userProfile);
+    } catch (error) {
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ error: 'Failed to update user profile' });
+    }
+  });
+  
   // Organizations routes
   app.get("/api/organizations", async (req, res) => {
     try {

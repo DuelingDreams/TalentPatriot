@@ -25,6 +25,13 @@ export const organizations = pgTable("organizations", {
   uniqueSlug: uniqueIndex("unique_org_slug").on(table.slug),
 }));
 
+export const userProfiles = pgTable("user_profiles", {
+  id: uuid("id").primaryKey(), // references auth.users(id) 
+  role: userRoleEnum("role").default('recruiter').notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const userOrganizations = pgTable("user_organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id").notNull(), // references auth.users(id)
@@ -238,6 +245,11 @@ export const messageRecipientsRelations = relations(messageRecipients, ({ one })
 }));
 
 // Insert schemas
+export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
   createdAt: true,
@@ -292,6 +304,9 @@ export const insertMessageRecipientSchema = createInsertSchema(messageRecipients
 });
 
 // Types
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
+
 export type Organization = typeof organizations.$inferSelect;
 export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
