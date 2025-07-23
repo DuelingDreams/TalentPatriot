@@ -962,10 +962,19 @@ class DatabaseStorage implements IStorage {
 
   async createClient(insertClient: InsertClient): Promise<Client> {
     try {
-      // Use only essential columns that definitely exist in basic database schema
+      // Map the camelCase fields to snake_case for database with full column support
       const dbClient = {
         name: insertClient.name,
         org_id: insertClient.orgId,
+        industry: insertClient.industry || null,
+        location: insertClient.location || null,
+        website: insertClient.website || null,
+        contact_name: insertClient.contactName || null,
+        contact_email: insertClient.contactEmail || null,
+        contact_phone: insertClient.contactPhone || null,
+        notes: insertClient.notes || null,
+        status: insertClient.status || 'active',
+        created_by: insertClient.createdBy || null,
       }
       
       const { data, error } = await supabase
@@ -988,9 +997,17 @@ class DatabaseStorage implements IStorage {
 
   async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
     try {
-      // Use only essential columns for updates
+      // Map the camelCase fields to snake_case for database with full column support
       const dbUpdate: any = {}
       if (updateData.name !== undefined) dbUpdate.name = updateData.name
+      if (updateData.industry !== undefined) dbUpdate.industry = updateData.industry
+      if (updateData.location !== undefined) dbUpdate.location = updateData.location
+      if (updateData.website !== undefined) dbUpdate.website = updateData.website
+      if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
+      if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
+      if (updateData.contactPhone !== undefined) dbUpdate.contact_phone = updateData.contactPhone
+      if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
+      if (updateData.status !== undefined) dbUpdate.status = updateData.status
       
       const { data, error } = await supabase
         .from('clients')
