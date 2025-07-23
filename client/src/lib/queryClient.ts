@@ -28,11 +28,31 @@ export async function apiRequest(
     body = urlOrOptions.body;
   }
 
+  // Get organization ID from session storage
+  const currentOrgId = getCurrentOrgId();
+  
   try {
+    const headers: Record<string, string> = {
+      ...(body ? { "Content-Type": "application/json" } : {})
+    };
+
+    // For POST/PUT/DELETE operations with JSON body, include orgId in the body
+    let finalBody = body;
+    if (body && currentOrgId && method !== 'GET') {
+      try {
+        const bodyData = JSON.parse(body);
+        bodyData.orgId = currentOrgId;
+        finalBody = JSON.stringify(bodyData);
+      } catch (e) {
+        // If body is not JSON, fall back to the original approach
+        console.warn('Could not parse request body as JSON:', e);
+      }
+    }
+
     const res = await fetch(url, {
       method,
-      headers: body ? { "Content-Type": "application/json" } : {},
-      body,
+      headers,
+      body: finalBody,
       credentials: "include",
     });
 
@@ -48,6 +68,27 @@ export async function apiRequest(
   }
 }
 
+// Helper function to get current org ID
+function getCurrentOrgId(): string | null {
+  // Try to get from the auth context if available
+  if (typeof window !== 'undefined') {
+    try {
+      // First try sessionStorage
+      const orgId = sessionStorage.getItem('currentOrgId');
+      if (orgId) return orgId;
+      
+      // Fallback to extracting from DOM or global state
+      const authDataElement = document.querySelector('[data-org-id]');
+      if (authDataElement) {
+        return authDataElement.getAttribute('data-org-id');
+      }
+    } catch (error) {
+      console.warn('Failed to get org ID from storage:', error);
+    }
+  }
+  return null;
+}
+
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
@@ -55,7 +96,16 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     try {
-      const res = await fetch(queryKey.join("/") as string, {
+      const currentOrgId = getCurrentOrgId();
+      let url = queryKey.join("/") as string;
+      
+      // Add organization ID as query parameter for data fetching operations
+      if (currentOrgId && (url.includes('/api/jobs') || url.includes('/api/candidates') || url.includes('/api/clients'))) {
+        const separator = url.includes('?') ? '&' : '?';
+        url += `${separator}orgId=${currentOrgId}`;
+      }
+
+      const res = await fetch(url, {
         credentials: "include",
       });
 

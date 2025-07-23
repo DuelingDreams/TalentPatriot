@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
 
 interface Candidate {
   id: string
@@ -246,10 +247,7 @@ export default function ProfessionalCandidates() {
               Manage and track your candidate pipeline
             </p>
           </div>
-          <Button className="mt-4 sm:mt-0">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Candidate
-          </Button>
+          <AddCandidateDialog />
         </div>
 
         {/* Candidate Statistics */}

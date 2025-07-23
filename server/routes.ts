@@ -306,7 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const clients = await storage.getClientsByOrg(orgId);
+      const clients = await storage.getClients({ orgId });
       res.json(clients);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clients" });
@@ -331,7 +331,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(client);
     } catch (error) {
       console.error('Client creation error:', error);
-      res.status(400).json({ error: "Failed to create client", details: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to create client", details: errorMessage });
     }
   });
 
@@ -361,7 +362,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const jobs = await storage.getJobsByOrg(orgId);
+      const jobs = await storage.getJobs({ orgId });
       res.json(jobs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch jobs" });
@@ -386,7 +387,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(job);
     } catch (error) {
       console.error('Job creation error:', error);
-      res.status(400).json({ error: "Failed to create job", details: error.message });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to create job", details: errorMessage });
     }
   });
 
@@ -398,7 +400,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const candidates = await storage.getCandidatesByOrg(orgId);
+      const candidates = await storage.getCandidates({ orgId });
       res.json(candidates);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch candidates" });

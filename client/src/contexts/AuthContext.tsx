@@ -44,7 +44,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (session.user.email === 'demo@yourapp.com') {
             console.log('Auth Debug - Demo user detected, assigning demo_viewer role')
             setUserRole('demo_viewer')
-            setCurrentOrgIdState('550e8400-e29b-41d4-a716-446655440000')
+            const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+            setCurrentOrgIdState(demoOrgId)
+            sessionStorage.setItem('currentOrgId', demoOrgId)
           } else {
             // Fetch user role from secure user_profiles table for real users
             try {
@@ -57,6 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.log('Auth Debug - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
                 setUserRole(role)
                 setCurrentOrgIdState(orgId)
+                if (orgId) sessionStorage.setItem('currentOrgId', orgId)
               } else {
                 // Fallback for new users without profiles
                 setUserRole('recruiter')
@@ -90,7 +93,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (session.user.email === 'demo@yourapp.com') {
             console.log('Auth State Change - Demo user detected, assigning demo_viewer role')
             setUserRole('demo_viewer')
-            setCurrentOrgIdState('550e8400-e29b-41d4-a716-446655440000')
+            const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+            setCurrentOrgIdState(demoOrgId)
+            sessionStorage.setItem('currentOrgId', demoOrgId)
           } else {
             // Fetch user role from secure user_profiles table for real users
             try {
@@ -103,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 console.log('Auth State Change - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
                 setUserRole(role)
                 setCurrentOrgIdState(orgId)
+                if (orgId) sessionStorage.setItem('currentOrgId', orgId)
               } else {
                 // Fallback for new users without profiles
                 setUserRole('recruiter')
