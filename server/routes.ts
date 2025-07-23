@@ -1,6 +1,10 @@
 import type { Express } from "express";
+import express from "express";
 import rateLimit from "express-rate-limit";
 import { createServer, type Server } from "http";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 
 
@@ -24,6 +28,47 @@ const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+});
+
+// Configure multer for file uploads
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage_multer = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const orgId = req.body.orgId || 'general';
+    const orgUploadsDir = path.join(uploadsDir, orgId);
+    if (!fs.existsSync(orgUploadsDir)) {
+      fs.mkdirSync(orgUploadsDir, { recursive: true });
+    }
+    cb(null, orgUploadsDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'resume-' + uniqueSuffix + ext);
+  }
+});
+
+const fileFilter = (req: any, file: any, cb: any) => {
+  // Check file type
+  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage_multer,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: fileFilter
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -542,6 +587,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File upload endpoint
+  app.post("/api/upload/resume", writeLimiter, upload.single('resume'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const orgId = req.body.orgId || 'general';
+      const fileUrl = `/uploads/${orgId}/${req.file.filename}`;
+      
+      res.status(200).json({
+        url: fileUrl,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      });
+    } catch (error) {
+      console.error('File upload error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'File upload failed';
+      res.status(500).json({ error: errorMessage });
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", async (req, res) => {
     try {
@@ -559,6 +627,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Serve uploaded files statically
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   const httpServer = createServer(app);
 

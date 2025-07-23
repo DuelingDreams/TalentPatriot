@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus, Loader2, Upload, Link, FileText } from 'lucide-react'
 
 // Candidate form schema
 const candidateSchema = z.object({
@@ -35,6 +36,9 @@ interface AddCandidateDialogProps {
 
 export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const [resumeTab, setResumeTab] = useState<'url' | 'upload'>('upload')
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
   const queryClient = useQueryClient()
@@ -67,6 +71,55 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
     }
   })
 
+  // File upload handler
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a PDF or Word document (.pdf, .doc, .docx)",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File Too Large",
+          description: "Please upload a file smaller than 5MB",
+          variant: "destructive",
+        })
+        return
+      }
+
+      setSelectedFile(file)
+    }
+  }
+
+  // Upload file to server
+  const uploadResumeFile = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('resume', file)
+    formData.append('orgId', currentOrgId || '')
+
+    const response = await fetch('/api/upload/resume', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      throw new Error('File upload failed')
+    }
+
+    const result = await response.json()
+    return result.url
+  }
+
   const onSubmit = async (data: CandidateFormData) => {
     if (userRole === 'demo_viewer') {
       toast({
@@ -87,6 +140,25 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
     }
     
     try {
+      let resumeUrl = data.resume_url || null
+
+      // Handle file upload if a file is selected
+      if (selectedFile && resumeTab === 'upload') {
+        setUploadingFile(true)
+        try {
+          resumeUrl = await uploadResumeFile(selectedFile)
+        } catch (uploadError) {
+          toast({
+            title: "Upload Failed",
+            description: "Failed to upload resume file. Please try again.",
+            variant: "destructive",
+          })
+          setUploadingFile(false)
+          return
+        }
+        setUploadingFile(false)
+      }
+
       // Convert skills string to array
       const skillsArray = data.skills 
         ? data.skills.split(',').map(skill => skill.trim()).filter(Boolean)
@@ -98,7 +170,7 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
         phone: data.phone || null,
         location: data.location || null,
         linkedinUrl: data.linkedin_url || null,
-        resumeUrl: data.resume_url || null,
+        resumeUrl: resumeUrl,
         skills: skillsArray,
         experienceYears: data.experience_years ? parseInt(data.experience_years) : null,
         notes: data.notes || null,
@@ -112,6 +184,7 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
       })
       setIsOpen(false)
       form.reset()
+      setSelectedFile(null)
     } catch (error) {
       console.error('Candidate creation error:', error)
       toast({
@@ -201,34 +274,88 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="linkedin_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>LinkedIn URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://linkedin.com/in/..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="linkedin_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LinkedIn URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://linkedin.com/in/..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="resume_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Resume URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Resume Upload/URL Section */}
+              <div className="space-y-3">
+                <FormLabel>Resume</FormLabel>
+                <Tabs value={resumeTab} onValueChange={(value) => setResumeTab(value as 'url' | 'upload')}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload" className="flex items-center gap-2">
+                      <Upload className="w-4 h-4" />
+                      Upload File
+                    </TabsTrigger>
+                    <TabsTrigger value="url" className="flex items-center gap-2">
+                      <Link className="w-4 h-4" />
+                      Provide URL
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="space-y-3">
+                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:border-slate-400 transition-colors">
+                      <input
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        onChange={handleFileSelect}
+                        className="hidden"
+                        id="resume-upload"
+                      />
+                      <label htmlFor="resume-upload" className="cursor-pointer">
+                        <div className="space-y-2">
+                          <FileText className="w-8 h-8 text-slate-400 mx-auto" />
+                          {selectedFile ? (
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-slate-700">{selectedFile.name}</p>
+                              <p className="text-xs text-slate-500">
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedFile(null)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-1">
+                              <p className="text-sm text-slate-600">Click to upload resume</p>
+                              <p className="text-xs text-slate-500">PDF, DOC, DOCX (max 5MB)</p>
+                            </div>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="url">
+                    <FormField
+                      control={form.control}
+                      name="resume_url"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="https://example.com/resume.pdf" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -290,12 +417,17 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={createCandidateMutation.isPending}
+                  disabled={createCandidateMutation.isPending || uploadingFile}
                 >
-                  {createCandidateMutation.isPending ? (
+                  {uploadingFile ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Adding...
+                      Uploading Resume...
+                    </>
+                  ) : createCandidateMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Adding Candidate...
                     </>
                   ) : (
                     'Add Candidate'
