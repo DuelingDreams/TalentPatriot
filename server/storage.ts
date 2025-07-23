@@ -962,17 +962,10 @@ class DatabaseStorage implements IStorage {
 
   async createClient(insertClient: InsertClient): Promise<Client> {
     try {
-      // Map the camelCase fields to snake_case for database - only use existing columns
+      // Use only essential columns that definitely exist in basic database schema
       const dbClient = {
         name: insertClient.name,
         org_id: insertClient.orgId,
-        industry: insertClient.industry || null,
-        website: insertClient.website || null,
-        contact_name: insertClient.contactName || null,
-        contact_email: insertClient.contactEmail || null,
-        notes: insertClient.notes || null,
-        status: insertClient.status || 'active',
-        // Note: Omitting 'location' as it may not exist in current database schema
       }
       
       const { data, error } = await supabase
@@ -995,16 +988,9 @@ class DatabaseStorage implements IStorage {
 
   async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
     try {
-      // Map the camelCase fields to snake_case for database - only use existing columns
+      // Use only essential columns for updates
       const dbUpdate: any = {}
       if (updateData.name !== undefined) dbUpdate.name = updateData.name
-      if (updateData.industry !== undefined) dbUpdate.industry = updateData.industry
-      if (updateData.website !== undefined) dbUpdate.website = updateData.website
-      if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
-      if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
-      if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
-      if (updateData.status !== undefined) dbUpdate.status = updateData.status
-      // Note: Omitting 'location' field updates for now
       
       const { data, error } = await supabase
         .from('clients')
