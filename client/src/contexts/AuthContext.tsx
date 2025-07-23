@@ -40,31 +40,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         
         if (session?.user) {
-          // Fetch user role from secure user_profiles table
-          try {
-            const response = await fetch(`/api/user-profiles/${session.user.id}`)
-            if (response.ok) {
-              const userProfile = await response.json()
-              const role = userProfile.role || 'recruiter'
-              let orgId = session.user.user_metadata?.currentOrgId || null
-              
-              // For demo viewers, always assign to demo organization
-              if (role === 'demo_viewer') {
-                orgId = '550e8400-e29b-41d4-a716-446655440000'
+          // Special handling for demo user - always assign demo_viewer role
+          if (session.user.email === 'demo@yourapp.com') {
+            console.log('Auth Debug - Demo user detected, assigning demo_viewer role')
+            setUserRole('demo_viewer')
+            setCurrentOrgIdState('550e8400-e29b-41d4-a716-446655440000')
+          } else {
+            // Fetch user role from secure user_profiles table for real users
+            try {
+              const response = await fetch(`/api/user-profiles/${session.user.id}`)
+              if (response.ok) {
+                const userProfile = await response.json()
+                const role = userProfile.role || 'recruiter'
+                let orgId = session.user.user_metadata?.currentOrgId || null
+                
+                console.log('Auth Debug - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
+                setUserRole(role)
+                setCurrentOrgIdState(orgId)
+              } else {
+                // Fallback for new users without profiles
+                setUserRole('recruiter')
+                setCurrentOrgIdState(null)
               }
-              
-              console.log('Auth Debug - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
-              setUserRole(role)
-              setCurrentOrgIdState(orgId)
-            } else {
-              // Fallback for new users without profiles
+            } catch (error) {
+              console.warn('Failed to fetch user profile:', error)
               setUserRole('recruiter')
               setCurrentOrgIdState(null)
             }
-          } catch (error) {
-            console.warn('Failed to fetch user profile:', error)
-            setUserRole('recruiter')
-            setCurrentOrgIdState(null)
           }
         }
         
@@ -84,31 +86,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
         
         if (session?.user) {
-          // Fetch user role from secure user_profiles table  
-          try {
-            const response = await fetch(`/api/user-profiles/${session.user.id}`)
-            if (response.ok) {
-              const userProfile = await response.json()
-              const role = userProfile.role || 'recruiter'
-              let orgId = session.user.user_metadata?.currentOrgId || null
-              
-              // For demo viewers, always assign to demo organization
-              if (role === 'demo_viewer') {
-                orgId = '550e8400-e29b-41d4-a716-446655440000'
+          // Special handling for demo user - always assign demo_viewer role
+          if (session.user.email === 'demo@yourapp.com') {
+            console.log('Auth State Change - Demo user detected, assigning demo_viewer role')
+            setUserRole('demo_viewer')
+            setCurrentOrgIdState('550e8400-e29b-41d4-a716-446655440000')
+          } else {
+            // Fetch user role from secure user_profiles table for real users
+            try {
+              const response = await fetch(`/api/user-profiles/${session.user.id}`)
+              if (response.ok) {
+                const userProfile = await response.json()
+                const role = userProfile.role || 'recruiter'
+                let orgId = session.user.user_metadata?.currentOrgId || null
+                
+                console.log('Auth State Change - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
+                setUserRole(role)
+                setCurrentOrgIdState(orgId)
+              } else {
+                // Fallback for new users without profiles
+                setUserRole('recruiter')
+                setCurrentOrgIdState(null)
               }
-              
-              console.log('Auth State Change - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
-              setUserRole(role)
-              setCurrentOrgIdState(orgId)
-            } else {
-              // Fallback for new users without profiles
+            } catch (error) {
+              console.warn('Failed to fetch user profile:', error)
               setUserRole('recruiter')
               setCurrentOrgIdState(null)
             }
-          } catch (error) {
-            console.warn('Failed to fetch user profile:', error)
-            setUserRole('recruiter')
-            setCurrentOrgIdState(null)
           }
         } else {
           setUserRole(null)

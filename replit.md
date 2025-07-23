@@ -204,6 +204,8 @@ Preferred communication style: Simple, everyday language.
 - **PREPARED APPLICATION FOR REDEPLOYMENT**: Fixed all build errors, created missing CandidateNotes component, resolved TypeScript issues
 - **ACHIEVED PRODUCTION BUILD SUCCESS**: Application builds correctly with 387.57 kB client bundle and 41.6 kB server bundle
 - **COMPLETED DEPLOYMENT READINESS**: All security vulnerabilities resolved, performance optimized, and code errors eliminated
+- **FIXED DEMO USER ROLE ISSUE**: Resolved demo user role regression from 'demo_viewer' to 'recruiter' by adding special authentication handling for demo@yourapp.com
+- **RESTORED DEMO EXPERIENCE**: Demo users now properly get demo_viewer role and demo organization assignment, ensuring proper demo data access and restrictions
 
 ## System Architecture
 
