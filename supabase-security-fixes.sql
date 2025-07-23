@@ -27,15 +27,18 @@ CREATE POLICY "Allow service role to manage timezone_cache"
   WITH CHECK (true);
 
 -- =============================================================================
--- 2. ENABLE LEAKED PASSWORD PROTECTION
+-- 2. ENABLE LEAKED PASSWORD PROTECTION (PRO PLAN REQUIRED)
 -- =============================================================================
 
--- Note: Leaked password protection in Supabase is enabled through the Dashboard
--- Go to Authentication > Settings > Password Protection and toggle "Enable"
--- This SQL script cannot directly enable it as it requires Dashboard configuration
+-- IMPORTANT: Leaked password protection requires Supabase Pro Plan or above
+-- This feature is NOT available on the Free tier
 
--- However, we can verify if it's enabled by checking auth settings
--- The actual setting is managed through Supabase's admin interface
+-- If you have Pro Plan, navigate to:
+-- Dashboard → Settings → Authentication → Password Security
+-- Enable "Prevent use of compromised passwords" (HaveIBeenPwned integration)
+
+-- If you're on Free tier, this security warning can be ignored as the feature
+-- is not available in your plan. Consider upgrading to Pro for enhanced security.
 
 -- =============================================================================
 -- 3. VERIFY AND SECURE OTHER POTENTIALLY EXPOSED TABLES
@@ -125,14 +128,14 @@ JOIN pg_class c ON c.relname = t.tablename
 WHERE schemaname = 'public'
 ORDER BY tablename;
 
--- Note: To verify leaked password protection status:
+-- Note: To verify leaked password protection status (Pro Plan only):
 -- 1. Go to your Supabase Dashboard
--- 2. Navigate to Authentication > Settings
--- 3. Check the "Password Protection" section
--- 4. Ensure "Prevent use of compromised passwords" is enabled
+-- 2. Navigate to Settings > Authentication > Password Security
+-- 3. Look for "Prevent use of compromised passwords" toggle
+-- 4. If you don't see this option, you're likely on the Free tier
 
--- You can also check auth configuration with:
-SELECT 'Please enable Leaked Password Protection in Dashboard: Authentication > Settings > Password Protection' as instruction;
+-- Check your plan status:
+SELECT 'For leaked password protection, upgrade to Pro Plan: Dashboard > Settings > Billing' as plan_upgrade_info;
 
 -- =============================================================================
 -- COMPLETION MESSAGE
@@ -145,12 +148,13 @@ BEGIN
     RAISE NOTICE '=============================================================================';
     RAISE NOTICE '✓ RLS enabled on timezone_cache table';
     RAISE NOTICE '✓ RLS policies created for timezone_cache';
-    RAISE NOTICE '! Leaked password protection must be enabled manually in Dashboard';
+    RAISE NOTICE '! Leaked password protection requires Pro Plan (not available on Free tier)';
     RAISE NOTICE '✓ Additional security checks completed';
     RAISE NOTICE '=============================================================================';
-    RAISE NOTICE 'MANUAL STEP REQUIRED:';
-    RAISE NOTICE '1. Go to Supabase Dashboard > Authentication > Settings';
-    RAISE NOTICE '2. Enable "Prevent use of compromised passwords" under Password Protection';
-    RAISE NOTICE '3. Run the verification queries above to confirm RLS status';
+    RAISE NOTICE 'MANUAL STEP FOR PRO USERS:';
+    RAISE NOTICE '1. Go to Dashboard > Settings > Authentication > Password Security';
+    RAISE NOTICE '2. Enable "Prevent use of compromised passwords" (Pro Plan required)';
+    RAISE NOTICE '3. If option not visible, you are on Free tier - upgrade to Pro';
+    RAISE NOTICE '4. Run verification queries above to confirm RLS status';
     RAISE NOTICE '=============================================================================';
 END $$;
