@@ -123,16 +123,16 @@ CREATE INDEX IF NOT EXISTS idx_mv_type_metadata_name ON mv_type_metadata(name);
 -- ==========================================
 
 -- High-impact indexes based on your specific ATS usage patterns
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_organizations_user_org_role ON user_organizations(user_id, org_id, role);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_clients_org_name ON clients(org_id, name) WHERE status = 'active';
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_jobs_org_client_status ON jobs(org_id, client_id, status);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_candidates_org_email ON candidates(org_id, email) WHERE status = 'active';
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_job_candidate_job_stage ON job_candidate(job_id, stage) WHERE status = 'active';
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_candidate_notes_job_candidate_created ON candidate_notes(job_candidate_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_organizations_user_org_role ON user_organizations(user_id, org_id, role);
+CREATE INDEX IF NOT EXISTS idx_clients_org_name ON clients(org_id, name) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS idx_jobs_org_client_status ON jobs(org_id, client_id, status);
+CREATE INDEX IF NOT EXISTS idx_candidates_org_email ON candidates(org_id, email) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS idx_job_candidate_job_stage ON job_candidate(job_id, stage) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS idx_candidate_notes_job_candidate_created ON candidate_notes(job_candidate_id, created_at DESC);
 
 -- Composite indexes for complex queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_candidates_org_status_created ON candidates(org_id, status, created_at DESC);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_jobs_org_status_created ON jobs(org_id, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_candidates_org_status_created ON candidates(org_id, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_jobs_org_status_created ON jobs(org_id, status, created_at DESC);
 
 -- ==========================================
 -- PART 6: QUERY PERFORMANCE OPTIMIZATIONS
