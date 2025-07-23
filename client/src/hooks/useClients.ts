@@ -21,7 +21,7 @@ export function useClients() {
             contactPhone: '+1-555-0123',
             website: 'https://techcorp.com',
             address: '123 Innovation Drive, Tech Valley, CA 94025',
-            orgId: 'demo-org-fixed',
+            orgId: '550e8400-e29b-41d4-a716-446655440000',
             createdAt: new Date('2024-01-15').toISOString()
           },
           {
@@ -33,7 +33,7 @@ export function useClients() {
             contactPhone: '+1-555-0456',
             website: 'https://greenenergy.com',
             address: '456 Solar Plaza, Austin, TX 78701',
-            orgId: 'demo-org-fixed',
+            orgId: '550e8400-e29b-41d4-a716-446655440000',
             createdAt: new Date('2024-02-20').toISOString()
           }
         ]

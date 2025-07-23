@@ -23,7 +23,7 @@ export function useJobs() {
             location: 'San Francisco, CA',
             salaryMin: 120000,
             salaryMax: 180000,
-            orgId: 'demo-org-fixed',
+            orgId: '550e8400-e29b-41d4-a716-446655440000',
             createdAt: new Date('2024-07-01').toISOString()
           },
           {
@@ -37,7 +37,7 @@ export function useJobs() {
             location: 'Austin, TX',
             salaryMin: 100000,
             salaryMax: 150000,
-            orgId: 'demo-org-fixed',
+            orgId: '550e8400-e29b-41d4-a716-446655440000',
             createdAt: new Date('2024-07-10').toISOString()
           }
         ]

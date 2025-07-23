@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // For demo viewers, always assign to demo organization
           if (role === 'demo_viewer') {
-            orgId = 'demo-org-fixed'
+            orgId = '550e8400-e29b-41d4-a716-446655440000'
           }
           
           console.log('Auth Debug - User:', session.user.email, 'Role from metadata:', role, 'OrgId:', orgId)
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           // For demo viewers, always assign to demo organization
           if (role === 'demo_viewer') {
-            orgId = 'demo-org-fixed'
+            orgId = '550e8400-e29b-41d4-a716-446655440000'
           }
           
           console.log('Auth State Change - User:', session.user.email, 'Role:', role, 'OrgId:', orgId)
