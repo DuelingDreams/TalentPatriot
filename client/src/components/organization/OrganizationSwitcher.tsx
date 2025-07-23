@@ -106,7 +106,7 @@ export function OrganizationSwitcher() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         
-        {userOrgs.map((userOrg) => (
+        {userOrgs.map((userOrg: any) => (
           <DropdownMenuItem
             key={userOrg.orgId}
             onSelect={() => handleOrgSwitch(userOrg.orgId)}
