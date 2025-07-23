@@ -171,6 +171,42 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  // User Profiles
+  async getUserProfile(id: string): Promise<UserProfile | undefined> {
+    return this.userProfiles.get(id);
+  }
+
+  async createUserProfile(insertUserProfile: InsertUserProfile): Promise<UserProfile> {
+    const id = crypto.randomUUID();
+    const userProfile: UserProfile = { 
+      ...insertUserProfile,
+      id, 
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      role: insertUserProfile.role || 'demo_viewer'
+    };
+    this.userProfiles.set(id, userProfile);
+    return userProfile;
+  }
+
+  async updateUserProfile(id: string, updateData: Partial<InsertUserProfile>): Promise<UserProfile> {
+    const existingProfile = this.userProfiles.get(id);
+    if (!existingProfile) {
+      throw new Error(`User profile with id ${id} not found`);
+    }
+    
+    const updatedProfile: UserProfile = {
+      ...existingProfile,
+      ...updateData,
+      role: updateData.role || existingProfile.role,
+      updatedAt: new Date(),
+      id,
+    };
+    
+    this.userProfiles.set(id, updatedProfile);
+    return updatedProfile;
+  }
+
   // Performance-optimized methods
   async getDashboardStats(orgId: string): Promise<any> {
     // Simulate optimized dashboard stats query
@@ -576,6 +612,87 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
 })
 
 class DatabaseStorage implements IStorage {
+  // User Profiles
+  async getUserProfile(id: string): Promise<UserProfile | undefined> {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined;
+      throw new Error(error.message);
+    }
+    
+    return data as UserProfile;
+  }
+
+  async createUserProfile(insertUserProfile: InsertUserProfile): Promise<UserProfile> {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .insert(insertUserProfile)
+      .select()
+      .single();
+    
+    if (error) throw new Error(`Failed to create user profile: ${error.message}`);
+    return data as UserProfile;
+  }
+
+  async updateUserProfile(id: string, updateData: Partial<InsertUserProfile>): Promise<UserProfile> {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw new Error(`Failed to update user profile: ${error.message}`);
+    return data as UserProfile;
+  }
+
+  // Performance methods (placeholder implementations)
+  async getDashboardStats(orgId: string): Promise<any> {
+    return {};
+  }
+
+  async getPipelineCandidates(jobId: string, orgId: string): Promise<any[]> {
+    return [];
+  }
+
+  async searchClients(searchTerm: string, orgId: string): Promise<Client[]> {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('org_id', orgId)
+      .ilike('name', `%${searchTerm}%`);
+    
+    if (error) throw new Error(`Failed to search clients: ${error.message}`);
+    return data as Client[];
+  }
+
+  async searchJobs(searchTerm: string, orgId: string): Promise<Job[]> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('org_id', orgId)
+      .ilike('title', `%${searchTerm}%`);
+    
+    if (error) throw new Error(`Failed to search jobs: ${error.message}`);
+    return data as Job[];
+  }
+
+  async searchCandidates(searchTerm: string, orgId: string): Promise<Candidate[]> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('*')
+      .eq('org_id', orgId)
+      .ilike('name', `%${searchTerm}%`);
+    
+    if (error) throw new Error(`Failed to search candidates: ${error.message}`);
+    return data as Candidate[];
+  }
+
   // Organizations
   async getOrganization(id: string): Promise<Organization | undefined> {
     const { data, error } = await supabase
