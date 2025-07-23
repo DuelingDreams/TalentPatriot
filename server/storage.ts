@@ -145,32 +145,6 @@ export class MemStorage implements IStorage {
 
 
 
-  async createUserProfile(userProfile: InsertUserProfile): Promise<UserProfile> {
-    const profile: UserProfile = {
-      ...userProfile,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    this.userProfiles.set(profile.id, profile);
-    return profile;
-  }
-
-  async updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile> {
-    const existing = this.userProfiles.get(id);
-    if (!existing) {
-      throw new Error(`User profile with id ${id} not found`);
-    }
-    
-    const updated: UserProfile = {
-      ...existing,
-      ...userProfile,
-      updatedAt: new Date(),
-    };
-    
-    this.userProfiles.set(id, updated);
-    return updated;
-  }
-
   // User Profiles
   async getUserProfile(id: string): Promise<UserProfile | undefined> {
     return this.userProfiles.get(id);
