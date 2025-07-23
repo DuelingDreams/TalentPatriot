@@ -30,14 +30,12 @@ CREATE POLICY "Allow service role to manage timezone_cache"
 -- 2. ENABLE LEAKED PASSWORD PROTECTION
 -- =============================================================================
 
--- Enable leaked password protection against HaveIBeenPwned.org
--- This prevents users from using compromised passwords
-UPDATE auth.config 
-SET password_requirements = jsonb_set(
-  COALESCE(password_requirements, '{}'::jsonb),
-  '{hibp_enabled}',
-  'true'::jsonb
-);
+-- Note: Leaked password protection in Supabase is enabled through the Dashboard
+-- Go to Authentication > Settings > Password Protection and toggle "Enable"
+-- This SQL script cannot directly enable it as it requires Dashboard configuration
+
+-- However, we can verify if it's enabled by checking auth settings
+-- The actual setting is managed through Supabase's admin interface
 
 -- =============================================================================
 -- 3. VERIFY AND SECURE OTHER POTENTIALLY EXPOSED TABLES
@@ -127,14 +125,14 @@ JOIN pg_class c ON c.relname = t.tablename
 WHERE schemaname = 'public'
 ORDER BY tablename;
 
--- Verify leaked password protection is enabled
-SELECT 
-    CASE 
-        WHEN password_requirements->>'hibp_enabled' = 'true' 
-        THEN 'Leaked Password Protection: ENABLED ✓'
-        ELSE 'Leaked Password Protection: DISABLED ✗'
-    END as hibp_status
-FROM auth.config;
+-- Note: To verify leaked password protection status:
+-- 1. Go to your Supabase Dashboard
+-- 2. Navigate to Authentication > Settings
+-- 3. Check the "Password Protection" section
+-- 4. Ensure "Prevent use of compromised passwords" is enabled
+
+-- You can also check auth configuration with:
+SELECT 'Please enable Leaked Password Protection in Dashboard: Authentication > Settings > Password Protection' as instruction;
 
 -- =============================================================================
 -- COMPLETION MESSAGE
@@ -147,9 +145,12 @@ BEGIN
     RAISE NOTICE '=============================================================================';
     RAISE NOTICE '✓ RLS enabled on timezone_cache table';
     RAISE NOTICE '✓ RLS policies created for timezone_cache';
-    RAISE NOTICE '✓ Leaked password protection enabled';
+    RAISE NOTICE '! Leaked password protection must be enabled manually in Dashboard';
     RAISE NOTICE '✓ Additional security checks completed';
     RAISE NOTICE '=============================================================================';
-    RAISE NOTICE 'Run the verification queries above to confirm all security measures are active';
+    RAISE NOTICE 'MANUAL STEP REQUIRED:';
+    RAISE NOTICE '1. Go to Supabase Dashboard > Authentication > Settings';
+    RAISE NOTICE '2. Enable "Prevent use of compromised passwords" under Password Protection';
+    RAISE NOTICE '3. Run the verification queries above to confirm RLS status';
     RAISE NOTICE '=============================================================================';
 END $$;
