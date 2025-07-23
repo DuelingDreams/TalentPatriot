@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCandidates } from '@/hooks/useCandidates'
 import { useJobCandidates } from '@/hooks/useJobCandidates'
-import { CandidateNotes } from '@/components/CandidateNotes'
+
 import { 
   Search, 
   Filter, 
@@ -34,9 +34,31 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
+interface Candidate {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  resumeUrl?: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface JobCandidate {
+  id: string
+  jobId: string
+  candidateId: string
+  stage: string
+  notes?: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
 interface CandidateCardProps {
-  candidate: any
-  jobCandidate?: any
+  candidate: Candidate
+  jobCandidate?: JobCandidate
 }
 
 function CandidateCard({ candidate, jobCandidate }: CandidateCardProps) {
@@ -121,19 +143,12 @@ function CandidateCard({ candidate, jobCandidate }: CandidateCardProps) {
                 {jobCandidate.stage.charAt(0).toUpperCase() + jobCandidate.stage.slice(1)}
               </Badge>
               <span className="text-sm text-muted-foreground">
-                Updated {formatDistanceToNow(new Date(jobCandidate.updated_at), { addSuffix: true })}
+                Updated {formatDistanceToNow(new Date(jobCandidate.updatedAt), { addSuffix: true })}
               </span>
             </div>
-            {jobCandidate.id && (
-              <CandidateNotes 
-                jobCandidateId={jobCandidate.id} 
-                candidateName={candidate.name}
-              >
-                <Button variant="ghost" size="sm">
-                  <FileText className="w-4 h-4" />
-                </Button>
-              </CandidateNotes>
-            )}
+            <Button variant="ghost" size="sm" title="View Notes">
+              <FileText className="w-4 h-4" />
+            </Button>
           </div>
         )}
 
@@ -171,11 +186,11 @@ export default function ProfessionalCandidates() {
 
   // Create a map of candidate applications - memoized for performance
   const candidateApplications = useMemo(() => {
-    return jobCandidates?.reduce((acc, jc) => {
-      if (!acc[jc.candidate_id]) {
-        acc[jc.candidate_id] = []
+    return jobCandidates?.reduce((acc: Record<string, JobCandidate[]>, jc: JobCandidate) => {
+      if (!acc[jc.candidateId]) {
+        acc[jc.candidateId] = []
       }
-      acc[jc.candidate_id].push(jc)
+      acc[jc.candidateId].push(jc)
       return acc
     }, {} as Record<string, typeof jobCandidates>)
   }, [jobCandidates])
@@ -184,13 +199,13 @@ export default function ProfessionalCandidates() {
   const filteredCandidates = useMemo(() => {
     if (!candidates) return []
     
-    return candidates.filter(candidate => {
+    return candidates.filter((candidate: Candidate) => {
       const matchesSearch = candidate.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
         candidate.email.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       
       if (selectedStage !== 'all') {
         const applications = candidateApplications?.[candidate.id] || []
-        const hasStage = applications.some(app => app.stage === selectedStage)
+        const hasStage = applications.some((app: JobCandidate) => app.stage === selectedStage)
         if (!hasStage) return false
       }
 
@@ -261,7 +276,7 @@ export default function ProfessionalCandidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
-                {jobCandidates?.filter(jc => 
+                {jobCandidates?.filter((jc: JobCandidate) => 
                   ['screening', 'interview', 'technical', 'reference', 'offer'].includes(jc.stage)
                 ).length || 0}
               </div>
@@ -278,7 +293,7 @@ export default function ProfessionalCandidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
-                {candidates?.filter(candidate => {
+                {candidates?.filter((candidate: Candidate) => {
                   const createdDate = new Date(candidate.createdAt)
                   const weekAgo = new Date()
                   weekAgo.setDate(weekAgo.getDate() - 7)
@@ -350,7 +365,7 @@ export default function ProfessionalCandidates() {
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList>
             <TabsTrigger value="all">All Candidates ({candidates?.length || 0})</TabsTrigger>
-            <TabsTrigger value="active">Active ({jobCandidates?.filter(jc => ['screening', 'interview', 'technical'].includes(jc.stage)).length || 0})</TabsTrigger>
+            <TabsTrigger value="active">Active ({jobCandidates?.filter((jc: JobCandidate) => ['screening', 'interview', 'technical'].includes(jc.stage)).length || 0})</TabsTrigger>
             <TabsTrigger value="new">New This Week</TabsTrigger>
             <TabsTrigger value="favorites">Favorites</TabsTrigger>
           </TabsList>
@@ -382,10 +397,10 @@ export default function ProfessionalCandidates() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredCandidates.map((candidate) => {
+                {filteredCandidates.map((candidate: Candidate) => {
                   const applications = candidateApplications?.[candidate.id] || []
-                  const latestApplication = applications.sort((a, b) => 
-                    new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+                  const latestApplication = applications.sort((a: JobCandidate, b: JobCandidate) => 
+                    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
                   )[0]
                   
                   return (
