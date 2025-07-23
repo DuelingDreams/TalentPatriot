@@ -8,11 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCreateJob } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
-import { Plus, Loader2 } from 'lucide-react'
+import { Plus, Loader2, Globe, Building2, Users, Briefcase } from 'lucide-react'
 
 // Form validation schema with location targeting
 const jobSchema = z.object({
@@ -25,10 +26,57 @@ const jobSchema = z.object({
   salary_range: z.string().optional(),
   experience_level: z.enum(['entry', 'mid', 'senior', 'executive']).default('mid'),
   job_type: z.enum(['full_time', 'part_time', 'contract', 'freelance']).default('full_time'),
-  posting_targets: z.array(z.string()).default([])
+  posting_targets: z.array(z.string()).default([]),
+  auto_post: z.boolean().default(false)
 })
 
 type JobFormData = z.infer<typeof jobSchema>
+
+// Available job boards with their details
+const jobBoards = [
+  { 
+    id: 'linkedin', 
+    name: 'LinkedIn', 
+    icon: Building2, 
+    description: 'Professional network with 800M+ users',
+    pricing: 'Paid plans starting at $495/month'
+  },
+  { 
+    id: 'indeed', 
+    name: 'Indeed', 
+    icon: Globe, 
+    description: 'World\'s largest job site',
+    pricing: 'Pay-per-click or sponsored posts'
+  },
+  { 
+    id: 'monster', 
+    name: 'Monster', 
+    icon: Users, 
+    description: 'Global employment website',
+    pricing: 'Job posting packages from $249/month'
+  },
+  { 
+    id: 'glassdoor', 
+    name: 'Glassdoor', 
+    icon: Briefcase, 
+    description: 'Jobs with company insights',
+    pricing: 'Starting at $599/month for small teams'
+  },
+  { 
+    id: 'ziprecruiter', 
+    name: 'ZipRecruiter', 
+    icon: Globe, 
+    description: 'AI-powered job matching',
+    pricing: 'Plans from $249/month'
+  },
+  { 
+    id: 'craigslist', 
+    name: 'Craigslist', 
+    icon: Globe, 
+    description: 'Local classified ads',
+    pricing: '$75 per job post in most cities'
+  }
+]
 
 interface PostJobDialogProps {
   triggerButton?: React.ReactNode
@@ -53,7 +101,8 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
       salary_range: '',
       experience_level: 'mid',
       job_type: 'full_time',
-      posting_targets: []
+      posting_targets: [],
+      auto_post: false
     }
   })
 
@@ -83,13 +132,27 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
         description: data.description,
         clientId: data.client_id, // Map client_id to clientId
         orgId: currentOrgId, // Add required orgId (now guaranteed to be non-null)
-        status: data.status
+        status: data.status,
+        location: data.location,
+        remoteOption: data.remote_option,
+        salaryRange: data.salary_range || null,
+        experienceLevel: data.experience_level,
+        jobType: data.job_type,
+        postingTargets: data.posting_targets,
+        autoPost: data.auto_post
       }
       
       await createJobMutation.mutateAsync(jobData)
+      
+      // Show success message with job board information
+      const boardCount = data.posting_targets.length
+      const boardNames = data.posting_targets.map(id => jobBoards.find(b => b.id === id)?.name).filter(Boolean).join(', ')
+      
       toast({
-        title: "Job Posted",
-        description: "Your job has been posted successfully with location targeting.",
+        title: "Job Created Successfully!",
+        description: boardCount > 0 
+          ? `Job posted to ATS${data.auto_post ? ` and queued for ${boardNames}` : `. Selected for posting to: ${boardNames}`}`
+          : "Job posted to internal ATS pipeline.",
       })
       setIsOpen(false)
       form.reset()
@@ -317,6 +380,86 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
                 </FormItem>
               )}
             />
+
+            {/* Job Board Selection Section */}
+            <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-medium">Job Board Distribution</h4>
+                  <p className="text-xs text-slate-600">Select where to post this job</p>
+                </div>
+                <FormField
+                  control={form.control}
+                  name="auto_post"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs">Auto-post to selected boards</FormLabel>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="posting_targets"
+                render={() => (
+                  <FormItem>
+                    <div className="grid grid-cols-1 gap-3">
+                      {jobBoards.map((board) => {
+                        const IconComponent = board.icon
+                        return (
+                          <FormField
+                            key={board.id}
+                            control={form.control}
+                            name="posting_targets"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={board.id}
+                                  className="flex items-start space-x-3 space-y-0 p-3 border rounded-md hover:bg-white transition-colors"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(board.id)}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, board.id])
+                                          : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value !== board.id
+                                              )
+                                            )
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <div className="flex items-center space-x-3 flex-1">
+                                    <IconComponent className="h-5 w-5 text-blue-600" />
+                                    <div className="flex-1">
+                                      <FormLabel className="text-sm font-medium">
+                                        {board.name}
+                                      </FormLabel>
+                                      <p className="text-xs text-slate-600">{board.description}</p>
+                                      <p className="text-xs text-green-600 font-medium">{board.pricing}</p>
+                                    </div>
+                                  </div>
+                                </FormItem>
+                              )
+                            }}
+                          />
+                        )
+                      })}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button
