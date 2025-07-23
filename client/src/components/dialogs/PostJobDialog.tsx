@@ -14,12 +14,18 @@ import { useCreateJob } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { Plus, Loader2 } from 'lucide-react'
 
-// Form validation schema
+// Form validation schema with location targeting
 const jobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
   description: z.string().min(1, 'Job description is required'),
   client_id: z.string().min(1, 'Client is required'),
-  status: z.enum(['open', 'closed', 'on_hold', 'filled']).default('open')
+  status: z.enum(['open', 'closed', 'on_hold', 'filled']).default('open'),
+  location: z.string().min(1, 'Job location is required'),
+  remote_option: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
+  salary_range: z.string().optional(),
+  experience_level: z.enum(['entry', 'mid', 'senior', 'executive']).default('mid'),
+  job_type: z.enum(['full_time', 'part_time', 'contract', 'freelance']).default('full_time'),
+  posting_targets: z.array(z.string()).default([])
 })
 
 type JobFormData = z.infer<typeof jobSchema>
@@ -31,7 +37,7 @@ interface PostJobDialogProps {
 export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { toast } = useToast()
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
   const createJobMutation = useCreateJob()
   const { data: clients, isLoading: clientsLoading } = useClients()
 
@@ -41,7 +47,13 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
       title: '',
       description: '',
       client_id: '',
-      status: 'open'
+      status: 'open',
+      location: '',
+      remote_option: 'onsite',
+      salary_range: '',
+      experience_level: 'mid',
+      job_type: 'full_time',
+      posting_targets: []
     }
   })
 
@@ -54,16 +66,35 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
       })
       return
     }
+
+    if (!currentOrgId) {
+      toast({
+        title: "Organization Required",
+        description: "Please ensure you have an organization set up to post jobs.",
+        variant: "destructive",
+      })
+      return
+    }
     
     try {
-      await createJobMutation.mutateAsync(data)
+      // Map form data to job creation payload
+      const jobData = {
+        title: data.title,
+        description: data.description,
+        clientId: data.client_id, // Map client_id to clientId
+        orgId: currentOrgId, // Add required orgId (now guaranteed to be non-null)
+        status: data.status
+      }
+      
+      await createJobMutation.mutateAsync(jobData)
       toast({
         title: "Job Posted",
-        description: "Your job has been posted successfully.",
+        description: "Your job has been posted successfully with location targeting.",
       })
       setIsOpen(false)
       form.reset()
     } catch (error) {
+      console.error('Job posting error:', error)
       toast({
         title: "Error",
         description: "Failed to post job. Please try again.",
@@ -155,6 +186,109 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
                       )}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. San Francisco, CA" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="remote_option"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Work Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="onsite">On-site</SelectItem>
+                        <SelectItem value="remote">Remote</SelectItem>
+                        <SelectItem value="hybrid">Hybrid</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="experience_level"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Experience Level</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="entry">Entry Level</SelectItem>
+                        <SelectItem value="mid">Mid Level</SelectItem>
+                        <SelectItem value="senior">Senior Level</SelectItem>
+                        <SelectItem value="executive">Executive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="job_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="full_time">Full Time</SelectItem>
+                        <SelectItem value="part_time">Part Time</SelectItem>
+                        <SelectItem value="contract">Contract</SelectItem>
+                        <SelectItem value="freelance">Freelance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="salary_range"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Salary Range (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. $80,000 - $120,000" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
