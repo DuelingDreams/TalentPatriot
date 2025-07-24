@@ -60,6 +60,34 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // Add cache control headers
+// Security headers to establish legitimacy and prevent security warnings
+app.use((req, res, next) => {
+  // Security headers to establish site legitimacy
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  
+  // Content Security Policy to establish trust
+  res.setHeader('Content-Security-Policy', 
+    "default-src 'self'; " +
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://replit.com https://fonts.googleapis.com; " +
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "img-src 'self' data: https:; " +
+    "connect-src 'self' https://*.supabase.co https://*.supabase.com; " +
+    "frame-ancestors 'none';"
+  );
+  
+  // Add business legitimacy headers
+  res.setHeader('X-Business-Name', 'TalentPatriot');
+  res.setHeader('X-Business-Type', 'Applicant Tracking System');
+  res.setHeader('X-Contact-Email', 'support@talentpatriot.com');
+  
+  next();
+});
+
 app.use((req, res, next) => {
   // Cache static assets
   if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {

@@ -1,0 +1,16 @@
+Contact: mailto:support@talentpatriot.com
+Expires: 2025-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://talentpatriot.com/.well-known/security.txt
+
+# TalentPatriot Security Contact
+# 
+# This is a legitimate business application
+# for Applicant Tracking System services.
+# 
+# If you believe this site has been compromised
+# or flagged incorrectly by security software,
+# please contact us at the email above.
+#
+# Business Type: Human Resources Software
+# Application: Applicant Tracking System

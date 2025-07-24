@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# TalentPatriot - Applicant Tracking System
+# Contact: support@talentpatriot.com
+# Business: Human Resources Software
+
+Sitemap: /sitemap.xml
