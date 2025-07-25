@@ -99,7 +99,7 @@ export default function Landing() {
             </Link>
             <Link href="/signup">
               <Button size="lg" variant="outline" className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 px-10 py-6 text-lg hover:bg-slate-50 transition-all duration-200">
-                Start Free Trial
+                <span className="text-slate-700">Start Free Trial</span>
               </Button>
             </Link>
           </div>
@@ -524,7 +524,7 @@ export default function Landing() {
             </Link>
             <Link href="/signup">
               <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-blue-700 px-12 py-6 text-lg transition-all duration-200 font-semibold">
-                Start Your Free Trial
+                <span className="text-white hover:text-blue-700">Start Your Free Trial</span>
               </Button>
             </Link>
           </div>
