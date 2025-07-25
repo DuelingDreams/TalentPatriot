@@ -523,8 +523,8 @@ export default function Landing() {
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-blue-700 px-12 py-6 text-lg transition-all duration-200 font-semibold">
-                <span className="text-white hover:text-blue-700">Start Your Free Trial</span>
+              <Button size="lg" className="bg-white/10 backdrop-blur border-2 border-white text-white hover:bg-white hover:text-blue-700 px-12 py-6 text-lg transition-all duration-200 font-semibold">
+                Start Your Free Trial
               </Button>
             </Link>
           </div>
