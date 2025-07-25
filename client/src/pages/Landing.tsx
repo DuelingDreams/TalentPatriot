@@ -108,7 +108,7 @@ export default function Landing() {
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-slate-600">
             <div className="flex items-center gap-2">
               <Zap className="w-5 h-5 text-yellow-600" />
-              <span>Try the Demo Instantly</span>
+              <span>5-Minute Setup</span>
             </div>
             <div className="flex items-center gap-2">
               <Shield className="w-5 h-5 text-green-600" />
@@ -116,7 +116,7 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-blue-600" />
-              <span>Sign Up Free</span>
+              <span>Transparent Pricing</span>
             </div>
           </div>
         </div>
@@ -191,9 +191,9 @@ export default function Landing() {
               <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <FileText className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Traditional ATS</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">Complex Enterprise ATS</h3>
               <p className="text-slate-700 text-lg leading-relaxed">
-                Bloated dashboards with 50+ features you'll never use. Complex workflows that require training manuals.
+                Bloated dashboards with 50+ features you'll never use. Requires IT setup, training, and expensive per-seat licensing.
               </p>
             </div>
             
@@ -201,9 +201,9 @@ export default function Landing() {
               <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <BarChart3 className="w-8 h-8 text-white" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-4">Spreadsheet Chaos</h3>
+              <h3 className="text-2xl font-bold text-slate-900 mb-4">Spreadsheet & Email Chaos</h3>
               <p className="text-slate-700 text-lg leading-relaxed">
-                Job boards, candidate lists, and client data scattered across multiple Excel files and Google Sheets.
+                Candidate data scattered across Excel files, email threads, and sticky notes. No collaboration or pipeline visibility.
               </p>
             </div>
             
@@ -220,13 +220,24 @@ export default function Landing() {
           
           <div className="text-center">
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-10 max-w-4xl mx-auto shadow-2xl">
-              <h3 className="text-3xl font-bold text-white mb-4">With TalentPatriot</h3>
-              <p className="text-xl text-blue-100 leading-relaxed">
-                Everything is in one place. <span className="font-semibold text-white">Organized</span>. 
-                <span className="font-semibold text-white"> Searchable</span>. 
-                <span className="font-semibold text-white"> Collaborative</span>. 
-                Your team works from the same source of truth, every time.
-              </p>
+              <h3 className="text-3xl font-bold text-white mb-6">With TalentPatriot</h3>
+              <div className="grid md:grid-cols-3 gap-6 text-center">
+                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+                  <Zap className="w-8 h-8 text-white mx-auto mb-2" />
+                  <div className="text-white font-semibold">5-Minute Setup</div>
+                  <div className="text-blue-100 text-sm">No IT required</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+                  <Users className="w-8 h-8 text-white mx-auto mb-2" />
+                  <div className="text-white font-semibold">Team Collaboration</div>
+                  <div className="text-blue-100 text-sm">Notes & stage history</div>
+                </div>
+                <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+                  <TrendingUp className="w-8 h-8 text-white mx-auto mb-2" />
+                  <div className="text-white font-semibold">Transparent Pricing</div>
+                  <div className="text-blue-100 text-sm">No hidden fees</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -321,51 +332,63 @@ export default function Landing() {
               </span>
             </h3>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Designed to eliminate friction, not add complexity. Every feature serves a purpose.
+              Professional ATS capabilities without the enterprise complexity or cost. Built specifically for growing businesses.
             </p>
             
-            <blockquote className="mt-8 text-lg text-slate-700 font-medium italic max-w-2xl mx-auto">
-              "After 10 years in recruiting, I built the ATS I always wanted. Simple. Fast. It just works."
-              <span className="block mt-2 text-base not-italic">— Mike Hildebrand</span>
-            </blockquote>
+            <div className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 max-w-4xl mx-auto border border-blue-100">
+              <div className="grid md:grid-cols-3 gap-8 text-center">
+                <div>
+                  <div className="text-3xl font-bold text-blue-600 mb-2">5 min</div>
+                  <div className="text-slate-600 font-medium">Average Setup Time</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-purple-600 mb-2">50%</div>
+                  <div className="text-slate-600 font-medium">Faster Hiring Process</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-green-600 mb-2">$49</div>
+                  <div className="text-slate-600 font-medium">Per User Monthly</div>
+                </div>
+              </div>
+            </div>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                icon: BarChart3,
-                title: 'Visual Pipeline Management',
-                description: 'Drag-and-drop kanban boards that mirror your actual workflow',
+                icon: Zap,
+                title: 'Quick Setup, No IT Team Needed',
+                description: '5-minute setup with guided onboarding. Start hiring immediately with zero technical configuration required.',
                 color: 'blue'
               },
               {
                 icon: Users,
-                title: 'Unified Team Workspace',
-                description: 'Hiring managers, recruiters, and admins working from the same source of truth',
+                title: 'Easy for Everyone to Use',
+                description: 'Intuitive interface designed for recruiters, hiring managers, and executives. No training manuals needed.',
                 color: 'purple'
               },
               {
-                icon: Zap,
-                title: 'Smart Automation',
-                description: 'Automate repetitive tasks while maintaining personal touch',
+                icon: Building2,
+                title: 'Integrated CRM Without Spreadsheets',
+                description: 'Build talent pipelines with built-in candidate relationship management. Say goodbye to Excel chaos.',
                 color: 'green'
               },
               {
-                icon: Shield,
-                title: 'Enterprise Security',
-                description: 'Role-based access control to keep your data secure',
+                icon: FileText,
+                title: 'Collaborative Hiring Features',
+                description: 'Notes, tags, stage history, and real-time updates keep your entire team aligned on every candidate.',
                 color: 'red'
               },
               {
-                icon: Globe,
-                title: 'Works Everywhere',
-                description: 'Cloud-based solution accessible from any device',
+                icon: TrendingUp,
+                title: 'Affordable, Transparent Pricing',
+                description: 'Simple per-user pricing with no hidden fees. Enterprise features at small business prices.',
                 color: 'yellow'
               },
               {
-                icon: TrendingUp,
-                title: 'Real-time Analytics',
-                description: 'Actionable insights without information overload',
+                icon: BarChart3,
+                title: 'Visual Pipeline Management',
+                description: 'Drag-and-drop kanban boards that mirror your actual workflow with complete stage visibility.',
                 color: 'indigo'
               }
             ].map((feature, index) => {
@@ -482,7 +505,87 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                Affordable, Transparent
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Pricing
+              </span>
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Simple per-user pricing with no hidden fees. Enterprise features at small business prices.
+            </p>
+          </div>
 
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-12 text-center text-white">
+                <h3 className="text-3xl font-bold mb-4">Professional Plan</h3>
+                <div className="text-6xl font-bold mb-2">$49</div>
+                <div className="text-blue-100 text-lg">per user per month</div>
+                <div className="text-blue-100 text-sm mt-2">Billed monthly • Cancel anytime</div>
+              </div>
+              
+              <div className="px-8 py-12">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div>
+                    <h4 className="text-xl font-bold text-slate-900 mb-6">Everything Included:</h4>
+                    <ul className="space-y-4">
+                      {[
+                        'Unlimited jobs and candidates',
+                        'Visual pipeline management',
+                        'Team collaboration tools',
+                        'CRM with client management',
+                        'Notes, tags, and stage history',
+                        'Interview scheduling'
+                      ].map((feature, index) => (
+                        <li key={index} className="flex items-center gap-3">
+                          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <span className="text-slate-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <h4 className="text-xl font-bold text-slate-900 mb-6">Setup & Support:</h4>
+                    <ul className="space-y-4">
+                      {[
+                        '5-minute setup, no IT required',
+                        'Guided onboarding process',
+                        'Email and chat support',
+                        'Video training resources',
+                        'Data migration assistance',
+                        '30-day money-back guarantee'
+                      ].map((feature, index) => (
+                        <li key={index} className="flex items-center gap-3">
+                          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                          <span className="text-slate-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="text-center mt-12">
+                  <Link href="/signup">
+                    <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 text-lg shadow-xl">
+                      Start Your Free Trial
+                    </Button>
+                  </Link>
+                  <p className="text-slate-500 text-sm mt-4">No credit card required • 5-minute setup</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section className="py-32 relative overflow-hidden">
