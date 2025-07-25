@@ -29,8 +29,12 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
-                  <Briefcase className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                  <img 
+                    src="/tp-logo.png" 
+                    alt="TalentPatriot Logo" 
+                    className="w-10 h-10 object-contain"
+                  />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
@@ -454,8 +458,12 @@ export default function Landing() {
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="md:col-span-1">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
-                  <Briefcase className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                  <img 
+                    src="/tp-logo.png" 
+                    alt="TalentPatriot Logo" 
+                    className="w-10 h-10 object-contain filter invert"
+                  />
                 </div>
                 <h3 className="text-2xl font-bold">TalentPatriot</h3>
               </div>
