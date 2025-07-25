@@ -116,7 +116,7 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-blue-600" />
-              <span>Transparent Pricing</span>
+              <span>Works Anywhere</span>
             </div>
           </div>
         </div>
@@ -234,8 +234,8 @@ export default function Landing() {
                 </div>
                 <div className="bg-white/10 backdrop-blur rounded-xl p-4">
                   <TrendingUp className="w-8 h-8 text-white mx-auto mb-2" />
-                  <div className="text-white font-semibold">Transparent Pricing</div>
-                  <div className="text-blue-100 text-sm">No hidden fees</div>
+                  <div className="text-white font-semibold">Real-time Analytics</div>
+                  <div className="text-blue-100 text-sm">Track performance</div>
                 </div>
               </div>
             </div>
@@ -366,8 +366,8 @@ export default function Landing() {
               },
               {
                 icon: TrendingUp,
-                title: 'Affordable, Transparent Pricing',
-                description: 'Simple per-user pricing with no hidden fees. Enterprise features at small business prices.',
+                title: 'Real-time Analytics',
+                description: 'Actionable insights and reporting to track your hiring performance without information overload.',
                 color: 'yellow'
               },
               {
@@ -490,87 +490,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                Affordable, Transparent
-              </span>
-              <br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Pricing
-              </span>
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Simple per-user pricing with no hidden fees. Enterprise features at small business prices.
-            </p>
-          </div>
 
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-12 text-center text-white">
-                <h3 className="text-3xl font-bold mb-4">Professional Plan</h3>
-                <div className="text-6xl font-bold mb-2">$49</div>
-                <div className="text-blue-100 text-lg">per user per month</div>
-                <div className="text-blue-100 text-sm mt-2">Billed monthly • Cancel anytime</div>
-              </div>
-              
-              <div className="px-8 py-12">
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div>
-                    <h4 className="text-xl font-bold text-slate-900 mb-6">Everything Included:</h4>
-                    <ul className="space-y-4">
-                      {[
-                        'Unlimited jobs and candidates',
-                        'Visual pipeline management',
-                        'Team collaboration tools',
-                        'CRM with client management',
-                        'Notes, tags, and stage history',
-                        'Interview scheduling'
-                      ].map((feature, index) => (
-                        <li key={index} className="flex items-center gap-3">
-                          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          <span className="text-slate-700">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h4 className="text-xl font-bold text-slate-900 mb-6">Setup & Support:</h4>
-                    <ul className="space-y-4">
-                      {[
-                        '5-minute setup, no IT required',
-                        'Guided onboarding process',
-                        'Email and chat support',
-                        'Video training resources',
-                        'Data migration assistance',
-                        '30-day money-back guarantee'
-                      ].map((feature, index) => (
-                        <li key={index} className="flex items-center gap-3">
-                          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                          <span className="text-slate-700">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="text-center mt-12">
-                  <Link href="/signup">
-                    <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-6 text-lg shadow-xl">
-                      Start Your Free Trial
-                    </Button>
-                  </Link>
-                  <p className="text-slate-500 text-sm mt-4">No credit card required • 5-minute setup</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA Section */}
       <section className="py-32 relative overflow-hidden">
