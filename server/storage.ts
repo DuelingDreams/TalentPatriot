@@ -1331,7 +1331,8 @@ class DatabaseStorage implements IStorage {
       interviewerId: insertInterview.interviewerId || null,
       notes: insertInterview.notes || null,
       feedback: insertInterview.feedback || null,
-      rating: insertInterview.rating || null
+      rating: insertInterview.rating || null,
+      status: insertInterview.status || 'scheduled'
     }
     return interview
   }
@@ -1353,6 +1354,7 @@ class DatabaseStorage implements IStorage {
       feedback: updateData.feedback || null,
       rating: updateData.rating || null,
       recordStatus: updateData.recordStatus || 'active',
+      orgId: updateData.orgId || 'demo-org-fixed',
       createdAt: now,
       updatedAt: now,
     }
@@ -1406,7 +1408,8 @@ class DatabaseStorage implements IStorage {
       threadId: insertMessage.threadId || null,
       replyToId: insertMessage.replyToId || null,
       attachments: insertMessage.attachments || null,
-      tags: insertMessage.tags || null
+      tags: insertMessage.tags || null,
+      priority: insertMessage.priority || 'normal'
     }
     return message
   }
@@ -1431,6 +1434,7 @@ class DatabaseStorage implements IStorage {
       isArchived: updateData.isArchived || false,
       threadId: updateData.threadId || null,
       replyToId: updateData.replyToId || null,
+      orgId: updateData.orgId || 'demo-org-fixed',
       attachments: updateData.attachments || null,
       tags: updateData.tags || null,
       recordStatus: updateData.recordStatus || 'active',

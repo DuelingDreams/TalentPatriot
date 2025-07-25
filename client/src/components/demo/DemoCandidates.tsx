@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { demoCandidates } from '@/lib/demo-data'
 
-const candidateSkills = {
+const candidateSkills: Record<string, string[]> = {
   '44444444-4444-4444-4444-444444444444': ['React', 'TypeScript', 'Node.js', 'AWS'],
   '55555555-5555-5555-5555-555555555555': ['Python', 'Django', 'PostgreSQL', 'Docker'],
   '66666666-6666-6666-6666-666666666666': ['Java', 'Spring Boot', 'Kubernetes', 'MongoDB'],
@@ -29,7 +29,7 @@ const candidateLocations = {
   '99999999-9999-9999-9999-999999999999': 'Los Angeles, CA'
 }
 
-const candidateExperience = {
+const candidateExperience: Record<string, string> = {
   '44444444-4444-4444-4444-444444444444': '5+ years',
   '55555555-5555-5555-5555-555555555555': '3-5 years',
   '66666666-6666-6666-6666-666666666666': '7+ years',
@@ -44,7 +44,7 @@ export function DemoCandidates() {
   const filteredCandidates = demoCandidates.filter(candidate =>
     candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (candidateSkills[candidate.id] || []).some(skill => 
+    (candidateSkills[candidate.id] || []).some((skill: string) => 
       skill.toLowerCase().includes(searchTerm.toLowerCase())
     )
   )

@@ -37,7 +37,8 @@ export function CandidateNotes({ jobCandidateId, candidateName, children }: Cand
       await createNoteMutation.mutateAsync({
         jobCandidateId,
         content: newNote.trim(),
-        authorId: user?.id || 'unknown-user' // Use actual user ID from auth
+        authorId: user?.id || 'unknown-user', // Use actual user ID from auth
+        orgId: user?.user_metadata?.currentOrgId || 'demo-org-fixed'
       })
       
       setNewNote('')
@@ -78,7 +79,7 @@ export function CandidateNotes({ jobCandidateId, candidateName, children }: Cand
                 <Loader2 className="w-6 h-6 animate-spin" />
               </div>
             ) : notes && notes.length > 0 ? (
-              notes.map((note) => (
+              notes.map((note: any) => (
                 <Card key={note.id} className="border-slate-200">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
