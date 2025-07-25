@@ -335,22 +335,7 @@ export default function Landing() {
               Professional ATS capabilities without the enterprise complexity or cost. Built specifically for growing businesses.
             </p>
             
-            <div className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 max-w-4xl mx-auto border border-blue-100">
-              <div className="grid md:grid-cols-3 gap-8 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-blue-600 mb-2">5 min</div>
-                  <div className="text-slate-600 font-medium">Average Setup Time</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-purple-600 mb-2">50%</div>
-                  <div className="text-slate-600 font-medium">Faster Hiring Process</div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-green-600 mb-2">$49</div>
-                  <div className="text-slate-600 font-medium">Per User Monthly</div>
-                </div>
-              </div>
-            </div>
+
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
