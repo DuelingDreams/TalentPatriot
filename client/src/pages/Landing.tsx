@@ -625,7 +625,7 @@ export default function Landing() {
                   <img 
                     src="/tp-logo.png" 
                     alt="TalentPatriot Logo" 
-                    className="w-10 h-10 object-contain filter invert"
+                    className="w-10 h-10 object-contain"
                   />
                 </div>
                 <h3 className="text-2xl font-bold">TalentPatriot</h3>

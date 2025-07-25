@@ -241,6 +241,7 @@ Preferred communication style: Simple, everyday language.
 - **ENHANCED VISUAL CONSISTENCY**: Improved design unity with consistent gradient backgrounds, card styling, and professional color scheme throughout landing page
 - **REMOVED PREMATURE STATISTICS SECTION**: Eliminated stats display showing "50% faster hiring" and other metrics since app hasn't launched to users yet
 - **CLEANED UP LANDING PAGE DESIGN**: Removed statistical claims that couldn't be backed up and focused on clear value propositions instead
+- **FIXED FOOTER LOGO COLOR**: Corrected footer TP logo to display in blue color matching header and sidebar styling instead of inverted red/orange color
 
 ## System Architecture
 
