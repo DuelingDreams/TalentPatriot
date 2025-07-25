@@ -85,9 +85,9 @@ export default function Landing() {
           </h1>
           
           <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            TalentPatriot is a clean, modern hiring platform for <span className="font-semibold text-slate-800">recruiters, 
-            BDs, and PMs</span> who want clarity — not clutter. Track jobs, 
-            candidates, and clients in one place, without the bloat of enterprise systems.
+            TalentPatriot is a clean, modern hiring platform for <span className="font-semibold text-slate-800">small and midsized 
+            businesses</span> who want clarity — not clutter. Perfect for hiring managers, recruiters, and admins 
+            who need powerful tools without enterprise complexity.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -213,7 +213,7 @@ export default function Landing() {
               </div>
               <h3 className="text-2xl font-bold text-slate-900 mb-4">Team Misalignment</h3>
               <p className="text-slate-700 text-lg leading-relaxed">
-                BDs, PMs, and Recruiters working in silos. Context gets lost in handoffs, candidates slip through cracks.
+                Hiring managers, recruiters, and admins working in silos. Context gets lost in handoffs, candidates slip through cracks.
               </p>
             </div>
           </div>
@@ -232,11 +232,86 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Grid */}
+      {/* Role-Based Features Section */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-white to-slate-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                Built for your team,
+              </span>
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                no matter your role
+              </span>
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              TalentPatriot adapts to how your team actually works. Each role gets the tools they need.
+            </p>
+          </div>
+
+          {/* Role Cards */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+            {[
+              {
+                role: 'Hiring Manager',
+                description: 'Oversee hiring for your team. Create jobs, review candidates, schedule interviews.',
+                titles: 'Team Lead, Director, Founder',
+                color: 'blue',
+                icon: Target
+              },
+              {
+                role: 'Recruiter',
+                description: 'Source and manage candidates, screen applicants, guide them through your pipeline.',
+                titles: 'Recruiter, Talent Partner, HR Coordinator',
+                color: 'purple',
+                icon: Users
+              },
+              {
+                role: 'Admin',
+                description: 'Organization owner. Manage users, billing, and access to all jobs and candidates.',
+                titles: 'Founder, COO, HR Manager',
+                color: 'green',
+                icon: Shield
+              },
+              {
+                role: 'Interviewer',
+                description: 'Review resumes, submit feedback, and help score candidates in your area.',
+                titles: 'Department Lead, Tech Lead, Peer Interviewer',
+                color: 'orange',
+                icon: FileText
+              }
+            ].map((roleCard, index) => {
+              const bgColors = {
+                blue: 'bg-blue-50 border-blue-200',
+                purple: 'bg-purple-50 border-purple-200',
+                green: 'bg-green-50 border-green-200',
+                orange: 'bg-orange-50 border-orange-200'
+              };
+              const iconColors = {
+                blue: 'text-blue-600',
+                purple: 'text-purple-600',
+                green: 'text-green-600',
+                orange: 'text-orange-600'
+              };
+              
+              return (
+                <Card key={index} className={`group hover:shadow-xl transition-all duration-300 border-2 ${bgColors[roleCard.color as keyof typeof bgColors]} bg-white/60 backdrop-blur`}>
+                  <CardContent className="p-6">
+                    <div className="mb-4">
+                      <roleCard.icon className={`w-8 h-8 ${iconColors[roleCard.color as keyof typeof iconColors]} mb-3`} />
+                      <h3 className="text-xl font-bold text-slate-900 mb-2">{roleCard.role}</h3>
+                      <p className="text-sm text-slate-600 font-medium mb-3">{roleCard.titles}</p>
+                    </div>
+                    <p className="text-slate-700 text-sm leading-relaxed">{roleCard.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          <div className="text-center mb-16">
+            <h3 className="text-3xl font-bold mb-6">
               <span className="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
                 Everything you need,
               </span>
@@ -244,7 +319,7 @@ export default function Landing() {
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 nothing you don't
               </span>
-            </h2>
+            </h3>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto">
               Designed to eliminate friction, not add complexity. Every feature serves a purpose.
             </p>
@@ -266,7 +341,7 @@ export default function Landing() {
               {
                 icon: Users,
                 title: 'Unified Team Workspace',
-                description: 'Recruiters, BDs, and PMs working from the same source of truth',
+                description: 'Hiring managers, recruiters, and admins working from the same source of truth',
                 color: 'purple'
               },
               {
@@ -367,7 +442,7 @@ export default function Landing() {
               {
                 step: '03',
                 title: 'Team Collaboration',
-                description: 'Real-time updates, notes, and handoffs between recruiters, BDs, and PMs',
+                description: 'Real-time updates, notes, and handoffs between hiring managers, recruiters, and admins',
                 icon: Users,
                 color: 'green'
               }
@@ -429,7 +504,7 @@ export default function Landing() {
           </h2>
           
           <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
-            Built for small to mid-sized teams who want to focus on hiring, not wrestling with software.
+            Built for small and midsized businesses who want to focus on hiring, not wrestling with software. Perfect for teams of 5-500 employees.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
