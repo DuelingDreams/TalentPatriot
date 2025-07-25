@@ -59,6 +59,26 @@ app.use(speedLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Add performance optimizations and cache control headers
+app.use((req, res, next) => {
+  // Performance optimizations
+  if (req.method === 'GET') {
+    // Cache GET requests for API endpoints
+    if (req.path.startsWith('/api/')) {
+      res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); // 5 minutes
+    }
+    // Cache static assets for longer
+    if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); // 1 year
+    }
+  }
+  
+  // Enable GZIP compression hints
+  res.setHeader('Vary', 'Accept-Encoding');
+  
+  next();
+});
+
 // Add cache control headers
 // Security headers to establish legitimacy and prevent security warnings
 app.use((req, res, next) => {
