@@ -51,16 +51,18 @@ export function UserProfile() {
 
   const getRoleLabel = (role: string | null) => {
     switch (role) {
+      case 'hiring_manager':
+        return 'Hiring Manager'
       case 'recruiter':
         return 'Recruiter'
-      case 'bd':
-        return 'Business Dev'
-      case 'pm':
-        return 'Project Manager'
+      case 'admin':
+        return 'Admin'
+      case 'interviewer':
+        return 'Interviewer'
       case 'demo_viewer':
         return 'Demo Viewer'
       default:
-        return 'Unknown'
+        return 'User'
     }
   }
 
