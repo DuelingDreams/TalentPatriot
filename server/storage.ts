@@ -651,7 +651,12 @@ export class MemStorage implements IStorage {
     return this.messages.get(id);
   }
 
-  async getMessages(): Promise<Message[]> {
+  async getMessages(userId?: string): Promise<Message[]> {
+    if (userId) {
+      return Array.from(this.messages.values()).filter(message => 
+        message.senderId === userId || message.recipientId === userId
+      );
+    }
     return Array.from(this.messages.values());
   }
 
@@ -659,9 +664,11 @@ export class MemStorage implements IStorage {
     return Array.from(this.messages.values()).filter(message => message.threadId === threadId);
   }
 
-  async getMessagesByContext(contextType: string, contextId: string): Promise<Message[]> {
+  async getMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string }): Promise<Message[]> {
     return Array.from(this.messages.values()).filter(message => 
-      message.contextType === contextType && message.contextId === contextId
+      (params.clientId && message.contextId === params.clientId && message.contextType === 'client') ||
+      (params.jobId && message.contextId === params.jobId && message.contextType === 'job') ||
+      (params.candidateId && message.contextId === params.candidateId && message.contextType === 'candidate')
     );
   }
 
@@ -705,6 +712,53 @@ export class MemStorage implements IStorage {
       throw new Error(`Message with id ${id} not found`);
     }
     this.messages.delete(id);
+  }
+
+  async markMessageAsRead(messageId: string, userId: string): Promise<void> {
+    const message = this.messages.get(messageId);
+    if (message && message.recipientId === userId) {
+      const updatedMessage: Message = {
+        ...message,
+        isRead: true,
+        updatedAt: new Date()
+      };
+      this.messages.set(messageId, updatedMessage);
+    }
+  }
+
+  async archiveMessage(messageId: string): Promise<void> {
+    const message = this.messages.get(messageId);
+    if (message) {
+      const updatedMessage: Message = {
+        ...message,
+        status: 'archived',
+        updatedAt: new Date()
+      };
+      this.messages.set(messageId, updatedMessage);
+    }
+  }
+
+  async addMessageRecipients(messageId: string, recipientIds: string[]): Promise<MessageRecipient[]> {
+    // For in-memory storage, we'll simulate message recipients
+    const recipients: MessageRecipient[] = [];
+    recipientIds.forEach(userId => {
+      const recipient: MessageRecipient = {
+        id: crypto.randomUUID(),
+        messageId,
+        userId,
+        isRead: false,
+        readAt: null,
+        createdAt: new Date()
+      };
+      recipients.push(recipient);
+    });
+    return recipients;
+  }
+
+  async getUnreadMessageCount(userId: string): Promise<number> {
+    return Array.from(this.messages.values()).filter(message => 
+      message.recipientId === userId && !message.isRead
+    ).length;
   }
 }
 

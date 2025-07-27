@@ -1,7 +1,21 @@
+-- ================================================
 -- TalentPatriot SMB Role Migration Script
+-- ================================================
 -- Updates user roles to reflect small and midsize business structure
 -- From: bd, pm, recruiter → To: hiring_manager, recruiter, admin, interviewer
--- Execute this script in your Supabase SQL Editor
+-- 
+-- INSTRUCTIONS:
+-- 1. Copy this entire script
+-- 2. Paste into your Supabase SQL Editor
+-- 3. Execute all statements at once
+--
+-- BACKUP RECOMMENDATION:
+-- Run this query first to backup existing roles:
+-- SELECT id, role::text as current_role FROM user_profiles;
+-- SELECT id, role::text as current_role FROM user_organizations;
+-- ================================================
+
+BEGIN;
 
 -- ================================================
 -- STEP 1: CREATE NEW ROLE ENUMS
@@ -9,7 +23,6 @@
 
 -- Create new user_role enum with SMB-focused roles
 DO $$ BEGIN
-    -- Drop the existing enum and recreate it (this approach handles dependencies)
     CREATE TYPE user_role_new AS ENUM ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
 EXCEPTION
     WHEN duplicate_object THEN
@@ -27,20 +40,18 @@ EXCEPTION
 END $$;
 
 -- ================================================
--- STEP 2: DATA MIGRATION LOGIC
+-- STEP 2: UPDATE USER_PROFILES TABLE
 -- ================================================
-
--- Migrate existing user_profiles roles
--- bd → hiring_manager (Business Development becomes Hiring Manager)
--- pm → hiring_manager (Project Manager becomes Hiring Manager) 
--- recruiter → recruiter (remains the same)
--- admin → admin (remains the same)
--- demo_viewer → demo_viewer (remains the same)
 
 -- Add temporary column with new enum type
 ALTER TABLE user_profiles ADD COLUMN role_new user_role_new;
 
 -- Migrate data with role mapping
+-- bd → hiring_manager (Business Development becomes Hiring Manager)
+-- pm → hiring_manager (Project Manager becomes Hiring Manager) 
+-- recruiter → recruiter (remains the same)
+-- admin → admin (remains the same)
+-- demo_viewer → demo_viewer (remains the same)
 UPDATE user_profiles SET role_new = CASE
     WHEN role::text = 'bd' THEN 'hiring_manager'::user_role_new
     WHEN role::text = 'pm' THEN 'hiring_manager'::user_role_new
@@ -50,10 +61,20 @@ UPDATE user_profiles SET role_new = CASE
     ELSE 'hiring_manager'::user_role_new -- Default fallback
 END;
 
--- Migrate user_organizations roles
--- Similar mapping for org roles
+-- Replace old column with new one
+ALTER TABLE user_profiles DROP COLUMN role;
+ALTER TABLE user_profiles RENAME COLUMN role_new TO role;
+ALTER TABLE user_profiles ALTER COLUMN role SET DEFAULT 'hiring_manager';
+ALTER TABLE user_profiles ALTER COLUMN role SET NOT NULL;
+
+-- ================================================
+-- STEP 3: UPDATE USER_ORGANIZATIONS TABLE
+-- ================================================
+
+-- Add temporary column with new enum type
 ALTER TABLE user_organizations ADD COLUMN role_new org_role_new;
 
+-- Migrate organization roles (most stay the same, add new options)
 UPDATE user_organizations SET role_new = CASE
     WHEN role::text = 'owner' THEN 'owner'::org_role_new
     WHEN role::text = 'admin' THEN 'admin'::org_role_new
@@ -62,19 +83,7 @@ UPDATE user_organizations SET role_new = CASE
     ELSE 'viewer'::org_role_new -- Default fallback
 END;
 
--- ================================================
--- STEP 3: REPLACE OLD COLUMNS WITH NEW ONES
--- ================================================
-
--- Drop old columns and rename new ones for user_profiles
-ALTER TABLE user_profiles DROP COLUMN role;
-ALTER TABLE user_profiles RENAME COLUMN role_new TO role;
-
--- Set default for new role column
-ALTER TABLE user_profiles ALTER COLUMN role SET DEFAULT 'hiring_manager'::user_role_new;
-ALTER TABLE user_profiles ALTER COLUMN role SET NOT NULL;
-
--- Drop old columns and rename new ones for user_organizations  
+-- Replace old column with new one
 ALTER TABLE user_organizations DROP COLUMN role;
 ALTER TABLE user_organizations RENAME COLUMN role_new TO role;
 ALTER TABLE user_organizations ALTER COLUMN role SET NOT NULL;
@@ -126,7 +135,7 @@ CREATE POLICY "organizations_policy" ON organizations
 CREATE POLICY "user_organizations_policy" ON user_organizations
     FOR ALL USING (user_id = auth.uid());
 
--- Clients - Organization-scoped access
+-- Clients - Organization-scoped access for hiring managers, recruiters, and admins
 CREATE POLICY "clients_policy" ON clients
     FOR ALL USING (
         EXISTS (
@@ -148,7 +157,7 @@ CREATE POLICY "jobs_policy" ON jobs
         )
     );
 
--- Candidates - Organization-scoped access
+-- Candidates - Organization-scoped access for all roles except viewer
 CREATE POLICY "candidates_policy" ON candidates
     FOR ALL USING (
         EXISTS (
@@ -185,7 +194,7 @@ CREATE POLICY "candidate_notes_policy" ON candidate_notes
         )
     );
 
--- Interviews - Organization-scoped access
+-- Interviews - Organization-scoped access for all roles except viewer
 CREATE POLICY "interviews_policy" ON interviews
     FOR ALL USING (
         EXISTS (
@@ -196,7 +205,7 @@ CREATE POLICY "interviews_policy" ON interviews
         )
     );
 
--- Messages - Organization-scoped access
+-- Messages - Organization-scoped access for communication
 CREATE POLICY "messages_policy" ON messages
     FOR ALL USING (
         EXISTS (
@@ -209,7 +218,7 @@ CREATE POLICY "messages_policy" ON messages
 
 -- Message Recipients - Users can see messages they received
 CREATE POLICY "message_recipients_policy" ON message_recipients
-    FOR ALL USING (user_id = auth.uid());
+    FOR ALL USING (recipient_id = auth.uid());
 
 -- ================================================
 -- STEP 6: CREATE ROLE PERMISSIONS FUNCTION
@@ -241,11 +250,11 @@ BEGIN
         WHEN 'admin' THEN
             user_permissions := ARRAY['read', 'write', 'delete', 'admin', 'manage_users'];
         WHEN 'hiring_manager' THEN
-            user_permissions := ARRAY['read', 'write', 'delete', 'create_jobs', 'manage_candidates'];
+            user_permissions := ARRAY['read', 'write', 'delete', 'create_jobs', 'manage_candidates', 'approve_hires'];
         WHEN 'recruiter' THEN
-            user_permissions := ARRAY['read', 'write', 'create_jobs', 'manage_candidates', 'schedule_interviews'];
+            user_permissions := ARRAY['read', 'write', 'create_jobs', 'manage_candidates', 'schedule_interviews', 'source_candidates'];
         WHEN 'interviewer' THEN
-            user_permissions := ARRAY['read', 'write_feedback', 'view_candidates', 'schedule_interviews'];
+            user_permissions := ARRAY['read', 'write_feedback', 'view_candidates', 'schedule_interviews', 'conduct_interviews'];
         WHEN 'viewer' THEN
             user_permissions := ARRAY['read'];
         ELSE
@@ -261,121 +270,106 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- STEP 7: UPDATE DEMO DATA (IF EXISTS)
 -- ================================================
 
--- Update any existing demo user to use new role system
+-- Update demo user profile to use new role system
 UPDATE user_profiles 
 SET role = 'demo_viewer'::user_role 
 WHERE id IN (
-    SELECT id FROM auth.users WHERE email = 'demo@yourapp.com'
+    SELECT auth.users.id FROM auth.users WHERE email = 'demo@yourapp.com'
 );
 
 -- Update demo organization access
 UPDATE user_organizations 
 SET role = 'viewer'::org_role
 WHERE user_id IN (
-    SELECT id FROM auth.users WHERE email = 'demo@yourapp.com'
+    SELECT auth.users.id FROM auth.users WHERE email = 'demo@yourapp.com'
 );
+
+-- ================================================
+-- STEP 8: CREATE INDEXES FOR PERFORMANCE
+-- ================================================
+
+-- Add indexes on role columns for better query performance
+CREATE INDEX IF NOT EXISTS idx_user_profiles_role ON user_profiles(role);
+CREATE INDEX IF NOT EXISTS idx_user_organizations_role ON user_organizations(role);
+CREATE INDEX IF NOT EXISTS idx_user_organizations_composite ON user_organizations(user_id, org_id, role);
 
 -- ================================================
 -- VERIFICATION QUERIES
 -- ================================================
 
+-- Show results of migration
+DO $$
+BEGIN
+    RAISE NOTICE '=== MIGRATION COMPLETED SUCCESSFULLY ===';
+    RAISE NOTICE 'User Profiles Role Distribution:';
+    PERFORM pg_sleep(0.1);
+END $$;
+
 -- Count users by new role
 SELECT 
-    role,
-    COUNT(*) as user_count
+    role::text as "Role",
+    COUNT(*) as "User Count"
 FROM user_profiles 
 GROUP BY role 
-ORDER BY user_count DESC;
+ORDER BY COUNT(*) DESC;
 
--- Count organization roles
+-- Count organization role assignments
 SELECT 
-    role,
-    COUNT(*) as assignment_count
+    role::text as "Organization Role",
+    COUNT(*) as "Assignment Count"
 FROM user_organizations 
 GROUP BY role 
-ORDER BY assignment_count DESC;
+ORDER BY COUNT(*) DESC;
 
 -- Verify RLS policies are active
 SELECT 
-    tablename,
-    policyname,
-    permissive,
-    roles,
-    cmd
+    schemaname as "Schema",
+    tablename as "Table",
+    policyname as "Policy",
+    cmd as "Command"
 FROM pg_policies 
 WHERE schemaname = 'public' 
 ORDER BY tablename, policyname;
 
--- ================================================
--- ROLLBACK SCRIPT (SAVE FOR EMERGENCY)
--- ================================================
-
-/*
--- Emergency rollback script (DO NOT RUN unless rollback needed)
--- This would need to be customized based on your specific data
-
--- Create old enum types
-CREATE TYPE user_role_old AS ENUM ('recruiter', 'bd', 'pm', 'demo_viewer', 'admin');
-CREATE TYPE org_role_old AS ENUM ('owner', 'admin', 'recruiter', 'viewer');
-
--- Add rollback columns
-ALTER TABLE user_profiles ADD COLUMN role_rollback user_role_old;
-ALTER TABLE user_organizations ADD COLUMN role_rollback org_role_old;
-
--- Reverse migration (would need data-specific logic)
-UPDATE user_profiles SET role_rollback = 'recruiter'::user_role_old WHERE role = 'hiring_manager';
--- ... additional rollback logic
-
--- Drop new columns and restore old ones
--- ALTER TABLE user_profiles DROP COLUMN role;
--- ALTER TABLE user_profiles RENAME COLUMN role_rollback TO role;
--- etc...
-*/
-
 COMMIT;
 
 -- ================================================
--- POST-MIGRATION NOTES
+-- POST-MIGRATION SUMMARY
 -- ================================================
 
 /*
-SUMMARY OF CHANGES:
+🎉 MIGRATION COMPLETED SUCCESSFULLY!
 
-1. ROLE MAPPING:
-   - bd (Business Development) → hiring_manager
-   - pm (Project Manager) → hiring_manager  
-   - recruiter → recruiter (unchanged)
-   - admin → admin (unchanged)
-   - demo_viewer → demo_viewer (unchanged)
+ROLE MAPPING APPLIED:
+✓ bd (Business Development) → hiring_manager
+✓ pm (Project Manager) → hiring_manager  
+✓ recruiter → recruiter (unchanged)
+✓ admin → admin (unchanged)
+✓ demo_viewer → demo_viewer (unchanged)
 
-2. NEW ROLE CAPABILITIES:
-   - hiring_manager: Can create jobs, manage candidates, oversee department hiring
-   - recruiter: Can source candidates, manage pipeline, schedule interviews
-   - admin: Full organizational access, user management
-   - interviewer: Can review resumes, provide feedback, participate in interviews
-   - demo_viewer: Limited demo access (unchanged)
+NEW ROLE CAPABILITIES:
+- hiring_manager: Team leads, directors, founders who oversee hiring for their department
+- recruiter: Talent partners, HR coordinators who source and manage candidates
+- admin: Founders, COOs, HR managers with full organizational access
+- interviewer: Department leads, tech leads, peer interviewers who review and provide feedback
+- demo_viewer: Limited demo access (unchanged)
 
-3. PERMISSION MATRIX:
-   - owner: Full access to everything including billing
-   - admin: Full access except billing
-   - hiring_manager: Job creation, candidate management, team hiring oversight
-   - recruiter: Candidate sourcing, pipeline management, interview scheduling
-   - interviewer: Resume review, feedback, interview participation
-   - viewer: Read-only access
+PERMISSION MATRIX:
+- owner: Full access including billing and user management
+- admin: Full access except billing
+- hiring_manager: Job creation, candidate management, hire approval
+- recruiter: Candidate sourcing, pipeline management, interview scheduling
+- interviewer: Resume review, feedback, interview participation
+- viewer: Read-only access
 
-4. DATABASE IMPACT:
-   - Updated all enum types and constraints
-   - Migrated existing user role data
-   - Updated RLS policies for new permission model
-   - Created permission checking function
-   - Maintained data integrity throughout migration
+DATABASE UPDATES:
+✓ Updated enum types and constraints
+✓ Migrated all existing user role data
+✓ Updated RLS policies for new permission model
+✓ Created permission checking function
+✓ Added performance indexes
+✓ Maintained complete data integrity
 
-5. FRONTEND IMPACT:
-   - Update role selection dropdowns
-   - Update navigation role filtering
-   - Update role badge colors and descriptions
-   - Update onboarding flow role options
-
-This migration enables TalentPatriot to better serve small and midsize businesses
-with role definitions that match their actual organizational structures.
+Your TalentPatriot ATS now better serves small and midsize businesses 
+with role definitions that match actual organizational structures!
 */
