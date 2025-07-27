@@ -61,8 +61,8 @@ UPDATE user_profiles SET role_new = CASE
     ELSE 'hiring_manager'::user_role_new -- Default fallback
 END;
 
--- Replace old column with new one
-ALTER TABLE user_profiles DROP COLUMN role;
+-- Replace old column with new one (use CASCADE to drop dependent objects)
+ALTER TABLE user_profiles DROP COLUMN role CASCADE;
 ALTER TABLE user_profiles RENAME COLUMN role_new TO role;
 ALTER TABLE user_profiles ALTER COLUMN role SET DEFAULT 'hiring_manager';
 ALTER TABLE user_profiles ALTER COLUMN role SET NOT NULL;
@@ -83,8 +83,8 @@ UPDATE user_organizations SET role_new = CASE
     ELSE 'viewer'::org_role_new -- Default fallback
 END;
 
--- Replace old column with new one
-ALTER TABLE user_organizations DROP COLUMN role;
+-- Replace old column with new one (use CASCADE to drop dependent objects)
+ALTER TABLE user_organizations DROP COLUMN role CASCADE;
 ALTER TABLE user_organizations RENAME COLUMN role_new TO role;
 ALTER TABLE user_organizations ALTER COLUMN role SET NOT NULL;
 
@@ -100,23 +100,54 @@ ALTER TYPE user_role_new RENAME TO user_role;
 ALTER TYPE org_role_new RENAME TO org_role;
 
 -- ================================================
--- STEP 5: UPDATE RLS POLICIES
+-- STEP 5: DROP ALL EXISTING RLS POLICIES
 -- ================================================
 
--- Drop existing RLS policies that reference old roles
+-- Drop all existing RLS policies that might depend on role columns
+-- This includes both the policies we expect and any additional ones
 DROP POLICY IF EXISTS "user_profiles_policy" ON user_profiles;
 DROP POLICY IF EXISTS "organizations_policy" ON organizations;
+DROP POLICY IF EXISTS "organizations_secure_write" ON organizations;
+DROP POLICY IF EXISTS "organizations_secure_access" ON organizations;
 DROP POLICY IF EXISTS "user_organizations_policy" ON user_organizations;
+DROP POLICY IF EXISTS "user_organizations_secure_access" ON user_organizations;
+DROP POLICY IF EXISTS "user_organizations_secure_write" ON user_organizations;
 DROP POLICY IF EXISTS "clients_policy" ON clients;
+DROP POLICY IF EXISTS "clients_secure_access" ON clients;
 DROP POLICY IF EXISTS "jobs_policy" ON jobs;
+DROP POLICY IF EXISTS "jobs_secure_access" ON jobs;
 DROP POLICY IF EXISTS "candidates_policy" ON candidates;
+DROP POLICY IF EXISTS "candidates_secure_access" ON candidates;
 DROP POLICY IF EXISTS "job_candidate_policy" ON job_candidate;
+DROP POLICY IF EXISTS "job_candidate_secure_access" ON job_candidate;
 DROP POLICY IF EXISTS "candidate_notes_policy" ON candidate_notes;
+DROP POLICY IF EXISTS "candidate_notes_secure_access" ON candidate_notes;
 DROP POLICY IF EXISTS "interviews_policy" ON interviews;
+DROP POLICY IF EXISTS "interviews_secure_access" ON interviews;
 DROP POLICY IF EXISTS "messages_policy" ON messages;
+DROP POLICY IF EXISTS "messages_secure_access" ON messages;
 DROP POLICY IF EXISTS "message_recipients_policy" ON message_recipients;
+DROP POLICY IF EXISTS "message_recipients_secure_access" ON message_recipients;
 
--- Recreate RLS policies with new role system
+-- Drop any additional policies that might exist
+DO $$
+DECLARE
+    pol_record RECORD;
+BEGIN
+    -- Drop all policies on tables that might reference role columns
+    FOR pol_record IN 
+        SELECT schemaname, tablename, policyname 
+        FROM pg_policies 
+        WHERE schemaname = 'public' 
+        AND tablename IN ('user_profiles', 'organizations', 'user_organizations', 'clients', 'jobs', 'candidates', 'job_candidate', 'candidate_notes', 'interviews', 'messages', 'message_recipients')
+    LOOP
+        EXECUTE format('DROP POLICY IF EXISTS %I ON %I.%I', pol_record.policyname, pol_record.schemaname, pol_record.tablename);
+    END LOOP;
+END $$;
+
+-- ================================================
+-- STEP 6: RECREATE RLS POLICIES WITH NEW ROLE SYSTEM
+-- ================================================
 -- User Profiles - Users can only see their own profile
 CREATE POLICY "user_profiles_policy" ON user_profiles
     FOR ALL USING (auth.uid() = id);
@@ -221,7 +252,7 @@ CREATE POLICY "message_recipients_policy" ON message_recipients
     FOR ALL USING (recipient_id = auth.uid());
 
 -- ================================================
--- STEP 6: CREATE ROLE PERMISSIONS FUNCTION
+-- STEP 7: CREATE ROLE PERMISSIONS FUNCTION
 -- ================================================
 
 -- Create a function to check user permissions based on new role system
@@ -267,7 +298,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ================================================
--- STEP 7: UPDATE DEMO DATA (IF EXISTS)
+-- STEP 8: UPDATE DEMO DATA (IF EXISTS)
 -- ================================================
 
 -- Update demo user profile to use new role system
@@ -285,7 +316,7 @@ WHERE user_id IN (
 );
 
 -- ================================================
--- STEP 8: CREATE INDEXES FOR PERFORMANCE
+-- STEP 9: CREATE INDEXES FOR PERFORMANCE
 -- ================================================
 
 -- Add indexes on role columns for better query performance
