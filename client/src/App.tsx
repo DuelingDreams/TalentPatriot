@@ -28,6 +28,7 @@ const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
 const OnboardingStep2 = lazy(() => import("@/pages/OnboardingStep2"));
 const OnboardingStep3 = lazy(() => import("@/pages/OnboardingStep3"));
+const OnboardingStep5 = lazy(() => import("@/pages/OnboardingStep5"));
 const OnboardingChecklist = lazy(() => import("@/pages/OnboardingChecklist"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 const Landing = lazy(() => import("@/pages/Landing"));
@@ -42,6 +43,7 @@ function Router() {
         <Route path="/signup" component={Signup} />
         <Route path="/onboarding/step2" component={OnboardingStep2} />
         <Route path="/onboarding/step3" component={OnboardingStep3} />
+        <Route path="/onboarding/step5" component={OnboardingStep5} />
         <Route path="/onboarding/checklist" component={OnboardingChecklist} />
         <Route path="/unauthorized" component={Unauthorized} />
         

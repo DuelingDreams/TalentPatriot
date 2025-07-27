@@ -96,26 +96,8 @@ export default function OnboardingStep3() {
         description: `Let's get started with ${selectedOption.title.toLowerCase()}.`,
       })
 
-      // Redirect based on selected goal with onboarding context
-      switch (selectedOption.action) {
-        case 'create-job':
-          // Redirect to jobs page with guided job creation
-          setLocation('/jobs?onboarding=true&action=create-guided')
-          break
-        case 'import-candidates':
-          // Redirect to candidates page with guided import
-          setLocation('/candidates?onboarding=true&action=import-guided')
-          break
-        case 'invite-team':
-          // Redirect to onboarding checklist with team focus
-          setLocation('/onboarding/checklist?focus=team')
-          break
-        case 'explore':
-        default:
-          // Redirect to onboarding checklist for general exploration
-          setLocation('/onboarding/checklist?focus=explore')
-          break
-      }
+      // Redirect to Step 5 success screen with selected goal
+      setLocation(`/onboarding/step5?goal=${selectedOption.action}`)
     } catch (error) {
       console.warn('Failed to complete onboarding:', error)
       // Still redirect to dashboard even if API call fails
@@ -211,7 +193,7 @@ export default function OnboardingStep3() {
             
             <div className="mt-6 text-center">
               <p className="text-xs text-slate-500 leading-relaxed">
-                Step 3 of 3 • You can always change this later in your dashboard
+                Step 3 of 5 • You can always change this later in your dashboard
               </p>
             </div>
           </CardContent>
