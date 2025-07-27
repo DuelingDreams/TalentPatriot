@@ -36,8 +36,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Set initial loading state
         setLoading(true)
         
-        // Get session with timeout to prevent hanging
-        const sessionPromise = supabase.auth.getSession()
+        // Get session with timeout and DOM exception handling
+        const sessionPromise = supabase.auth.getSession().catch((err) => {
+          if (err instanceof DOMException) {
+            console.warn('DOM exception in getSession:', err.name)
+            return { data: { session: null }, error: null }
+          }
+          throw err
+        })
+        
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('Session timeout')), 5000)
         )
@@ -69,9 +76,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
             setCurrentOrgIdState(demoOrgId)
             try {
-              sessionStorage.setItem('currentOrgId', demoOrgId)
+              if (typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('currentOrgId', demoOrgId)
+              }
             } catch (e) {
-              // Ignore localStorage errors
+              // Ignore all storage errors including DOMException
+              console.warn('SessionStorage error:', e)
             }
           } else {
             // For regular users without session data, just set defaults
@@ -112,41 +122,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (!mounted) return
-        
-        try {
-          setSession(session)
-          setUser(session?.user ?? null)
+        // Wrap everything in Promise.resolve to catch any sync errors as well
+        Promise.resolve().then(async () => {
+          if (!mounted) return
           
-          if (session?.user) {
-            // Special handling for demo user
-            if (session.user.email === 'demo@yourapp.com') {
-              setUserRole('demo_viewer')
-              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
-              setCurrentOrgIdState(demoOrgId)
-              try {
-                sessionStorage.setItem('currentOrgId', demoOrgId)
-              } catch (e) {
-                // Ignore localStorage errors
+          try {
+            setSession(session)
+            setUser(session?.user ?? null)
+            
+            if (session?.user) {
+              // Special handling for demo user
+              if (session.user.email === 'demo@yourapp.com') {
+                setUserRole('demo_viewer')
+                const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+                setCurrentOrgIdState(demoOrgId)
+                try {
+                  if (typeof sessionStorage !== 'undefined') {
+                    sessionStorage.setItem('currentOrgId', demoOrgId)
+                  }
+                } catch (e) {
+                  // Ignore all storage errors including DOMException
+                  console.warn('SessionStorage error:', e)
+                }
+              } else {
+                setUserRole('recruiter')
+                setCurrentOrgIdState(null)
               }
             } else {
-              setUserRole('recruiter')
+              setUserRole(null)
               setCurrentOrgIdState(null)
             }
-          } else {
-            setUserRole(null)
-            setCurrentOrgIdState(null)
+            
+            if (mounted) {
+              setLoading(false)
+            }
+          } catch (error) {
+            console.warn('Error in auth state change:', error)
+            if (mounted) {
+              setLoading(false)
+            }
           }
-          
+        }).catch((error) => {
+          // Catch any promise rejections
+          console.warn('Unhandled error in auth state change:', error)
           if (mounted) {
             setLoading(false)
           }
-        } catch (error) {
-          console.warn('Error in auth state change:', error)
-          if (mounted) {
-            setLoading(false)
-          }
-        }
+        })
       })
       
       subscription = data.subscription
@@ -179,8 +201,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       // Handle DOM exceptions and network errors gracefully
       if (error instanceof DOMException) {
-        console.warn('DOM exception during sign in:', error.name)
+        console.warn('DOM exception during sign in:', error.name, error.message)
         return { error: { message: 'Connection error. Please try again.' } }
+      }
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.warn('Network error during sign in:', error.message)
+        return { error: { message: 'Network error. Please check your connection.' } }
       }
       console.warn('Sign in error:', error)
       return { error }
@@ -280,9 +306,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null)
         setUserRole(null)
         setCurrentOrgIdState(null)
+        
+        // Clear storage safely
+        try {
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem('currentOrgId')
+          }
+        } catch (e) {
+          console.warn('SessionStorage clear error:', e)
+        }
       }
     } catch (error) {
-      console.warn('Sign out error:', error)
+      // Handle DOM exceptions during sign out
+      if (error instanceof DOMException) {
+        console.warn('DOM exception during sign out:', error.name, error.message)
+      } else {
+        console.warn('Sign out error:', error)
+      }
+      
       // Still clear the local state even if signOut fails
       setUser(null)
       setSession(null)

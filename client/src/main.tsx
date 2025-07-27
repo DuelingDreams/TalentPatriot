@@ -1,7 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-
-// Remove global error handlers in development to avoid conflicts with Vite HMR
+import "./utils/errorHandling"; // Global error handling for DOM exceptions
 
 createRoot(document.getElementById("root")!).render(<App />);
