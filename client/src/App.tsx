@@ -26,6 +26,7 @@ const Calendar = lazy(() => import("@/pages/Calendar"));
 const Messages = lazy(() => import("@/pages/Messages"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
+const OnboardingStep2 = lazy(() => import("@/pages/OnboardingStep2"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 const Landing = lazy(() => import("@/pages/Landing"));
 
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={Signup} />
+        <Route path="/onboarding/step2" component={OnboardingStep2} />
         <Route path="/unauthorized" component={Unauthorized} />
         
         {/* Protected routes */}

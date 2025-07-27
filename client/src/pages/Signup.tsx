@@ -97,11 +97,11 @@ export default function Signup() {
         }
       } else {
         toast({
-          title: "Welcome to TalentPatriot!",
-          description: "Your account has been created successfully.",
+          title: "Account created successfully!",
+          description: "Let's set up your organization next.",
         })
-        // Redirect to dashboard for immediate activation
-        setLocation('/dashboard')
+        // Redirect to Step 2 of onboarding
+        setLocation('/onboarding/step2')
       }
     } catch (err) {
       setError('Network error. Please check your connection and try again.')
