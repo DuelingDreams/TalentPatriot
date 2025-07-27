@@ -153,9 +153,19 @@ export function useUpdateCandidateStage() {
         method: 'PUT',
         body: JSON.stringify({ stage }),
       }),
-    onSuccess: () => {
+    onSuccess: (updatedCandidate, variables) => {
+      // Invalidate all related queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ['/api/job-candidates'] })
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] })
+      
+      // Invalidate specific job candidates queries with all possible patterns
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const key = query.queryKey
+          return (key[0] === '/api/jobs' && key.includes('candidates')) ||
+                 (key[0] === '/api/job-candidates')
+        }
+      })
     },
   })
 }

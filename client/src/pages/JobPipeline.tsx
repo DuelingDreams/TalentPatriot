@@ -340,17 +340,31 @@ export default function JobPipeline() {
     const candidate = jobCandidates?.find(c => c.id === candidateId)
     if (!candidate || candidate.stage === newStage) return
 
+    // Optimistically update the UI immediately
+    const optimisticUpdate = jobCandidates?.map(c => 
+      c.id === candidateId ? { ...c, stage: newStage, updated_at: new Date().toISOString() } : c
+    )
+
     try {
+      // Show immediate success feedback
+      toast({
+        title: "Stage Updated",
+        description: `Moving ${candidate.candidates?.name || 'candidate'} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}...`,
+      })
+
+      // Update the backend
       await updateCandidateStage.mutateAsync({
         id: candidateId,
         stage: newStage
       })
 
+      // Show final success message
       toast({
-        title: "Stage Updated",
-        description: `Moved ${candidate.candidates?.name || 'candidate'} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`,
+        title: "Success",
+        description: `${candidate.candidates?.name || 'Candidate'} moved to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`,
       })
     } catch (error) {
+      console.error('Failed to update candidate stage:', error)
       toast({
         title: "Update Failed",
         description: "Failed to update candidate stage. Please try again.",
