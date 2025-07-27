@@ -257,6 +257,10 @@ Preferred communication style: Simple, everyday language.
 - **VALIDATED FEATURE COMPLETENESS**: All 13 pages functional, demo mode working, authentication system operational, and multi-tenant architecture stable
 
 **July 27, 2025**:
+- **UPDATED USER ROLES FOR SMB FOCUS**: Changed user roles from bd/pm/recruiter to hiring_manager/recruiter/admin/interviewer to better reflect small and midsize business structures
+- **CREATED COMPREHENSIVE ROLE MIGRATION SCRIPT**: Built complete SQL migration script handling role transitions, RLS policy updates, and permission system changes
+- **ENHANCED ROLE DESCRIPTIONS**: Updated role descriptions with common titles - Hiring Manager (Team Lead, Director, Founder), Recruiter (Talent Partner, HR Coordinator), Admin (Founder, COO, HR Manager), Interviewer (Department Lead, Tech Lead, Peer Interviewer)
+- **UPDATED FRONTEND ROLE HANDLING**: Modified UserProfile, Sidebar navigation, and onboarding components to use new SMB-focused role system
 - **REDESIGNED LANDING PAGE WITH 7-SECTION LAYOUT**: Completely rebuilt landing page with modern, clean structure: Hero, Who It's For, Feature Highlights, Screenshot Gallery, Pricing Teaser, Final CTA, and Footer
 - **IMPLEMENTED TALENTPATRIOT STYLE GUIDE**: Applied comprehensive design system with Navy (#1F3A5F), Soft Blue (#3E6B89), Light Gray (#F9FAFB), and professional typography throughout
 - **UPDATED CSS COLOR PALETTE**: Created custom TalentPatriot CSS variables and utility classes for consistent brand colors across the application

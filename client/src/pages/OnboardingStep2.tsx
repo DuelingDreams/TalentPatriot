@@ -20,10 +20,10 @@ const companySizeOptions = [
 ]
 
 const roleOptions = [
-  { value: 'recruiter', label: 'Recruiter', description: 'Responsible for sourcing and screening candidates' },
-  { value: 'founder', label: 'Founder', description: 'Company founder or co-founder' },
-  { value: 'hiring_manager', label: 'Hiring Manager', description: 'Manager responsible for hiring decisions' },
-  { value: 'other', label: 'Other', description: 'Another role not listed above' },
+  { value: 'hiring_manager', label: 'Hiring Manager', description: 'Team Lead, Director, Founder - Oversees hiring for team/department' },
+  { value: 'recruiter', label: 'Recruiter', description: 'Recruiter, Talent Partner, HR Coordinator - Sources and manages candidates' },
+  { value: 'admin', label: 'Admin', description: 'Founder, COO, HR Manager - Organization owner with full access' },
+  { value: 'interviewer', label: 'Interviewer/Collaborator', description: 'Department Lead, Tech Lead, Peer Interviewer - Reviews resumes and provides feedback' },
 ]
 
 export default function OnboardingStep2() {

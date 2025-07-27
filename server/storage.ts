@@ -161,7 +161,7 @@ export class MemStorage implements IStorage {
       id, 
       createdAt: new Date(),
       updatedAt: new Date(),
-      role: insertUserProfile.role || 'demo_viewer'
+      role: insertUserProfile.role || 'hiring_manager'
     };
     this.userProfiles.set(id, userProfile);
     return userProfile;
@@ -403,7 +403,6 @@ export class MemStorage implements IStorage {
       website: insertClient.website ?? null,
       contactName: insertClient.contactName ?? null,
       contactEmail: insertClient.contactEmail ?? null,
-      contactPhone: insertClient.contactPhone ?? null,
       notes: insertClient.notes ?? null,
       id, 
       createdAt: now,
@@ -427,7 +426,6 @@ export class MemStorage implements IStorage {
       website: updateData.website ?? existingClient.website,
       contactName: updateData.contactName ?? existingClient.contactName,
       contactEmail: updateData.contactEmail ?? existingClient.contactEmail,
-      contactPhone: updateData.contactPhone ?? existingClient.contactPhone,
       notes: updateData.notes ?? existingClient.notes,
       updatedAt: new Date()
     };
@@ -462,12 +460,17 @@ export class MemStorage implements IStorage {
 
   async createJob(insertJob: InsertJob): Promise<Job> {
     const id = crypto.randomUUID();
+    const now = new Date();
     const job: Job = { 
       ...insertJob,
       status: insertJob.status ?? 'open',
       description: insertJob.description ?? null,
+      recordStatus: insertJob.recordStatus ?? 'active',
+      assignedTo: insertJob.assignedTo ?? null,
+      createdBy: insertJob.createdBy ?? null,
       id, 
-      createdAt: new Date() 
+      createdAt: now,
+      updatedAt: now
     };
     this.jobs.set(id, job);
     return job;
@@ -488,12 +491,16 @@ export class MemStorage implements IStorage {
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
     const id = crypto.randomUUID();
+    const now = new Date();
     const candidate: Candidate = { 
       ...insertCandidate,
       phone: insertCandidate.phone ?? null,
       resumeUrl: insertCandidate.resumeUrl ?? null,
+      status: insertCandidate.status ?? 'active',
+      createdBy: insertCandidate.createdBy ?? null,
       id, 
-      createdAt: new Date() 
+      createdAt: now,
+      updatedAt: now
     };
     this.candidates.set(id, candidate);
     return candidate;
@@ -514,13 +521,16 @@ export class MemStorage implements IStorage {
 
   async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
     const id = crypto.randomUUID();
+    const now = new Date();
     const jobCandidate: JobCandidate = { 
       ...insertJobCandidate,
       stage: insertJobCandidate.stage ?? 'applied',
       notes: insertJobCandidate.notes ?? null,
       assignedTo: insertJobCandidate.assignedTo ?? null,
+      status: insertJobCandidate.status ?? 'active',
       id, 
-      updatedAt: new Date() 
+      createdAt: now,
+      updatedAt: now
     };
     this.jobCandidates.set(id, jobCandidate);
     return jobCandidate;
@@ -567,18 +577,18 @@ export class MemStorage implements IStorage {
   }
 
   async getInterviews(): Promise<Interview[]> {
-    return Array.from(this.interviews.values()).filter(interview => interview.recordStatus !== 'deleted');
+    return Array.from(this.interviews.values()).filter(interview => interview.recordStatus === 'active');
   }
 
   async getInterviewsByJobCandidate(jobCandidateId: string): Promise<Interview[]> {
     return Array.from(this.interviews.values()).filter(interview => 
-      interview.jobCandidateId === jobCandidateId && interview.recordStatus !== 'deleted'
+      interview.jobCandidateId === jobCandidateId && interview.recordStatus === 'active'
     );
   }
 
   async getInterviewsByDateRange(startDate: Date, endDate: Date): Promise<Interview[]> {
     return Array.from(this.interviews.values()).filter(interview => {
-      if (interview.recordStatus === 'deleted') return false;
+      if (interview.recordStatus !== 'active') return false;
       const scheduledAt = new Date(interview.scheduledAt);
       return scheduledAt >= startDate && scheduledAt <= endDate;
     });
@@ -586,13 +596,18 @@ export class MemStorage implements IStorage {
 
   async createInterview(insertInterview: InsertInterview): Promise<Interview> {
     const id = crypto.randomUUID();
+    const now = new Date();
     const interview: Interview = {
       ...insertInterview,
       id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
       status: insertInterview.status || 'scheduled',
-      recordStatus: insertInterview.recordStatus || 'active'
+      recordStatus: insertInterview.recordStatus || 'active',
+      location: insertInterview.location ?? null,
+      notes: insertInterview.notes ?? null,
+      feedback: insertInterview.feedback ?? null,
+      rating: insertInterview.rating ?? null
     };
     this.interviews.set(id, interview);
     return interview;
@@ -624,11 +639,72 @@ export class MemStorage implements IStorage {
     // Soft delete by updating record status
     const updatedInterview: Interview = {
       ...existingInterview,
-      recordStatus: 'deleted',
+      recordStatus: 'archived',
       updatedAt: new Date(),
     };
     
     this.interviews.set(id, updatedInterview);
+  }
+
+  // Message methods
+  async getMessage(id: string): Promise<Message | undefined> {
+    return this.messages.get(id);
+  }
+
+  async getMessages(): Promise<Message[]> {
+    return Array.from(this.messages.values());
+  }
+
+  async getMessagesByThread(threadId: string): Promise<Message[]> {
+    return Array.from(this.messages.values()).filter(message => message.threadId === threadId);
+  }
+
+  async getMessagesByContext(contextType: string, contextId: string): Promise<Message[]> {
+    return Array.from(this.messages.values()).filter(message => 
+      message.contextType === contextType && message.contextId === contextId
+    );
+  }
+
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    const id = crypto.randomUUID();
+    const now = new Date();
+    const message: Message = {
+      ...insertMessage,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      isRead: false,
+      threadId: insertMessage.threadId ?? null,
+      parentId: insertMessage.parentId ?? null,
+      contextType: insertMessage.contextType ?? null,
+      contextId: insertMessage.contextId ?? null
+    };
+    this.messages.set(id, message);
+    return message;
+  }
+
+  async updateMessage(id: string, updateData: Partial<InsertMessage>): Promise<Message> {
+    const existingMessage = this.messages.get(id);
+    if (!existingMessage) {
+      throw new Error(`Message with id ${id} not found`);
+    }
+    
+    const updatedMessage: Message = {
+      ...existingMessage,
+      ...updateData,
+      updatedAt: new Date(),
+      id,
+    };
+    
+    this.messages.set(id, updatedMessage);
+    return updatedMessage;
+  }
+
+  async deleteMessage(id: string): Promise<void> {
+    if (!this.messages.has(id)) {
+      throw new Error(`Message with id ${id} not found`);
+    }
+    this.messages.delete(id);
   }
 }
 
@@ -1019,7 +1095,6 @@ class DatabaseStorage implements IStorage {
         website: insertClient.website || null,
         contact_name: insertClient.contactName || null,
         contact_email: insertClient.contactEmail || null,
-        contact_phone: insertClient.contactPhone || null,
         notes: insertClient.notes || null,
         status: insertClient.status || 'active',
         created_by: insertClient.createdBy || null,
@@ -1053,7 +1128,7 @@ class DatabaseStorage implements IStorage {
       if (updateData.website !== undefined) dbUpdate.website = updateData.website
       if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
       if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
-      if (updateData.contactPhone !== undefined) dbUpdate.contact_phone = updateData.contactPhone
+
       if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
       if (updateData.status !== undefined) dbUpdate.status = updateData.status
       

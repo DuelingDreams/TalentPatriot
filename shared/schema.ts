@@ -7,8 +7,8 @@ import { relations } from "drizzle-orm";
 export const jobStatusEnum = pgEnum('job_status', ['open', 'closed', 'on_hold', 'filled']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
-export const userRoleEnum = pgEnum('user_role', ['recruiter', 'bd', 'pm', 'demo_viewer', 'admin']);
-export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'recruiter', 'viewer']);
+export const userRoleEnum = pgEnum('user_role', ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer']);
+export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer']);
 export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'onsite', 'technical', 'cultural']);
 export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
 export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'candidate', 'system']);
@@ -27,7 +27,7 @@ export const organizations = pgTable("organizations", {
 
 export const userProfiles = pgTable("user_profiles", {
   id: uuid("id").primaryKey(), // references auth.users(id) 
-  role: userRoleEnum("role").default('recruiter').notNull(),
+  role: userRoleEnum("role").default('hiring_manager').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
