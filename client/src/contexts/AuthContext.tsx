@@ -25,13 +25,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+
     // Get initial session with robust error handling
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession()
+        // Check if component is still mounted
+        if (!mounted) return
+        
+        // Set initial loading state
+        setLoading(true)
+        
+        // Get session with timeout to prevent hanging
+        const sessionPromise = supabase.auth.getSession()
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session timeout')), 5000)
+        )
+        
+        const { data: { session }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any
+        
+        if (!mounted) return
         
         if (error) {
           console.warn('Supabase auth error:', error.message)
+          setSession(null)
+          setUser(null)
+          setUserRole(null)
+          setCurrentOrgIdState(null)
           setLoading(false)
           return
         }
@@ -39,106 +62,109 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
         
-        if (session?.user) {
+        if (session?.user && mounted) {
           // Special handling for demo user - always assign demo_viewer role
           if (session.user.email === 'demo@yourapp.com') {
-            console.log('Auth Debug - Demo user detected, assigning demo_viewer role')
             setUserRole('demo_viewer')
             const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
             setCurrentOrgIdState(demoOrgId)
-            sessionStorage.setItem('currentOrgId', demoOrgId)
-          } else {
-            // Fetch user role from secure user_profiles table for real users
             try {
-              const response = await fetch(`/api/user-profiles/${session.user.id}`)
-              if (response.ok) {
-                const userProfile = await response.json()
-                const role = userProfile.role || 'recruiter'
-                let orgId = session.user.user_metadata?.currentOrgId || null
-                
-                console.log('Auth Debug - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
-                setUserRole(role)
-                setCurrentOrgIdState(orgId)
-                if (orgId) sessionStorage.setItem('currentOrgId', orgId)
-              } else {
-                // Fallback for new users without profiles
-                console.log('User profile not found, using default recruiter role')
-                setUserRole('recruiter')
-                setCurrentOrgIdState(null)
-              }
-            } catch (error) {
-              // Silently handle errors and use fallback - common during development
-              setUserRole('recruiter')
-              setCurrentOrgIdState(null)
+              sessionStorage.setItem('currentOrgId', demoOrgId)
+            } catch (e) {
+              // Ignore localStorage errors
             }
-          }
-        }
-        
-        setLoading(false)
-      } catch (error) {
-        console.warn('Failed to initialize auth:', error)
-        setLoading(false)
-      }
-    }
-
-    initializeAuth()
-
-    // Listen for auth changes with error handling
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
-        setSession(session)
-        setUser(session?.user ?? null)
-        
-        if (session?.user) {
-          // Special handling for demo user - always assign demo_viewer role
-          if (session.user.email === 'demo@yourapp.com') {
-            console.log('Auth State Change - Demo user detected, assigning demo_viewer role')
-            setUserRole('demo_viewer')
-            const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
-            setCurrentOrgIdState(demoOrgId)
-            sessionStorage.setItem('currentOrgId', demoOrgId)
           } else {
-            // Fetch user role from secure user_profiles table for real users
-            try {
-              const response = await fetch(`/api/user-profiles/${session.user.id}`)
-              if (response.ok) {
-                const userProfile = await response.json()
-                const role = userProfile.role || 'recruiter'
-                let orgId = session.user.user_metadata?.currentOrgId || null
-                
-                console.log('Auth State Change - User:', session.user.email, 'Role from secure profile:', role, 'OrgId:', orgId)
-                setUserRole(role)
-                setCurrentOrgIdState(orgId)
-                if (orgId) sessionStorage.setItem('currentOrgId', orgId)
-              } else {
-                // Fallback for new users without profiles
-                console.log('User profile not found, using default recruiter role')
-                setUserRole('recruiter')
-                setCurrentOrgIdState(null)
-              }
-            } catch (error) {
-              // Silently handle errors and use fallback - common during development
-              setUserRole('recruiter')
-              setCurrentOrgIdState(null)
-            }
+            // For regular users without session data, just set defaults
+            setUserRole('recruiter')
+            setCurrentOrgIdState(null)
           }
         } else {
           setUserRole(null)
           setCurrentOrgIdState(null)
         }
         
-        setLoading(false)
+        if (mounted) {
+          setLoading(false)
+        }
       } catch (error) {
-        console.warn('Error in auth state change:', error)
+        console.warn('Failed to initialize auth:', error)
+        if (mounted) {
+          // Set safe defaults on error
+          setSession(null)
+          setUser(null)
+          setUserRole(null)
+          setCurrentOrgIdState(null)
+          setLoading(false)
+        }
+      }
+    }
+
+    // Initialize auth
+    initializeAuth().catch((e) => {
+      console.warn('Auth initialization failed:', e)
+      if (mounted) {
         setLoading(false)
       }
     })
 
+    // Listen for auth changes with simplified error handling
+    let subscription: any = null
+    
+    try {
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!mounted) return
+        
+        try {
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            // Special handling for demo user
+            if (session.user.email === 'demo@yourapp.com') {
+              setUserRole('demo_viewer')
+              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+              setCurrentOrgIdState(demoOrgId)
+              try {
+                sessionStorage.setItem('currentOrgId', demoOrgId)
+              } catch (e) {
+                // Ignore localStorage errors
+              }
+            } else {
+              setUserRole('recruiter')
+              setCurrentOrgIdState(null)
+            }
+          } else {
+            setUserRole(null)
+            setCurrentOrgIdState(null)
+          }
+          
+          if (mounted) {
+            setLoading(false)
+          }
+        } catch (error) {
+          console.warn('Error in auth state change:', error)
+          if (mounted) {
+            setLoading(false)
+          }
+        }
+      })
+      
+      subscription = data.subscription
+    } catch (error) {
+      console.warn('Failed to set up auth listener:', error)
+      if (mounted) {
+        setLoading(false)
+      }
+    }
+
     return () => {
-      try {
-        subscription.unsubscribe()
-      } catch (error) {
-        console.warn('Error unsubscribing from auth:', error)
+      mounted = false
+      if (subscription) {
+        try {
+          subscription.unsubscribe()
+        } catch (error) {
+          console.warn('Error unsubscribing from auth:', error)
+        }
       }
     }
   }, [])
