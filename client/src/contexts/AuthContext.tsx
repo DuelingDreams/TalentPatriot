@@ -71,13 +71,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // For regular users, fetch their actual role from the database
             try {
               const profileResult = await safeSupabaseOperation(
-                () => fetch(`/api/user-profiles/${session.user.id}`),
+                async () => {
+                  const response = await fetch(`/api/user-profiles/${session.user.id}`)
+                  if (response.ok) {
+                    return await response.json()
+                  }
+                  throw new Error(`Profile fetch failed: ${response.status}`)
+                },
                 'fetchUserProfile'
               )
               
-              if (profileResult && profileResult.ok) {
-                const profile = await profileResult.json()
-                setUserRole(profile.role || 'hiring_manager')
+              if (profileResult) {
+                setUserRole(profileResult.role || 'hiring_manager')
               } else {
                 // Fallback to default role
                 setUserRole('hiring_manager')
@@ -134,13 +139,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // For regular users in auth state change, fetch their actual role
             try {
               const profileResult = await safeSupabaseOperation(
-                () => fetch(`/api/user-profiles/${session.user.id}`),
+                async () => {
+                  const response = await fetch(`/api/user-profiles/${session.user.id}`)
+                  if (response.ok) {
+                    return await response.json()
+                  }
+                  throw new Error(`Profile fetch failed: ${response.status}`)
+                },
                 'fetchUserProfile'
               )
               
-              if (profileResult && profileResult.ok) {
-                const profile = await profileResult.json()
-                setUserRole(profile.role || 'hiring_manager')
+              if (profileResult) {
+                setUserRole(profileResult.role || 'hiring_manager')
               } else {
                 setUserRole('hiring_manager')
               }

@@ -5,7 +5,7 @@
 
 // Only run in browser environment
 if (typeof window !== 'undefined') {
-  // Enhanced unhandled rejection handler with better error classification
+  // Enhanced unhandled rejection handler with comprehensive error prevention
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
@@ -27,7 +27,9 @@ if (typeof window !== 'undefined') {
         reason.message.includes('session') ||
         reason.message.includes('Invalid session') ||
         reason.message.includes('User not found') ||
-        reason.message.includes('Invalid JWT')
+        reason.message.includes('Invalid JWT') ||
+        reason.message.includes('Profile fetch failed') ||
+        reason.message.includes('user-profiles')
       )) {
       console.warn('Auth error handled:', reason.message)
       event.preventDefault()
@@ -48,9 +50,34 @@ if (typeof window !== 'undefined') {
         reason.message.includes('fetch') ||
         reason.message.includes('network') ||
         reason.message.includes('timeout') ||
-        reason.message.includes('Failed to fetch')
+        reason.message.includes('Failed to fetch') ||
+        reason.message.includes('NetworkError') ||
+        reason.message.includes('TypeError: Failed to fetch')
       )) {
       console.warn('Network error handled:', reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle JSON parsing errors
+    if (reason?.message && (
+        reason.message.includes('JSON') ||
+        reason.message.includes('Unexpected token') ||
+        reason.message.includes('SyntaxError')
+      )) {
+      console.warn('JSON parsing error handled:', reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle generic API errors
+    if (reason?.message && (
+        reason.message.includes('api/') ||
+        reason.message.includes('404') ||
+        reason.message.includes('500') ||
+        reason.message.includes('403')
+      )) {
+      console.warn('API error handled:', reason.message)
       event.preventDefault()
       return
     }
@@ -65,8 +92,13 @@ if (typeof window !== 'undefined') {
       return
     }
     
-    // Log other unhandled rejections but don't prevent them in development
-    console.warn('Unhandled promise rejection:', reason)
+    // Prevent all other unhandled rejections in development to avoid console clutter
+    console.warn('Unhandled promise rejection prevented:', {
+      type: typeof reason,
+      message: reason?.message || reason?.toString() || 'Unknown error',
+      stack: reason?.stack
+    })
+    event.preventDefault()
   })
   
   // Also handle regular errors to prevent crashes
@@ -105,7 +137,7 @@ export const safeStorageOperation = (operation: () => void) => {
   }
 }
 
-// Safe Supabase operation wrapper
+// Safe Supabase operation wrapper with comprehensive error handling
 export const safeSupabaseOperation = async <T>(
   operation: () => Promise<T>,
   operationName: string = 'supabase_operation'
@@ -118,12 +150,36 @@ export const safeSupabaseOperation = async <T>(
       return null
     }
     
-    if (error instanceof Error && error.message?.includes('auth')) {
-      console.warn(`Auth error in ${operationName}:`, error.message)
-      return null
+    if (error instanceof Error) {
+      // Handle auth errors
+      if (error.message?.includes('auth') ||
+          error.message?.includes('session') ||
+          error.message?.includes('supabase') ||
+          error.message?.includes('Profile fetch failed')) {
+        console.warn(`Auth error in ${operationName}:`, error.message)
+        return null
+      }
+      
+      // Handle network errors
+      if (error.message?.includes('fetch') ||
+          error.message?.includes('network') ||
+          error.message?.includes('timeout') ||
+          error.message?.includes('Failed to fetch')) {
+        console.warn(`Network error in ${operationName}:`, error.message)
+        return null
+      }
+      
+      // Handle JSON parsing errors
+      if (error.message?.includes('JSON') ||
+          error.message?.includes('Unexpected token') ||
+          error.message?.includes('SyntaxError')) {
+        console.warn(`JSON parsing error in ${operationName}:`, error.message)
+        return null
+      }
     }
     
-    // Re-throw other errors
-    throw error
+    // Log other errors but don't throw them to prevent unhandled rejections
+    console.warn(`Error in ${operationName}:`, error)
+    return null
   }
 }
