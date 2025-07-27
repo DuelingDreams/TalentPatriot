@@ -46,13 +46,13 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
               <Link href="/login">
-                <Button variant="ghost" className="text-slate-700 hover:text-slate-900 font-medium text-sm sm:text-base px-2 sm:px-4">
+                <Button variant="ghost" className="text-slate-700 hover:text-slate-900 font-medium text-base px-4 py-2">
                   Sign In
                 </Button>
               </Link>
               <Link href="/signup">
-                <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg text-sm sm:text-base px-3 sm:px-4 whitespace-nowrap">
-                  Get Started Free
+                <Button className="bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium text-base px-6 py-3 shadow-lg whitespace-nowrap transition-colors duration-200">
+                  Start Free
                 </Button>
               </Link>
             </div>
@@ -92,14 +92,14 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/login">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-10 py-6 text-lg shadow-xl hover:shadow-2xl transition-all duration-200 group">
-                Experience the Demo
+              <Button className="bg-slate-800 hover:bg-slate-900 text-white rounded-lg font-medium text-lg px-6 py-3 shadow-xl hover:shadow-2xl transition-all duration-200 group w-full sm:w-auto">
+                Start Free
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="lg" variant="outline" className="border-2 border-slate-300 hover:border-slate-400 text-slate-700 px-10 py-6 text-lg hover:bg-slate-50 transition-all duration-200">
-                <span className="text-slate-700">Start Free Trial</span>
+              <Button variant="outline" className="border-2 border-slate-800 hover:border-slate-900 text-slate-800 hover:text-slate-900 rounded-lg font-medium text-lg px-6 py-3 hover:bg-slate-50 transition-all duration-200 w-full sm:w-auto">
+                Book a Demo
               </Button>
             </Link>
           </div>
@@ -515,16 +515,16 @@ export default function Landing() {
             Built for small and midsized businesses who want to focus on hiring, not wrestling with software. Perfect for teams of 5-500 employees.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/login">
-              <Button size="lg" className="bg-white text-blue-700 hover:bg-gray-100 px-12 py-6 text-lg shadow-2xl hover:shadow-xl transition-all duration-200 font-semibold group">
-                Experience the Demo
+              <Button className="bg-white text-slate-800 hover:bg-slate-100 rounded-lg font-medium text-lg px-6 py-3 shadow-2xl hover:shadow-xl transition-all duration-200 group w-full sm:w-auto">
+                Start Free
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
             <Link href="/signup">
-              <Button size="lg" className="bg-white/10 backdrop-blur border-2 border-white text-white hover:bg-white hover:text-blue-700 px-12 py-6 text-lg transition-all duration-200 font-semibold">
-                Start Your Free Trial
+              <Button variant="outline" className="border-2 border-white text-white hover:bg-white hover:text-slate-800 rounded-lg font-medium text-lg px-6 py-3 transition-all duration-200 w-full sm:w-auto">
+                Book a Demo
               </Button>
             </Link>
           </div>
