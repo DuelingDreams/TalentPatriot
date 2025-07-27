@@ -150,29 +150,29 @@ END $$;
 -- ================================================
 -- User Profiles - Users can only see their own profile
 CREATE POLICY "user_profiles_policy" ON user_profiles
-    FOR ALL USING (auth.uid() = id);
+    FOR ALL USING (auth.uid()::uuid = id::uuid);
 
 -- Organizations - Users can see organizations they belong to
 CREATE POLICY "organizations_policy" ON organizations
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.org_id = organizations.id 
-            AND uo.user_id = auth.uid()
+            WHERE uo.org_id::uuid = organizations.id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
         )
     );
 
 -- User Organizations - Users can see their own organization memberships
 CREATE POLICY "user_organizations_policy" ON user_organizations
-    FOR ALL USING (user_id = auth.uid());
+    FOR ALL USING (user_id::uuid = auth.uid()::uuid);
 
 -- Clients - Organization-scoped access for hiring managers, recruiters, and admins
 CREATE POLICY "clients_policy" ON clients
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.org_id = clients.org_id 
-            AND uo.user_id = auth.uid()
+            WHERE uo.org_id::uuid = clients.org_id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
             AND uo.role IN ('owner', 'admin', 'hiring_manager', 'recruiter')
         )
     );
@@ -182,8 +182,8 @@ CREATE POLICY "jobs_policy" ON jobs
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.org_id = jobs.org_id 
-            AND uo.user_id = auth.uid()
+            WHERE uo.org_id::uuid = jobs.org_id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
             AND uo.role IN ('owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer')
         )
     );
@@ -193,8 +193,8 @@ CREATE POLICY "candidates_policy" ON candidates
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.org_id = candidates.org_id 
-            AND uo.user_id = auth.uid()
+            WHERE uo.org_id::uuid = candidates.org_id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
             AND uo.role IN ('owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer')
         )
     );
@@ -204,9 +204,9 @@ CREATE POLICY "job_candidate_policy" ON job_candidate
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM jobs j
-            JOIN user_organizations uo ON uo.org_id = j.org_id
-            WHERE j.id = job_candidate.job_id 
-            AND uo.user_id = auth.uid()
+            JOIN user_organizations uo ON uo.org_id::uuid = j.org_id::uuid
+            WHERE j.id::uuid = job_candidate.job_id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
             AND uo.role IN ('owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer')
         )
     );
@@ -216,11 +216,11 @@ CREATE POLICY "candidate_notes_policy" ON candidate_notes
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.org_id = candidate_notes.org_id 
-            AND uo.user_id = auth.uid()
+            WHERE uo.org_id::uuid = candidate_notes.org_id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
             AND (
                 uo.role IN ('owner', 'admin', 'hiring_manager', 'recruiter') 
-                OR candidate_notes.author_id = auth.uid()
+                OR candidate_notes.author_id::uuid = auth.uid()::uuid
             )
         )
     );
@@ -230,8 +230,8 @@ CREATE POLICY "interviews_policy" ON interviews
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.org_id = interviews.org_id 
-            AND uo.user_id = auth.uid()
+            WHERE uo.org_id::uuid = interviews.org_id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
             AND uo.role IN ('owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer')
         )
     );
@@ -241,15 +241,15 @@ CREATE POLICY "messages_policy" ON messages
     FOR ALL USING (
         EXISTS (
             SELECT 1 FROM user_organizations uo 
-            WHERE uo.org_id = messages.org_id 
-            AND uo.user_id = auth.uid()
+            WHERE uo.org_id::uuid = messages.org_id::uuid 
+            AND uo.user_id::uuid = auth.uid()::uuid
             AND uo.role IN ('owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer')
         )
     );
 
 -- Message Recipients - Users can see messages they received
 CREATE POLICY "message_recipients_policy" ON message_recipients
-    FOR ALL USING (recipient_id = auth.uid());
+    FOR ALL USING (recipient_id::uuid = auth.uid()::uuid);
 
 -- ================================================
 -- STEP 7: CREATE ROLE PERMISSIONS FUNCTION
@@ -268,7 +268,8 @@ BEGIN
     -- Get user's role in the organization
     SELECT uo.role::text INTO user_role
     FROM user_organizations uo
-    WHERE uo.user_id = user_id AND uo.org_id = org_id;
+    WHERE uo.user_id::uuid = check_user_permission.user_id::uuid 
+    AND uo.org_id::uuid = check_user_permission.org_id::uuid;
     
     IF user_role IS NULL THEN
         RETURN false;
@@ -304,15 +305,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Update demo user profile to use new role system
 UPDATE user_profiles 
 SET role = 'demo_viewer'::user_role 
-WHERE id IN (
-    SELECT auth.users.id FROM auth.users WHERE email = 'demo@yourapp.com'
+WHERE id::uuid IN (
+    SELECT id::uuid FROM auth.users WHERE email = 'demo@yourapp.com'
 );
 
 -- Update demo organization access
 UPDATE user_organizations 
 SET role = 'viewer'::org_role
-WHERE user_id IN (
-    SELECT auth.users.id FROM auth.users WHERE email = 'demo@yourapp.com'
+WHERE user_id::uuid IN (
+    SELECT id::uuid FROM auth.users WHERE email = 'demo@yourapp.com'
 );
 
 -- ================================================
