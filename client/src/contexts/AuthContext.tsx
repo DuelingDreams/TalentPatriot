@@ -158,8 +158,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }).catch((error) => {
-          // Catch any promise rejections
-          console.warn('Unhandled error in auth state change:', error)
+          // Catch any unhandled promise rejections
+          console.warn('Unhandled promise rejection in auth state change:', error)
           if (mounted) {
             setLoading(false)
           }
@@ -228,48 +228,58 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Step 2: If not a demo viewer and user was created, create organization
       if (role !== 'demo_viewer' && data.user) {
+        const userId = data.user.id // Store user ID to avoid null access issues
         try {
           // Create organization name from email domain or provided name
           const defaultOrgName = orgName || `${email.split('@')[0]}'s Organization`
           const orgSlug = defaultOrgName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
           
-          // Create organization via API
-          const orgResponse = await fetch('/api/organizations', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              name: defaultOrgName,
-              ownerId: data.user.id,
-              slug: orgSlug,
-            }),
-          })
-
-          if (orgResponse.ok) {
-            const organization = await orgResponse.json()
-            
-            // Step 3: Add user to organization as owner
-            await fetch('/api/user-organizations', {
+          // Create organization via API with proper error handling
+          const orgResponse = await safeSupabaseOperation(
+            () => fetch('/api/organizations', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                userId: data.user.id,
-                orgId: organization.id,
-                role: 'owner',
+                name: defaultOrgName,
+                ownerId: userId,
+                slug: orgSlug,
               }),
-            })
+            }),
+            'create organization'
+          )
+
+          if (orgResponse && orgResponse.ok) {
+            const organization = await orgResponse.json()
+            
+            // Step 3: Add user to organization as owner
+            await safeSupabaseOperation(
+              () => fetch('/api/user-organizations', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  userId: userId,
+                  orgId: organization.id,
+                  role: 'owner',
+                }),
+              }),
+              'add user to organization'
+            )
 
             // Step 4: Update user metadata with current org ID
-            await supabase.auth.updateUser({
-              data: { 
-                currentOrgId: organization.id,
-                role: role,
-                name: email.split('@')[0],
-              }
-            })
+            await safeSupabaseOperation(
+              () => supabase.auth.updateUser({
+                data: { 
+                  currentOrgId: organization.id,
+                  role: role,
+                  name: email.split('@')[0],
+                }
+              }),
+              'update user metadata'
+            )
 
             console.log('Organization created and user added as owner:', organization.id)
           } else {
@@ -331,15 +341,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return { error: new Error('No user logged in') }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { role: role }
-      })
+      const result = await safeSupabaseOperation(
+        () => supabase.auth.updateUser({
+          data: { role: role }
+        }),
+        'update user role'
+      )
 
-      if (!error) {
+      if (result && !result.error) {
         setUserRole(role)
       }
 
-      return { error }
+      return { error: result?.error || null }
     } catch (error) {
       console.warn('Update user role error:', error)
       return { error }
@@ -350,18 +363,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user) return { error: new Error('No user logged in') }
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { 
-          ...user.user_metadata,
-          currentOrgId: orgId 
-        }
-      })
+      const result = await safeSupabaseOperation(
+        () => supabase.auth.updateUser({
+          data: { 
+            ...user.user_metadata,
+            currentOrgId: orgId 
+          }
+        }),
+        'set current org ID'
+      )
 
-      if (!error) {
+      if (result && !result.error) {
         setCurrentOrgIdState(orgId)
       }
 
-      return { error }
+      return { error: result?.error || null }
     } catch (error) {
       console.warn('Update current org ID error:', error)
       return { error }
