@@ -96,24 +96,24 @@ export default function OnboardingStep3() {
         description: `Let's get started with ${selectedOption.title.toLowerCase()}.`,
       })
 
-      // Redirect based on selected goal
+      // Redirect based on selected goal with onboarding context
       switch (selectedOption.action) {
         case 'create-job':
-          // Redirect to jobs page (which will trigger the "Post New Job" dialog)
-          setLocation('/jobs?action=create')
+          // Redirect to jobs page with guided job creation
+          setLocation('/jobs?onboarding=true&action=create-guided')
           break
         case 'import-candidates':
-          // Redirect to candidates page
-          setLocation('/candidates?action=import')
+          // Redirect to candidates page with guided import
+          setLocation('/candidates?onboarding=true&action=import-guided')
           break
         case 'invite-team':
-          // Redirect to dashboard with team invite flow
-          setLocation('/dashboard?action=invite')
+          // Redirect to onboarding checklist with team focus
+          setLocation('/onboarding/checklist?focus=team')
           break
         case 'explore':
         default:
-          // Redirect to dashboard
-          setLocation('/dashboard')
+          // Redirect to onboarding checklist for general exploration
+          setLocation('/onboarding/checklist?focus=explore')
           break
       }
     } catch (error) {

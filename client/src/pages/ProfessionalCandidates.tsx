@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useDebounce } from '@/hooks/useDebounce'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -34,6 +34,8 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
+import GuidedCandidateImport from '@/components/GuidedCandidateImport'
+import { useToast } from '@/hooks/use-toast'
 
 interface Candidate {
   id: string
@@ -177,10 +179,22 @@ export default function ProfessionalCandidates() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedStage, setSelectedStage] = useState<string>('all')
   const [selectedSkill, setSelectedSkill] = useState<string>('all')
+  const [isGuidedImportOpen, setIsGuidedImportOpen] = useState(false)
   const { userRole } = useAuth()
   
   // Debounce search query for better performance
   const debouncedSearchQuery = useDebounce(searchQuery, 300)
+  
+  // Check for onboarding parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const isOnboarding = urlParams.get('onboarding') === 'true'
+    const action = urlParams.get('action')
+    
+    if (isOnboarding && action === 'import-guided') {
+      setIsGuidedImportOpen(true)
+    }
+  }, [])
   
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
   const { data: jobCandidates, isLoading: jobCandidatesLoading } = useJobCandidates()
@@ -415,5 +429,20 @@ export default function ProfessionalCandidates() {
         </Tabs>
       </div>
     </DashboardLayout>
+    
+    {/* Guided Candidate Import Modal */}
+    <GuidedCandidateImport
+      isOpen={isGuidedImportOpen}
+      onClose={() => setIsGuidedImportOpen(false)}
+      onComplete={(importData) => {
+        // Handle import completion
+        toast({
+          title: "Candidates imported successfully!",
+          description: `${importData.count} candidates have been added to your database.`,
+        })
+        // Clear URL parameters
+        window.history.replaceState({}, '', '/candidates')
+      }}
+    />
   )
 }

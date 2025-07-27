@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,7 @@ import { insertJobSchema } from '@/../../shared/schema'
 import { z } from 'zod'
 import { Plus, Briefcase, Building2, Calendar, Loader2, Users, AlertCircle } from 'lucide-react'
 import { Link } from 'wouter'
+import GuidedJobCreation from '@/components/GuidedJobCreation'
 
 // Form schema for new job creation
 const newJobSchema = z.object({
@@ -32,8 +33,9 @@ type NewJobFormData = z.infer<typeof newJobSchema>
 
 export default function Jobs() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false)
   const { toast } = useToast()
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
 
   // Fetch data using our hooks
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
@@ -44,6 +46,17 @@ export default function Jobs() {
   const displayJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
   const displayClients = userRole === 'demo_viewer' ? getDemoClientStats() : clients || []
   const isDemoMode = userRole === 'demo_viewer'
+
+  // Check for onboarding parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const isOnboarding = urlParams.get('onboarding') === 'true'
+    const action = urlParams.get('action')
+    
+    if (isOnboarding && action === 'create-guided') {
+      setIsGuidedModalOpen(true)
+    }
+  }, [])
 
   // Form setup
   const form = useForm<NewJobFormData>({
@@ -72,7 +85,13 @@ export default function Jobs() {
     
     try {
       console.log('Calling createJobMutation with data:', data)
-      await createJobMutation.mutateAsync(data)
+      await createJobMutation.mutateAsync({
+        title: data.title,
+        orgId: currentOrgId || '',
+        clientId: data.client_id,
+        description: data.description || null,
+        status: (data.status as 'open' | 'closed' | 'on_hold' | 'filled') || 'open'
+      })
       toast({
         title: "Job Created",
         description: "New job posting has been created successfully.",
@@ -100,6 +119,7 @@ export default function Jobs() {
   }
 
   return (
+    <>
     <DashboardLayout pageTitle="Jobs">
       <div className="p-6">
         {/* Page Header */}
@@ -176,7 +196,7 @@ export default function Jobs() {
                                     </div>
                                   </SelectItem>
                                 ) : (
-                                  clients?.map((client) => (
+                                  clients?.map((client: any) => (
                                     <SelectItem key={client.id} value={client.id}>
                                       {client.name} {client.industry && `(${client.industry})`}
                                     </SelectItem>
@@ -245,7 +265,7 @@ export default function Jobs() {
         {/* Jobs Grid */}
         {displayJobs && displayJobs.length > 0 ? (
           <div className="grid gap-6">
-            {displayJobs.map((job) => (
+            {displayJobs.map((job: any) => (
               <Card key={job.id} className="bg-white shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
@@ -318,5 +338,21 @@ export default function Jobs() {
         )}
       </div>
     </DashboardLayout>
+    
+    {/* Guided Job Creation Modal */}
+    <GuidedJobCreation
+      isOpen={isGuidedModalOpen}
+      onClose={() => setIsGuidedModalOpen(false)}
+      onComplete={(jobData) => {
+        // Handle guided job creation completion
+        toast({
+          title: "Congratulations!",
+          description: "Your first job has been posted successfully. Welcome to TalentPatriot!",
+        })
+        // Clear URL parameters
+        window.history.replaceState({}, '', '/jobs')
+      }}
+    />
+    </>
   )
 }
