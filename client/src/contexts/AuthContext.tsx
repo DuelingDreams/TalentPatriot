@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { safeSupabaseOperation } from '@/utils/errorHandling'
+import { safeSupabaseOperation, safeStorageOperation } from '@/utils/domExceptionHandler'
 
 interface AuthContextType {
   user: User | null
@@ -31,10 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session with robust error handling
     const initializeAuth = async () => {
       try {
-        // Check if component is still mounted
         if (!mounted) return
-        
-        // Set initial loading state
         setLoading(true)
         
         // Get session with safe wrapper to prevent DOM exceptions
@@ -44,9 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         )
         
         const sessionData = sessionResult || { data: { session: null }, error: null }
-        
-        // Remove timeout promise since we're using safe wrapper
-        
         const { data: { session }, error } = sessionData
         
         if (!mounted) return
@@ -70,17 +64,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUserRole('demo_viewer')
             const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
             setCurrentOrgIdState(demoOrgId)
-            try {
-              if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem('currentOrgId', demoOrgId)
-              }
-            } catch (e) {
-              // Ignore all storage errors including DOMException
-              console.warn('SessionStorage error:', e)
-            }
+            safeStorageOperation(() => {
+              sessionStorage.setItem('currentOrgId', demoOrgId)
+            })
           } else {
             // For regular users without session data, just set defaults
-            setUserRole('recruiter')
+            setUserRole('hiring_manager')
             setCurrentOrgIdState(null)
           }
         } else {
@@ -105,76 +94,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Initialize auth
-    initializeAuth().catch((e) => {
-      console.warn('Auth initialization failed:', e)
-      if (mounted) {
-        setLoading(false)
+    initializeAuth()
+
+    // Listen for auth changes with simplified error handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      try {
+        if (!mounted) return
+        
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        if (session?.user) {
+          // Special handling for demo user
+          if (session.user.email === 'demo@yourapp.com') {
+            setUserRole('demo_viewer')
+            const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+            setCurrentOrgIdState(demoOrgId)
+            safeStorageOperation(() => {
+              sessionStorage.setItem('currentOrgId', demoOrgId)
+            })
+          } else {
+            setUserRole('hiring_manager')
+            setCurrentOrgIdState(null)
+          }
+        } else {
+          setUserRole(null)
+          setCurrentOrgIdState(null)
+        }
+        
+        if (mounted) {
+          setLoading(false)
+        }
+      } catch (error) {
+        console.warn('Error in auth state change:', error)
+        if (mounted) {
+          setLoading(false)
+        }
       }
     })
 
-    // Listen for auth changes with simplified error handling
-    let subscription: any = null
-    
-    try {
-      const { data } = supabase.auth.onAuthStateChange((event, session) => {
-        // Use immediate execution instead of Promise.resolve to avoid unhandled rejections
-        try {
-          if (!mounted) return
-          
-          setSession(session)
-          setUser(session?.user ?? null)
-          
-          if (session?.user) {
-            // Special handling for demo user
-            if (session.user.email === 'demo@yourapp.com') {
-              setUserRole('demo_viewer')
-              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
-              setCurrentOrgIdState(demoOrgId)
-              try {
-                if (typeof sessionStorage !== 'undefined') {
-                  sessionStorage.setItem('currentOrgId', demoOrgId)
-                }
-              } catch (e) {
-                // Ignore all storage errors including DOMException
-                console.warn('SessionStorage error:', e)
-              }
-            } else {
-              setUserRole('recruiter')
-              setCurrentOrgIdState(null)
-            }
-          } else {
-            setUserRole(null)
-            setCurrentOrgIdState(null)
-          }
-          
-          if (mounted) {
-            setLoading(false)
-          }
-        } catch (error) {
-          console.warn('Error in auth state change:', error)
-          if (mounted) {
-            setLoading(false)
-          }
-        }
-      })
-      
-      subscription = data.subscription
-    } catch (error) {
-      console.warn('Failed to set up auth listener:', error)
-      if (mounted) {
-        setLoading(false)
-      }
-    }
-
     return () => {
       mounted = false
-      if (subscription) {
-        try {
-          subscription.unsubscribe()
-        } catch (error) {
-          console.warn('Error unsubscribing from auth:', error)
-        }
-      }
+      subscription?.unsubscribe()
     }
   }, [])
 
@@ -204,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string, role = 'recruiter', orgName?: string) => {
+  const signUp = async (email: string, password: string, role = 'hiring_manager', orgName?: string) => {
     try {
       // Step 1: Create the user account with safe wrapper
       const authResult = await safeSupabaseOperation(
@@ -322,18 +283,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setCurrentOrgIdState(null)
       
       // Clear storage safely
-      try {
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.removeItem('currentOrgId')
-        }
-      } catch (e) {
-        console.warn('SessionStorage clear error:', e)
-      }
-    } catch (error) {
-      // Handle DOM exceptions during sign out
-      console.warn('Sign out error:', error)
+      safeStorageOperation(() => {
+        sessionStorage.removeItem('currentOrgId')
+      })
       
-      // Still clear the local state even if signOut fails
+    } catch (error) {
+      console.warn('Sign out error:', error)
+      // Still clear local state even if sign out fails
       setUser(null)
       setSession(null)
       setUserRole(null)
@@ -342,21 +298,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const updateUserRole = async (role: string) => {
-    if (!user) return { error: new Error('No user logged in') }
-
     try {
-      const result = await safeSupabaseOperation(
-        () => supabase.auth.updateUser({
-          data: { role: role }
-        }),
-        'update user role'
-      )
-
-      if (result && !result.error) {
-        setUserRole(role)
+      if (!user) {
+        return { error: { message: 'No user found' } }
       }
 
-      return { error: result?.error || null }
+      const result = await safeSupabaseOperation(
+        () => supabase.auth.updateUser({
+          data: { role }
+        }),
+        'updateUserRole'
+      )
+
+      if (result?.error) {
+        return { error: result.error }
+      }
+
+      setUserRole(role)
+      return { error: null }
     } catch (error) {
       console.warn('Update user role error:', error)
       return { error }
@@ -364,44 +323,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const setCurrentOrgId = async (orgId: string) => {
-    if (!user) return { error: new Error('No user logged in') }
-
     try {
-      const result = await safeSupabaseOperation(
-        () => supabase.auth.updateUser({
-          data: { 
-            ...user.user_metadata,
-            currentOrgId: orgId 
-          }
-        }),
-        'set current org ID'
-      )
-
-      if (result && !result.error) {
-        setCurrentOrgIdState(orgId)
+      if (!user) {
+        return { error: { message: 'No user found' } }
       }
 
-      return { error: result?.error || null }
+      const result = await safeSupabaseOperation(
+        () => supabase.auth.updateUser({
+          data: { currentOrgId: orgId }
+        }),
+        'setCurrentOrgId'
+      )
+
+      if (result?.error) {
+        return { error: result.error }
+      }
+
+      setCurrentOrgIdState(orgId)
+      
+      // Update session storage safely
+      safeStorageOperation(() => {
+        sessionStorage.setItem('currentOrgId', orgId)
+      })
+
+      return { error: null }
     } catch (error) {
-      console.warn('Update current org ID error:', error)
+      console.warn('Set current org ID error:', error)
       return { error }
     }
   }
 
-  const value = {
-    user,
-    session,
-    userRole,
-    currentOrgId,
-    loading,
-    signIn,
-    signUp,
-    signOut,
-    updateUserRole,
-    setCurrentOrgId,
-  }
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider 
+      value={{
+        user,
+        session,
+        userRole,
+        currentOrgId,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+        updateUserRole,
+        setCurrentOrgId,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export function useAuth() {

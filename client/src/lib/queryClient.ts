@@ -73,9 +73,11 @@ function getCurrentOrgId(): string | null {
   // Try to get from the auth context if available
   if (typeof window !== 'undefined') {
     try {
-      // First try sessionStorage
-      const orgId = sessionStorage.getItem('currentOrgId');
-      if (orgId) return orgId;
+      // First try sessionStorage with safe access
+      if (window.sessionStorage) {
+        const orgId = sessionStorage.getItem('currentOrgId');
+        if (orgId) return orgId;
+      }
       
       // Fallback to extracting from DOM or global state
       const authDataElement = document.querySelector('[data-org-id]');
@@ -83,7 +85,12 @@ function getCurrentOrgId(): string | null {
         return authDataElement.getAttribute('data-org-id');
       }
     } catch (error) {
-      console.warn('Failed to get org ID from storage:', error);
+      // Handle DOM exceptions silently
+      if (error instanceof DOMException) {
+        console.warn('DOM exception accessing storage:', error.name);
+      } else {
+        console.warn('Failed to get org ID from storage:', error);
+      }
     }
   }
   return null;
