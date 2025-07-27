@@ -138,12 +138,12 @@ export default function OnboardingStep2() {
         }
 
         toast({
-          title: "Welcome to TalentPatriot!",
-          description: `${companyName} has been set up successfully. Let's start hiring!`,
+          title: "Organization created!",
+          description: `${companyName} has been set up successfully. Let's personalize your experience.`,
         })
         
-        // Redirect to dashboard to complete onboarding
-        setLocation('/dashboard')
+        // Redirect to Step 3 to choose first goal
+        setLocation('/onboarding/step3')
       } else {
         const errorData = await orgResponse.json()
         setError(errorData.error || 'Failed to set up your organization. Please try again.')
@@ -264,7 +264,7 @@ export default function OnboardingStep2() {
             
             <div className="mt-6 text-center">
               <p className="text-xs text-slate-500 leading-relaxed">
-                Step 2 of 2 • This helps us customize your TalentPatriot experience
+                Step 2 of 3 • This helps us customize your TalentPatriot experience
               </p>
             </div>
           </CardContent>
