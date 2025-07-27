@@ -8,17 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
-import { Calendar as CalendarIcon, Clock, MapPin, Video, Phone, User, Plus } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, MapPin, Video, Phone, User, Plus, Loader2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-
-// Mock data for candidates and jobs
-const mockCandidates = [
-  { id: '1', name: 'Sarah Johnson', job: 'Senior Software Engineer', company: 'TechCorp' },
-  { id: '2', name: 'Mike Chen', job: 'Product Manager', company: 'InnovateInc' },
-  { id: '3', name: 'Emma Wilson', job: 'UX Designer', company: 'DesignStudio' },
-  { id: '4', name: 'Alex Brown', job: 'Data Scientist', company: 'DataCorp' },
-]
+import { useAuth } from '@/contexts/AuthContext'
+import { useCandidates } from '@/hooks/useCandidates'
+import { useCreateInterview } from '@/hooks/useInterviews'
+import { useToast } from '@/hooks/use-toast'
 
 const interviewTypes = [
   { value: 'phone', label: 'Phone Call', icon: Phone },
@@ -58,17 +54,25 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
   const [location, setLocation] = useState('')
   const [title, setTitle] = useState('')
   const [notes, setNotes] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [jobCandidateId, setJobCandidateId] = useState('')
 
-  const selectedCandidateData = mockCandidates.find(c => c.id === selectedCandidate)
+  const { currentOrgId } = useAuth()
+  const { toast } = useToast()
+  const { data: candidates = [], isLoading: candidatesLoading } = useCandidates(currentOrgId)
+  const createInterviewMutation = useCreateInterview()
+
+  const selectedCandidateData = candidates.find((c: any) => c.id === selectedCandidate)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedCandidate || !interviewType || !selectedDate || !selectedTime) {
+    if (!selectedCandidate || !interviewType || !selectedDate || !selectedTime || !jobCandidateId || !currentOrgId) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      })
       return
     }
-
-    setIsSubmitting(true)
     
     try {
       // Create interview object
@@ -76,29 +80,25 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
       const scheduledAt = new Date(selectedDate)
       scheduledAt.setHours(hours, minutes, 0, 0)
 
-      const interview = {
-        id: crypto.randomUUID(),
-        candidateId: selectedCandidate,
-        candidateName: selectedCandidateData?.name,
-        jobTitle: selectedCandidateData?.job,
-        companyName: selectedCandidateData?.company,
+      const interviewData = {
+        orgId: currentOrgId,
+        jobCandidateId,
         title: title || `${interviewType} Interview - ${selectedCandidateData?.name}`,
-        type: interviewType,
-        status: 'scheduled',
-        scheduledAt,
+        type: interviewType as any,
+        scheduledAt: scheduledAt.toISOString(),
         duration,
         location,
         notes,
-        createdAt: new Date(),
       }
 
-      // Here you would normally make an API call to create the interview
-      console.log('Creating interview:', interview)
+      await createInterviewMutation.mutateAsync(interviewData)
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      toast({
+        title: "Interview Scheduled",
+        description: `Interview with ${selectedCandidateData?.name} has been scheduled successfully.`
+      })
       
-      onScheduled?.(interview)
+      onScheduled?.(interviewData)
       
       // Reset form
       setSelectedCandidate(candidateId || '')
@@ -109,12 +109,16 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
       setLocation('')
       setTitle('')
       setNotes('')
+      setJobCandidateId('')
       setOpen(false)
       
     } catch (error) {
       console.error('Failed to create interview:', error)
-    } finally {
-      setIsSubmitting(false)
+      toast({
+        title: "Error",
+        description: "Failed to schedule interview. Please try again.",
+        variant: "destructive"
+      })
     }
   }
 
@@ -142,30 +146,37 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
           {/* Candidate Selection */}
           <div className="space-y-2">
             <Label htmlFor="candidate">Candidate *</Label>
-            <Select value={selectedCandidate} onValueChange={setSelectedCandidate} required>
+            <Select value={selectedCandidate} onValueChange={setSelectedCandidate} required disabled={candidatesLoading}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a candidate" />
+                <SelectValue placeholder={candidatesLoading ? "Loading candidates..." : "Select a candidate"} />
               </SelectTrigger>
               <SelectContent>
-                {mockCandidates.map(candidate => (
-                  <SelectItem key={candidate.id} value={candidate.id}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{candidate.name}</span>
-                      <span className="text-sm text-muted-foreground">
-                        {candidate.job} at {candidate.company}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
+                {candidatesLoading ? (
+                  <div className="p-2 text-center">
+                    <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                  </div>
+                ) : candidates.length === 0 ? (
+                  <div className="p-2 text-center text-muted-foreground">
+                    No candidates found
+                  </div>
+                ) : (
+                  candidates.map((candidate: any) => (
+                    <SelectItem key={candidate.id} value={candidate.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{candidate.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {candidate.email}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             {selectedCandidateData && (
               <div className="flex gap-2 mt-2">
                 <Badge variant="secondary">
-                  {selectedCandidateData.job}
-                </Badge>
-                <Badge variant="outline">
-                  {selectedCandidateData.company}
+                  {selectedCandidateData.email}
                 </Badge>
               </div>
             )}
@@ -276,6 +287,21 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
             </div>
           </div>
 
+          {/* Job-Candidate ID - Simplified for now */}
+          <div className="space-y-2">
+            <Label htmlFor="jobCandidateId">Job-Candidate ID *</Label>
+            <Input
+              id="jobCandidateId"
+              value={jobCandidateId}
+              onChange={(e) => setJobCandidateId(e.target.value)}
+              placeholder="Enter job-candidate relationship ID"
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              This connects the interview to a specific job application. You can find this ID in the candidate's job applications.
+            </p>
+          </div>
+
           {/* Custom Title */}
           <div className="space-y-2">
             <Label htmlFor="title">Custom Title (Optional)</Label>
@@ -304,8 +330,15 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Scheduling...' : 'Schedule Interview'}
+            <Button type="submit" disabled={createInterviewMutation.isPending}>
+              {createInterviewMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Scheduling...
+                </>
+              ) : (
+                'Schedule Interview'
+              )}
             </Button>
           </div>
         </form>

@@ -131,6 +131,8 @@ export class MemStorage implements IStorage {
   private candidates: Map<string, Candidate>;
   private jobCandidates: Map<string, JobCandidate>;
   private candidateNotes: Map<string, CandidateNotes>;
+  private interviews: Map<string, Interview>;
+  private messages: Map<string, Message>;
 
   constructor() {
     this.userProfiles = new Map();
@@ -141,6 +143,8 @@ export class MemStorage implements IStorage {
     this.candidates = new Map();
     this.jobCandidates = new Map();
     this.candidateNotes = new Map();
+    this.interviews = new Map();
+    this.messages = new Map();
   }
 
 
@@ -555,6 +559,76 @@ export class MemStorage implements IStorage {
     };
     this.candidateNotes.set(id, note);
     return note;
+  }
+
+  // Interview methods
+  async getInterview(id: string): Promise<Interview | undefined> {
+    return this.interviews.get(id);
+  }
+
+  async getInterviews(): Promise<Interview[]> {
+    return Array.from(this.interviews.values()).filter(interview => interview.recordStatus !== 'deleted');
+  }
+
+  async getInterviewsByJobCandidate(jobCandidateId: string): Promise<Interview[]> {
+    return Array.from(this.interviews.values()).filter(interview => 
+      interview.jobCandidateId === jobCandidateId && interview.recordStatus !== 'deleted'
+    );
+  }
+
+  async getInterviewsByDateRange(startDate: Date, endDate: Date): Promise<Interview[]> {
+    return Array.from(this.interviews.values()).filter(interview => {
+      if (interview.recordStatus === 'deleted') return false;
+      const scheduledAt = new Date(interview.scheduledAt);
+      return scheduledAt >= startDate && scheduledAt <= endDate;
+    });
+  }
+
+  async createInterview(insertInterview: InsertInterview): Promise<Interview> {
+    const id = crypto.randomUUID();
+    const interview: Interview = {
+      ...insertInterview,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      status: insertInterview.status || 'scheduled',
+      recordStatus: insertInterview.recordStatus || 'active'
+    };
+    this.interviews.set(id, interview);
+    return interview;
+  }
+
+  async updateInterview(id: string, updateData: Partial<InsertInterview>): Promise<Interview> {
+    const existingInterview = this.interviews.get(id);
+    if (!existingInterview) {
+      throw new Error(`Interview with id ${id} not found`);
+    }
+    
+    const updatedInterview: Interview = {
+      ...existingInterview,
+      ...updateData,
+      updatedAt: new Date(),
+      id,
+    };
+    
+    this.interviews.set(id, updatedInterview);
+    return updatedInterview;
+  }
+
+  async deleteInterview(id: string): Promise<void> {
+    const existingInterview = this.interviews.get(id);
+    if (!existingInterview) {
+      throw new Error(`Interview with id ${id} not found`);
+    }
+    
+    // Soft delete by updating record status
+    const updatedInterview: Interview = {
+      ...existingInterview,
+      recordStatus: 'deleted',
+      updatedAt: new Date(),
+    };
+    
+    this.interviews.set(id, updatedInterview);
   }
 }
 

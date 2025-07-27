@@ -596,6 +596,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Interview endpoints
+  app.get("/api/interviews", async (req, res) => {
+    try {
+      const { org_id } = req.query;
+      if (!org_id) {
+        return res.status(400).json({ error: 'Organization ID is required' });
+      }
+      
+      const interviews = await storage.getInterviews();
+      // Filter by organization (interviews should have orgId field)
+      const orgInterviews = interviews.filter(interview => interview.orgId === org_id);
+      res.json(orgInterviews);
+    } catch (error) {
+      console.error("Error fetching interviews:", error);
+      res.status(500).json({ error: "Failed to fetch interviews" });
+    }
+  });
+
+  app.get("/api/interviews/:id", async (req, res) => {
+    try {
+      const interview = await storage.getInterview(req.params.id);
+      if (!interview) {
+        return res.status(404).json({ error: 'Interview not found' });
+      }
+      res.json(interview);
+    } catch (error) {
+      console.error("Error fetching interview:", error);
+      res.status(500).json({ error: "Failed to fetch interview" });
+    }
+  });
+
+  app.post("/api/interviews", writeLimiter, async (req, res) => {
+    try {
+      const interview = await storage.createInterview(req.body);
+      res.status(201).json(interview);
+    } catch (error) {
+      console.error("Error creating interview:", error);
+      res.status(500).json({ error: "Failed to create interview" });
+    }
+  });
+
+  app.put("/api/interviews/:id", writeLimiter, async (req, res) => {
+    try {
+      const interview = await storage.updateInterview(req.params.id, req.body);
+      res.json(interview);
+    } catch (error) {
+      console.error("Error updating interview:", error);
+      res.status(500).json({ error: "Failed to update interview" });
+    }
+  });
+
+  app.delete("/api/interviews/:id", writeLimiter, async (req, res) => {
+    try {
+      await storage.deleteInterview(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting interview:", error);
+      res.status(500).json({ error: "Failed to delete interview" });
+    }
+  });
+
   // File upload endpoint
   app.post("/api/upload/resume", writeLimiter, upload.single('resume'), async (req, res) => {
     try {

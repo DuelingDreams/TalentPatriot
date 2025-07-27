@@ -13,56 +13,14 @@ import {
   Phone, 
   User, 
   Plus,
-  Filter
+  Filter,
+  Loader2
 } from 'lucide-react'
 import { format, isSameDay } from 'date-fns'
 import { cn } from '@/lib/utils'
-
-// Mock data for demonstration
-const mockInterviews = [
-  {
-    id: '1',
-    title: 'Technical Interview - Sarah Johnson',
-    type: 'video',
-    status: 'scheduled',
-    scheduledAt: new Date(2025, 6, 18, 10, 0), // July 18, 2025 10:00 AM
-    duration: '60',
-    location: 'https://meet.google.com/abc-defg-hij',
-    candidateName: 'Sarah Johnson',
-    jobTitle: 'Senior Software Engineer',
-    companyName: 'TechCorp',
-    interviewerName: 'John Smith',
-    notes: 'Focus on React and TypeScript experience'
-  },
-  {
-    id: '2',
-    title: 'Cultural Fit Interview - Mike Chen',
-    type: 'onsite',
-    status: 'confirmed',
-    scheduledAt: new Date(2025, 6, 19, 14, 30), // July 19, 2025 2:30 PM
-    duration: '45',
-    location: 'Conference Room A',
-    candidateName: 'Mike Chen',
-    jobTitle: 'Product Manager',
-    companyName: 'InnovateInc',
-    interviewerName: 'Jane Doe',
-    notes: 'Team collaboration and leadership discussion'
-  },
-  {
-    id: '3',
-    title: 'Phone Screening - Emma Wilson',
-    type: 'phone',
-    status: 'scheduled',
-    scheduledAt: new Date(2025, 6, 20, 9, 0), // July 20, 2025 9:00 AM
-    duration: '30',
-    location: '+1 (555) 123-4567',
-    candidateName: 'Emma Wilson',
-    jobTitle: 'UX Designer',
-    companyName: 'DesignStudio',
-    interviewerName: 'Alex Brown',
-    notes: 'Initial screening call'
-  }
-]
+import { useAuth } from '@/contexts/AuthContext'
+import { useInterviews } from '@/hooks/useInterviews'
+import { ScheduleInterviewDialog } from './ScheduleInterviewDialog'
 
 const InterviewTypeIcon = ({ type }: { type: string }) => {
   switch (type) {
@@ -149,13 +107,15 @@ const InterviewCard = ({ interview }: { interview: any }) => (
 
 export function InterviewCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const { user, currentOrgId } = useAuth()
+  const { data: interviews = [], isLoading, error } = useInterviews(currentOrgId)
 
   // Get interviews for selected date
-  const selectedDateInterviews = mockInterviews.filter(interview =>
-    isSameDay(interview.scheduledAt, selectedDate)
+  const selectedDateInterviews = interviews.filter((interview: any) =>
+    isSameDay(new Date(interview.scheduledAt), selectedDate)
   )
 
-  const interviewDates = mockInterviews.map(interview => interview.scheduledAt)
+  const interviewDates = interviews.map((interview: any) => new Date(interview.scheduledAt))
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
@@ -175,10 +135,14 @@ export function InterviewCalendar() {
                   <Filter className="h-4 w-4 mr-2" />
                   Filter
                 </Button>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Schedule Interview
-                </Button>
+                <ScheduleInterviewDialog
+                  trigger={
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Schedule Interview
+                    </Button>
+                  }
+                />
               </div>
             </div>
           </CardHeader>
@@ -220,19 +184,35 @@ export function InterviewCalendar() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {selectedDateInterviews.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading interviews...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-destructive mb-4">Failed to load interviews</p>
+                <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                  Try Again
+                </Button>
+              </div>
+            ) : selectedDateInterviews.length === 0 ? (
               <div className="text-center py-8">
                 <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground mb-4">No interviews scheduled for this date</p>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Schedule Interview
-                </Button>
+                <ScheduleInterviewDialog
+                  trigger={
+                    <Button size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Schedule Interview
+                    </Button>
+                  }
+                />
               </div>
             ) : (
               selectedDateInterviews
-                .sort((a, b) => a.scheduledAt.getTime() - b.scheduledAt.getTime())
-                .map(interview => (
+                .sort((a: any, b: any) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+                .map((interview: any) => (
                   <InterviewCard key={interview.id} interview={interview} />
                 ))
             )}
