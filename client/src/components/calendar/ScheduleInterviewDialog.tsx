@@ -58,7 +58,7 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
 
   const { currentOrgId } = useAuth()
   const { toast } = useToast()
-  const { data: candidates = [], isLoading: candidatesLoading } = useCandidates(currentOrgId)
+  const { data: candidates = [], isLoading: candidatesLoading } = useCandidates()
   const createInterviewMutation = useCreateInterview()
 
   const selectedCandidateData = candidates.find((c: any) => c.id === selectedCandidate)
@@ -85,7 +85,7 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
         jobCandidateId,
         title: title || `${interviewType} Interview - ${selectedCandidateData?.name}`,
         type: interviewType as any,
-        scheduledAt: scheduledAt.toISOString(),
+        scheduledAt: scheduledAt,
         duration,
         location,
         notes,
@@ -134,39 +134,38 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Schedule Interview</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto p-6">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-xl font-semibold">Schedule Interview</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">
             Create a new interview appointment with a candidate
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
           {/* Candidate Selection */}
           <div className="space-y-2">
-            <Label htmlFor="candidate">Candidate *</Label>
+            <Label htmlFor="candidate" className="text-sm font-medium">Candidate *</Label>
             <Select value={selectedCandidate} onValueChange={setSelectedCandidate} required disabled={candidatesLoading}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10">
                 <SelectValue placeholder={candidatesLoading ? "Loading candidates..." : "Select a candidate"} />
               </SelectTrigger>
               <SelectContent>
                 {candidatesLoading ? (
-                  <div className="p-2 text-center">
+                  <div className="p-3 text-center">
                     <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                    <span className="text-sm text-muted-foreground mt-1">Loading...</span>
                   </div>
                 ) : candidates.length === 0 ? (
-                  <div className="p-2 text-center text-muted-foreground">
+                  <div className="p-3 text-center text-muted-foreground text-sm">
                     No candidates found
                   </div>
                 ) : (
                   candidates.map((candidate: any) => (
                     <SelectItem key={candidate.id} value={candidate.id}>
-                      <div className="flex flex-col">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{candidate.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {candidate.email}
-                        </span>
                       </div>
                     </SelectItem>
                   ))
@@ -174,8 +173,8 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
               </SelectContent>
             </Select>
             {selectedCandidateData && (
-              <div className="flex gap-2 mt-2">
-                <Badge variant="secondary">
+              <div className="mt-2">
+                <Badge variant="secondary" className="text-xs">
                   {selectedCandidateData.email}
                 </Badge>
               </div>
@@ -184,17 +183,17 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
 
           {/* Interview Type */}
           <div className="space-y-2">
-            <Label htmlFor="type">Interview Type *</Label>
+            <Label htmlFor="type" className="text-sm font-medium">Interview Type *</Label>
             <Select value={interviewType} onValueChange={setInterviewType} required>
-              <SelectTrigger>
+              <SelectTrigger className="h-10">
                 <SelectValue placeholder="Select interview type" />
               </SelectTrigger>
               <SelectContent>
                 {interviewTypes.map(type => (
                   <SelectItem key={type.value} value={type.value}>
-                    <div className="flex items-center gap-2">
-                      <type.icon className="h-4 w-4" />
-                      {type.label}
+                    <div className="flex items-center gap-3">
+                      <type.icon className="h-4 w-4 text-muted-foreground" />
+                      <span>{type.label}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -202,66 +201,68 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
             </Select>
           </div>
 
-          {/* Date & Time Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Date *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+          {/* Date Selection */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Date *</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal h-10",
+                    !selectedDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="time">Time *</Label>
-              <Select value={selectedTime} onValueChange={setSelectedTime} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {timeSlots.map(time => (
-                    <SelectItem key={time} value={time}>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        {time}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Time Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="time" className="text-sm font-medium">Time *</Label>
+            <Select value={selectedTime} onValueChange={setSelectedTime} required>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeSlots.map(time => (
+                  <SelectItem key={time} value={time}>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>{time}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Duration */}
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration</Label>
+            <Label htmlFor="duration" className="text-sm font-medium">Duration</Label>
             <Select value={duration} onValueChange={setDuration}>
-              <SelectTrigger>
+              <SelectTrigger className="h-10">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {durations.map(dur => (
                   <SelectItem key={dur.value} value={dur.value}>
-                    {dur.label}
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <span>{dur.label}</span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -270,13 +271,14 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
 
           {/* Location */}
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <div className="flex items-center gap-2">
-              <TypeIcon className="h-4 w-4 text-muted-foreground" />
+            <Label htmlFor="location" className="text-sm font-medium">Location</Label>
+            <div className="relative">
+              <TypeIcon className="absolute left-3 top-1/2 h-4 w-4 text-muted-foreground transform -translate-y-1/2" />
               <Input
                 id="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
+                className="pl-10 h-10"
                 placeholder={
                   interviewType === 'video' ? 'Meeting link (e.g., Zoom, Teams)' :
                   interviewType === 'phone' ? 'Phone number' :
@@ -289,48 +291,51 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
 
           {/* Job-Candidate ID - Simplified for now */}
           <div className="space-y-2">
-            <Label htmlFor="jobCandidateId">Job-Candidate ID *</Label>
+            <Label htmlFor="jobCandidateId" className="text-sm font-medium">Job-Candidate ID *</Label>
             <Input
               id="jobCandidateId"
               value={jobCandidateId}
               onChange={(e) => setJobCandidateId(e.target.value)}
               placeholder="Enter job-candidate relationship ID"
+              className="h-10"
               required
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               This connects the interview to a specific job application. You can find this ID in the candidate's job applications.
             </p>
           </div>
 
           {/* Custom Title */}
           <div className="space-y-2">
-            <Label htmlFor="title">Custom Title (Optional)</Label>
+            <Label htmlFor="title" className="text-sm font-medium">Custom Title (Optional)</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={selectedCandidateData ? `${interviewType || 'Interview'} - ${selectedCandidateData.name}` : 'Interview title'}
+              className="h-10"
             />
           </div>
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+            <Label htmlFor="notes" className="text-sm font-medium">Notes</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Interview preparation notes, topics to cover, etc."
               rows={3}
+              className="resize-none"
             />
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-6 border-t">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-10">
               Cancel
             </Button>
-            <Button type="submit" disabled={createInterviewMutation.isPending}>
+            <Button type="submit" disabled={createInterviewMutation.isPending} className="h-10">
               {createInterviewMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
