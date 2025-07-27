@@ -5,37 +5,90 @@
 
 // Only run in browser environment
 if (typeof window !== 'undefined') {
-  // Simple, focused unhandled rejection handler
+  // Enhanced unhandled rejection handler with better error classification
   window.addEventListener('unhandledrejection', (event) => {
-    // Only handle DOM exceptions and auth-related errors silently
-    if (event.reason instanceof DOMException) {
+    const reason = event.reason
+    
+    // Handle DOM exceptions silently
+    if (reason instanceof DOMException) {
       console.warn('DOM exception prevented:', {
-        name: event.reason.name,
-        message: event.reason.message,
-        code: event.reason.code
+        name: reason.name,
+        message: reason.message,
+        code: reason.code
       })
       event.preventDefault()
       return
     }
     
-    // Handle Supabase authentication errors silently
-    if (event.reason?.message?.includes('supabase') || 
-        event.reason?.message?.includes('auth') ||
-        event.reason?.message?.includes('session')) {
-      console.warn('Auth error handled:', event.reason.message)
+    // Handle Supabase/auth errors silently
+    if (reason?.message && (
+        reason.message.includes('supabase') || 
+        reason.message.includes('auth') ||
+        reason.message.includes('session') ||
+        reason.message.includes('Invalid session') ||
+        reason.message.includes('User not found') ||
+        reason.message.includes('Invalid JWT')
+      )) {
+      console.warn('Auth error handled:', reason.message)
       event.preventDefault()
       return
     }
     
-    // Handle storage quota errors
-    if (event.reason?.name === 'QuotaExceededError' || 
-        event.reason?.name === 'SecurityError') {
-      console.warn('Storage error handled:', event.reason.name)
+    // Handle storage and security errors
+    if (reason?.name === 'QuotaExceededError' || 
+        reason?.name === 'SecurityError' ||
+        reason?.name === 'NotAllowedError') {
+      console.warn('Storage/Security error handled:', reason.name)
       event.preventDefault()
       return
     }
     
-    // Let other errors pass through normally for Vite HMR
+    // Handle network-related errors
+    if (reason?.message && (
+        reason.message.includes('fetch') ||
+        reason.message.includes('network') ||
+        reason.message.includes('timeout') ||
+        reason.message.includes('Failed to fetch')
+      )) {
+      console.warn('Network error handled:', reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Let development/Vite errors pass through normally
+    if (reason?.message && (
+        reason.message.includes('[vite]') ||
+        reason.message.includes('HMR') ||
+        reason.message.includes('hot update')
+      )) {
+      // Let Vite handle these
+      return
+    }
+    
+    // Log other unhandled rejections but don't prevent them in development
+    console.warn('Unhandled promise rejection:', reason)
+  })
+  
+  // Also handle regular errors to prevent crashes
+  window.addEventListener('error', (event) => {
+    const error = event.error
+    
+    if (error instanceof DOMException) {
+      console.warn('DOM error prevented:', error.name)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle auth-related errors
+    if (error?.message && (
+        error.message.includes('supabase') ||
+        error.message.includes('auth') ||
+        error.message.includes('session')
+      )) {
+      console.warn('Auth error prevented:', error.message)
+      event.preventDefault()
+      return
+    }
   })
 }
 

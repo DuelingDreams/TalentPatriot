@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const clients = await storage.getClients({ orgId });
+      const clients = await storage.getClientsByOrg(orgId);
       res.json(clients);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clients" });
@@ -407,7 +407,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const jobs = await storage.getJobs({ orgId });
+      const jobs = await storage.getJobsByOrg(orgId);
       res.json(jobs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch jobs" });
@@ -445,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const candidates = await storage.getCandidates({ orgId });
+      const candidates = await storage.getCandidatesByOrg(orgId);
       res.json(candidates);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch candidates" });
@@ -477,7 +477,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(jobCandidate);
     } catch (error) {
       console.error('Job candidate creation error:', error);
-      res.status(400).json({ error: "Failed to create job candidate relationship", details: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to create job candidate relationship", details: errorMsg });
     }
   });
 
@@ -487,7 +488,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(jobCandidate);
     } catch (error) {
       console.error('Job candidate update error:', error);
-      res.status(400).json({ error: "Failed to update job candidate", details: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to update job candidate", details: errorMsg });
     }
   });
 
@@ -503,7 +505,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(notes || []);
     } catch (error) {
       console.error('Error fetching candidate notes:', error);
-      res.status(500).json({ error: "Failed to fetch candidate notes", details: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch candidate notes", details: errorMsg });
     }
   });
 
@@ -515,7 +518,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(note);
     } catch (error) {
       console.error('Error creating candidate note:', error);
-      res.status(400).json({ error: "Failed to create candidate note", details: error.message });
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to create candidate note", details: errorMsg });
     }
   });
 
@@ -693,7 +697,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         status: 'unhealthy',
         timestamp: new Date().toISOString(),
-        error: error.message
+        error: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });

@@ -68,9 +68,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               sessionStorage.setItem('currentOrgId', demoOrgId)
             })
           } else {
-            // For regular users without session data, just set defaults
-            setUserRole('hiring_manager')
-            setCurrentOrgIdState(null)
+            // For regular users, fetch their actual role from the database
+            try {
+              const profileResult = await safeSupabaseOperation(
+                () => fetch(`/api/user-profiles/${session.user.id}`),
+                'fetchUserProfile'
+              )
+              
+              if (profileResult && profileResult.ok) {
+                const profile = await profileResult.json()
+                setUserRole(profile.role || 'hiring_manager')
+              } else {
+                // Fallback to default role
+                setUserRole('hiring_manager')
+              }
+              setCurrentOrgIdState(null)
+            } catch (error) {
+              console.warn('Failed to fetch user profile:', error)
+              setUserRole('hiring_manager')
+              setCurrentOrgIdState(null)
+            }
           }
         } else {
           setUserRole(null)
@@ -97,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializeAuth()
 
     // Listen for auth changes with simplified error handling
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
         if (!mounted) return
         
@@ -114,8 +131,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               sessionStorage.setItem('currentOrgId', demoOrgId)
             })
           } else {
-            setUserRole('hiring_manager')
-            setCurrentOrgIdState(null)
+            // For regular users in auth state change, fetch their actual role
+            try {
+              const profileResult = await safeSupabaseOperation(
+                () => fetch(`/api/user-profiles/${session.user.id}`),
+                'fetchUserProfile'
+              )
+              
+              if (profileResult && profileResult.ok) {
+                const profile = await profileResult.json()
+                setUserRole(profile.role || 'hiring_manager')
+              } else {
+                setUserRole('hiring_manager')
+              }
+              setCurrentOrgIdState(null)
+            } catch (error) {
+              console.warn('Failed to fetch user profile in auth change:', error)
+              setUserRole('hiring_manager')
+              setCurrentOrgIdState(null)
+            }
           }
         } else {
           setUserRole(null)
