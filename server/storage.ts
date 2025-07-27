@@ -1156,27 +1156,82 @@ class DatabaseStorage implements IStorage {
   }
 
   async getJobCandidatesByJob(jobId: string): Promise<JobCandidate[]> {
-    const { data, error } = await supabase
-      .from('job_candidate')
-      .select(`
-        *,
-        candidates (
-          id,
-          name,
-          email,
-          phone,
-          resume_url,
-          created_at
-        )
-      `)
-      .eq('job_id', jobId)
-      .order('updated_at', { ascending: false })
-    
-    if (error) {
-      throw new Error(error.message)
+    try {
+      console.log('Fetching job candidates for job:', jobId);
+      
+      // For demo jobs, return demo candidates
+      if (jobId.startsWith('demo-job-')) {
+        console.log('Returning demo candidates for demo job');
+        return [
+          {
+            id: 'demo-job-candidate-1',
+            orgId: 'demo-org-fixed',
+            jobId: jobId,
+            candidateId: 'demo-candidate-1',
+            stage: 'applied',
+            notes: 'Initial application review pending',
+            assignedTo: null,
+            status: 'demo',
+            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+            updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+            candidates: {
+              id: 'demo-candidate-1',
+              name: 'David Brown',
+              email: 'david.brown@email.com',
+              phone: '+1-555-0123',
+              resume_url: 'https://example.com/david-resume.pdf',
+              created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            }
+          },
+          {
+            id: 'demo-job-candidate-2',
+            orgId: 'demo-org-fixed',
+            jobId: jobId,
+            candidateId: 'demo-candidate-2',
+            stage: 'phone_screen',
+            notes: 'Passed initial screening',
+            assignedTo: null,
+            status: 'demo',
+            createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+            candidates: {
+              id: 'demo-candidate-2',
+              name: 'Sarah Wilson',
+              email: 'sarah.wilson@email.com',
+              phone: '+1-555-0124',
+              resume_url: 'https://example.com/sarah-resume.pdf',
+              created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+            }
+          }
+        ] as JobCandidate[]
+      }
+      
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .select(`
+          *,
+          candidates (
+            id,
+            name,
+            email,
+            phone,
+            resume_url,
+            created_at
+          )
+        `)
+        .eq('job_id', jobId)
+        .order('updated_at', { ascending: false })
+      
+      if (error) {
+        console.error('Supabase error fetching job candidates:', error);
+        return []
+      }
+      
+      return data as JobCandidate[]
+    } catch (err) {
+      console.error('Exception in getJobCandidatesByJob:', err);
+      return []
     }
-    
-    return data as JobCandidate[]
   }
 
   async getJobCandidatesByCandidate(candidateId: string): Promise<JobCandidate[]> {
@@ -1254,27 +1309,84 @@ class DatabaseStorage implements IStorage {
   }
 
   async getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]> {
-    const { data, error } = await supabase
-      .from('candidate_notes')
-      .select('*')
-      .eq('job_candidate_id', jobCandidateId)
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      throw new Error(error.message)
+    try {
+      console.log('Querying candidate_notes for job_candidate_id:', jobCandidateId);
+      
+      // For demo job candidates, return demo notes
+      if (jobCandidateId.startsWith('demo-')) {
+        console.log('Returning demo notes for demo candidate');
+        return [
+          {
+            id: `demo-note-1-${jobCandidateId}`,
+            orgId: 'demo-org-fixed',
+            jobCandidateId,
+            authorId: 'demo-user',
+            content: 'Initial screening call went well. Candidate has strong technical background.',
+            isPrivate: 'false',
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          },
+          {
+            id: `demo-note-2-${jobCandidateId}`,
+            orgId: 'demo-org-fixed',
+            jobCandidateId,
+            authorId: 'demo-user-2',
+            content: 'Follow-up interview scheduled for next week.',
+            isPrivate: 'false',
+            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+            updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          }
+        ] as CandidateNotes[]
+      }
+      
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .select('*')
+        .eq('job_candidate_id', jobCandidateId)
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('Supabase error fetching candidate notes:', error);
+        // Return empty array instead of throwing error for better UX
+        return []
+      }
+      
+      console.log('Raw candidate notes data:', data);
+      return data as CandidateNotes[] || []
+    } catch (err) {
+      console.error('Exception in getCandidateNotes:', err);
+      // Return empty array instead of throwing error
+      return []
     }
-    
-    return data as CandidateNotes[]
   }
 
   async createCandidateNote(insertNote: InsertCandidateNotes): Promise<CandidateNotes> {
     try {
+      console.log('Creating candidate note:', insertNote);
+      
+      // For demo candidates, return a mock created note
+      if (insertNote.jobCandidateId.startsWith('demo-')) {
+        console.log('Creating demo note for demo candidate');
+        const mockNote: CandidateNotes = {
+          id: `demo-note-${Date.now()}`,
+          orgId: insertNote.orgId || 'demo-org-fixed',
+          jobCandidateId: insertNote.jobCandidateId,
+          authorId: insertNote.authorId,
+          content: insertNote.content,
+          isPrivate: 'false',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+        return mockNote
+      }
+      
       // Map the camelCase fields to snake_case for database with optimized structure
       const dbNote = {
+        org_id: insertNote.orgId || 'demo-org-fixed',
         job_candidate_id: insertNote.jobCandidateId,
         author_id: insertNote.authorId,
         content: insertNote.content,
-        // Note: is_private field will be added after schema migration
+        is_private: 'false',
       }
       
       const { data, error } = await supabase

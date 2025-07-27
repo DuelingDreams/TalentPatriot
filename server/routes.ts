@@ -494,19 +494,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Candidate notes
   app.get("/api/job-candidates/:jobCandidateId/notes", async (req, res) => {
     try {
-      const notes = await storage.getCandidateNotes(req.params.jobCandidateId);
-      res.json(notes);
+      const { jobCandidateId } = req.params;
+      console.log('Fetching notes for job candidate:', jobCandidateId);
+      
+      const notes = await storage.getCandidateNotes(jobCandidateId);
+      console.log('Found notes:', notes?.length || 0);
+      
+      res.json(notes || []);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch candidate notes" });
+      console.error('Error fetching candidate notes:', error);
+      res.status(500).json({ error: "Failed to fetch candidate notes", details: error.message });
     }
   });
 
   app.post("/api/candidate-notes", writeLimiter, async (req, res) => {
     try {
+      console.log('Creating candidate note:', req.body);
       const note = await storage.createCandidateNote(req.body);
+      console.log('Created note:', note);
       res.status(201).json(note);
     } catch (error) {
-      res.status(400).json({ error: "Failed to create candidate note" });
+      console.error('Error creating candidate note:', error);
+      res.status(400).json({ error: "Failed to create candidate note", details: error.message });
     }
   });
 

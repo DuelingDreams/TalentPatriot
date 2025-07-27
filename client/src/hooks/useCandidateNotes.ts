@@ -19,7 +19,12 @@ export function useCreateCandidateNote() {
         method: 'POST',
         body: JSON.stringify(note),
       }),
-    onSuccess: () => {
+    onSuccess: (createdNote, variables) => {
+      // Invalidate the specific notes query for this job candidate
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/job-candidates', variables.jobCandidateId, 'notes'] 
+      })
+      // Also invalidate general job candidates queries
       queryClient.invalidateQueries({ queryKey: ['/api/job-candidates'] })
     },
   })
