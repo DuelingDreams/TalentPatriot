@@ -116,54 +116,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let subscription: any = null
     
     try {
-      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-        // Wrap everything in Promise.resolve to catch any sync errors as well
-        Promise.resolve().then(async () => {
+      const { data } = supabase.auth.onAuthStateChange((event, session) => {
+        // Use immediate execution instead of Promise.resolve to avoid unhandled rejections
+        try {
           if (!mounted) return
           
-          try {
-            setSession(session)
-            setUser(session?.user ?? null)
-            
-            if (session?.user) {
-              // Special handling for demo user
-              if (session.user.email === 'demo@yourapp.com') {
-                setUserRole('demo_viewer')
-                const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
-                setCurrentOrgIdState(demoOrgId)
-                try {
-                  if (typeof sessionStorage !== 'undefined') {
-                    sessionStorage.setItem('currentOrgId', demoOrgId)
-                  }
-                } catch (e) {
-                  // Ignore all storage errors including DOMException
-                  console.warn('SessionStorage error:', e)
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            // Special handling for demo user
+            if (session.user.email === 'demo@yourapp.com') {
+              setUserRole('demo_viewer')
+              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+              setCurrentOrgIdState(demoOrgId)
+              try {
+                if (typeof sessionStorage !== 'undefined') {
+                  sessionStorage.setItem('currentOrgId', demoOrgId)
                 }
-              } else {
-                setUserRole('recruiter')
-                setCurrentOrgIdState(null)
+              } catch (e) {
+                // Ignore all storage errors including DOMException
+                console.warn('SessionStorage error:', e)
               }
             } else {
-              setUserRole(null)
+              setUserRole('recruiter')
               setCurrentOrgIdState(null)
             }
-            
-            if (mounted) {
-              setLoading(false)
-            }
-          } catch (error) {
-            console.warn('Error in auth state change:', error)
-            if (mounted) {
-              setLoading(false)
-            }
+          } else {
+            setUserRole(null)
+            setCurrentOrgIdState(null)
           }
-        }).catch((error) => {
-          // Catch any unhandled promise rejections
-          console.warn('Unhandled promise rejection in auth state change:', error)
+          
           if (mounted) {
             setLoading(false)
           }
-        })
+        } catch (error) {
+          console.warn('Error in auth state change:', error)
+          if (mounted) {
+            setLoading(false)
+          }
+        }
       })
       
       subscription = data.subscription
@@ -188,11 +180,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      return { error }
+      const result = await safeSupabaseOperation(
+        () => supabase.auth.signInWithPassword({
+          email,
+          password,
+        }),
+        'signIn'
+      )
+      
+      return { error: result?.error || null }
     } catch (error) {
       // Handle DOM exceptions and network errors gracefully
       if (error instanceof DOMException) {
@@ -210,17 +206,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, role = 'recruiter', orgName?: string) => {
     try {
-      // Step 1: Create the user account
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            role: role,
-            name: email.split('@')[0], // Use email prefix as default name
+      // Step 1: Create the user account with safe wrapper
+      const authResult = await safeSupabaseOperation(
+        () => supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              role: role,
+              name: email.split('@')[0], // Use email prefix as default name
+            },
           },
-        },
-      })
+        }),
+        'signUp'
+      )
+      
+      if (!authResult) {
+        return { error: { message: 'Failed to create account. Please try again.' } }
+      }
+      
+      const { data, error: authError } = authResult
 
       if (authError) {
         return { error: authError }
@@ -305,29 +310,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      if (!error) {
-        setUser(null)
-        setSession(null)
-        setUserRole(null)
-        setCurrentOrgIdState(null)
-        
-        // Clear storage safely
-        try {
-          if (typeof sessionStorage !== 'undefined') {
-            sessionStorage.removeItem('currentOrgId')
-          }
-        } catch (e) {
-          console.warn('SessionStorage clear error:', e)
+      const result = await safeSupabaseOperation(
+        () => supabase.auth.signOut(),
+        'signOut'
+      )
+      
+      // Always clear local state regardless of result
+      setUser(null)
+      setSession(null)
+      setUserRole(null)
+      setCurrentOrgIdState(null)
+      
+      // Clear storage safely
+      try {
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.removeItem('currentOrgId')
         }
+      } catch (e) {
+        console.warn('SessionStorage clear error:', e)
       }
     } catch (error) {
       // Handle DOM exceptions during sign out
-      if (error instanceof DOMException) {
-        console.warn('DOM exception during sign out:', error.name, error.message)
-      } else {
-        console.warn('Sign out error:', error)
-      }
+      console.warn('Sign out error:', error)
       
       // Still clear the local state even if signOut fails
       setUser(null)

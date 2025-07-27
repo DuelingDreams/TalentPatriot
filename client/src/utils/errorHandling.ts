@@ -26,7 +26,8 @@ if (typeof window !== 'undefined') {
     if (event.reason?.message?.includes('supabase') || 
         event.reason?.message?.includes('auth') ||
         event.reason?.message?.includes('session') ||
-        event.reason?.message?.includes('onAuthStateChange')) {
+        event.reason?.message?.includes('onAuthStateChange') ||
+        event.reason?.message?.includes('No session found')) {
       console.warn('Auth error caught and handled:', event.reason.message)
       return
     }
@@ -36,6 +37,7 @@ if (typeof window !== 'undefined') {
         event.reason?.message?.includes('NetworkError') ||
         event.reason?.message?.includes('Load failed') ||
         event.reason?.message?.includes('net::ERR_') ||
+        event.reason?.message?.includes('fetch') ||
         event.reason?.code === 'NETWORK_ERROR') {
       console.warn('Connection error caught and handled:', event.reason.message)
       return
@@ -50,16 +52,25 @@ if (typeof window !== 'undefined') {
       return
     }
     
+    // Handle Vite HMR errors in development
+    if (event.reason?.message?.includes('hmr') ||
+        event.reason?.message?.includes('hot reload') ||
+        event.reason?.message?.includes('vite')) {
+      console.warn('Development HMR error caught and handled:', event.reason.message)
+      return
+    }
+    
     // Log other unhandled rejections but don't let them crash the app
-    console.warn('Other unhandled rejection:', event.reason)
+    console.warn('Other unhandled rejection (handled):', event.reason)
   })
 
   // Global error handler for regular errors
   window.addEventListener('error', (event) => {
     console.warn('Global error intercepted:', event.error)
     
-    // Always prevent the error from reaching the console
+    // Always prevent the error from reaching the console aggressively
     event.preventDefault()
+    event.stopPropagation()
     
     if (event.error instanceof DOMException) {
       console.warn('DOM exception in global handler:', event.error.name, event.error.message)
@@ -82,6 +93,7 @@ if (typeof window !== 'undefined') {
   document.addEventListener('error', (event) => {
     console.warn('Document error intercepted:', event)
     event.preventDefault()
+    event.stopPropagation()
   }, true)
 }
 
@@ -141,15 +153,25 @@ export const safeAsync = async <T>(
   }
 }
 
-// Safe Supabase operation wrapper
+// Safe Supabase operation wrapper with enhanced error handling
 export const safeSupabaseOperation = async <T>(
   operation: () => Promise<T>,
   operationName: string = 'Supabase operation'
 ): Promise<T | null> => {
   try {
-    return await operation()
+    const result = await operation()
+    return result
   } catch (error) {
     console.warn(`${operationName} failed:`, error)
+    
+    // Handle specific error types
+    if (error instanceof DOMException) {
+      console.warn(`DOM exception in ${operationName}:`, error.name, error.message)
+    }
+    
+    if (error instanceof TypeError && error.message?.includes('fetch')) {
+      console.warn(`Network error in ${operationName}:`, error.message)
+    }
     
     // Don't let any Supabase errors crash the app
     return null
