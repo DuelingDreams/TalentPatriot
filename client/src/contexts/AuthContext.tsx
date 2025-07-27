@@ -36,13 +36,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Set initial loading state
         setLoading(true)
         
-        // Get session with timeout and DOM exception handling
+        // Get session with comprehensive error handling
         const sessionPromise = supabase.auth.getSession().catch((err) => {
+          console.warn('Session retrieval error:', err)
           if (err instanceof DOMException) {
-            console.warn('DOM exception in getSession:', err.name)
+            console.warn('DOM exception in getSession:', err.name, err.message)
             return { data: { session: null }, error: null }
           }
-          throw err
+          if (err.message?.includes('NetworkError') || err.message?.includes('Failed to fetch')) {
+            console.warn('Network error in getSession:', err.message)
+            return { data: { session: null }, error: null }
+          }
+          // Return null session for any auth error to avoid blocking
+          return { data: { session: null }, error: null }
         })
         
         const timeoutPromise = new Promise((_, reject) => 
