@@ -62,11 +62,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (orgId) sessionStorage.setItem('currentOrgId', orgId)
               } else {
                 // Fallback for new users without profiles
+                console.log('User profile not found, using default recruiter role')
                 setUserRole('recruiter')
                 setCurrentOrgIdState(null)
               }
             } catch (error) {
-              console.warn('Failed to fetch user profile:', error)
+              // Silently handle errors and use fallback - common during development
               setUserRole('recruiter')
               setCurrentOrgIdState(null)
             }
@@ -111,11 +112,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 if (orgId) sessionStorage.setItem('currentOrgId', orgId)
               } else {
                 // Fallback for new users without profiles
+                console.log('User profile not found, using default recruiter role')
                 setUserRole('recruiter')
                 setCurrentOrgIdState(null)
               }
             } catch (error) {
-              console.warn('Failed to fetch user profile:', error)
+              // Silently handle errors and use fallback - common during development
               setUserRole('recruiter')
               setCurrentOrgIdState(null)
             }
