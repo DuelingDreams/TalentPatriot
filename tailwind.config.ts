@@ -5,12 +5,21 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        'tp-primary': '#1F3A5F',
+        'tp-accent': '#264C99',
+        'tp-page-bg': '#F7F9FC',
+        'tp-card': '#F0F4F8',
+        'tp-text-primary': '#1A1A1A',
+        'tp-text-secondary': '#5C667B',
         background: "var(--background)",
         foreground: "var(--foreground)",
         card: {

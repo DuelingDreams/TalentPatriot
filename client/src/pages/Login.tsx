@@ -126,14 +126,14 @@ export default function Login() {
   }, [])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[#1F3A5F] rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Welcome back</h1>
-          <p className="text-slate-600 mt-2">Sign in to your ATS account</p>
+          <h1 className="heading-1 text-[#1A1A1A]">Welcome back</h1>
+          <p className="body-text mt-2">Sign in to your ATS account</p>
         </div>
 
         <Card>
@@ -212,13 +212,15 @@ export default function Login() {
                   onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   disabled={loading}
                 />
-                <Label htmlFor="remember" className="text-sm text-slate-600">
+                <Label htmlFor="remember" className="text-sm text-[#5C667B]">
                   Remember me for 30 days
                 </Label>
               </div>
               
               <Button 
                 type="submit" 
+                variant="default"
+                size="lg"
                 className="w-full" 
                 disabled={loading}
               >
@@ -228,10 +230,10 @@ export default function Login() {
             </form>
             
             <div className="mt-6 text-center">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-[#5C667B]">
                 Don't have an account?{' '}
                 <Link href="/signup">
-                  <span className="text-blue-600 hover:underline font-medium">
+                  <span className="link-primary font-medium">
                     Sign up
                   </span>
                 </Link>
@@ -241,7 +243,7 @@ export default function Login() {
         </Card>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-slate-600 mb-3">
+          <p className="text-sm text-[#5C667B] mb-3">
             Or try the demo with a pre-configured account
           </p>
           <Button 

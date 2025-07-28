@@ -115,7 +115,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    className="w-full justify-start text-sm font-medium text-[#5C667B] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
                     onClick={onClose}
                   >
                     <Icon className="w-5 h-5 mr-3" />

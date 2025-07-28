@@ -1,3 +1,6 @@
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,46 +42,103 @@
   --info: 199 89% 48%;
 }
 
+/* Base styles */
+@layer base {
+  body {
+    font-family: 'Inter', sans-serif;
+    @apply bg-[#F7F9FC] text-[#1A1A1A];
+  }
+  
+  h1 {
+    @apply text-4xl font-bold text-[#1A1A1A];
+  }
+  
+  h2 {
+    @apply text-2xl font-semibold text-[#1A1A1A];
+  }
+  
+  h3 {
+    @apply text-xl font-semibold text-[#1A1A1A];
+  }
+  
+  p, .body-text {
+    @apply text-base leading-relaxed text-[#5C667B];
+  }
+  
+  label, .label-text {
+    @apply text-sm font-semibold text-[#5C667B];
+  }
+}
+
 /* TalentPatriot Brand Component Classes */
 @layer components {
+  /* Primary button - Navy background with proper height and focus states */
   .btn-primary {
-    @apply bg-[#1F3A5F] text-white px-6 py-3 rounded-md shadow-sm hover:bg-[#264C99] hover:shadow-md transition-all duration-200;
+    @apply bg-[#1F3A5F] text-white px-6 py-3 rounded-md min-h-[44px] font-medium
+           hover:bg-[#264C99] focus:outline-none focus:ring-2 focus:ring-[#264C99] focus:ring-offset-2
+           active:bg-[#1a2f4d] transition-all duration-200 
+           disabled:opacity-50 disabled:cursor-not-allowed
+           w-full sm:w-auto;
   }
   
+  /* Secondary button - Outlined style */
   .btn-secondary {
-    @apply border border-[#264C99] text-[#264C99] px-5 py-2 rounded-md hover:bg-[#E6F0FF] transition-all duration-200;
+    @apply border border-[#264C99] text-[#264C99] bg-white px-5 py-2 rounded-md min-h-[44px] font-medium
+           hover:bg-[#E6F0FF] focus:outline-none focus:ring-2 focus:ring-[#264C99] focus:ring-offset-2
+           active:bg-[#d6e5ff] transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed
+           w-full sm:w-auto;
   }
   
+  /* Card component with updated background */
   .card {
-    @apply bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300;
+    @apply bg-[#F0F4F8] p-6 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300
+           border border-transparent hover:border-[#264C99]/10;
   }
   
-  .tp-h1 {
-    @apply text-4xl md:text-5xl font-bold text-[#1A1A1A] font-sans;
+  /* Form input styles */
+  .input-field {
+    @apply rounded-md border-gray-300 px-4 py-2 min-h-[44px] w-full
+           focus:ring-2 focus:ring-[#264C99] focus:outline-none focus:border-[#264C99]
+           placeholder:text-[#5C667B]/60 text-[#1A1A1A]
+           disabled:bg-gray-100 disabled:cursor-not-allowed;
   }
   
-  .tp-h2 {
-    @apply text-2xl font-semibold text-[#1A1A1A] font-sans;
+  /* Section container with consistent spacing */
+  .section-container {
+    @apply py-12 px-6 md:px-12;
   }
   
-  .tp-body {
-    @apply text-base leading-relaxed text-[#1A1A1A] font-sans;
+  /* Typography utilities */
+  .heading-1 {
+    @apply text-4xl font-bold text-[#1A1A1A] leading-tight;
   }
   
-  .tp-label {
-    @apply text-sm font-semibold text-[#5C667B] font-sans;
+  .heading-2 {
+    @apply text-2xl font-semibold text-[#1A1A1A] leading-tight;
   }
   
-  .tp-container {
-    @apply max-w-screen-lg mx-auto;
+  .heading-3 {
+    @apply text-xl font-semibold text-[#1A1A1A] leading-tight;
   }
   
-  .tp-section {
-    @apply py-12 px-4 md:px-12;
+  .body-text {
+    @apply text-base leading-relaxed text-[#5C667B];
   }
   
-  .tp-screenshot {
-    @apply rounded-xl shadow-xl border overflow-hidden hover:scale-105 transition-transform duration-300;
+  .label-text {
+    @apply text-sm font-semibold text-[#5C667B];
+  }
+  
+  /* Link styles */
+  .link-primary {
+    @apply text-[#264C99] hover:text-[#1F3A5F] underline-offset-2 hover:underline
+           focus:outline-none focus:ring-2 focus:ring-[#264C99] focus:ring-offset-2 rounded-sm;
+  }
+  
+  /* Focus visible utilities */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-[#264C99] focus:ring-offset-2;
   }
 }
 
@@ -191,43 +251,57 @@
 
 /* Custom TalentPatriot utility classes */
 @layer utilities {
-  .text-tp-navy {
-    color: hsl(var(--tp-navy));
+  /* Text colors */
+  .text-tp-primary {
+    color: #1F3A5F;
   }
   
-  .text-tp-soft-blue {
-    color: hsl(var(--tp-soft-blue));
+  .text-tp-accent {
+    color: #264C99;
   }
   
-  .text-tp-dark-gray {
-    color: hsl(var(--tp-dark-gray));
+  .text-tp-body {
+    color: #5C667B;
   }
   
-  .text-tp-medium-gray {
-    color: hsl(var(--tp-medium-gray));
+  /* Background colors */
+  .bg-tp-primary {
+    background-color: #1F3A5F;
   }
   
-  .bg-tp-navy {
-    background-color: hsl(var(--tp-navy));
+  .bg-tp-accent {
+    background-color: #264C99;
   }
   
-  .bg-tp-soft-blue {
-    background-color: hsl(var(--tp-soft-blue));
+  .bg-tp-page {
+    background-color: #F7F9FC;
   }
   
-  .bg-tp-light-gray {
-    background-color: hsl(var(--tp-light-gray));
+  .bg-tp-card {
+    background-color: #F0F4F8;
   }
   
-  .border-tp-navy {
-    border-color: hsl(var(--tp-navy));
+  /* Border colors */
+  .border-tp-primary {
+    border-color: #1F3A5F;
   }
   
-  .hover\:bg-tp-soft-blue:hover {
-    background-color: hsl(var(--tp-soft-blue));
+  .border-tp-accent {
+    border-color: #264C99;
   }
   
-  .hover\:bg-tp-navy:hover {
-    background-color: hsl(var(--tp-navy));
+  /* Hover states */
+  .hover\:bg-tp-accent-light:hover {
+    background-color: #E6F0FF;
+  }
+  
+  /* Ensure minimum tap target size */
+  .min-tap-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Consistent spacing utilities */
+  .section-spacing {
+    @apply py-12 px-6 md:px-12;
   }
 }

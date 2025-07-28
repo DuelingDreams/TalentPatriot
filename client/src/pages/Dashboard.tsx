@@ -37,14 +37,14 @@ export default function Dashboard() {
   const { data: jobCandidates, isLoading: jobCandidatesLoading } = useJobCandidates()
 
   // Calculate real stats from data
-  const openJobsCount = jobs?.filter(job => job.status === 'open').length || 0
+  const openJobsCount = jobs?.filter((job: any) => job.status === 'open').length || 0
   const totalJobsCount = jobs?.length || 0
   const totalCandidatesCount = candidates?.length || 0
   const totalClientsCount = clients?.length || 0
-  const activeCandidatesCount = jobCandidates?.filter(jc => 
+  const activeCandidatesCount = jobCandidates?.filter((jc: any) => 
     ['screening', 'interview', 'technical', 'reference'].includes(jc.stage)
   ).length || 0
-  const hiredThisMonth = jobCandidates?.filter(jc => {
+  const hiredThisMonth = jobCandidates?.filter((jc: any) => {
     if (jc.stage !== 'hired') return false
     const hiredDate = new Date(jc.updated_at)
     const now = new Date()
@@ -54,7 +54,7 @@ export default function Dashboard() {
   // Calculate pipeline data
   const pipelineStages = ['applied', 'screening', 'interview', 'technical', 'reference', 'offer', 'hired', 'rejected']
   const pipelineData = pipelineStages.map(stage => {
-    const count = jobCandidates?.filter(jc => jc.stage === stage).length || 0
+    const count = jobCandidates?.filter((jc: any) => jc.stage === stage).length || 0
     const total = jobCandidates?.length || 1
     return {
       stage: stage.charAt(0).toUpperCase() + stage.slice(1),
@@ -65,10 +65,10 @@ export default function Dashboard() {
 
   // Calculate job status data
   const jobStatusData = [
-    { name: 'Open', value: jobs?.filter(j => j.status === 'open').length || 0, color: '#22c55e' },
-    { name: 'In Progress', value: jobs?.filter(j => j.status === 'in_progress').length || 0, color: '#3b82f6' },
-    { name: 'On Hold', value: jobs?.filter(j => j.status === 'on_hold').length || 0, color: '#f59e0b' },
-    { name: 'Filled', value: jobs?.filter(j => j.status === 'filled').length || 0, color: '#8b5cf6' },
+    { name: 'Open', value: jobs?.filter((j: any) => j.status === 'open').length || 0, color: '#22c55e' },
+    { name: 'In Progress', value: jobs?.filter((j: any) => j.status === 'in_progress').length || 0, color: '#3b82f6' },
+    { name: 'On Hold', value: jobs?.filter((j: any) => j.status === 'on_hold').length || 0, color: '#f59e0b' },
+    { name: 'Filled', value: jobs?.filter((j: any) => j.status === 'filled').length || 0, color: '#8b5cf6' },
   ]
 
   // Show demo dashboard for demo viewers (after all hooks are called)
@@ -146,7 +146,7 @@ export default function Dashboard() {
                 <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
                 <span className="text-sm font-semibold text-gray-900">
                   {jobCandidates && jobCandidates.length > 0 
-                    ? Math.round((jobCandidates.filter(jc => jc.stage === 'hired').length / jobCandidates.length) * 100)
+                    ? Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)
                     : 25}%
                 </span>
               </div>
@@ -155,7 +155,7 @@ export default function Dashboard() {
                   className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
                   style={{ 
                     width: `${jobCandidates && jobCandidates.length > 0 
-                      ? Math.round((jobCandidates.filter(jc => jc.stage === 'hired').length / jobCandidates.length) * 100)
+                      ? Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)
                       : 25}%` 
                   }}
                 ></div>
