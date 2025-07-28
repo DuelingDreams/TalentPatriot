@@ -208,16 +208,20 @@ export default function Clients() {
 
   const ClientForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Company Name *</FormLabel>
+                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Company Name *</FormLabel>
                 <FormControl>
-                  <Input placeholder="Acme Corporation" {...field} />
+                  <Input 
+                    placeholder="Acme Corporation" 
+                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -229,9 +233,13 @@ export default function Clients() {
             name="industry"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Industry</FormLabel>
+                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Industry</FormLabel>
                 <FormControl>
-                  <Input placeholder="Technology" {...field} />
+                  <Input 
+                    placeholder="Technology" 
+                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -243,9 +251,13 @@ export default function Clients() {
             name="location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Location</FormLabel>
+                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Location</FormLabel>
                 <FormControl>
-                  <Input placeholder="San Francisco, CA" {...field} />
+                  <Input 
+                    placeholder="San Francisco, CA" 
+                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -257,9 +269,13 @@ export default function Clients() {
             name="website"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Website</FormLabel>
+                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Website</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://company.com" {...field} />
+                  <Input 
+                    placeholder="https://company.com" 
+                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -271,9 +287,13 @@ export default function Clients() {
             name="contactName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contact Name</FormLabel>
+                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Contact Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Smith" {...field} />
+                  <Input 
+                    placeholder="John Smith" 
+                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -285,16 +305,18 @@ export default function Clients() {
             name="contactEmail"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contact Email</FormLabel>
+                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Contact Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="john@company.com" {...field} />
+                  <Input 
+                    placeholder="john@company.com" 
+                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    {...field} 
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          
-
         </div>
         
         <FormField
@@ -302,11 +324,11 @@ export default function Clients() {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Notes</FormLabel>
+              <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Notes</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Additional information about the client..."
-                  className="min-h-[80px]"
+                  className="min-h-[80px] bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20 resize-none"
                   {...field} 
                 />
               </FormControl>
@@ -315,13 +337,19 @@ export default function Clients() {
           )}
         />
         
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={closeModal}>
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={closeModal}
+            className="btn-secondary"
+          >
             Cancel
           </Button>
           <Button 
             type="submit" 
             disabled={createClientMutation.isPending || updateClientMutation.isPending}
+            className="btn-primary"
           >
             {(createClientMutation.isPending || updateClientMutation.isPending) && (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -374,9 +402,9 @@ export default function Clients() {
                   Add Client
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-0 shadow-xl">
                 <DialogHeader>
-                  <DialogTitle>Add New Client</DialogTitle>
+                  <DialogTitle className="text-[#1A1A1A] font-[Inter,sans-serif] font-semibold text-lg">Add New Client</DialogTitle>
                 </DialogHeader>
                 <ClientForm />
               </DialogContent>
@@ -606,9 +634,9 @@ export default function Clients() {
 
         {/* Edit Client Modal */}
         <Dialog open={!!editingClient} onOpenChange={closeModal}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-0 shadow-xl">
             <DialogHeader>
-              <DialogTitle>Edit Client</DialogTitle>
+              <DialogTitle className="text-[#1A1A1A] font-[Inter,sans-serif] font-semibold text-lg">Edit Client</DialogTitle>
             </DialogHeader>
             <ClientForm />
           </DialogContent>
