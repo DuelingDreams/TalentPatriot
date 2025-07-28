@@ -96,8 +96,8 @@ export default function OnboardingStep3() {
         description: `Let's get started with ${selectedOption.title.toLowerCase()}.`,
       })
 
-      // Redirect to Step 5 success screen with selected goal
-      setLocation(`/onboarding/step5?goal=${selectedOption.action}`)
+      // Redirect to Step 4 walkthrough with selected goal
+      setLocation(`/onboarding/step4?goal=${selectedOption.action}`)
     } catch (error) {
       console.warn('Failed to complete onboarding:', error)
       // Still redirect to dashboard even if API call fails

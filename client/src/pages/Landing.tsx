@@ -48,7 +48,7 @@ export default function Landing() {
                   Sign In
                 </Button>
               </Link>
-              <Link href="/signup">
+              <Link href="/onboarding/step1">
                 <Button className="btn-primary font-medium text-base whitespace-nowrap">
                   Start Free
                 </Button>
