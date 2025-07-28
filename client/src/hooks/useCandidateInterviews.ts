@@ -1,87 +1,83 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiRequest } from '@/lib/queryClient'
-import { useAuth } from '@/contexts/AuthContext'
 
-export function useCandidateInterviews(candidateId?: string) {
-  const { currentOrgId, userRole } = useAuth()
-  
+export interface CandidateInterview {
+  id: string
+  jobId: string
+  jobTitle: string
+  clientName: string
+  type: 'phone' | 'video' | 'in-person' | 'technical'
+  status: 'scheduled' | 'completed' | 'cancelled'
+  dateTime: string
+  duration: number
+  interviewer: string
+  feedback?: string
+  rating?: number
+  notes?: string
+}
+
+// Demo data for candidate interviews
+const demoInterviews: Record<string, CandidateInterview[]> = {
+  '44444444-4444-4444-4444-444444444444': [
+    {
+      id: 'int1',
+      jobId: '11111111-1111-1111-1111-111111111111',
+      jobTitle: 'Senior Software Engineer',
+      clientName: 'TechCorp',
+      type: 'video',
+      status: 'completed',
+      dateTime: '2024-01-20T14:00:00Z',
+      duration: 60,
+      interviewer: 'Sarah Johnson',
+      feedback: 'Strong technical skills, excellent problem-solving approach',
+      rating: 5,
+      notes: 'Candidate demonstrated deep understanding of system design'
+    },
+    {
+      id: 'int2',
+      jobId: '11111111-1111-1111-1111-111111111111',
+      jobTitle: 'Senior Software Engineer',
+      clientName: 'TechCorp',
+      type: 'technical',
+      status: 'scheduled',
+      dateTime: '2024-02-05T10:00:00Z',
+      duration: 90,
+      interviewer: 'Mike Chen',
+      notes: 'Final technical interview - system design focus'
+    }
+  ],
+  '55555555-5555-5555-5555-555555555555': [
+    {
+      id: 'int3',
+      jobId: '33333333-3333-3333-3333-333333333333',
+      jobTitle: 'Product Manager',
+      clientName: 'Enterprise Co',
+      type: 'video',
+      status: 'completed',
+      dateTime: '2024-01-25T13:00:00Z',
+      duration: 45,
+      interviewer: 'Lisa Park',
+      feedback: 'Great product intuition and strategic thinking',
+      rating: 4,
+      notes: 'Strong background in user research and analytics'
+    }
+  ]
+}
+
+export function useCandidateInterviews(candidateId: string) {
   return useQuery({
-    queryKey: ['/api/candidates', candidateId, 'interviews', { orgId: currentOrgId }],
-    queryFn: () => {
-      if (userRole === 'demo_viewer') {
-        // Return demo interviews
-        if (candidateId === 'demo-candidate-1') {
-          return [
-            {
-              id: 'demo-interview-1',
-              candidateId: 'demo-candidate-1',
-              title: 'Initial Phone Screen',
-              type: 'phone',
-              status: 'completed',
-              scheduledAt: '2024-07-05T14:00:00Z',
-              duration: '30',
-              location: 'Phone call',
-              interviewerId: 'demo-user-1',
-              notes: 'Candidate showed strong technical knowledge and communication skills. Ready for technical round.',
-              createdAt: '2024-07-03T10:00:00Z',
-              updatedAt: '2024-07-05T15:00:00Z'
-            },
-            {
-              id: 'demo-interview-2',
-              candidateId: 'demo-candidate-1',
-              title: 'Technical Interview',
-              type: 'technical',
-              status: 'completed',
-              scheduledAt: '2024-07-15T10:00:00Z',
-              duration: '90',
-              location: 'Google Meet',
-              interviewerId: 'demo-user-2',
-              notes: 'Excellent coding skills demonstrated. Solved algorithmic problems efficiently. Strong understanding of React patterns.',
-              createdAt: '2024-07-10T09:00:00Z',
-              updatedAt: '2024-07-15T11:30:00Z'
-            },
-            {
-              id: 'demo-interview-3',
-              candidateId: 'demo-candidate-1',
-              title: 'Final Round - Team Fit',
-              type: 'cultural',
-              status: 'scheduled',
-              scheduledAt: '2024-07-25T15:00:00Z',
-              duration: '60',
-              location: 'Office - Conference Room A',
-              interviewerId: 'demo-user-3',
-              notes: null,
-              createdAt: '2024-07-16T14:00:00Z',
-              updatedAt: '2024-07-16T14:00:00Z'
-            }
-          ]
-        }
-        if (candidateId === 'demo-candidate-2') {
-          return [
-            {
-              id: 'demo-interview-4',
-              candidateId: 'demo-candidate-2',
-              title: 'Product Management Interview',
-              type: 'video',
-              status: 'completed',
-              scheduledAt: '2024-07-18T11:00:00Z',
-              duration: '75',
-              location: 'Zoom',
-              interviewerId: 'demo-user-4',
-              notes: 'Impressive product strategy knowledge. Great examples from previous roles. Team is excited to make an offer.',
-              createdAt: '2024-07-15T10:00:00Z',
-              updatedAt: '2024-07-18T12:15:00Z'
-            }
-          ]
-        }
-        return []
+    queryKey: ['/api/candidates', candidateId, 'interviews'],
+    queryFn: async () => {
+      // For demo purposes, return demo data
+      if (candidateId && demoInterviews[candidateId]) {
+        return demoInterviews[candidateId]
       }
       
-      if (!candidateId || !currentOrgId) {
-        return []
-      }
-      return apiRequest(`/api/candidates/${candidateId}/interviews?orgId=${currentOrgId}`)
+      // In real implementation, this would fetch from API
+      // const response = await fetch(`/api/candidates/${candidateId}/interviews`)
+      // return response.json()
+      
+      return []
     },
-    enabled: !!candidateId,
+    enabled: !!candidateId
   })
 }

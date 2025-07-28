@@ -1,6 +1,7 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 
 export function useCandidateNotes(candidateId?: string) {
   const { currentOrgId, userRole } = useAuth()
@@ -67,5 +68,38 @@ export function useCandidateNotes(candidateId?: string) {
       return apiRequest(`/api/candidates/${candidateId}/notes?orgId=${currentOrgId}`)
     },
     enabled: !!candidateId,
+  })
+}
+
+export function useCreateCandidateNote() {
+  const { toast } = useToast()
+  
+  return useMutation({
+    mutationFn: async (noteData: any) => {
+      const response = await fetch('/api/candidate-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(noteData)
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to create note')
+      }
+      
+      return response.json()
+    },
+    onSuccess: () => {
+      toast({
+        title: "Note created",
+        description: "Your note has been saved successfully."
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to create note",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive"
+      })
+    }
   })
 }

@@ -506,6 +506,26 @@ export class MemStorage implements IStorage {
     return candidate;
   }
 
+  async updateCandidate(id: string, updateData: Partial<InsertCandidate>): Promise<Candidate> {
+    const existingCandidate = this.candidates.get(id);
+    if (!existingCandidate) {
+      throw new Error(`Candidate with id ${id} not found`);
+    }
+    
+    const updatedCandidate: Candidate = {
+      ...existingCandidate,
+      ...updateData,
+      phone: updateData.phone ?? existingCandidate.phone,
+      resumeUrl: updateData.resumeUrl ?? existingCandidate.resumeUrl,
+      status: updateData.status ?? existingCandidate.status,
+      createdBy: updateData.createdBy ?? existingCandidate.createdBy,
+      updatedAt: new Date()
+    };
+    
+    this.candidates.set(id, updatedCandidate);
+    return updatedCandidate;
+  }
+
   // Job-Candidate relationships
   async getJobCandidate(id: string): Promise<JobCandidate | undefined> {
     return this.jobCandidates.get(id);

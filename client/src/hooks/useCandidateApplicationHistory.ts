@@ -1,85 +1,73 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiRequest } from '@/lib/queryClient'
-import { useAuth } from '@/contexts/AuthContext'
 
-export function useCandidateApplicationHistory(candidateId?: string) {
-  const { currentOrgId, userRole } = useAuth()
-  
+export interface ApplicationHistoryEntry {
+  id: string
+  jobId: string
+  jobTitle: string
+  clientName: string
+  stage: string
+  dateApplied: string
+  dateUpdated: string
+  notes?: string
+  status: 'active' | 'hired' | 'rejected'
+}
+
+// Demo data for candidate application history
+const demoApplicationHistory: Record<string, ApplicationHistoryEntry[]> = {
+  '44444444-4444-4444-4444-444444444444': [
+    {
+      id: 'app1',
+      jobId: '11111111-1111-1111-1111-111111111111',
+      jobTitle: 'Senior Software Engineer',
+      clientName: 'TechCorp',
+      stage: 'offer',
+      dateApplied: '2024-01-15',
+      dateUpdated: '2024-01-25',
+      notes: 'Strong technical interview, excellent problem-solving skills',
+      status: 'active'
+    },
+    {
+      id: 'app2',
+      jobId: '22222222-2222-2222-2222-222222222222',
+      jobTitle: 'Full Stack Developer',
+      clientName: 'StartupXYZ',
+      stage: 'interview',
+      dateApplied: '2024-01-10',
+      dateUpdated: '2024-01-20',
+      notes: 'Completed technical assessment, awaiting final interview',
+      status: 'active'
+    }
+  ],
+  '55555555-5555-5555-5555-555555555555': [
+    {
+      id: 'app3',
+      jobId: '33333333-3333-3333-3333-333333333333',
+      jobTitle: 'Product Manager',
+      clientName: 'Enterprise Co',
+      stage: 'hired',
+      dateApplied: '2024-01-05',
+      dateUpdated: '2024-01-30',
+      notes: 'Excellent cultural fit, strong product vision',
+      status: 'hired'
+    }
+  ]
+}
+
+export function useCandidateApplicationHistory(candidateId: string) {
   return useQuery({
-    queryKey: ['/api/candidates', candidateId, 'applications', { orgId: currentOrgId }],
-    queryFn: () => {
-      if (userRole === 'demo_viewer') {
-        // Return demo application history
-        if (candidateId === 'demo-candidate-1') {
-          return [
-            {
-              id: 'demo-app-1',
-              jobId: 'demo-job-1',
-              candidateId: 'demo-candidate-1',
-              stage: 'interview',
-              notes: 'Strong technical skills, moving to final round. Excellent React knowledge.',
-              createdAt: '2024-07-05T10:00:00Z',
-              updatedAt: '2024-07-15T14:30:00Z',
-              orgId: 'demo-org-fixed',
-              job: {
-                id: 'demo-job-1',
-                title: 'Senior Frontend Developer',
-                client: {
-                  id: 'demo-client-1',
-                  name: 'TechCorp Solutions'
-                }
-              }
-            },
-            {
-              id: 'demo-app-2',
-              jobId: 'demo-job-3',
-              candidateId: 'demo-candidate-1',
-              stage: 'rejected',
-              notes: 'Not a good fit for this particular role, but strong candidate for future opportunities.',
-              createdAt: '2024-06-20T10:00:00Z',
-              updatedAt: '2024-06-25T16:00:00Z',
-              orgId: 'demo-org-fixed',
-              job: {
-                id: 'demo-job-3',
-                title: 'Full Stack Engineer',
-                client: {
-                  id: 'demo-client-2',
-                  name: 'StartupXYZ'
-                }
-              }
-            }
-          ]
-        }
-        if (candidateId === 'demo-candidate-2') {
-          return [
-            {
-              id: 'demo-app-3',
-              jobId: 'demo-job-2',
-              candidateId: 'demo-candidate-2',
-              stage: 'offer',
-              notes: 'Excellent product management experience. Making offer.',
-              createdAt: '2024-07-12T10:00:00Z',
-              updatedAt: '2024-07-20T11:00:00Z',
-              orgId: 'demo-org-fixed',
-              job: {
-                id: 'demo-job-2',
-                title: 'Product Manager',
-                client: {
-                  id: 'demo-client-1',
-                  name: 'TechCorp Solutions'
-                }
-              }
-            }
-          ]
-        }
-        return []
+    queryKey: ['/api/candidates', candidateId, 'application-history'],
+    queryFn: async () => {
+      // For demo purposes, return demo data
+      if (candidateId && demoApplicationHistory[candidateId]) {
+        return demoApplicationHistory[candidateId]
       }
       
-      if (!candidateId || !currentOrgId) {
-        return []
-      }
-      return apiRequest(`/api/candidates/${candidateId}/applications?orgId=${currentOrgId}`)
+      // In real implementation, this would fetch from API
+      // const response = await fetch(`/api/candidates/${candidateId}/application-history`)
+      // return response.json()
+      
+      return []
     },
-    enabled: !!candidateId,
+    enabled: !!candidateId
   })
 }

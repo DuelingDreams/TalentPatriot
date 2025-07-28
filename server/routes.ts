@@ -6,6 +6,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
+import { uploadRouter } from "./routes/upload";
 
 
 // Write operation rate limiter
@@ -452,12 +453,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/candidates/:id", async (req, res) => {
+    try {
+      const candidate = await storage.getCandidate(req.params.id);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      res.json(candidate);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch candidate" });
+    }
+  });
+
   app.post("/api/candidates", writeLimiter, async (req, res) => {
     try {
       const candidate = await storage.createCandidate(req.body);
       res.status(201).json(candidate);
     } catch (error) {
       res.status(400).json({ error: "Failed to create candidate" });
+    }
+  });
+
+  app.put("/api/candidates/:id", writeLimiter, async (req, res) => {
+    try {
+      const candidate = await storage.updateCandidate(req.params.id, req.body);
+      res.json(candidate);
+    } catch (error) {
+      console.error('Candidate update error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to update candidate", details: errorMessage });
     }
   });
 
@@ -661,7 +685,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload endpoint
+  // Upload routes (new comprehensive system)
+  app.use("/api/upload", uploadRouter);
+
+  // File upload endpoint (legacy)
   app.post("/api/upload/resume", writeLimiter, upload.single('resume'), async (req, res) => {
     try {
       if (!req.file) {
