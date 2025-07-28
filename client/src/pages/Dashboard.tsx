@@ -12,6 +12,8 @@ import { StatCard } from '@/components/dashboard/StatCard'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { PipelineOverview } from '@/components/dashboard/PipelineOverview'
 import { JobsChart } from '@/components/dashboard/JobsChart'
+import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
+import { QuickActions } from '@/components/dashboard/QuickActions'
 
 import { 
   Briefcase, 
@@ -97,6 +99,12 @@ export default function Dashboard() {
             <PostJobDialog />
           </div>
         </div>
+
+        {/* Smart Alerts */}
+        <SmartAlerts />
+
+        {/* Quick Actions */}
+        <QuickActions />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
