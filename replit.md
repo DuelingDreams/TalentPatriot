@@ -331,6 +331,7 @@ Preferred communication style: Simple, everyday language.
 - **BUILT OAUTH UI COMPONENTS**: Added Google and Microsoft sign-in/sign-up buttons to Login and OnboardingStep1 pages with proper error handling and loading states
 - **CREATED OAUTH SETUP GUIDE**: Built comprehensive guide (OAuth_Setup_Guide.md) for configuring Google and Microsoft OAuth providers in Supabase dashboard
 - **ENHANCED AUTH CONTEXT**: Added signInWithOAuth function with proper provider mapping (Microsoft → Azure) and redirect handling for seamless OAuth flow
+- **IMPROVED LANDING PAGE SPACING**: Enhanced screenshot gallery section with better whitespace, larger gaps (8/12), increased padding (py-16/20), and improved visual hierarchy for professional appearance
 
 ## System Architecture
 
