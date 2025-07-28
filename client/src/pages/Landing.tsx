@@ -190,45 +190,45 @@ export default function Landing() {
       </section>
 
       {/* Screenshot Gallery */}
-      <section className="tp-section bg-[#F0F4F8]">
-        <div className="tp-container">
-          <h2 className="tp-h2 text-center mb-8">
+      <section className="py-12 md:py-16 bg-[#F0F4F8]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-10 md:mb-12 text-[#1A1A1A]">
             See TalentPatriot in Action
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <div className="tp-screenshot">
-              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-6 aspect-video flex items-center justify-center">
+              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-8 md:p-6 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl">
                 <div className="text-center">
-                  <BarChart3 className="w-12 h-12 text-[#5C667B] mx-auto mb-2" />
-                  <p className="text-[#1A1A1A] tp-body font-medium">Candidate Dashboard</p>
+                  <BarChart3 className="w-16 h-16 md:w-12 md:h-12 text-[#5C667B] mx-auto mb-3" />
+                  <p className="text-[#1A1A1A] text-base md:text-sm font-medium">Candidate Dashboard</p>
                 </div>
               </div>
             </div>
             
             <div className="tp-screenshot">
-              <div className="bg-gradient-to-br from-[#E6F0FF] to-[#F0F4F8] p-6 aspect-video flex items-center justify-center">
+              <div className="bg-gradient-to-br from-[#E6F0FF] to-[#F0F4F8] p-8 md:p-6 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl">
                 <div className="text-center">
-                  <Target className="w-12 h-12 text-[#264C99] mx-auto mb-2" />
-                  <p className="text-[#1A1A1A] tp-body font-medium">Job Pipeline View</p>
+                  <Target className="w-16 h-16 md:w-12 md:h-12 text-[#264C99] mx-auto mb-3" />
+                  <p className="text-[#1A1A1A] text-base md:text-sm font-medium">Job Pipeline View</p>
                 </div>
               </div>
             </div>
             
             <div className="tp-screenshot">
-              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-6 aspect-video flex items-center justify-center">
+              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-8 md:p-6 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl">
                 <div className="text-center">
-                  <UserCheck className="w-12 h-12 text-[#1F3A5F] mx-auto mb-2" />
-                  <p className="text-[#1A1A1A] tp-body font-medium">Candidate Profile</p>
+                  <UserCheck className="w-16 h-16 md:w-12 md:h-12 text-[#1F3A5F] mx-auto mb-3" />
+                  <p className="text-[#1A1A1A] text-base md:text-sm font-medium">Candidate Profile</p>
                 </div>
               </div>
             </div>
             
             <div className="tp-screenshot">
-              <div className="bg-gradient-to-br from-[#E6F0FF] to-[#F0F4F8] p-6 aspect-video flex items-center justify-center">
+              <div className="bg-gradient-to-br from-[#E6F0FF] to-[#F0F4F8] p-8 md:p-6 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl">
                 <div className="text-center">
-                  <Users className="w-12 h-12 text-[#264C99] mx-auto mb-2" />
-                  <p className="text-[#1A1A1A] tp-body font-medium">Team Collaboration</p>
+                  <Users className="w-16 h-16 md:w-12 md:h-12 text-[#264C99] mx-auto mb-3" />
+                  <p className="text-[#1A1A1A] text-base md:text-sm font-medium">Team Collaboration</p>
                 </div>
               </div>
             </div>
@@ -237,16 +237,16 @@ export default function Landing() {
       </section>
 
       {/* Pricing Teaser */}
-      <section className="tp-section bg-[#F0F4F8]">
-        <div className="tp-container text-center">
-          <h2 className="tp-h2 mb-4">
+      <section className="py-12 md:py-16 bg-white">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-[#1A1A1A]">
             Simple, Transparent Pricing
           </h2>
-          <p className="tp-body text-[#5C667B] mb-8">
+          <p className="text-base md:text-lg text-[#5C667B] mb-8 px-4">
             No contracts. No hidden fees. Just straightforward pricing built for growing teams.
           </p>
           <Link href="/pricing">
-            <Button className="btn-primary">
+            <Button className="btn-primary h-12 px-6 text-base">
               View Pricing
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
@@ -257,20 +257,20 @@ export default function Landing() {
 
 
       {/* Final CTA Section */}
-      <section className="tp-section bg-white">
-        <div className="tp-container text-center">
-          <h2 className="tp-h2 mb-8">
+      <section className="py-12 md:py-16 bg-[#F0F4F8]">
+        <div className="max-w-3xl mx-auto px-4 md:px-6 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-10 text-[#1A1A1A]">
             Start Hiring Smarter Today
           </h2>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/signup">
-              <Button className="btn-primary w-full md:w-auto">
+          <div className="flex flex-col gap-3 mb-8 md:mb-12 max-w-sm mx-auto">
+            <Link href="/signup" className="w-full">
+              <Button className="btn-primary w-full h-12 text-base">
                 Start Free
               </Button>
             </Link>
-            <Link href="/login">
-              <Button className="btn-secondary w-full md:w-auto">
+            <Link href="/login" className="w-full">
+              <Button className="btn-secondary w-full h-12 text-base">
                 Book a Demo
               </Button>
             </Link>
@@ -278,16 +278,11 @@ export default function Landing() {
           
           {/* Email Capture */}
           <div className="max-w-md mx-auto">
-            <form className="flex gap-3">
-              <Input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="flex-1 rounded-md px-4 py-2 border border-gray-300 focus:border-[#264C99] focus:ring-1 focus:ring-[#264C99]"
-              />
-              <Button type="submit" className="btn-primary">
+            <Link href="/signup" className="block">
+              <Button className="btn-primary w-full h-12 text-base">
                 Get Started
               </Button>
-            </form>
+            </Link>
           </div>
         </div>
       </section>

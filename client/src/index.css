@@ -106,20 +106,20 @@
   
   /* Section container with consistent spacing */
   .section-container {
-    @apply py-12 px-6 md:px-12;
+    @apply py-10 px-4 md:py-16 md:px-12;
   }
   
   /* Typography utilities */
   .heading-1 {
-    @apply text-4xl font-bold text-[#1A1A1A] leading-tight;
+    @apply text-3xl md:text-4xl font-bold text-[#1A1A1A] leading-tight;
   }
   
   .heading-2 {
-    @apply text-2xl font-semibold text-[#1A1A1A] leading-tight;
+    @apply text-2xl md:text-3xl font-semibold text-[#1A1A1A] leading-tight;
   }
   
   .heading-3 {
-    @apply text-xl font-semibold text-[#1A1A1A] leading-tight;
+    @apply text-lg md:text-xl font-semibold text-[#1A1A1A] leading-tight;
   }
   
   .body-text {
@@ -302,6 +302,27 @@
   
   /* Consistent spacing utilities */
   .section-spacing {
-    @apply py-12 px-6 md:px-12;
+    @apply py-10 px-4 md:py-16 md:px-12;
+  }
+  
+  /* Additional TalentPatriot utilities */
+  .tp-section {
+    @apply py-10 px-4 md:py-16 md:px-12;
+  }
+  
+  .tp-container {
+    @apply max-w-7xl mx-auto;
+  }
+  
+  .tp-screenshot {
+    @apply transform hover:scale-105 transition-transform duration-300;
+  }
+  
+  .tp-body {
+    @apply text-base leading-relaxed text-[#5C667B];
+  }
+  
+  .tp-label {
+    @apply text-sm font-semibold text-[#5C667B];
   }
 }
