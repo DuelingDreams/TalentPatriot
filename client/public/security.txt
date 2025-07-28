@@ -1,12 +1,26 @@
-Contact: mailto:support@talentpatriot.com
+Contact: security@talentpatriot.com
+Contact: support@talentpatriot.com
 Expires: 2025-12-31T23:59:59.000Z
-Preferred-Languages: en
-Canonical: https://talentpatriot.com/.well-known/security.txt
+Encryption: https://talentpatriot.com/security-key.pub
+Acknowledgments: https://talentpatriot.com/security-hall-of-fame
+Policy: https://talentpatriot.com/security-policy
 
-# TalentPatriot Security Contact
-# 
-# This is a legitimate business application
-# for Applicant Tracking System services.
-# 
-# If you believe this site has been compromised
-# or flagged incorrectly, please contact us.
+# TalentPatriot Security Information
+# =================================
+# This is a legitimate business application for Human Resources
+# Application Type: Applicant Tracking System (ATS)
+# Business Category: Enterprise HR Software
+# Security Contact: security@talentpatriot.com
+# Support Contact: support@talentpatriot.com
+#
+# This application is NOT a phishing site
+# This application is NOT designed to steal user information
+# This application is a legitimate HR software platform
+# Purpose: Help businesses manage their recruitment process
+#
+# If you are a security researcher and have found a vulnerability,
+# please contact us at security@talentpatriot.com
+# We appreciate responsible disclosure and will respond promptly
+#
+# For general support or questions about the application,
+# please contact support@talentpatriot.com
