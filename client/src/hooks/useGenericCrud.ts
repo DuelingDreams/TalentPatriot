@@ -27,10 +27,20 @@ export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
 }
 
 export function useGenericItem<T>(endpoint: string, id?: string) {
+  const { currentOrgId, userRole } = useAuth()
+  
   return useQuery({
-    queryKey: [endpoint, id],
-    queryFn: () => apiRequest(`${endpoint}/${id}`),
-    enabled: !!id,
+    queryKey: [endpoint, id, { orgId: currentOrgId }],
+    queryFn: () => {
+      // Demo users should not make API calls for individual items either
+      if (userRole === 'demo_viewer') {
+        // For demo users, we'll need to handle individual items differently
+        // This ensures no API calls leak demo user info
+        throw new Error('Demo users should use demo data handlers')
+      }
+      return apiRequest(`${endpoint}/${id}?orgId=${currentOrgId}`)
+    },
+    enabled: !!id && !!currentOrgId && userRole !== 'demo_viewer',
   })
 }
 

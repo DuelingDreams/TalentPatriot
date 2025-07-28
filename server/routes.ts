@@ -361,8 +361,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/clients/:id", async (req, res) => {
     try {
+      const orgId = req.query.orgId as string;
       const client = await storage.getClient(req.params.id);
       if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      // Ensure user can only access clients from their organization
+      if (orgId && client.orgId !== orgId) {
         return res.status(404).json({ error: "Client not found" });
       }
       res.json(client);
@@ -417,8 +422,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/jobs/:id", async (req, res) => {
     try {
+      const orgId = req.query.orgId as string;
       const job = await storage.getJob(req.params.id);
       if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      // Ensure user can only access jobs from their organization
+      if (orgId && job.orgId !== orgId) {
         return res.status(404).json({ error: "Job not found" });
       }
       res.json(job);
@@ -455,8 +465,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/candidates/:id", async (req, res) => {
     try {
+      const orgId = req.query.orgId as string;
       const candidate = await storage.getCandidate(req.params.id);
       if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      // Ensure user can only access candidates from their organization
+      if (orgId && candidate.orgId !== orgId) {
         return res.status(404).json({ error: "Candidate not found" });
       }
       res.json(candidate);
