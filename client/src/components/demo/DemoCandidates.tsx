@@ -9,6 +9,7 @@ import {
   Users, Search, Mail, Phone, FileText, Calendar, 
   MapPin, Info, Download, Eye
 } from 'lucide-react'
+import { Link } from 'wouter'
 import { demoCandidates } from '@/lib/demo-data'
 
 const candidateSkills: Record<string, string[]> = {
@@ -20,7 +21,7 @@ const candidateSkills: Record<string, string[]> = {
   '99999999-9999-9999-9999-999999999999': ['Flutter', 'Dart', 'Firebase', 'React Native']
 }
 
-const candidateLocations = {
+const candidateLocations: Record<string, string> = {
   '44444444-4444-4444-4444-444444444444': 'San Francisco, CA',
   '55555555-5555-5555-5555-555555555555': 'New York, NY',
   '66666666-6666-6666-6666-666666666666': 'Austin, TX',
@@ -166,9 +167,11 @@ export function DemoCandidates() {
               </div>
               
               <div className="pt-3 flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1" disabled>
-                  <Eye className="w-4 h-4 mr-1" />
-                  View Profile
+                <Button variant="outline" size="sm" className="flex-1" asChild>
+                  <Link href={`/candidates/${candidate.id}`}>
+                    <Eye className="w-4 h-4 mr-1" />
+                    View Profile
+                  </Link>
                 </Button>
                 <Button variant="outline" size="sm" disabled>
                   <Download className="w-4 h-4" />

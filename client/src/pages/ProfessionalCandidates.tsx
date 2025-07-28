@@ -32,6 +32,7 @@ import {
   UserCheck
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { Link } from 'wouter'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
 import GuidedCandidateImport from '@/components/GuidedCandidateImport'
@@ -111,9 +112,11 @@ function CandidateCard({ candidate, jobCandidate }: CandidateCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Eye className="w-4 h-4 mr-2" />
-                View Profile
+              <DropdownMenuItem asChild>
+                <Link href={`/candidates/${candidate.id}`}>
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Profile
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <FileText className="w-4 h-4 mr-2" />

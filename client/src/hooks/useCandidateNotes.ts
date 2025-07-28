@@ -1,31 +1,71 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
-import type { CandidateNotes, InsertCandidateNotes } from '@/../../shared/schema'
+import { useAuth } from '@/contexts/AuthContext'
 
-export function useCandidateNotes(jobCandidateId?: string) {
-  return useQuery({
-    queryKey: ['/api/job-candidates', jobCandidateId, 'notes'],
-    queryFn: () => apiRequest(`/api/job-candidates/${jobCandidateId}/notes`),
-    enabled: !!jobCandidateId,
-  })
-}
-
-export function useCreateCandidateNote() {
-  const queryClient = useQueryClient()
+export function useCandidateNotes(candidateId?: string) {
+  const { currentOrgId, userRole } = useAuth()
   
-  return useMutation({
-    mutationFn: (note: InsertCandidateNotes) =>
-      apiRequest('/api/candidate-notes', {
-        method: 'POST',
-        body: JSON.stringify(note),
-      }),
-    onSuccess: (createdNote, variables) => {
-      // Invalidate the specific notes query for this job candidate
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/job-candidates', variables.jobCandidateId, 'notes'] 
-      })
-      // Also invalidate general job candidates queries
-      queryClient.invalidateQueries({ queryKey: ['/api/job-candidates'] })
+  return useQuery({
+    queryKey: ['/api/candidates', candidateId, 'notes', { orgId: currentOrgId }],
+    queryFn: () => {
+      if (userRole === 'demo_viewer') {
+        // Return demo notes
+        if (candidateId === 'demo-candidate-1') {
+          return [
+            {
+              id: 'demo-note-1',
+              candidateId: 'demo-candidate-1',
+              authorId: 'demo-user-1',
+              authorEmail: 'recruiter@company.com',
+              content: 'Initial phone screen went very well. Candidate has strong React and TypeScript experience. Available for next round.',
+              isPrivate: 'false',
+              createdAt: '2024-07-05T15:30:00Z',
+              updatedAt: '2024-07-05T15:30:00Z'
+            },
+            {
+              id: 'demo-note-2',
+              candidateId: 'demo-candidate-1',
+              authorId: 'demo-user-2',
+              authorEmail: 'hiring.manager@company.com',
+              content: 'Technical interview completed. Excellent problem-solving skills. Code quality is very high. Recommend moving to final round.',
+              isPrivate: 'false',
+              createdAt: '2024-07-15T10:15:00Z',
+              updatedAt: '2024-07-15T10:15:00Z'
+            },
+            {
+              id: 'demo-note-3',
+              candidateId: 'demo-candidate-1',
+              authorId: 'current-user',
+              authorEmail: 'you@company.com',
+              content: 'PRIVATE: Salary expectations are within budget range. She mentioned she\'s also interviewing with competitors.',
+              isPrivate: 'true',
+              createdAt: '2024-07-16T14:20:00Z',
+              updatedAt: '2024-07-16T14:20:00Z'
+            }
+          ]
+        }
+        if (candidateId === 'demo-candidate-2') {
+          return [
+            {
+              id: 'demo-note-4',
+              candidateId: 'demo-candidate-2',
+              authorId: 'demo-user-1',
+              authorEmail: 'recruiter@company.com',
+              content: 'Product management background is impressive. Good understanding of agile methodology. Scheduling technical deep-dive.',
+              isPrivate: 'false',
+              createdAt: '2024-07-12T11:00:00Z',
+              updatedAt: '2024-07-12T11:00:00Z'
+            }
+          ]
+        }
+        return []
+      }
+      
+      if (!candidateId || !currentOrgId) {
+        return []
+      }
+      return apiRequest(`/api/candidates/${candidateId}/notes?orgId=${currentOrgId}`)
     },
+    enabled: !!candidateId,
   })
 }
