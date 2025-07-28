@@ -38,8 +38,17 @@ if (typeof window !== 'undefined') {
         (reason.message.includes('Invalid session') ||
          reason.message.includes('User not found') ||
          reason.message.includes('Invalid JWT') ||
-         reason.message.includes('Failed to fetch'))) {
+         reason.message.includes('Failed to fetch') ||
+         reason.message.includes('NetworkError') ||
+         reason.message.includes('AbortError'))) {
       console.warn('Auth/Network error handled:', reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle generic DOMException without specific name
+    if (reason instanceof DOMException) {
+      console.warn('DOMException handled:', reason.name, reason.message)
       event.preventDefault()
       return
     }

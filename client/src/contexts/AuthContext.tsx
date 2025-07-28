@@ -71,11 +71,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Initialize auth
-    initAuth()
+    // Initialize auth with error boundary
+    initAuth().catch(err => {
+      console.warn('Auth init failed:', err)
+      setLoading(false)
+    })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Listen for auth changes with safe subscription
+    let subscription: any = null
+    try {
+      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
       
       try {
@@ -111,9 +116,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
+      subscription = data?.subscription
+    } catch (err) {
+      console.warn('Auth state change setup failed:', err)
+    }
+
     return () => {
       mounted = false
-      subscription?.unsubscribe()
+      subscription?.unsubscribe?.()
     }
   }, [])
 

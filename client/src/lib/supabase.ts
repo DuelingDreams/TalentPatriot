@@ -18,7 +18,7 @@ if (!supabaseAnonKey) {
 const safeSupabaseUrl = supabaseUrl || 'https://placeholder.supabase.co'
 const safeSupabaseAnonKey = supabaseAnonKey || 'placeholder-key'
 
-// Create and export the Supabase client
+// Create and export the Supabase client with error handling
 export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
