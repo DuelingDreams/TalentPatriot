@@ -75,7 +75,10 @@ export default function Landing() {
                 Start Free
               </Button>
             </Link>
-            <Button className="border border-[#264C99] text-[#264C99] hover:bg-[#E6F0FF] px-6 py-3 rounded-md font-medium text-base transition-colors">
+            <Button 
+              variant="outline" 
+              className="px-6 py-3 font-medium text-base"
+            >
               Book a Demo
             </Button>
           </div>
@@ -218,7 +221,10 @@ export default function Landing() {
                 Start Free
               </Button>
             </Link>
-            <Button className="border border-[#264C99] text-[#264C99] hover:bg-[#E6F0FF] px-6 py-3 rounded-md font-medium text-base transition-colors">
+            <Button 
+              variant="outline" 
+              className="px-6 py-3 font-medium text-base"
+            >
               Book a Demo
             </Button>
           </div>
