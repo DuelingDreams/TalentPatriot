@@ -49,7 +49,7 @@ export default function Candidates() {
   const { data: candidates, isLoading } = useCandidates()
   
   // Filter candidates based on search and tab
-  const filteredCandidates = candidates?.filter(candidate => {
+  const filteredCandidates = candidates?.filter((candidate: any) => {
     const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          candidate.email.toLowerCase().includes(searchQuery.toLowerCase())
     
@@ -64,10 +64,10 @@ export default function Candidates() {
 
   // Calculate stats
   const totalCandidates = candidates?.length || 0
-  const activeCandidates = candidates?.filter(c => c.status === 'active').length || 0
+  const activeCandidates = candidates?.filter((c: any) => c.status === 'active').length || 0
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  const newThisWeek = candidates?.filter(c => new Date(c.createdAt) >= oneWeekAgo).length || 0
-  const favoriteCandidates = candidates?.filter(c => c.status === 'favorite').length || 0
+  const newThisWeek = candidates?.filter((c: any) => new Date(c.createdAt) >= oneWeekAgo).length || 0
+  const favoriteCandidates = candidates?.filter((c: any) => c.status === 'favorite').length || 0
 
   return (
     <DashboardLayout pageTitle="Candidates">
@@ -174,7 +174,7 @@ export default function Candidates() {
           </div>
         ) : filteredCandidates.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCandidates.map((candidate) => (
+            {filteredCandidates.map((candidate: any) => (
               <Link key={candidate.id} href={`/candidates/${candidate.id}`}>
                 <Card className="card hover:shadow-lg transition-all duration-200 cursor-pointer">
                   <CardContent className="p-6">
@@ -183,7 +183,7 @@ export default function Candidates() {
                         <Avatar className="w-12 h-12">
                           <AvatarImage src={""} alt={candidate.name} />
                           <AvatarFallback className="bg-[#264C99] text-white">
-                            {candidate.name.split(' ').map(n => n[0]).join('')}
+                            {candidate.name.split(' ').map((n: string) => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div>
