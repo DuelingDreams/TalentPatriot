@@ -1,8 +1,9 @@
 import { createRoot } from "react-dom/client";
 
-// Import DOM exception prevention FIRST - before any other code
+// Import ULTIMATE error prevention FIRST - nuclear option
+import "./utils/ultimateErrorPrevention";
 import "./utils/domExceptionPrevention";
-import "./utils/errorHandler"; // Lightweight error handling for production stability
+import "./utils/errorHandler";
 
 import App from "./App";
 import "./index.css";

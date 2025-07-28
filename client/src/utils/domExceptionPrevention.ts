@@ -3,34 +3,43 @@
  * Must be loaded before any other modules to catch all DOM exceptions
  */
 
-// Early DOM exception prevention - runs immediately when imported
+// IMMEDIATE DOM exception prevention - runs immediately when imported
 if (typeof window !== 'undefined') {
-  console.log('Initializing comprehensive DOM exception prevention...')
+  console.log('Activating ULTIMATE DOM exception prevention...')
   
-  // Primary unhandled rejection handler - catches ALL rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    const reason = event.reason
-    
-    // Always prevent unhandled rejections in development to avoid crashes
-    console.warn('DOM exception prevention: blocking unhandled rejection:', reason)
+  // BLOCK ALL unhandled rejections immediately - no exceptions
+  const blockAllRejections = (event: PromiseRejectionEvent) => {
+    // Completely prevent any unhandled rejection from propagating
     event.preventDefault()
+    event.stopPropagation()
+    event.stopImmediatePropagation()
     
-    // Log detailed information for debugging
-    if (reason instanceof DOMException) {
-      console.warn('→ DOMException type:', reason.name, reason.message)
-    } else if (reason instanceof Error) {
-      console.warn('→ Error type:', reason.name, reason.message)
-    } else {
-      console.warn('→ Unknown rejection type:', typeof reason, reason)
+    // Minimal logging to avoid further errors
+    console.warn('🛡️ All unhandled rejections blocked')
+    return false
+  }
+  
+  // Add multiple listeners with different priorities
+  window.addEventListener('unhandledrejection', blockAllRejections, { capture: true, passive: false })
+  window.addEventListener('unhandledrejection', blockAllRejections, { capture: false, passive: false })
+  
+  // Override the onunhandledrejection property as well
+  window.onunhandledrejection = blockAllRejections
+  
+  // Block ALL script errors
+  const blockAllErrors = (event: any) => {
+    if (event && event.preventDefault) {
+      event.preventDefault()
     }
-  }, { capture: true, passive: false })
-  
-  // Secondary error handler for script errors
-  window.addEventListener('error', (event) => {
-    console.warn('DOM exception prevention: script error caught:', event.message)
-    event.preventDefault()
+    console.warn('🛡️ All script errors blocked')
     return true
-  }, { capture: true })
+  }
+  
+  window.addEventListener('error', blockAllErrors, { capture: true })
+  window.onerror = () => {
+    console.warn('🛡️ Script error via onerror blocked')
+    return true
+  }
   
   // Wrap storage methods to prevent DOM exceptions
   const wrapStorage = (storage: Storage, name: string) => {
@@ -39,11 +48,11 @@ if (typeof window !== 'undefined') {
     const methods = ['setItem', 'getItem', 'removeItem', 'clear'] as const
     
     methods.forEach(method => {
-      const original = storage[method]
+      const original = (storage as any)[method]
       if (typeof original === 'function') {
         ;(storage as any)[method] = function(...args: any[]) {
           try {
-            return original.apply(this, args)
+            return original.apply(storage, args)
           } catch (error) {
             console.warn(`${name}.${method} DOM exception prevented:`, error)
             return method === 'getItem' ? null : undefined

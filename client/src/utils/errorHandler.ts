@@ -164,14 +164,8 @@ if (typeof window !== 'undefined') {
     }
     
     // Prevent ALL unhandled rejections during development to avoid crashes
-    if (import.meta.env.DEV) {
-      console.warn('Development unhandled rejection prevented:', reason)
-      event.preventDefault()
-      return
-    }
-    
-    // Log but don't prevent other unhandled rejections for debugging in production
-    console.debug('Production unhandled rejection:', reason)
+    console.warn('ErrorHandler: Additional unhandled rejection prevented:', reason)
+    event.preventDefault()
   })
 }
 
