@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { AlertCircle, Mail, Phone, MessageSquare, FileText, Users, GripVertical } from 'lucide-react'
+import { AlertCircle, Mail, Phone, MessageSquare, FileText, Users, GripVertical, Calendar, Edit3, ArrowRightLeft, Share2 } from 'lucide-react'
 import { getDemoPipelineData, getDemoCandidateById, getDemoJobById, getDemoClientById } from '@/lib/demo-data'
 
 const PIPELINE_STAGES = [
@@ -40,6 +40,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
   const candidateInfo = getDemoCandidateById(candidate.candidateId)
   const jobInfo = getDemoJobById(candidate.jobId)
   const clientInfo = jobInfo ? getDemoClientById(jobInfo.clientId) : null
+  const { toast } = useToast()
 
   if (!candidateInfo || !jobInfo || !clientInfo) return null
 
@@ -48,6 +49,39 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
     transition,
     opacity: isCurrentlyDragging ? 0.5 : 1,
     cursor: isCurrentlyDragging ? 'grabbing' : 'grab',
+  }
+
+  // Quick Actions handlers
+  const handleSchedule = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Schedule Interview",
+      description: `Opening scheduler for ${candidateInfo.name}`,
+    })
+  }
+
+  const handleAddNote = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Add Note",
+      description: `Adding note for ${candidateInfo.name}`,
+    })
+  }
+
+  const handleMoveStage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Move Stage",
+      description: `Moving ${candidateInfo.name} to next stage`,
+    })
+  }
+
+  const handleShareProfile = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Share Profile",
+      description: `Sharing ${candidateInfo.name}'s profile`,
+    })
   }
 
   return (
@@ -62,15 +96,58 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
       `}
     >
       <Card className={`
-        bg-white shadow-sm border mb-3 transition-all group relative
+        bg-white shadow-sm border mb-3 transition-all group relative overflow-visible
         ${isCurrentlyDragging 
           ? 'border-blue-500 shadow-xl scale-105 rotate-3' 
           : 'border-slate-200 hover:shadow-md hover:border-blue-300'
         }
       `}>
         <CardContent className="p-4">
+          {/* Drag Handle */}
           <div className="absolute top-2 right-2 opacity-40 group-hover:opacity-100 transition-opacity">
             <GripVertical className="w-4 h-4 text-slate-400" />
+          </div>
+
+          {/* Quick Actions Toolbar - appears on hover/focus */}
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 ease-in-out translate-y-1 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto">
+            <div className="flex items-center gap-1 bg-white shadow-lg border border-slate-200 rounded-full px-2 py-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:text-blue-600"
+                onClick={handleSchedule}
+                title="Schedule Interview"
+              >
+                <Calendar className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-green-50 hover:text-green-600"
+                onClick={handleAddNote}
+                title="Add Note"
+              >
+                <Edit3 className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-purple-50 hover:text-purple-600"
+                onClick={handleMoveStage}
+                title="Move Stage"
+              >
+                <ArrowRightLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-orange-50 hover:text-orange-600"
+                onClick={handleShareProfile}
+                title="Share Profile"
+              >
+                <Share2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">

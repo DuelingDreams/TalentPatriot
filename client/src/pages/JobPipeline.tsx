@@ -17,7 +17,7 @@ import { ResumeUpload } from '@/components/candidates/ResumeUpload'
 import { CandidateNotes } from '@/components/candidates/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { useAuth } from '@/contexts/AuthContext'
-import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare } from 'lucide-react'
+import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical } from 'lucide-react'
 import { Link } from 'wouter'
 
 // Define the pipeline stages
@@ -61,12 +61,46 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
   } = useSortable({ id: candidate.id })
 
   const isCurrentlyDragging = isDragging || isSortableDragging
+  const { toast } = useToast()
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isCurrentlyDragging ? 0.5 : 1,
     cursor: isCurrentlyDragging ? 'grabbing' : 'grab',
+  }
+
+  // Quick Actions handlers
+  const handleSchedule = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Schedule Interview",
+      description: `Opening scheduler for ${candidate.candidates?.name || 'candidate'}`,
+    })
+  }
+
+  const handleAddNote = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Add Note",
+      description: `Adding note for ${candidate.candidates?.name || 'candidate'}`,
+    })
+  }
+
+  const handleMoveStage = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Move Stage",
+      description: `Moving ${candidate.candidates?.name || 'candidate'} to next stage`,
+    })
+  }
+
+  const handleShareProfile = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    toast({
+      title: "Share Profile",
+      description: `Sharing ${candidate.candidates?.name || 'candidate'}'s profile`,
+    })
   }
 
   return (
@@ -81,17 +115,58 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
       `}
     >
       <Card className={`
-        bg-white shadow-sm border mb-3 transition-all group relative
+        bg-white shadow-sm border mb-3 transition-all group relative overflow-visible
         ${isCurrentlyDragging 
           ? 'border-blue-500 shadow-xl scale-105 rotate-3' 
           : 'border-slate-200 hover:shadow-md hover:border-blue-300'
         }
       `}>
         <CardContent className="p-4">
+          {/* Drag Handle */}
           <div className="absolute top-2 right-2 opacity-40 group-hover:opacity-100 transition-opacity">
-            <svg className="w-4 h-4 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M7 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 8a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM13 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4z" />
-            </svg>
+            <GripVertical className="w-4 h-4 text-slate-400" />
+          </div>
+
+          {/* Quick Actions Toolbar - appears on hover/focus */}
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-all duration-200 ease-in-out translate-y-1 group-hover:translate-y-0 pointer-events-none group-hover:pointer-events-auto">
+            <div className="flex items-center gap-1 bg-white shadow-lg border border-slate-200 rounded-full px-2 py-1">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:text-blue-600"
+                onClick={handleSchedule}
+                title="Schedule Interview"
+              >
+                <Calendar className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-green-50 hover:text-green-600"
+                onClick={handleAddNote}
+                title="Add Note"
+              >
+                <Edit3 className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-purple-50 hover:text-purple-600"
+                onClick={handleMoveStage}
+                title="Move Stage"
+              >
+                <ArrowRightLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-8 w-8 p-0 rounded-full hover:bg-orange-50 hover:text-orange-600"
+                onClick={handleShareProfile}
+                title="Share Profile"
+              >
+                <Share2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
