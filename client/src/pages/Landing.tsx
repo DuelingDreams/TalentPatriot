@@ -209,7 +209,7 @@ export default function Landing() {
             <div className="tp-screenshot mb-6 md:mb-0">
               <div className="bg-white p-2 md:p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-200">
                 <img 
-                  src="/attached_assets/JobPipeline_1753726756101.png"
+                  src="/job-pipeline-screenshot.png"
                   alt="TalentPatriot Job Pipeline - Kanban view showing candidates moving through Applied, Phone Screen, Interview, Technical, Offer, Hired, and Rejected stages"
                   className="w-full h-auto rounded-xl object-cover"
                   loading="lazy"
