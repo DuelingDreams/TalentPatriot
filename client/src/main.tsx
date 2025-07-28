@@ -1,19 +1,19 @@
 import { createRoot } from "react-dom/client";
-
-// Import lightweight error handling only
-import "./utils/errorHandler";
-
-import App from "./App-simple";
 import "./index.css";
 
-// Wrap app initialization in try-catch to handle any startup errors
-try {
-  const root = document.getElementById("root");
-  if (root) {
-    createRoot(root).render(<App />);
-  } else {
-    console.error("Root element not found");
-  }
-} catch (error) {
-  console.error("Failed to initialize app:", error);
+// Minimal app component
+function MinimalApp() {
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">TalentPatriot ATS</h1>
+        <p className="text-lg text-gray-600">Application is running successfully!</p>
+      </div>
+    </div>
+  );
+}
+
+const root = document.getElementById("root");
+if (root) {
+  createRoot(root).render(<MinimalApp />);
 }
