@@ -429,20 +429,5 @@ export default function ProfessionalCandidates() {
         </Tabs>
       </div>
     </DashboardLayout>
-    
-    {/* Guided Candidate Import Modal */}
-    <GuidedCandidateImport
-      isOpen={isGuidedImportOpen}
-      onClose={() => setIsGuidedImportOpen(false)}
-      onComplete={(importData) => {
-        // Handle import completion
-        toast({
-          title: "Candidates imported successfully!",
-          description: `${importData.count} candidates have been added to your database.`,
-        })
-        // Clear URL parameters
-        window.history.replaceState({}, '', '/candidates')
-      }}
-    />
   )
 }

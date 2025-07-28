@@ -1,6 +1,8 @@
 import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
 import { demoClients } from '@/lib/demo-data-consolidated'
 import type { Client, InsertClient } from '@/../../shared/schema'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiRequest } from '@/lib/queryClient'
 
 export function useClients() {
   return useGenericList<Client>({

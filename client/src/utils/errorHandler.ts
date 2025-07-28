@@ -163,9 +163,16 @@ if (typeof window !== 'undefined') {
       }
     }
     
-    // Prevent ALL unhandled rejections during development to avoid crashes
-    console.warn('ErrorHandler: Additional unhandled rejection prevented:', reason)
-    event.preventDefault()
+    // Handle specific development errors only
+    if (reason instanceof DOMException || 
+        (reason instanceof Error && reason.message.includes('Script error'))) {
+      console.warn('Development DOM error prevented:', reason)
+      event.preventDefault()
+      return
+    }
+    
+    // Let other errors through for normal error handling
+    console.debug('Unhandled rejection in development:', reason)
   })
 }
 

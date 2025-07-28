@@ -1,8 +1,6 @@
 import { createRoot } from "react-dom/client";
 
-// Import ULTIMATE error prevention FIRST - nuclear option
-import "./utils/ultimateErrorPrevention";
-import "./utils/domExceptionPrevention";
+// Import lightweight error handling only
 import "./utils/errorHandler";
 
 import App from "./App";
