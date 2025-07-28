@@ -190,13 +190,13 @@ export default function Landing() {
       </section>
 
       {/* Screenshot Gallery */}
-      <section className="py-16 md:py-20 bg-[#F0F4F8]">
-        <div className="max-w-7xl mx-auto px-4 md:px-6">
+      <section className="py-12 md:py-16 lg:py-20 bg-[#F0F4F8]">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
           <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 md:mb-16 text-[#1A1A1A]">
             See TalentPatriot in Action
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
             <div className="tp-screenshot mb-6 md:mb-0">
               <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-10 md:p-8 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                 <div className="text-center">
@@ -207,10 +207,15 @@ export default function Landing() {
             </div>
             
             <div className="tp-screenshot mb-6 md:mb-0">
-              <div className="bg-gradient-to-br from-[#E6F0FF] to-[#F0F4F8] p-10 md:p-8 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <Target className="w-20 h-20 md:w-16 md:h-16 text-[#264C99] mx-auto mb-4" />
-                  <p className="text-[#1A1A1A] text-lg md:text-base font-medium">Job Pipeline View</p>
+              <div className="bg-white p-2 md:p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-200">
+                <img 
+                  src="/attached_assets/JobPipeline_1753726756101.png"
+                  alt="TalentPatriot Job Pipeline - Kanban view showing candidates moving through Applied, Phone Screen, Interview, Technical, Offer, Hired, and Rejected stages"
+                  className="w-full h-auto rounded-xl object-cover"
+                  loading="lazy"
+                />
+                <div className="text-center pt-3 pb-2">
+                  <p className="text-[#1A1A1A] text-sm md:text-base font-medium">Job Pipeline View</p>
                 </div>
               </div>
             </div>
