@@ -85,8 +85,23 @@ if (typeof window !== 'undefined') {
          reason.message.includes('Invalid JWT') ||
          reason.message.includes('Failed to fetch') ||
          reason.message.includes('NetworkError') ||
-         reason.message.includes('AbortError'))) {
+         reason.message.includes('AbortError') ||
+         reason.message.includes('fetch') ||
+         reason.message.includes('network') ||
+         reason.message.includes('HTTP error') ||
+         reason.message.includes('timeout'))) {
       console.warn('Auth/Network error handled:', reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle Supabase-specific errors
+    if (reason?.message && 
+        (reason.message.includes('supabase') ||
+         reason.message.includes('postgresql') ||
+         reason.message.includes('database') ||
+         reason.message.includes('connection'))) {
+      console.warn('Database/Supabase error handled:', reason.message)
       event.preventDefault()
       return
     }
@@ -103,6 +118,16 @@ if (typeof window !== 'undefined') {
       console.warn('DOM-related error handled:', reason.name)
       event.preventDefault()
       return
+    }
+    
+    // Handle any remaining unhandled rejections that might cause issues
+    if (reason && typeof reason === 'object') {
+      // Handle promises that reject with non-standard objects
+      if (reason.constructor && reason.constructor.name !== 'Error') {
+        console.warn('Non-standard rejection object handled:', reason.constructor.name)
+        event.preventDefault()
+        return
+      }
     }
     
     // Log but don't prevent other unhandled rejections for debugging

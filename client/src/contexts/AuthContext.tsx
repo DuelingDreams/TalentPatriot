@@ -81,40 +81,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let subscription: any = null
     try {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return
-      
-      try {
-        setSession(session)
-        setUser(session?.user ?? null)
+        if (!mounted) return
         
-        if (session?.user) {
-          // Special handling for demo user
-          if (session.user.email === 'demo@yourapp.com') {
-            setUserRole('demo_viewer')
-            const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
-            setCurrentOrgIdState(demoOrgId)
-            safeStorageOperation(() => {
-              sessionStorage.setItem('currentOrgId', demoOrgId)
-            })
+        try {
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            // Special handling for demo user
+            if (session.user.email === 'demo@yourapp.com') {
+              setUserRole('demo_viewer')
+              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+              setCurrentOrgIdState(demoOrgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', demoOrgId)
+              })
+            } else {
+              // For regular users, use default role
+              setUserRole('hiring_manager')
+              setCurrentOrgIdState(null)
+            }
           } else {
-            // For regular users, use default role
-            setUserRole('hiring_manager')
+            setUserRole(null)
             setCurrentOrgIdState(null)
           }
-        } else {
-          setUserRole(null)
+          
+          setLoading(false)
+        } catch (error) {
+          console.warn('Auth state change error:', error)
+          // Set safe defaults
+          setUserRole(session?.user ? 'hiring_manager' : null)
           setCurrentOrgIdState(null)
+          setLoading(false)
         }
-        
-        setLoading(false)
-      } catch (error) {
-        console.warn('Auth state change error:', error)
-        // Set safe defaults
-        setUserRole(session?.user ? 'hiring_manager' : null)
-        setCurrentOrgIdState(null)
-        setLoading(false)
-      }
-    })
+      })
 
       subscription = data?.subscription
     } catch (err) {
