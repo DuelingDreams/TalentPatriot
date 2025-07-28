@@ -6,6 +6,8 @@ interface GenericCrudOptions<T, InsertT> {
   endpoint: string
   getDemoData?: (userRole: string) => T[]
   queryKey: string
+  refetchInterval?: number
+  staleTime?: number
 }
 
 export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
@@ -23,6 +25,9 @@ export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
       return apiRequest(`${options.endpoint}?orgId=${currentOrgId}`)
     },
     enabled: true,
+    refetchInterval: options.refetchInterval || false,
+    staleTime: options.staleTime || 5 * 60 * 1000, // 5 minutes default
+    gcTime: 10 * 60 * 1000, // 10 minutes
   })
 }
 

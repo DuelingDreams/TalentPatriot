@@ -14,6 +14,8 @@ import { PipelineOverview } from '@/components/dashboard/PipelineOverview'
 import { JobsChart } from '@/components/dashboard/JobsChart'
 import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
 import { QuickActions } from '@/components/dashboard/QuickActions'
+import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator'
+import { useRealTimeRefresh } from '@/hooks/useRealTimeRefresh'
 
 import { 
   Briefcase, 
@@ -32,7 +34,14 @@ import { Button } from '@/components/ui/button'
 export default function Dashboard() {
   const { userRole } = useAuth()
   
-  // Fetch real data using our hooks - MUST be called before any conditional returns
+  // Set up real-time refresh for dashboard data
+  const realTimeRefresh = useRealTimeRefresh({
+    interval: 30000, // 30 seconds
+    enabled: true,
+    queries: ['/api/jobs', '/api/clients', '/api/candidates', '/api/job-candidates']
+  })
+  
+  // Fetch real data using our hooks with real-time refresh - MUST be called before any conditional returns
   const { data: jobs, isLoading: jobsLoading } = useJobs()
   const { data: clients, isLoading: clientsLoading } = useClients()
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
@@ -95,7 +104,12 @@ export default function Dashboard() {
               Welcome back! Here's an overview of your recruitment pipeline.
             </p>
           </div>
-          <div className="mt-4 sm:mt-0">
+          <div className="mt-4 sm:mt-0 flex items-center gap-3">
+            <RefreshIndicator 
+              lastRefreshed={realTimeRefresh.lastRefreshed}
+              isRefreshing={realTimeRefresh.isRefreshing}
+              onRefresh={realTimeRefresh.manualRefresh}
+            />
             <PostJobDialog />
           </div>
         </div>

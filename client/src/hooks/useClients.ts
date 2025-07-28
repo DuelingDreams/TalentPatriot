@@ -4,11 +4,13 @@ import type { Client, InsertClient } from '@/../../shared/schema'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
 
-export function useClients() {
+export function useClients(options: { refetchInterval?: number } = {}) {
   return useGenericList<Client>({
     endpoint: '/api/clients',
     queryKey: '/api/clients',
-    getDemoData: () => demoClients
+    getDemoData: () => demoClients,
+    refetchInterval: options.refetchInterval,
+    staleTime: 5 * 60 * 1000, // 5 minutes for clients
   })
 }
 

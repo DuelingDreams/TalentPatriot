@@ -3,11 +3,14 @@ import { apiRequest } from '@/lib/queryClient'
 import { useAuth } from '@/contexts/AuthContext'
 import type { JobCandidate, InsertJobCandidate } from '@/../../shared/schema'
 
-export function useJobCandidates() {
+export function useJobCandidates(options: { refetchInterval?: number } = {}) {
   const { currentOrgId, userRole } = useAuth()
   
   return useQuery({
     queryKey: ['/api/job-candidates', { orgId: currentOrgId }],
+    refetchInterval: options.refetchInterval || false,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000,
     queryFn: () => {
       if (userRole === 'demo_viewer') {
         // Return demo job-candidate relationships

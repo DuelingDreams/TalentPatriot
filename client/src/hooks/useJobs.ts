@@ -4,11 +4,13 @@ import { demoJobs } from '@/lib/demo-data-consolidated'
 import { apiRequest } from '@/lib/queryClient'
 import type { Job, InsertJob } from '@/../../shared/schema'
 
-export function useJobs() {
+export function useJobs(options: { refetchInterval?: number } = {}) {
   return useGenericList<Job>({
     endpoint: '/api/jobs',
     queryKey: '/api/jobs',
-    getDemoData: () => demoJobs
+    getDemoData: () => demoJobs,
+    refetchInterval: options.refetchInterval,
+    staleTime: 2 * 60 * 1000, // 2 minutes for jobs
   })
 }
 

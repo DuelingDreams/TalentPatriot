@@ -2,11 +2,13 @@ import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCr
 import { demoCandidates } from '@/lib/demo-data-consolidated'
 import type { Candidate, InsertCandidate } from '@/../../shared/schema'
 
-export function useCandidates() {
+export function useCandidates(options: { refetchInterval?: number } = {}) {
   return useGenericList<Candidate>({
     endpoint: '/api/candidates',
     queryKey: '/api/candidates',
-    getDemoData: () => demoCandidates
+    getDemoData: () => demoCandidates,
+    refetchInterval: options.refetchInterval,
+    staleTime: 3 * 60 * 1000, // 3 minutes for candidates
   })
 }
 
