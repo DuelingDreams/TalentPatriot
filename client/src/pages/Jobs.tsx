@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -25,7 +25,7 @@ import GuidedJobCreation from '@/components/GuidedJobCreation'
 const newJobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
   description: z.string().optional(),
-  client_id: z.string().min(1, 'Client selection is required'),
+  client_id: z.string().optional(),
   status: z.string().optional()
 })
 
@@ -180,14 +180,15 @@ export default function Jobs() {
                         name="client_id"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Client</FormLabel>
+                            <FormLabel>Client (Optional)</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select a client" />
+                                  <SelectValue placeholder="Select a client (optional)" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
+                                <SelectItem value="">No client assigned</SelectItem>
                                 {clientsLoading ? (
                                   <SelectItem value="loading" disabled>
                                     <div className="flex items-center gap-2">
@@ -204,6 +205,9 @@ export default function Jobs() {
                                 )}
                               </SelectContent>
                             </Select>
+                            <FormDescription>
+                              You can create a job without assigning it to a client and link it later.
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
@@ -19,7 +19,7 @@ import { Plus, Loader2, Globe, Building2, Users, Briefcase } from 'lucide-react'
 const jobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
   description: z.string().min(1, 'Job description is required'),
-  client_id: z.string().min(1, 'Client is required'),
+  client_id: z.string().optional(),
   status: z.enum(['open', 'closed', 'on_hold', 'filled']).default('open'),
   location: z.string().min(1, 'Job location is required'),
   remote_option: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
@@ -222,14 +222,15 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
               name="client_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Client</FormLabel>
+                  <FormLabel>Client (Optional)</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a client" />
+                        <SelectValue placeholder="Select a client (optional)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">No client assigned</SelectItem>
                       {clientsLoading ? (
                         <SelectItem value="loading" disabled>
                           <div className="flex items-center gap-2">
@@ -250,6 +251,9 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
                       )}
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    You can create a job without assigning it to a client and link it later.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

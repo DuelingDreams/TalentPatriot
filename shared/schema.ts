@@ -63,7 +63,7 @@ export const jobs = pgTable("jobs", {
   orgId: uuid("org_id").references(() => organizations.id).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
-  clientId: uuid("client_id").references(() => clients.id).notNull(),
+  clientId: uuid("client_id").references(() => clients.id),
   status: jobStatusEnum("status").default('open').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

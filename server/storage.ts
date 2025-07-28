@@ -486,7 +486,25 @@ export class MemStorage implements IStorage {
   }
 
   async getCandidatesByOrg(orgId: string): Promise<Candidate[]> {
-    return Array.from(this.candidates.values()).filter(candidate => candidate.orgId === orgId);
+    try {
+      console.log(`Fetching candidates for orgId: ${orgId}`)
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('Supabase error:', error)
+        throw new Error(`Failed to fetch candidates: ${error.message}`)
+      }
+      
+      console.log(`Found ${data?.length || 0} candidates for orgId: ${orgId}`)
+      return data as Candidate[]
+    } catch (err) {
+      console.error('Exception in getCandidatesByOrg:', err)
+      throw err
+    }
   }
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
@@ -1286,6 +1304,28 @@ class DatabaseStorage implements IStorage {
     return data as Job[]
   }
 
+  async getJobsByOrg(orgId: string): Promise<Job[]> {
+    try {
+      console.log(`Fetching jobs for orgId: ${orgId}`)
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('Supabase error:', error)
+        throw new Error(`Failed to fetch jobs: ${error.message}`)
+      }
+      
+      console.log(`Found ${data?.length || 0} jobs for orgId: ${orgId}`)
+      return data as Job[]
+    } catch (err) {
+      console.error('Exception in getJobsByOrg:', err)
+      throw err
+    }
+  }
+
   async getJobsByClient(clientId: string): Promise<Job[]> {
     const { data, error } = await supabase
       .from('jobs')
@@ -1302,12 +1342,16 @@ class DatabaseStorage implements IStorage {
 
   async createJob(insertJob: InsertJob): Promise<Job> {
     try {
-      // Map the camelCase fields to snake_case for database with optimized structure
+      // Map the camelCase fields to snake_case for database with full column support
       const dbJob = {
         title: insertJob.title,
-        description: insertJob.description,
-        client_id: insertJob.clientId,
-        // Note: status, record_status, created_by, assigned_to fields will be added after schema migration
+        org_id: insertJob.orgId,
+        client_id: insertJob.clientId || null, // Make client_id optional
+        description: insertJob.description || null,
+        status: insertJob.status || 'open',
+        record_status: insertJob.recordStatus || 'active',
+        assigned_to: insertJob.assignedTo || null,
+        created_by: insertJob.createdBy || null,
       }
       
       const { data, error } = await supabase
@@ -1358,13 +1402,21 @@ class DatabaseStorage implements IStorage {
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
     try {
-      // Map the camelCase fields to snake_case for database with optimized structure
+      // Map the camelCase fields to snake_case for database with full column support
       const dbCandidate = {
         name: insertCandidate.name,
         email: insertCandidate.email,
-        phone: insertCandidate.phone,
-        resume_url: insertCandidate.resumeUrl,
-        // Note: status and created_by fields will be added after schema migration
+        org_id: insertCandidate.orgId,
+        phone: insertCandidate.phone || null,
+        resume_url: insertCandidate.resumeUrl || null,
+        linkedin_url: insertCandidate.linkedinUrl || null,
+        github_url: insertCandidate.githubUrl || null,
+        portfolio_url: insertCandidate.portfolioUrl || null,
+        skills: insertCandidate.skills || null,
+        experience_years: insertCandidate.experienceYears || null,
+        location: insertCandidate.location || null,
+        record_status: insertCandidate.recordStatus || 'active',
+        created_by: insertCandidate.createdBy || null,
       }
       
       const { data, error } = await supabase
