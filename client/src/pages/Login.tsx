@@ -19,10 +19,17 @@ export default function Login() {
   const [error, setError] = useState('')
   const [emailError, setEmailError] = useState('')
   const [passwordError, setPasswordError] = useState('')
+  const [showDemoOption, setShowDemoOption] = useState(false)
   
   const { signIn, user } = useAuth()
   const [, setLocation] = useLocation()
   const { toast } = useToast()
+
+  // Check for demo query parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    setShowDemoOption(urlParams.get('demo') === 'true')
+  }, [])
 
   // Redirect if already logged in
   useEffect(() => {
@@ -242,43 +249,45 @@ export default function Login() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-[#5C667B] mb-3">
-            Or try the demo with a pre-configured account
-          </p>
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={async () => {
-              setLoading(true)
-              setError('')
-              try {
-                const { error } = await signIn('demo@yourapp.com', 'Demo1234!')
-                if (error) {
+        {showDemoOption && (
+          <div className="mt-8 text-center">
+            <p className="text-sm text-[#5C667B] mb-3">
+              Developer Demo Access
+            </p>
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={async () => {
+                setLoading(true)
+                setError('')
+                try {
+                  const { error } = await signIn('demo@yourapp.com', 'Demo1234!')
+                  if (error) {
+                    setError('Demo login failed. Please try again.')
+                  } else {
+                    toast({
+                      title: "Demo mode activated!",
+                      description: "You're now logged in as a demo user.",
+                    })
+                    setLocation('/dashboard')
+                  }
+                } catch (err) {
                   setError('Demo login failed. Please try again.')
-                } else {
-                  toast({
-                    title: "Demo mode activated!",
-                    description: "You're now logged in as a demo user.",
-                  })
-                  setLocation('/dashboard')
+                } finally {
+                  setLoading(false)
                 }
-              } catch (err) {
-                setError('Demo login failed. Please try again.')
-              } finally {
-                setLoading(false)
-              }
-            }}
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <span className="mr-2">🔓</span>
-            )}
-            Try Demo Account
-          </Button>
-        </div>
+              }}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <span className="mr-2">🔓</span>
+              )}
+              Try Demo Account
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
