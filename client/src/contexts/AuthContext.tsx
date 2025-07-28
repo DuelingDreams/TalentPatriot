@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true
 
     // Get initial session with robust error handling
-    const initializeAuth = async () => {
+    const initializeAuth = async (): Promise<void> => {
       try {
         if (!mounted) return
         setLoading(true)
@@ -116,65 +116,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Initialize auth
-    initializeAuth()
+    initializeAuth().catch(error => {
+      console.warn('Auth initialization failed:', error)
+    })
 
-    // Listen for auth changes with simplified error handling
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
-        if (!mounted) return
-        
-        setSession(session)
-        setUser(session?.user ?? null)
-        
-        if (session?.user) {
-          // Special handling for demo user
-          if (session.user.email === 'demo@yourapp.com') {
-            setUserRole('demo_viewer')
-            const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
-            setCurrentOrgIdState(demoOrgId)
-            safeStorageOperation(() => {
-              sessionStorage.setItem('currentOrgId', demoOrgId)
-            })
-          } else {
-            // For regular users in auth state change, fetch their actual role
-            try {
-              const profileResult = await safeSupabaseOperation(
-                async () => {
-                  const response = await fetch(`/api/user-profiles/${session.user.id}`)
-                  if (response.ok) {
-                    return await response.json()
-                  }
-                  throw new Error(`Profile fetch failed: ${response.status}`)
-                },
-                'fetchUserProfile'
-              )
-              
-              if (profileResult) {
-                setUserRole(profileResult.role || 'hiring_manager')
-              } else {
-                setUserRole('hiring_manager')
-              }
-              setCurrentOrgIdState(null)
-            } catch (error) {
-              console.warn('Failed to fetch user profile in auth change:', error)
+    // Listen for auth changes with comprehensive error handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Wrap the entire callback in a safe async handler
+      const handleAuthStateChange = async () => {
+        try {
+          if (!mounted) return
+          
+          setSession(session)
+          setUser(session?.user ?? null)
+          
+          if (session?.user) {
+            // Special handling for demo user
+            if (session.user.email === 'demo@yourapp.com') {
+              setUserRole('demo_viewer')
+              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
+              setCurrentOrgIdState(demoOrgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', demoOrgId)
+              })
+            } else {
+              // For regular users, use fallback role and skip profile fetch in auth state change
+              // This prevents network errors from causing unhandled rejections
               setUserRole('hiring_manager')
               setCurrentOrgIdState(null)
             }
+          } else {
+            setUserRole(null)
+            setCurrentOrgIdState(null)
           }
-        } else {
-          setUserRole(null)
-          setCurrentOrgIdState(null)
-        }
-        
-        if (mounted) {
-          setLoading(false)
-        }
-      } catch (error) {
-        console.warn('Error in auth state change:', error)
-        if (mounted) {
-          setLoading(false)
+          
+          if (mounted) {
+            setLoading(false)
+          }
+        } catch (error) {
+          console.warn('Error in auth state change:', error)
+          if (mounted) {
+            // Set safe defaults on any error
+            setUserRole(session?.user ? 'hiring_manager' : null)
+            setCurrentOrgIdState(null)
+            setLoading(false)
+          }
         }
       }
+      
+      // Execute the handler and catch any remaining errors
+      handleAuthStateChange().catch(error => {
+        console.warn('Auth state change handler failed:', error)
+        if (mounted) {
+          setLoading(false)
+        }
+      })
     })
 
     return () => {

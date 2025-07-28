@@ -45,7 +45,7 @@ if (typeof window !== 'undefined') {
       return
     }
     
-    // Handle network-related errors
+    // Handle network-related errors (including specific Failed to fetch)
     if (reason?.message && (
         reason.message.includes('fetch') ||
         reason.message.includes('network') ||
@@ -55,6 +55,13 @@ if (typeof window !== 'undefined') {
         reason.message.includes('TypeError: Failed to fetch')
       )) {
       console.warn('Network error handled:', reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle specific "Failed to fetch" TypeError
+    if (reason instanceof TypeError && reason.message === 'Failed to fetch') {
+      console.warn('Failed to fetch error handled')
       event.preventDefault()
       return
     }
