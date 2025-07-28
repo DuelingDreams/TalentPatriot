@@ -26,6 +26,13 @@ if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
+    // Handle undefined/null rejections (common with certain DOM operations)
+    if (!reason) {
+      console.warn('Unhandled rejection with no reason - likely a browser quirk')
+      event.preventDefault()
+      return
+    }
+    
     // Handle Vite connection errors gracefully
     if (reason?.message && reason.message.includes('Failed to fetch dynamically imported module')) {
       console.warn('Module loading error handled - likely a hot reload issue')
@@ -50,6 +57,13 @@ if (typeof window !== 'undefined') {
     // Handle script loading errors
     if (reason?.message && reason.message.includes('Failed to load script')) {
       console.warn('Script loading error handled')
+      event.preventDefault()
+      return
+    }
+    
+    // Handle Vite-specific errors
+    if (reason?.stack && reason.stack.includes('vite')) {
+      console.warn('Vite-related error handled')
       event.preventDefault()
       return
     }
@@ -84,8 +98,15 @@ if (typeof window !== 'undefined') {
       return
     }
     
-    // Let all other errors (including Vite/development errors) pass through normally
-    // This prevents interference with development tools
+    // Handle any Error object with a DOMException-like structure
+    if (reason instanceof Error && reason.name && reason.name.includes('DOM')) {
+      console.warn('DOM-related error handled:', reason.name)
+      event.preventDefault()
+      return
+    }
+    
+    // Log but don't prevent other unhandled rejections for debugging
+    console.debug('Unhandled rejection not caught by error handler:', reason)
   })
 }
 
