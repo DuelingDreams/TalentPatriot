@@ -59,242 +59,175 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 section-container bg-white">
-        <div className="tp-container text-center md:text-left">
-          <h1 className="heading-1 mb-6 tracking-tight">
-            Effortless Hiring Starts Here
+      <section className="pt-32 py-12 bg-[#F7F9FC]">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1A1A1A] mb-6 tracking-tight font-[Inter,sans-serif]">
+            The Simple ATS + CRM Built for Growing Teams
           </h1>
           
-          <p className="text-lg md:text-xl body-text mb-8 max-w-3xl mx-auto md:mx-0">
-            TalentPatriot helps small teams track jobs, move candidates through pipelines, 
-            and hire faster — all in one intuitive platform.
+          <p className="text-xl md:text-2xl text-[#1F3A5F] font-medium mb-8 max-w-4xl mx-auto font-[Inter,sans-serif]">
+            Stop losing track of candidates and start hiring smarter.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
-            <Link href="/signup">
-              <Button variant="default" size="lg" className="w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Link href="/onboarding/step1">
+              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-6 py-3 rounded-md font-medium text-base transition-colors">
                 Start Free
               </Button>
             </Link>
-            <Link href="/login">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                Book a Demo
-              </Button>
-            </Link>
+            <Button className="border border-[#264C99] text-[#264C99] hover:bg-[#E6F0FF] px-6 py-3 rounded-md font-medium text-base transition-colors">
+              Book a Demo
+            </Button>
           </div>
           
-          {/* Dashboard Screenshot */}
+          {/* Responsive Placeholder Image/Video Section */}
           <div className="mb-8 relative max-w-5xl mx-auto">
-            <div className="rounded-xl shadow-xl border overflow-hidden hover:scale-105 transition-transform duration-300 bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-8 aspect-video flex items-center justify-center">
+            <div className="rounded-xl shadow-xl border overflow-hidden bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-8 aspect-video flex items-center justify-center">
               <div className="text-center">
                 <BarChart3 className="w-16 h-16 text-[#5C667B] mx-auto mb-4" />
-                <p className="body-text text-[#1A1A1A] text-lg">TalentPatriot Dashboard</p>
+                <p className="text-[#1A1A1A] text-lg font-medium font-[Inter,sans-serif]">Product Demo Video Coming Soon</p>
               </div>
             </div>
-          </div>
-          
-          <div className="label-text text-center md:text-left">
-            Built for teams like yours • Trusted by SMB recruiters
           </div>
         </div>
       </section>
 
       {/* Who It's For Section */}
-      <section className="section-container bg-[#F0F4F8]">
-        <div className="tp-container">
-          <h2 className="heading-2 text-center mb-12">
+      <section className="py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
             Built for Busy Recruiters, Founders, and Hiring Managers
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            <Card className="text-center bg-white shadow-md hover:shadow-lg transition-shadow duration-300 border-0">
-              <CardContent className="pt-8 pb-8 px-6">
-                <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <UserCheck className="w-8 h-8 text-[#264C99]" />
-                </div>
-                <h3 className="heading-3 mb-4 text-[#1A1A1A]">Recruiters</h3>
-                <p className="body-text text-[#5C667B] leading-relaxed">
-                  Track candidates and communicate in one place
-                </p>
-              </CardContent>
-            </Card>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
+                <UserCheck className="w-8 h-8 text-[#264C99]" />
+              </div>
+              <h3 className="text-xl font-semibold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">Recruiters</h3>
+              <p className="text-base text-[#5C667B] font-[Inter,sans-serif]">
+                Track candidates and communication in one place.
+              </p>
+            </div>
             
-            <Card className="text-center bg-white shadow-md hover:shadow-lg transition-shadow duration-300 border-0">
-              <CardContent className="pt-8 pb-8 px-6">
-                <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Rocket className="w-8 h-8 text-[#1F3A5F]" />
-                </div>
-                <h3 className="heading-3 mb-4 text-[#1A1A1A]">Founders</h3>
-                <p className="body-text text-[#5C667B] leading-relaxed">
-                  Stay in the loop, even if you don't have a hiring team
-                </p>
-              </CardContent>
-            </Card>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Rocket className="w-8 h-8 text-[#1F3A5F]" />
+              </div>
+              <h3 className="text-xl font-semibold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">Founders</h3>
+              <p className="text-base text-[#5C667B] font-[Inter,sans-serif]">
+                Stay in the loop — even if you don't have a hiring team.
+              </p>
+            </div>
             
-            <Card className="text-center bg-white shadow-md hover:shadow-lg transition-shadow duration-300 border-0">
-              <CardContent className="pt-8 pb-8 px-6">
-                <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Target className="w-8 h-8 text-[#264C99]" />
-                </div>
-                <h3 className="heading-3 mb-4 text-[#1A1A1A]">Hiring Managers</h3>
-                <p className="body-text text-[#5C667B] leading-relaxed">
-                  See your pipeline without logging into spreadsheets
-                </p>
-              </CardContent>
-            </Card>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Target className="w-8 h-8 text-[#264C99]" />
+              </div>
+              <h3 className="text-xl font-semibold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">Hiring Managers</h3>
+              <p className="text-base text-[#5C667B] font-[Inter,sans-serif]">
+                Ditch the spreadsheet. See the pipeline at a glance.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Feature Highlights */}
-      <section className="section-container bg-white">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="heading-2 text-center mb-8">
+      {/* Features Section */}
+      <section className="py-12 bg-[#F7F9FC]">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
             Everything You Need — Nothing You Don't
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">🧩</div>
-                <h3 className="heading-3 mb-3">Drag-and-drop job pipeline</h3>
-                <p className="body-text">Move candidates through stages with a simple drag and drop</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">📇</div>
-                <h3 className="heading-3 mb-3">Centralized candidate profiles</h3>
-                <p className="body-text">All candidate information in one searchable database</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">📝</div>
-                <h3 className="heading-3 mb-3">Notes, tags, and reminders</h3>
-                <p className="body-text">Keep track of every interaction and never miss a follow-up</p>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">👥</div>
-                <h3 className="heading-3 mb-3">CRM-lite for passive talent</h3>
-                <p className="body-text">Build talent pools for future opportunities</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Screenshot Gallery */}
-      <section className="py-12 md:py-16 lg:py-20 bg-[#F0F4F8]">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12 md:mb-16 text-[#1A1A1A]">
-            See TalentPatriot in Action
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-10">
-            <div className="tp-screenshot mb-6 md:mb-0">
-              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-10 md:p-8 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <BarChart3 className="w-20 h-20 md:w-16 md:h-16 text-[#5C667B] mx-auto mb-4" />
-                  <p className="text-[#1A1A1A] text-lg md:text-base font-medium">Candidate Dashboard</p>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <Sparkles className="w-8 h-8 text-[#264C99]" />
               </div>
+              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-3 font-[Inter,sans-serif]">Drag-and-drop pipelines</h3>
+              <p className="text-base text-[#5C667B] font-[Inter,sans-serif]">
+                Move candidates through stages with simple drag and drop
+              </p>
             </div>
             
-            <div className="tp-screenshot mb-6 md:mb-0">
-              <div className="bg-white p-2 md:p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-200">
-                <img 
-                  src="/job-pipeline-screenshot.png"
-                  alt="TalentPatriot Job Pipeline - Kanban view showing candidates moving through Applied, Phone Screen, Interview, Technical, Offer, Hired, and Rejected stages"
-                  className="w-full h-auto rounded-xl object-cover"
-                  loading="lazy"
-                />
-                <div className="text-center pt-3 pb-2">
-                  <p className="text-[#1A1A1A] text-sm md:text-base font-medium">Job Pipeline View</p>
-                </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <Users className="w-8 h-8 text-[#1F3A5F]" />
               </div>
+              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-3 font-[Inter,sans-serif]">Candidate profiles</h3>
+              <p className="text-base text-[#5C667B] font-[Inter,sans-serif]">
+                All candidate information in one searchable place
+              </p>
             </div>
             
-            <div className="tp-screenshot mb-6 md:mb-0">
-              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-10 md:p-8 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <UserCheck className="w-20 h-20 md:w-16 md:h-16 text-[#1F3A5F] mx-auto mb-4" />
-                  <p className="text-[#1A1A1A] text-lg md:text-base font-medium">Candidate Profile</p>
-                </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <FileText className="w-8 h-8 text-[#264C99]" />
               </div>
+              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-3 font-[Inter,sans-serif]">Notes and reminders</h3>
+              <p className="text-base text-[#5C667B] font-[Inter,sans-serif]">
+                Track every interaction and never miss follow-ups
+              </p>
             </div>
             
-            <div className="tp-screenshot">
-              <div className="bg-gradient-to-br from-[#E6F0FF] to-[#F0F4F8] p-10 md:p-8 aspect-[16/10] md:aspect-video flex items-center justify-center rounded-2xl shadow-sm hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <Users className="w-20 h-20 md:w-16 md:h-16 text-[#264C99] mx-auto mb-4" />
-                  <p className="text-[#1A1A1A] text-lg md:text-base font-medium">Team Collaboration</p>
-                </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-6 shadow-sm">
+                <Building2 className="w-8 h-8 text-[#1F3A5F]" />
               </div>
+              <h3 className="text-lg font-semibold text-[#1A1A1A] mb-3 font-[Inter,sans-serif]">CRM-lite for contacts</h3>
+              <p className="text-base text-[#5C667B] font-[Inter,sans-serif]">
+                Build talent pools for future opportunities
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Pricing Teaser */}
-      <section className="py-12 md:py-16 bg-white">
-        <div className="max-w-3xl mx-auto px-4 md:px-6 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 text-[#1A1A1A]">
-            Simple, Transparent Pricing
-          </h2>
-          <p className="text-base md:text-lg text-[#5C667B] mb-8 px-4">
-            No contracts. No hidden fees. Just straightforward pricing built for growing teams.
-          </p>
-          <Link href="/pricing">
-            <Button className="btn-primary h-12 px-6 text-base">
-              View Pricing
-              <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-          </Link>
+      {/* Screenshot/Video Section */}
+      <section className="py-12 bg-white">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <div className="relative">
+            <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
+              <img 
+                src="/job-pipeline-screenshot.png"
+                alt="TalentPatriot Job Pipeline - Kanban view showing candidates moving through Applied, Phone Screen, Interview, Technical, Offer, Hired, and Rejected stages"
+                className="w-full h-auto rounded-lg object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="text-center mt-6">
+              <p className="text-[#1A1A1A] text-lg font-medium font-[Inter,sans-serif]">
+                See your entire hiring pipeline at a glance
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-
-
-      {/* Final CTA Section */}
-      <section className="py-12 md:py-16 bg-[#F0F4F8]">
-        <div className="max-w-3xl mx-auto px-4 md:px-6 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-8 md:mb-10 text-[#1A1A1A]">
+      {/* CTA Section */}
+      <section className="py-12 bg-[#F7F9FC]">
+        <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-8 font-[Inter,sans-serif]">
             Start Hiring Smarter Today
           </h2>
           
-          <div className="flex flex-col gap-3 mb-8 md:mb-12 max-w-sm mx-auto">
-            <Link href="/signup" className="w-full">
-              <Button className="btn-primary w-full h-12 text-base">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/onboarding/step1">
+              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-6 py-3 rounded-md font-medium text-base transition-colors">
                 Start Free
               </Button>
             </Link>
-            <Link href="/login" className="w-full">
-              <Button className="btn-secondary w-full h-12 text-base">
-                Book a Demo
-              </Button>
-            </Link>
-          </div>
-          
-          {/* Email Capture */}
-          <div className="max-w-md mx-auto">
-            <Link href="/signup" className="block">
-              <Button className="btn-primary w-full h-12 text-base">
-                Get Started
-              </Button>
-            </Link>
+            <Button className="border border-[#264C99] text-[#264C99] hover:bg-[#E6F0FF] px-6 py-3 rounded-md font-medium text-base transition-colors">
+              Book a Demo
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#F0F4F8] py-8">
-        <div className="tp-container px-6 md:px-12">
+      <footer className="bg-white py-8 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
@@ -307,14 +240,14 @@ export default function Landing() {
               <span className="text-lg font-semibold text-[#1A1A1A] font-[Inter,sans-serif]">TalentPatriot</span>
             </div>
             
-            <nav className="flex flex-wrap justify-center gap-6 text-sm text-[#5C667B] text-center">
+            <nav className="flex flex-wrap justify-center gap-6 text-sm text-[#5C667B] text-center font-[Inter,sans-serif]">
               <a href="#" className="hover:text-[#1A1A1A] transition-colors">About</a>
               <a href="#" className="hover:text-[#1A1A1A] transition-colors">Privacy</a>
               <a href="#" className="hover:text-[#1A1A1A] transition-colors">Terms</a>
               <a href="#" className="hover:text-[#1A1A1A] transition-colors">Contact</a>
             </nav>
             
-            <p className="tp-label text-center">
+            <p className="text-sm text-[#5C667B] text-center font-[Inter,sans-serif]">
               © 2025 TalentPatriot
             </p>
           </div>
