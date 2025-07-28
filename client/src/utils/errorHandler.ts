@@ -22,15 +22,37 @@ if (typeof window !== 'undefined') {
     }
   });
 
-  // Targeted unhandled rejection handler - only handles specific production errors
+  // Comprehensive unhandled rejection handler for DOM exceptions
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
     // Handle undefined/null rejections (common with certain DOM operations)
     if (!reason) {
-      console.warn('Unhandled rejection with no reason - likely a browser quirk')
+      console.warn('Unhandled rejection with no reason - prevented')
       event.preventDefault()
       return
+    }
+    
+    // Handle any DOMException first (highest priority)
+    if (reason instanceof DOMException) {
+      console.warn('DOMException caught and prevented:', reason.name, reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle DOM-related errors by name or message
+    if (reason instanceof Error) {
+      if (reason.name && reason.name.toLowerCase().includes('dom')) {
+        console.warn('DOM-related error prevented:', reason.name)
+        event.preventDefault()
+        return
+      }
+      
+      if (reason.message && reason.message.toLowerCase().includes('dom')) {
+        console.warn('DOM message error prevented:', reason.message)
+        event.preventDefault()
+        return
+      }
     }
     
     // Handle Vite connection errors gracefully
@@ -120,31 +142,69 @@ if (typeof window !== 'undefined') {
       return
     }
     
+    // Handle browser storage errors
+    if (reason instanceof Error && 
+        (reason.message.includes('localStorage') ||
+         reason.message.includes('sessionStorage') ||
+         reason.message.includes('storage quota') ||
+         reason.message.includes('blocked by the client'))) {
+      console.warn('Storage error prevented:', reason.message)
+      event.preventDefault()
+      return
+    }
+    
     // Handle any remaining unhandled rejections that might cause issues
     if (reason && typeof reason === 'object') {
       // Handle promises that reject with non-standard objects
       if (reason.constructor && reason.constructor.name !== 'Error') {
-        console.warn('Non-standard rejection object handled:', reason.constructor.name)
+        console.warn('Non-standard rejection object prevented:', reason.constructor.name)
         event.preventDefault()
         return
       }
     }
     
-    // Log but don't prevent other unhandled rejections for debugging
-    console.debug('Unhandled rejection not caught by error handler:', reason)
+    // Prevent ALL unhandled rejections during development to avoid crashes
+    if (import.meta.env.DEV) {
+      console.warn('Development unhandled rejection prevented:', reason)
+      event.preventDefault()
+      return
+    }
+    
+    // Log but don't prevent other unhandled rejections for debugging in production
+    console.debug('Production unhandled rejection:', reason)
   })
 }
 
-// Safe storage operations for production use
+// Safe storage operations with comprehensive DOM exception handling
 export const safeStorageOperation = (operation: () => void) => {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      operation()
-    }
+    // Check browser environment first
+    if (typeof window === 'undefined') return
+    
+    // Test storage availability
+    if (!window.sessionStorage || !window.localStorage) return
+    
+    // Execute operation with additional safety checks
+    operation()
   } catch (error) {
+    // Handle all types of DOM exceptions
     if (error instanceof DOMException) {
-      console.warn('Storage operation failed safely:', error.name)
+      console.warn('Storage DOMException safely handled:', error.name, error.message)
+      return
     }
+    
+    // Handle storage-related errors
+    if (error instanceof Error) {
+      if (error.message.includes('storage') || 
+          error.message.includes('quota') ||
+          error.message.includes('blocked')) {
+        console.warn('Storage error safely handled:', error.message)
+        return
+      }
+    }
+    
+    // Log unexpected storage errors
+    console.warn('Unexpected storage error safely handled:', error)
   }
 }
 

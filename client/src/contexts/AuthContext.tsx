@@ -71,18 +71,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Initialize auth with error boundary
+    // Initialize auth with comprehensive error boundary
     initAuth().catch(err => {
       console.warn('Auth init failed:', err)
-      setLoading(false)
+      if (mounted) {
+        setLoading(false)
+        // Set safe fallback state
+        setSession(null)
+        setUser(null)
+        setUserRole(null)
+        setCurrentOrgIdState(null)
+      }
     })
 
-    // Listen for auth changes with safe subscription
+    // Listen for auth changes with comprehensive error handling
     let subscription: any = null
     try {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+        // Early return if component unmounted
         if (!mounted) return
         
+        // Wrap all auth state changes in try-catch to prevent DOM exceptions
         try {
           setSession(session)
           setUser(session?.user ?? null)
@@ -94,7 +103,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
               setCurrentOrgIdState(demoOrgId)
               safeStorageOperation(() => {
-                sessionStorage.setItem('currentOrgId', demoOrgId)
+                if (typeof window !== 'undefined') {
+                  sessionStorage.setItem('currentOrgId', demoOrgId)
+                }
               })
             } else {
               // For regular users, use default role
@@ -106,19 +117,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setCurrentOrgIdState(null)
           }
           
-          setLoading(false)
+          if (mounted) {
+            setLoading(false)
+          }
         } catch (error) {
-          console.warn('Auth state change error:', error)
-          // Set safe defaults
-          setUserRole(session?.user ? 'hiring_manager' : null)
-          setCurrentOrgIdState(null)
-          setLoading(false)
+          console.warn('Auth state change error safely handled:', error)
+          // Set safe defaults only if component is still mounted
+          if (mounted) {
+            setUserRole(session?.user ? 'hiring_manager' : null)
+            setCurrentOrgIdState(null)
+            setLoading(false)
+          }
         }
       })
 
       subscription = data?.subscription
     } catch (err) {
-      console.warn('Auth state change setup failed:', err)
+      console.warn('Auth state change setup failed safely:', err)
+      // Ensure loading is false even if subscription fails
+      if (mounted) {
+        setLoading(false)
+      }
     }
 
     return () => {
