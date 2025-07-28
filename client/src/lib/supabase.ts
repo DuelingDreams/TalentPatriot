@@ -61,3 +61,20 @@ export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnon
     }
   }
 })
+
+// Handle global auth errors to prevent refresh token errors from appearing in console
+if (typeof window !== 'undefined') {
+  // Override console.error to filter out Supabase refresh token errors
+  const originalConsoleError = console.error
+  console.error = (...args: any[]) => {
+    // Check if this is a Supabase refresh token error
+    const errorMessage = args[0]
+    if (typeof errorMessage === 'object' && errorMessage?.__isAuthError && errorMessage?.code === 'refresh_token_not_found') {
+      // Silently handle refresh token errors - these are expected when sessions expire
+      console.log('Session expired - refresh token not found (handled gracefully)')
+      return
+    }
+    // For all other errors, use the original console.error
+    originalConsoleError.apply(console, args)
+  }
+}

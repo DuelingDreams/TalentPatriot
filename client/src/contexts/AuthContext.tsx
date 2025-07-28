@@ -92,6 +92,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Early return if component unmounted
         if (!mounted) return
         
+        // Handle specific auth events
+        if (event === 'SIGNED_OUT') {
+          // User signed out - clear all state
+          setSession(null)
+          setUser(null)
+          setUserRole(null)
+          setCurrentOrgIdState(null)
+          safeStorageOperation(() => {
+            sessionStorage.removeItem('currentOrgId')
+          })
+          if (mounted) {
+            setLoading(false)
+          }
+          return
+        }
+        
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully')
+        }
+        
         // Wrap all auth state changes in try-catch to prevent DOM exceptions
         try {
           setSession(session)
@@ -116,6 +136,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             setUserRole(null)
             setCurrentOrgIdState(null)
+            safeStorageOperation(() => {
+              sessionStorage.removeItem('currentOrgId')
+            })
           }
           
           if (mounted) {
