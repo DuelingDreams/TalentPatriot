@@ -217,9 +217,13 @@ export default function OnboardingStep2() {
                     <SelectTrigger className="pl-10 h-12 border-slate-300 focus:ring-indigo-500">
                       <SelectValue placeholder="Select company size" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50 bg-white border border-slate-200 shadow-lg rounded-md">
                       {companySizeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                        <SelectItem 
+                          key={option.value} 
+                          value={option.value}
+                          className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3"
+                        >
                           {option.label}
                         </SelectItem>
                       ))}
@@ -238,12 +242,16 @@ export default function OnboardingStep2() {
                     <SelectTrigger className="pl-10 h-12 border-slate-300 focus:ring-indigo-500">
                       <SelectValue placeholder="Select your role" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50 bg-white border border-slate-200 shadow-lg rounded-md max-h-60 overflow-y-auto">
                       {roleOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
+                        <SelectItem 
+                          key={option.value} 
+                          value={option.value}
+                          className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-3 px-3"
+                        >
                           <div>
-                            <div className="font-medium">{option.label}</div>
-                            <div className="text-xs text-slate-500">{option.description}</div>
+                            <div className="font-medium text-slate-900">{option.label}</div>
+                            <div className="text-xs text-slate-600 mt-1">{option.description}</div>
                           </div>
                         </SelectItem>
                       ))}

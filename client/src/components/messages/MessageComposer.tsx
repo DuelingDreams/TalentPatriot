@@ -196,10 +196,16 @@ export function MessageComposer({ defaultContext, onMessageSent }: MessageCompos
                   <SelectTrigger>
                     <SelectValue placeholder="Select client" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
+                  <SelectContent className="z-50 bg-white border border-slate-200 shadow-lg rounded-md max-h-48 overflow-y-auto">
+                    <SelectItem value="none" className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3">
+                      None
+                    </SelectItem>
                     {clients.map((client: any) => (
-                      <SelectItem key={client.id} value={client.id}>
+                      <SelectItem 
+                        key={client.id} 
+                        value={client.id}
+                        className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3"
+                      >
                         {client.name}
                       </SelectItem>
                     ))}

@@ -187,10 +187,12 @@ export default function Jobs() {
                                   <SelectValue placeholder="Select a client (optional)" />
                                 </SelectTrigger>
                               </FormControl>
-                              <SelectContent>
-                                <SelectItem value="">No client assigned</SelectItem>
+                              <SelectContent className="z-50 bg-white border border-slate-200 shadow-lg rounded-md max-h-48 overflow-y-auto">
+                                <SelectItem value="" className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3">
+                                  No client assigned
+                                </SelectItem>
                                 {clientsLoading ? (
-                                  <SelectItem value="loading" disabled>
+                                  <SelectItem value="loading" disabled className="py-2 px-3">
                                     <div className="flex items-center gap-2">
                                       <Loader2 className="w-4 h-4 animate-spin" />
                                       Loading clients...
@@ -198,7 +200,11 @@ export default function Jobs() {
                                   </SelectItem>
                                 ) : (
                                   clients?.map((client: any) => (
-                                    <SelectItem key={client.id} value={client.id}>
+                                    <SelectItem 
+                                      key={client.id} 
+                                      value={client.id}
+                                      className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3"
+                                    >
                                       {client.name} {client.industry && `(${client.industry})`}
                                     </SelectItem>
                                   ))

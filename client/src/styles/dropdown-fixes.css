@@ -1,0 +1,44 @@
+/* Global dropdown styling improvements for better visibility and contrast */
+
+/* Ensure all Select dropdowns have proper z-index and styling */
+[data-radix-select-content] {
+  z-index: 50 !important;
+  background-color: white !important;
+  border: 1px solid rgb(226 232 240) !important;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  border-radius: 0.375rem !important;
+  max-height: 15rem !important;
+  overflow-y: auto !important;
+}
+
+/* Select items hover and focus states */
+[data-radix-select-item] {
+  padding: 0.5rem 0.75rem !important;
+  cursor: pointer !important;
+}
+
+[data-radix-select-item]:hover {
+  background-color: rgb(248 250 252) !important;
+}
+
+[data-radix-select-item]:focus {
+  background-color: rgb(241 245 249) !important;
+  outline: none !important;
+}
+
+/* Ensure text visibility in dropdowns */
+[data-radix-select-item] * {
+  color: rgb(15 23 42) !important;
+}
+
+[data-radix-select-item] .text-slate-500,
+[data-radix-select-item] .text-slate-600 {
+  color: rgb(100 116 139) !important;
+}
+
+/* Fix dropdown positioning on mobile */
+@media (max-width: 640px) {
+  [data-radix-select-content] {
+    max-height: 12rem !important;
+  }
+}
