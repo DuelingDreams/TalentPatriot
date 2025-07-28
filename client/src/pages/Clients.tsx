@@ -64,8 +64,8 @@ export default function Clients() {
       <DashboardLayout pageTitle="Demo Clients">
         <div className="p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-slate-900">Client Directory</h1>
-            <p className="text-slate-600 mt-1">Explore our demo client database</p>
+            <h1 className="text-2xl font-bold text-[#1A1A1A] font-[Inter,sans-serif]">Client Directory</h1>
+            <p className="text-[#5C667B] mt-1">Explore our demo client database</p>
           </div>
           <DemoClients />
         </div>
