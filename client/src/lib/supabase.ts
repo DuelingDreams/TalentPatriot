@@ -5,17 +5,21 @@ import type { Database } from '@/types/supabase'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Validate environment variables
+// Validate environment variables with safer error handling
 if (!supabaseUrl) {
-  throw new Error('Missing env.VITE_SUPABASE_URL')
+  console.error('Missing env.VITE_SUPABASE_URL - Auth features will not work')
 }
 
 if (!supabaseAnonKey) {
-  throw new Error('Missing env.VITE_SUPABASE_ANON_KEY')
+  console.error('Missing env.VITE_SUPABASE_ANON_KEY - Auth features will not work')
 }
 
+// Create a dummy URL if not provided to prevent crashes
+const safeSupabaseUrl = supabaseUrl || 'https://placeholder.supabase.co'
+const safeSupabaseAnonKey = supabaseAnonKey || 'placeholder-key'
+
 // Create and export the Supabase client
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,

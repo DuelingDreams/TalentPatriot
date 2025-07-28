@@ -9,6 +9,20 @@ if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
+    // Handle Vite connection errors gracefully
+    if (reason?.message && reason.message.includes('Failed to fetch dynamically imported module')) {
+      console.warn('Module loading error handled - likely a hot reload issue')
+      event.preventDefault()
+      return
+    }
+    
+    // Handle WebSocket connection errors from Vite
+    if (reason?.message && (reason.message.includes('WebSocket') || reason.message.includes('vite'))) {
+      console.warn('Vite WebSocket error handled')
+      event.preventDefault()
+      return
+    }
+    
     // Only handle specific DOM exceptions (not development errors)
     if (reason instanceof DOMException && 
         (reason.name === 'QuotaExceededError' || 
@@ -23,8 +37,9 @@ if (typeof window !== 'undefined') {
     if (reason?.message && 
         (reason.message.includes('Invalid session') ||
          reason.message.includes('User not found') ||
-         reason.message.includes('Invalid JWT'))) {
-      console.warn('Auth error handled:', reason.message)
+         reason.message.includes('Invalid JWT') ||
+         reason.message.includes('Failed to fetch'))) {
+      console.warn('Auth/Network error handled:', reason.message)
       event.preventDefault()
       return
     }
