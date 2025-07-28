@@ -7,10 +7,10 @@ import { Switch, Route, Link } from "wouter";
 import { lazy, Suspense } from "react";
 import "./index.css";
 
-// Step 4: Add lazy loading
-const LazyHomePage = lazy(() => Promise.resolve({ default: HomePage }));
-const LazyTestPage = lazy(() => Promise.resolve({ default: TestPage }));
-const LazyNotFoundPage = lazy(() => Promise.resolve({ default: NotFoundPage }));
+// Step 5: Test with actual TalentPatriot pages
+const LazyLanding = lazy(() => import("@/pages/Landing"));
+const LazyLogin = lazy(() => import("@/pages/Login"));
+const LazyOnboardingStep1 = lazy(() => import("@/pages/OnboardingStep1"));
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -19,27 +19,29 @@ const PageLoader = () => (
   </div>
 );
 
-function StepFourApp() {
+function StepFiveApp() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <div className="min-h-screen bg-gray-100">
-          {/* Simple navigation */}
+          {/* Navigation for testing real pages */}
           <nav className="bg-white shadow p-4">
             <div className="flex gap-4">
-              <Link href="/" className="text-blue-600 hover:text-blue-800">Home</Link>
-              <Link href="/test" className="text-blue-600 hover:text-blue-800">Test Page</Link>
-              <Link href="/dashboard" className="text-blue-600 hover:text-blue-800">Dashboard</Link>
+              <Link href="/" className="text-blue-600 hover:text-blue-800">Landing</Link>
+              <Link href="/login" className="text-blue-600 hover:text-blue-800">Login</Link>
+              <Link href="/onboarding/step1" className="text-blue-600 hover:text-blue-800">Onboarding</Link>
+              <Link href="/test" className="text-blue-600 hover:text-blue-800">Test Status</Link>
             </div>
           </nav>
           
-          {/* Router content with lazy loading */}
+          {/* Router content with real TalentPatriot pages */}
           <Suspense fallback={<PageLoader />}>
             <Switch>
-              <Route path="/" component={LazyHomePage} />
-              <Route path="/test" component={LazyTestPage} />
-              <Route path="/dashboard" component={DashboardPage} />
-              <Route component={LazyNotFoundPage} />
+              <Route path="/" component={LazyLanding} />
+              <Route path="/login" component={LazyLogin} />
+              <Route path="/onboarding/step1" component={LazyOnboardingStep1} />
+              <Route path="/test" component={StatusPage} />
+              <Route component={NotFoundPage} />
             </Switch>
           </Suspense>
         </div>
@@ -49,41 +51,20 @@ function StepFourApp() {
   );
 }
 
-function HomePage() {
+function StatusPage() {
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">TalentPatriot ATS</h1>
-        <p className="text-lg text-gray-600 mb-4">Step 4: Lazy Loading + Suspense</p>
+        <p className="text-lg text-gray-600 mb-4">Step 5: Testing Real Pages</p>
         <div className="p-4 bg-white rounded-lg shadow">
           <p className="text-green-600">✓ QueryClient loaded successfully</p>
           <p className="text-green-600">✓ UI components working</p>
           <p className="text-green-600">✓ AuthContext loaded successfully</p>
           <p className="text-green-600">✓ Routing working</p>
           <p className="text-green-600">✓ Lazy loading working</p>
+          <p className="text-green-600">✓ Real pages loading</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function DashboardPage() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Dashboard</h1>
-        <p className="text-lg text-gray-600">Testing lazy loading with a new page!</p>
-      </div>
-    </div>
-  );
-}
-
-function TestPage() {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Test Page</h1>
-        <p className="text-lg text-gray-600">Routing is working correctly!</p>
       </div>
     </div>
   );
@@ -102,5 +83,5 @@ function NotFoundPage() {
 
 const root = document.getElementById("root");
 if (root) {
-  createRoot(root).render(<StepFourApp />);
+  createRoot(root).render(<StepFiveApp />);
 }
