@@ -1,75 +1,55 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import React from 'react'
 
-interface Props {
-  children: ReactNode;
+interface ErrorBoundaryState {
+  hasError: boolean
+  error?: Error
 }
 
-interface State {
-  hasError: boolean;
-  error: Error | null;
+interface ErrorBoundaryProps {
+  children: React.ReactNode
 }
 
-export class AppErrorBoundary extends Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null
-  };
-
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+export class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props)
+    this.state = { hasError: false }
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Application error caught by boundary:', error, errorInfo);
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error }
   }
 
-  private handleReset = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.reload();
-  };
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('App Error Boundary caught an error:', error, errorInfo)
+  }
 
-  public render() {
+  render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] p-4">
-          <Card className="max-w-md w-full">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <AlertCircle className="h-6 w-6 text-red-500" />
-                <CardTitle>Something went wrong</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-[#5C667B]">
-                We encountered an unexpected error. This is usually temporary and can be fixed by refreshing the page.
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.996-.833-2.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <div className="mt-4 text-center">
+              <h3 className="text-lg font-medium text-gray-900">Application Error</h3>
+              <p className="mt-2 text-sm text-gray-500">
+                Something went wrong. Please refresh the page or try again later.
               </p>
-              
-              {this.state.error && (
-                <div className="p-3 bg-[#F0F4F8] rounded-md">
-                  <p className="text-sm text-[#5C667B] font-mono">
-                    {this.state.error.message}
-                  </p>
-                </div>
-              )}
-              
-              <Button 
-                onClick={this.handleReset}
-                variant="default"
-                size="lg"
-                className="w-full"
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh Page
-              </Button>
-            </CardContent>
-          </Card>
+                Reload Page
+              </button>
+            </div>
+          </div>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }

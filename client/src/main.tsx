@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 // Import lightweight error handling only
 import "./utils/errorHandler";
 
-import App from "./App";
+import App from "./App-simple";
 import "./index.css";
 
 // Wrap app initialization in try-catch to handle any startup errors
