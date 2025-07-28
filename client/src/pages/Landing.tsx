@@ -102,42 +102,42 @@ export default function Landing() {
       {/* Who It's For Section */}
       <section className="section-container bg-[#F0F4F8]">
         <div className="tp-container">
-          <h2 className="heading-2 text-center mb-8">
+          <h2 className="heading-2 text-center mb-12">
             Built for Busy Recruiters, Founders, and Hiring Managers
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <UserCheck className="w-6 h-6 text-[#264C99]" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            <Card className="text-center bg-white shadow-md hover:shadow-lg transition-shadow duration-300 border-0">
+              <CardContent className="pt-8 pb-8 px-6">
+                <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <UserCheck className="w-8 h-8 text-[#264C99]" />
                 </div>
-                <h3 className="heading-3 mb-2">Recruiters</h3>
-                <p className="body-text">
+                <h3 className="heading-3 mb-4 text-[#1A1A1A]">Recruiters</h3>
+                <p className="body-text text-[#5C667B] leading-relaxed">
                   Track candidates and communicate in one place
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Rocket className="w-6 h-6 text-[#1F3A5F]" />
+            <Card className="text-center bg-white shadow-md hover:shadow-lg transition-shadow duration-300 border-0">
+              <CardContent className="pt-8 pb-8 px-6">
+                <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Rocket className="w-8 h-8 text-[#1F3A5F]" />
                 </div>
-                <h3 className="heading-3 mb-2">Founders</h3>
-                <p className="body-text">
+                <h3 className="heading-3 mb-4 text-[#1A1A1A]">Founders</h3>
+                <p className="body-text text-[#5C667B] leading-relaxed">
                   Stay in the loop, even if you don't have a hiring team
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="w-12 h-12 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Target className="w-6 h-6 text-[#264C99]" />
+            <Card className="text-center bg-white shadow-md hover:shadow-lg transition-shadow duration-300 border-0">
+              <CardContent className="pt-8 pb-8 px-6">
+                <div className="w-16 h-16 bg-[#E6F0FF] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Target className="w-8 h-8 text-[#264C99]" />
                 </div>
-                <h3 className="heading-3 mb-2">Hiring Managers</h3>
-                <p className="body-text">
+                <h3 className="heading-3 mb-4 text-[#1A1A1A]">Hiring Managers</h3>
+                <p className="body-text text-[#5C667B] leading-relaxed">
                   See your pipeline without logging into spreadsheets
                 </p>
               </CardContent>
