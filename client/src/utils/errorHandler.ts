@@ -5,6 +5,23 @@
 
 // Only run in browser environment
 if (typeof window !== 'undefined') {
+  // Add global error handler for script errors
+  window.addEventListener('error', (event) => {
+    // Handle Replit banner script errors
+    if (event.filename && event.filename.includes('replit-dev-banner')) {
+      console.warn('Replit banner script error caught');
+      event.preventDefault();
+      return true;
+    }
+    
+    // Handle cross-origin script errors
+    if (event.message === 'Script error.' || event.message.includes('Script error')) {
+      console.warn('Cross-origin script error caught');
+      event.preventDefault();
+      return true;
+    }
+  });
+
   // Targeted unhandled rejection handler - only handles specific production errors
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
@@ -19,6 +36,20 @@ if (typeof window !== 'undefined') {
     // Handle WebSocket connection errors from Vite
     if (reason?.message && (reason.message.includes('WebSocket') || reason.message.includes('vite'))) {
       console.warn('Vite WebSocket error handled')
+      event.preventDefault()
+      return
+    }
+    
+    // Handle Replit banner script errors
+    if (reason?.message && reason.message.includes('replit-dev-banner')) {
+      console.warn('Replit banner script error handled')
+      event.preventDefault()
+      return
+    }
+    
+    // Handle script loading errors
+    if (reason?.message && reason.message.includes('Failed to load script')) {
+      console.warn('Script loading error handled')
       event.preventDefault()
       return
     }
