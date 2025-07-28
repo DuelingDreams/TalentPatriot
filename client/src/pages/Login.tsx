@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
-import { Loader2, Building2, Eye, EyeOff } from 'lucide-react'
+import { Loader2, Building2, Eye, EyeOff, Chrome, Mail } from 'lucide-react'
+import { Separator } from '@/components/ui/separator'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -21,7 +22,7 @@ export default function Login() {
   const [passwordError, setPasswordError] = useState('')
   const [showDemoOption, setShowDemoOption] = useState(false)
   
-  const { signIn, user } = useAuth()
+  const { signIn, signInWithOAuth, user } = useAuth()
   const [, setLocation] = useLocation()
   const { toast } = useToast()
 
@@ -132,6 +133,27 @@ export default function Login() {
     }
   }, [])
 
+  const handleOAuthSignIn = async (provider: 'google' | 'microsoft') => {
+    setLoading(true)
+    setError('')
+
+    try {
+      // Map Microsoft to Azure for Supabase
+      const supabaseProvider = provider === 'microsoft' ? 'azure' : 'google'
+      const { error } = await signInWithOAuth(supabaseProvider)
+      
+      if (error) {
+        setError(error.message || `Failed to sign in with ${provider}. Please try again.`)
+      }
+      // Note: If successful, user will be redirected to dashboard by the OAuth flow
+    } catch (err) {
+      console.warn('OAuth signin error:', err)
+      setError(`Something went wrong with ${provider} sign-in. Please try again.`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
       <div className="w-full max-w-md">
@@ -151,6 +173,38 @@ export default function Login() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* OAuth Options */}
+            <div className="space-y-3 mb-6">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-12 border-2 hover:bg-slate-50"
+                onClick={() => handleOAuthSignIn('google')}
+                disabled={loading}
+              >
+                <Chrome className="w-5 h-5 mr-3" />
+                Continue with Google
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-12 border-2 hover:bg-slate-50"
+                onClick={() => handleOAuthSignIn('microsoft')}
+                disabled={loading}
+              >
+                <Mail className="w-5 h-5 mr-3" />
+                Continue with Microsoft
+              </Button>
+            </div>
+
+            <div className="relative mb-6">
+              <Separator />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="bg-white px-4 text-sm text-[#5C667B]">or</span>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <Alert variant="destructive">

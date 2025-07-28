@@ -19,7 +19,7 @@ export default function OnboardingStep1() {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
   
-  const { signUp } = useAuth()
+  const { signUp, signInWithOAuth } = useAuth()
   const [, setLocation] = useLocation()
   const { toast } = useToast()
 
@@ -86,12 +86,33 @@ export default function OnboardingStep1() {
     }
   }
 
-  const handleSSOSignup = (provider: string) => {
-    // Future SSO implementation
-    toast({
-      title: "Coming Soon",
-      description: `${provider} signup will be available soon!`,
-    })
+  const handleSSOSignup = async (provider: 'google' | 'microsoft') => {
+    setLoading(true)
+    setErrors({})
+
+    try {
+      // Map Microsoft to Azure for Supabase
+      const supabaseProvider = provider === 'microsoft' ? 'azure' : 'google'
+      const { error } = await signInWithOAuth(supabaseProvider)
+      
+      if (error) {
+        toast({
+          title: "Sign-up failed",
+          description: error.message || `Failed to sign up with ${provider}. Please try again.`,
+          variant: "destructive"
+        })
+      }
+      // Note: If successful, user will be redirected to step2 by the OAuth flow
+    } catch (err) {
+      console.warn('OAuth signup error:', err)
+      toast({
+        title: "Sign-up failed", 
+        description: `Something went wrong with ${provider} sign-up. Please try again.`,
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -121,7 +142,8 @@ export default function OnboardingStep1() {
                 type="button"
                 variant="outline"
                 className="w-full h-12 border-2 hover:bg-slate-50"
-                onClick={() => handleSSOSignup('Google')}
+                onClick={() => handleSSOSignup('google')}
+                disabled={loading}
               >
                 <Chrome className="w-5 h-5 mr-3" />
                 Continue with Google
@@ -131,7 +153,8 @@ export default function OnboardingStep1() {
                 type="button"
                 variant="outline"
                 className="w-full h-12 border-2 hover:bg-slate-50"
-                onClick={() => handleSSOSignup('Microsoft')}
+                onClick={() => handleSSOSignup('microsoft')}
+                disabled={loading}
               >
                 <Mail className="w-5 h-5 mr-3" />
                 Continue with Microsoft

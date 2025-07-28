@@ -11,6 +11,7 @@ interface AuthContextType {
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, role?: string, orgName?: string) => Promise<{ error: any }>
+  signInWithOAuth: (provider: 'google' | 'azure') => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateUserRole: (role: string) => Promise<{ error: any }>
   setCurrentOrgId: (orgId: string) => Promise<{ error: any }>
@@ -172,6 +173,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const signInWithOAuth = async (provider: 'google' | 'azure') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      })
+      return { error }
+    } catch (error) {
+      console.warn('OAuth sign in error:', error)
+      return { error }
+    }
+  }
+
   const signOut = async () => {
     try {
       await supabase.auth.signOut()
@@ -218,6 +238,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     signIn,
     signUp,
+    signInWithOAuth,
     signOut,
     updateUserRole,
     setCurrentOrgId,
