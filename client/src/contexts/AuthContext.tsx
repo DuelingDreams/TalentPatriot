@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { safeSupabaseOperation, safeStorageOperation } from '@/utils/domExceptionHandler'
+import { safeAuthOperation, safeStorageOperation } from '@/utils/errorHandler'
 
 interface AuthContextType {
   user: User | null
@@ -34,8 +34,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!mounted) return
         setLoading(true)
         
-        // Get session with safe wrapper to prevent DOM exceptions
-        const sessionResult = await safeSupabaseOperation(
+        // Get session with safe wrapper for auth operations only
+        const sessionResult = await safeAuthOperation(
           () => supabase.auth.getSession(),
           'getSession'
         )
@@ -70,23 +70,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             // For regular users, fetch their actual role from the database
             try {
-              const profileResult = await safeSupabaseOperation(
-                async () => {
-                  const response = await fetch(`/api/user-profiles/${session.user.id}`)
-                  if (response.ok) {
-                    return await response.json()
-                  }
-                  throw new Error(`Profile fetch failed: ${response.status}`)
-                },
-                'fetchUserProfile'
-              )
-              
-              if (profileResult) {
-                setUserRole(profileResult.role || 'hiring_manager')
+              // Simplified profile fetch without wrapping - let natural errors occur
+              const response = await fetch(`/api/user-profiles/${session.user.id}`)
+              if (response.ok) {
+                const profile = await response.json()
+                setUserRole(profile.role || 'hiring_manager')
               } else {
-                // Fallback to default role
                 setUserRole('hiring_manager')
               }
+              
               setCurrentOrgIdState(null)
             } catch (error) {
               console.warn('Failed to fetch user profile:', error)
@@ -181,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const result = await safeSupabaseOperation(
+      const result = await safeAuthOperation(
         () => supabase.auth.signInWithPassword({
           email,
           password,
@@ -208,7 +200,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (email: string, password: string, role = 'hiring_manager', orgName?: string) => {
     try {
       // Step 1: Create the user account with safe wrapper
-      const authResult = await safeSupabaseOperation(
+      const authResult = await safeAuthOperation(
         () => supabase.auth.signUp({
           email,
           password,
@@ -241,7 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const orgSlug = defaultOrgName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-')
           
           // Create organization via API with proper error handling
-          const orgResponse = await safeSupabaseOperation(
+          const orgResponse = await safeAuthOperation(
             () => fetch('/api/organizations', {
               method: 'POST',
               headers: {
@@ -260,7 +252,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const organization = await orgResponse.json()
             
             // Step 3: Add user to organization as owner
-            await safeSupabaseOperation(
+            await safeAuthOperation(
               () => fetch('/api/user-organizations', {
                 method: 'POST',
                 headers: {
@@ -276,7 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             )
 
             // Step 4: Update user metadata with current org ID
-            await safeSupabaseOperation(
+            await safeAuthOperation(
               () => supabase.auth.updateUser({
                 data: { 
                   currentOrgId: organization.id,
@@ -311,7 +303,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const result = await safeSupabaseOperation(
+      const result = await safeAuthOperation(
         () => supabase.auth.signOut(),
         'signOut'
       )
@@ -343,7 +335,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: { message: 'No user found' } }
       }
 
-      const result = await safeSupabaseOperation(
+      const result = await safeAuthOperation(
         () => supabase.auth.updateUser({
           data: { role }
         }),
@@ -368,7 +360,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: { message: 'No user found' } }
       }
 
-      const result = await safeSupabaseOperation(
+      const result = await safeAuthOperation(
         () => supabase.auth.updateUser({
           data: { currentOrgId: orgId }
         }),
