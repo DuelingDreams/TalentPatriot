@@ -50,9 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               sessionStorage.setItem('currentOrgId', demoOrgId)
             })
           } else {
-            // For regular users, use default role
-            setUserRole('hiring_manager')
-            setCurrentOrgIdState(null)
+            // For regular users, get role from user metadata
+            const role = session.user.user_metadata?.role || 'hiring_manager'
+            const orgId = session.user.user_metadata?.currentOrgId || null
+            setUserRole(role)
+            setCurrentOrgIdState(orgId)
           }
         } else {
           setUserRole(null)
@@ -129,9 +131,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }
               })
             } else {
-              // For regular users, use default role
-              setUserRole('hiring_manager')
-              setCurrentOrgIdState(null)
+              // For regular users, get role from user metadata
+              const role = session.user.user_metadata?.role || 'hiring_manager'
+              const orgId = session.user.user_metadata?.currentOrgId || null
+              setUserRole(role)
+              setCurrentOrgIdState(orgId)
             }
           } else {
             setUserRole(null)

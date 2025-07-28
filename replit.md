@@ -346,6 +346,8 @@ Preferred communication style: Simple, everyday language.
 - **CREATED SECURITY DOCUMENTATION**: Built complete security.txt and .well-known/security.txt files with business legitimacy declarations, anti-phishing statements, and security contact information
 - **ADDED BUSINESS VERIFICATION ENDPOINTS**: Created /api/business-info, /api/security-info, and /security.txt API endpoints to provide machine-readable business legitimacy verification for security software
 - **IMPLEMENTED COMPREHENSIVE META TAGS**: Enhanced HTML head with explicit anti-phishing declarations, business verification meta tags, structured data for business legitimacy, and comprehensive contact information
+- **INTEGRATED REAL JOB PIPELINE SCREENSHOT**: Added actual Kanban pipeline screenshot to landing page replacing placeholder, properly sized and responsive with professional styling
+- **FIXED CRITICAL USER ROLE BUG**: Resolved issue where users selecting "recruiter" during onboarding displayed as "Hiring Manager" - AuthContext now properly reads role from user metadata instead of hardcoding default
 
 ## System Architecture
 
