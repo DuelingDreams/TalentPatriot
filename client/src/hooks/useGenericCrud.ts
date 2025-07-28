@@ -20,8 +20,10 @@ export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
         return options.getDemoData(userRole)
       }
       if (!currentOrgId) {
+        console.warn(`No currentOrgId found for user role: ${userRole}`)
         return []
       }
+      console.log(`Making API call to ${options.endpoint}?orgId=${currentOrgId}`)
       return apiRequest(`${options.endpoint}?orgId=${currentOrgId}`)
     },
     enabled: true,

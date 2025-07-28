@@ -570,12 +570,7 @@ export default function Clients() {
                                   </a>
                                 </div>
                               )}
-                              {client.contactPhone && (
-                                <div className="flex items-center gap-1 text-sm">
-                                  <Phone className="w-3 h-3 text-slate-400" />
-                                  {client.contactPhone}
-                                </div>
-                              )}
+
                             </div>
                           ) : (
                             <span className="text-slate-400">—</span>

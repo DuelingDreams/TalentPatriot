@@ -1158,6 +1158,28 @@ class DatabaseStorage implements IStorage {
     return data as Client[]
   }
 
+  async getClientsByOrg(orgId: string): Promise<Client[]> {
+    try {
+      console.log(`Fetching clients for orgId: ${orgId}`)
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('name', { ascending: true })
+      
+      if (error) {
+        console.error('Supabase error:', error)
+        throw new Error(`Failed to fetch clients: ${error.message}`)
+      }
+      
+      console.log(`Found ${data?.length || 0} clients for orgId: ${orgId}`)
+      return data as Client[]
+    } catch (err) {
+      console.error('Exception in getClientsByOrg:', err)
+      throw err
+    }
+  }
+
   async createClient(insertClient: InsertClient): Promise<Client> {
     try {
       // Map the camelCase fields to snake_case for database with full column support

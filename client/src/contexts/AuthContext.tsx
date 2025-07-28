@@ -52,9 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             // For regular users, get role from user metadata
             const role = session.user.user_metadata?.role || 'hiring_manager'
-            const orgId = session.user.user_metadata?.currentOrgId || null
+            const orgId = session.user.user_metadata?.currentOrgId
+            console.log('Auth: Regular user role:', role, 'orgId:', orgId)
             setUserRole(role)
-            setCurrentOrgIdState(orgId)
+            
+            // Temporary fix: use the demo org ID if none is set
+            if (!orgId) {
+              console.warn('No orgId found for regular user, using demo organization')
+              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000' // Use demo org with existing clients
+              setCurrentOrgIdState(demoOrgId)
+            } else {
+              setCurrentOrgIdState(orgId)
+            }
           }
         } else {
           setUserRole(null)
@@ -133,9 +142,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               // For regular users, get role from user metadata
               const role = session.user.user_metadata?.role || 'hiring_manager'
-              const orgId = session.user.user_metadata?.currentOrgId || null
+              const orgId = session.user.user_metadata?.currentOrgId
+              console.log('Auth change: Regular user role:', role, 'orgId:', orgId)
               setUserRole(role)
-              setCurrentOrgIdState(orgId)
+              
+              // Temporary fix: use the demo org ID if none is set
+              if (!orgId) {
+                console.warn('No orgId found for regular user, using demo organization')
+                const demoOrgId = '550e8400-e29b-41d4-a716-446655440000' // Use demo org with existing clients
+                setCurrentOrgIdState(demoOrgId)
+              } else {
+                setCurrentOrgIdState(orgId)
+              }
             }
           } else {
             setUserRole(null)
