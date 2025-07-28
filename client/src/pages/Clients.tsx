@@ -55,7 +55,7 @@ export default function Clients() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
   const { toast } = useToast()
   
   // Show demo clients view for demo viewers
@@ -78,11 +78,11 @@ export default function Clients() {
   
   // Calculate client statistics
   const totalClients = clients?.length || 0
-  const activeClients = clients?.filter(client => 
-    jobs?.some(job => job.clientId === client.id && job.status === 'open')
+  const activeClients = clients?.filter((client: Client) => 
+    jobs?.some((job: any) => job.clientId === client.id && job.status === 'open')
   ).length || 0
-  const industries = [...new Set(clients?.map(c => c.industry).filter(Boolean))].length || 0
-  const totalOpenPositions = jobs?.filter(job => job.status === 'open').length || 0
+  const industries = Array.from(new Set(clients?.map((c: Client) => c.industry).filter(Boolean))).length || 0
+  const totalOpenPositions = jobs?.filter((job: any) => job.status === 'open').length || 0
   const createClientMutation = useCreateClient()
   const updateClientMutation = useUpdateClient()
   const deleteClientMutation = useDeleteClient()
@@ -104,7 +104,7 @@ export default function Clients() {
     },
   })
 
-  const filteredClients = displayClients?.filter(client =>
+  const filteredClients = displayClients?.filter((client: Client) =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.location?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -129,7 +129,10 @@ export default function Clients() {
         })
         setEditingClient(null)
       } else {
-        await createClientMutation.mutateAsync(data)
+        await createClientMutation.mutateAsync({
+          ...data,
+          orgId: currentOrgId || ''
+        })
         toast({
           title: "Client Added",
           description: "New client has been added successfully.",
@@ -470,7 +473,7 @@ export default function Clients() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredClients.map((client) => (
+                    {filteredClients.map((client: Client) => (
                       <TableRow key={client.id} className="hover:bg-slate-50">
                         <TableCell>
                           <div className="flex items-center gap-3">
