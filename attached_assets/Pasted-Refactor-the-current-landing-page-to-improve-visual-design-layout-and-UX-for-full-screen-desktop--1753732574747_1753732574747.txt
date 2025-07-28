@@ -1,0 +1,71 @@
+Refactor the current landing page to improve visual design, layout, and UX for full-screen (desktop/web) users. Follow these updated design guidelines and style rules:
+
+🔹 LAYOUT STRUCTURE
+1. HERO SECTION (Top of page)
+   - Add large H1: “The Simple ATS + CRM Built for Growing Teams”
+   - Add subheading: “Stop losing track of candidates and start hiring smarter.”
+   - Add two buttons side by side:
+     - Primary CTA: “Start Free”
+     - Secondary CTA: “Book a Demo”
+   - Include a responsive placeholder image or video section (to be replaced later).
+   - Center all content in a full-width, light background (#F7F9FC) container.
+
+2. WHO IT’S FOR SECTION
+   - Title: “Built for Busy Recruiters, Founders, and Hiring Managers”
+   - Add 3 icon-text blocks horizontally (responsive for mobile):
+     - Recruiters: “Track candidates and communication in one place.”
+     - Founders: “Stay in the loop — even if you don’t have a hiring team.”
+     - Hiring Managers: “Ditch the spreadsheet. See the pipeline at a glance.”
+
+3. FEATURES SECTION
+   - Title: “Everything You Need — Nothing You Don’t”
+   - Use 3–4 icon + text columns showing key features:
+     - Drag-and-drop pipelines
+     - Candidate profiles
+     - Notes and reminders
+     - CRM-lite for contacts
+
+4. SCREENSHOT/VIDEO SECTION (placeholder for now)
+   - Add a responsive image/video container
+   - Use a mockup container with rounded corners and shadow
+
+5. CTA SECTION
+   - Title: “Start Hiring Smarter Today”
+   - Centered buttons again:
+     - “Start Free”
+     - “Book a Demo”
+
+🔹 STYLING + COLOR SYSTEM
+Apply consistent modern styling with the following:
+
+Typography:
+- Use `Inter, sans-serif` throughout
+- H1: 36–40px, bold, `#1A1A1A`
+- Subhead: 24px, medium, `#1F3A5F`
+- Body: 16px, `#5C667B`
+
+Color Palette:
+- Primary: `#1F3A5F` (for headings, primary buttons)
+- Accent: `#264C99` (hover states, links)
+- Background: `#F7F9FC`
+- Secondary Text: `#5C667B`
+
+Button Styling:
+- Primary:
+  - Background: `#1F3A5F`
+  - Text: white
+  - Padding: `px-6 py-3`
+  - Rounded: `rounded-md`
+  - Hover: `bg-[#264C99]`
+
+- Secondary:
+  - Border: `1px solid #264C99`
+  - Text: `#264C99`
+  - Hover: `bg-[#E6F0FF]`
+
+🔹 ADDITIONAL NOTES
+- Ensure responsiveness for mobile screens using media queries or Tailwind breakpoints.
+- Use appropriate spacing and section padding (`py-12`, `px-6`) for breathing room.
+- Do not yet add testimonials or trust logos — placeholder space is okay.
+
+Update the landing page code to reflect this professional layout and styling system. Refactor HTML/CSS/JS as needed to clean up old classes or unused styles.
