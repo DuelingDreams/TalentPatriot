@@ -22,6 +22,7 @@ const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobPipeline = lazy(() => import("@/pages/JobPipeline"));
 const Clients = lazy(() => import("@/pages/Clients"));
 const ClientDetail = lazy(() => import("@/pages/ClientDetail"));
+const Candidates = lazy(() => import("@/pages/Candidates"));
 const ProfessionalCandidates = lazy(() => import("@/pages/ProfessionalCandidates"));
 const CandidateProfile = lazy(() => import("@/pages/CandidateProfile"));
 const Calendar = lazy(() => import("@/pages/Calendar"));
@@ -98,7 +99,7 @@ function Router() {
         
         <Route path="/candidates">
           <ProtectedRoute>
-            <ProfessionalCandidates />
+            <Candidates />
           </ProtectedRoute>
         </Route>
         

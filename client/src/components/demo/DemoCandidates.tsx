@@ -51,18 +51,18 @@ export function DemoCandidates() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="tp-container space-y-6">
       {/* Demo Alert */}
-      <Alert>
-        <Info className="w-4 h-4" />
-        <AlertDescription>
+      <Alert className="border-[#264C99]/20 bg-[#264C99]/5">
+        <Info className="w-4 h-4 text-[#264C99]" />
+        <AlertDescription className="text-[#1A1A1A]">
           <strong>Demo Mode:</strong> Viewing sample candidate profiles. All personal information is fictional for demonstration purposes.
         </AlertDescription>
       </Alert>
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5C667B]" />
         <Input
           placeholder="Search candidates by name, email, or skills..."
           value={searchTerm}
@@ -73,8 +73,123 @@ export function DemoCandidates() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="card">
           <CardHeader className="pb-3">
+            <CardTitle className="tp-label text-[#5C667B]">All Candidates</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-[#1A1A1A]">{demoCandidates.length}</div>
+            <p className="text-xs text-[#5C667B] mt-1">Total profiles</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="card">
+          <CardHeader className="pb-3">
+            <CardTitle className="tp-label text-[#5C667B]">Active Candidates</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-[#1A1A1A]">4</div>
+            <p className="text-xs text-[#5C667B] mt-1">In active pipeline</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="card">
+          <CardHeader className="pb-3">
+            <CardTitle className="tp-label text-[#5C667B]">New This Week</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-[#1A1A1A]">2</div>
+            <p className="text-xs text-[#5C667B] mt-1">Recent applications</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="card">
+          <CardHeader className="pb-3">
+            <CardTitle className="tp-label text-[#5C667B]">Interviewed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-[#1A1A1A]">3</div>
+            <p className="text-xs text-[#5C667B] mt-1">Completed interviews</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Candidates Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredCandidates.map((candidate) => (
+          <Card key={candidate.id} className="card hover:shadow-lg transition-all duration-200">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-12 h-12">
+                    <AvatarFallback className="bg-[#264C99] text-white text-sm">
+                      {candidate.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="tp-label text-[#1A1A1A] font-medium">{candidate.name}</h3>
+                    <p className="tp-body text-[#5C667B] text-sm">{candidate.email}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[#5C667B] text-sm">
+                  <MapPin className="w-4 h-4" />
+                  <span>{candidateLocations[candidate.id] || 'Remote'}</span>
+                </div>
+                
+                <div className="flex items-center gap-2 text-[#5C667B] text-sm">
+                  <Calendar className="w-4 h-4" />
+                  <span>{candidateExperience[candidate.id] || '3+ years'} experience</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-[#5C667B] text-sm">
+                  <FileText className="w-4 h-4" />
+                  <span>Resume available</span>
+                </div>
+              </div>
+
+              {candidateSkills[candidate.id] && (
+                <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
+                  <div className="flex flex-wrap gap-1">
+                    {candidateSkills[candidate.id].slice(0, 3).map((skill, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs bg-[#F0F4F8] text-[#5C667B]">
+                        {skill}
+                      </Badge>
+                    ))}
+                    {candidateSkills[candidate.id].length > 3 && (
+                      <Badge variant="secondary" className="text-xs bg-[#F0F4F8] text-[#5C667B]">
+                        +{candidateSkills[candidate.id].length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
+                <div className="flex items-center justify-between">
+                  <Badge 
+                    variant="default" 
+                    className="bg-[#264C99]/10 text-[#264C99] border-[#264C99]/20"
+                  >
+                    {candidate.stage?.charAt(0).toUpperCase() + candidate.stage?.slice(1) || 'New'}
+                  </Badge>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="btn-secondary text-xs">
+                      <Eye className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  )
+}
             <CardTitle className="text-sm font-medium text-slate-600">Total Candidates</CardTitle>
           </CardHeader>
           <CardContent>
