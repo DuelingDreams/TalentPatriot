@@ -1,6 +1,25 @@
 // Minimal error handler - only handle critical DOM exceptions
 console.log('TalentPatriot error handler loaded')
 
+// Only handle critical storage-related DOM exceptions
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason
+    
+    // Only handle specific storage-related DOM exceptions
+    if (reason instanceof DOMException && 
+        (reason.name === 'QuotaExceededError' || 
+         reason.name === 'SecurityError' || 
+         reason.name === 'NotAllowedError')) {
+      console.warn('Storage DOM exception handled:', reason.name)
+      event.preventDefault()
+      return
+    }
+    
+    // Let all other errors through for normal handling
+  })
+}
+
 // Safe storage operations with comprehensive DOM exception handling
 export const safeStorageOperation = (operation: () => void) => {
   try {
