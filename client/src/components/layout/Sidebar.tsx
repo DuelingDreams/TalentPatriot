@@ -57,13 +57,13 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl",
+        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl",
         isOpen ? "translate-x-0" : "-translate-x-full",
         className
       )}>
         <div className="flex h-full flex-col">
           {/* Logo/Brand */}
-          <div className="flex h-16 items-center px-6 border-b border-slate-200 bg-gradient-to-r from-blue-600 to-blue-700">
+          <div className="flex h-16 items-center px-6 border-b border-gray-200 bg-gradient-to-r from-[#1F3A5F] to-[#264C99]">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center p-1">
                 <img 
@@ -73,8 +73,8 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                 />
               </div>
               <div>
-                <span className="text-xl font-bold text-white">TalentPatriot</span>
-                <p className="text-xs text-blue-100">Professional ATS</p>
+                <span className="text-xl font-bold text-white font-[Inter,sans-serif]">TalentPatriot</span>
+                <p className="text-xs text-white/70">Professional ATS</p>
               </div>
             </div>
           </div>
@@ -92,8 +92,8 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                     className={cn(
                       "w-full justify-start text-sm font-medium",
                       isActive 
-                        ? "text-blue-600 bg-blue-50 hover:bg-blue-100" 
-                        : "text-slate-700 hover:bg-slate-100"
+                        ? "text-[#1F3A5F] bg-[#E6F0FF] hover:bg-[#D1E7FF]" 
+                        : "text-[#5C667B] hover:bg-[#F0F4F8]"
                     )}
                     onClick={onClose}
                   >

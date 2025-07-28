@@ -3,40 +3,83 @@
 @tailwind utilities;
 
 :root {
-  /* TalentPatriot Color Palette */
-  --tp-navy: 210 53% 24%;        /* #1F3A5F */
-  --tp-soft-blue: 203 39% 39%;   /* #3E6B89 */
-  --tp-light-gray: 210 20% 98%;  /* #F9FAFB */
-  --tp-white: 0 0% 100%;         /* #FFFFFF */
-  --tp-dark-gray: 210 44% 17%;   /* #1F2937 */
-  --tp-medium-gray: 210 14% 46%; /* #6B7280 */
+  /* TalentPatriot Brand Colors */
+  --tp-primary: 210 60% 25%;        /* #1F3A5F */
+  --tp-accent: 220 68% 38%;         /* #264C99 */
+  --tp-page-bg: 215 25% 97%;        /* #F7F9FC */
+  --tp-card-surface: 210 20% 95%;   /* #F0F4F8 */
+  --tp-text-primary: 0 0% 10%;      /* #1A1A1A */
+  --tp-text-secondary: 215 15% 45%; /* #5C667B */
   
   /* Shadcn/ui theme variables mapped to TalentPatriot colors */
-  --background: var(--tp-light-gray);
-  --foreground: var(--tp-dark-gray);
-  --muted: var(--tp-light-gray);
-  --muted-foreground: var(--tp-medium-gray);
-  --popover: var(--tp-white);
-  --popover-foreground: var(--tp-dark-gray);
-  --card: var(--tp-white);
-  --card-foreground: var(--tp-dark-gray);
+  --background: var(--tp-page-bg);
+  --foreground: var(--tp-text-primary);
+  --muted: var(--tp-card-surface);
+  --muted-foreground: var(--tp-text-secondary);
+  --popover: 0 0% 100%;
+  --popover-foreground: var(--tp-text-primary);
+  --card: 0 0% 100%;
+  --card-foreground: var(--tp-text-primary);
   --border: 220 13% 91%;
   --input: 220 13% 91%;
-  --primary: var(--tp-navy);
-  --primary-foreground: var(--tp-white);
-  --secondary: var(--tp-soft-blue);
-  --secondary-foreground: var(--tp-white);
-  --accent: var(--tp-soft-blue);
-  --accent-foreground: var(--tp-white);
+  --primary: var(--tp-primary);
+  --primary-foreground: 0 0% 100%;
+  --secondary: var(--tp-accent);
+  --secondary-foreground: 0 0% 100%;
+  --accent: var(--tp-accent);
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
-  --destructive-foreground: var(--tp-white);
-  --ring: var(--tp-navy);
-  --radius: 1rem;
+  --destructive-foreground: 0 0% 100%;
+  --ring: var(--tp-primary);
+  --radius: 0.5rem;
   
   /* Additional professional colors */
   --success: 142 71% 45%;
   --warning: 38 92% 50%;
   --info: 199 89% 48%;
+}
+
+/* TalentPatriot Brand Component Classes */
+@layer components {
+  .btn-primary {
+    @apply bg-[#1F3A5F] text-white px-6 py-3 rounded-md shadow-sm hover:bg-[#264C99] hover:shadow-md transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply border border-[#264C99] text-[#264C99] px-5 py-2 rounded-md hover:bg-[#E6F0FF] transition-all duration-200;
+  }
+  
+  .card {
+    @apply bg-white p-6 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300;
+  }
+  
+  .tp-h1 {
+    @apply text-4xl md:text-5xl font-bold text-[#1A1A1A] font-sans;
+  }
+  
+  .tp-h2 {
+    @apply text-2xl font-semibold text-[#1A1A1A] font-sans;
+  }
+  
+  .tp-body {
+    @apply text-base leading-relaxed text-[#1A1A1A] font-sans;
+  }
+  
+  .tp-label {
+    @apply text-sm font-semibold text-[#5C667B] font-sans;
+  }
+  
+  .tp-container {
+    @apply max-w-screen-lg mx-auto;
+  }
+  
+  .tp-section {
+    @apply py-12 px-4 md:px-12;
+  }
+  
+  .tp-screenshot {
+    @apply rounded-xl shadow-xl border overflow-hidden hover:scale-105 transition-transform duration-300;
+  }
 }
 
 .dark {

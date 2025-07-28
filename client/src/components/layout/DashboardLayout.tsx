@@ -11,7 +11,7 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex h-screen bg-[#F7F9FC]">
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -23,7 +23,7 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
           pageTitle={pageTitle}
         />
         
-        <main className="flex-1 overflow-auto bg-slate-50">
+        <main className="flex-1 overflow-auto bg-[#F7F9FC]">
           {children}
         </main>
       </div>

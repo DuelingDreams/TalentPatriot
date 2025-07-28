@@ -111,7 +111,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 font-[Inter,sans-serif]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
@@ -121,10 +121,10 @@ export default function Signup() {
               className="w-16 h-16 object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+          <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2 tracking-tight">
             Create your free TalentPatriot account
           </h1>
-          <p className="text-slate-600">
+          <p className="text-[#5C667B]">
             Start hiring better candidates in minutes
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function Signup() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-2 hover:bg-slate-50 transition-colors"
+                className="w-full h-12 border-2 hover:bg-[#F0F4F8] transition-colors"
                 onClick={handleGoogleSignup}
                 disabled={loading}
               >
@@ -149,7 +149,7 @@ export default function Signup() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-2 hover:bg-slate-50 transition-colors"
+                className="w-full h-12 border-2 hover:bg-[#F0F4F8] transition-colors"
                 onClick={handleMicrosoftSignup}
                 disabled={loading}
               >
@@ -168,10 +168,10 @@ export default function Signup() {
             {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
+                <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-slate-500">or continue with email</span>
+                <span className="px-4 bg-white text-[#5C667B]">or continue with email</span>
               </div>
             </div>
 

@@ -108,7 +108,7 @@ export default function OnboardingStep3() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 font-[Inter,sans-serif]">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
@@ -118,10 +118,10 @@ export default function OnboardingStep3() {
               className="w-16 h-16 object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+          <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2 tracking-tight">
             What do you want to do first?
           </h1>
-          <p className="text-slate-600">
+          <p className="text-[#5C667B]">
             Choose your starting point to personalize your TalentPatriot experience
           </p>
         </div>

@@ -22,7 +22,7 @@ import { Link } from 'wouter'
 
 // Define the pipeline stages
 const PIPELINE_STAGES = [
-  { id: 'applied', label: 'Applied', color: 'bg-slate-100 border-slate-200' },
+  { id: 'applied', label: 'Applied', color: 'bg-[#F0F4F8] border-gray-200' },
   { id: 'screening', label: 'Phone Screen', color: 'bg-blue-100 border-blue-200' },
   { id: 'interview', label: 'Interview', color: 'bg-yellow-100 border-yellow-200' },
   { id: 'technical', label: 'Technical', color: 'bg-orange-100 border-orange-200' },

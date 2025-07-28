@@ -156,7 +156,7 @@ export default function OnboardingStep2() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 font-[Inter,sans-serif]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
