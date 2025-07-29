@@ -202,13 +202,13 @@ export default function Landing() {
 
       {/* Screenshot/Video Section */}
       <section className="py-16 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="relative">
             <div className="bg-white p-3 md:p-4 rounded-xl shadow-lg border border-gray-200">
               <img 
                 src="/job-pipeline-screenshot.png"
                 alt="TalentPatriot Job Pipeline - Kanban view showing candidates moving through Applied, Phone Screen, Interview, Technical, Offer, Hired, and Rejected stages"
-                className="w-full h-auto rounded-lg object-cover"
+                className="w-full h-auto max-h-[500px] md:max-h-[600px] rounded-lg object-cover"
                 loading="lazy"
               />
             </div>
