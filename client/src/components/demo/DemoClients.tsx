@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { 
-  Building2, Search, Globe, Mail, Phone, MapPin, Users, 
+  Building2, Search, Globe, Mail, Phone, MapPin, Users, User,
   Briefcase, Info, ExternalLink
 } from 'lucide-react'
 import { demoClients } from '@/lib/demo-data'
