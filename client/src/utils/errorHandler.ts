@@ -1,43 +1,94 @@
 // Minimal error handler - only handle critical DOM exceptions
 console.log('TalentPatriot error handler loaded')
 
-// Handle unhandled promise rejections more comprehensively
+// Comprehensive unhandled promise rejection handler
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
-    // Handle Supabase auth errors gracefully
-    if (reason && typeof reason === 'object' && 
-        (reason.message?.includes('refresh_token_not_found') ||
-         reason.message?.includes('Invalid session') ||
-         reason.message?.includes('User not found') ||
-         reason.__isAuthError)) {
-      console.log('Auth error handled gracefully:', reason.message || 'Session expired')
+    // Handle all Supabase-related errors
+    if (reason && typeof reason === 'object') {
+      // Supabase auth errors
+      if (reason.message?.includes('refresh_token_not_found') ||
+          reason.message?.includes('Invalid session') ||
+          reason.message?.includes('User not found') ||
+          reason.message?.includes('JWT') ||
+          reason.__isAuthError ||
+          reason.code === 'refresh_token_not_found') {
+        console.log('Auth error handled gracefully:', reason.message || reason.code || 'Session expired')
+        event.preventDefault()
+        return
+      }
+      
+      // Supabase network/connection errors
+      if (reason.message?.includes('Failed to fetch') ||
+          reason.message?.includes('NetworkError') ||
+          reason.message?.includes('Connection') ||
+          reason.name === 'TypeError' && reason.message?.includes('fetch')) {
+        console.log('Network error handled gracefully:', reason.message)
+        event.preventDefault()
+        return
+      }
+    }
+    
+    // Handle DOM exceptions comprehensively
+    if (reason instanceof DOMException) {
+      console.warn('DOM exception handled:', reason.name, reason.message)
       event.preventDefault()
       return
     }
     
-    // Handle storage-related DOM exceptions
-    if (reason instanceof DOMException && 
-        (reason.name === 'QuotaExceededError' || 
-         reason.name === 'SecurityError' || 
-         reason.name === 'NotAllowedError')) {
-      console.warn('Storage DOM exception handled:', reason.name)
+    // Handle generic Error objects
+    if (reason instanceof Error) {
+      // Storage-related errors
+      if (reason.message?.includes('storage') ||
+          reason.message?.includes('quota') ||
+          reason.message?.includes('blocked') ||
+          reason.message?.includes('SecurityError')) {
+        console.warn('Storage error handled gracefully:', reason.message)
+        event.preventDefault()
+        return
+      }
+      
+      // Network/fetch errors
+      if (reason.message?.includes('fetch') ||
+          reason.message?.includes('network') ||
+          reason.message?.includes('Failed to fetch') ||
+          reason.message?.includes('TypeError')) {
+        console.log('Network error handled gracefully:', reason.message)
+        event.preventDefault()
+        return
+      }
+    }
+    
+    // Handle any remaining promise rejections
+    if (reason !== undefined && reason !== null) {
+      console.log('Unhandled promise rejection safely handled:', typeof reason, reason)
+      event.preventDefault()
+      return
+    }
+  })
+  
+  // Also handle general errors
+  window.addEventListener('error', (event) => {
+    const error = event.error
+    
+    // Handle DOM exceptions from regular errors too
+    if (error instanceof DOMException) {
+      console.warn('DOM exception from error event handled:', error.name, error.message)
       event.preventDefault()
       return
     }
     
-    // Handle network/fetch errors gracefully
-    if (reason instanceof Error && 
-        (reason.message?.includes('fetch') ||
-         reason.message?.includes('network') ||
-         reason.message?.includes('Failed to fetch'))) {
-      console.warn('Network error handled gracefully:', reason.message)
+    // Handle storage-related errors
+    if (error instanceof Error && 
+        (error.message?.includes('storage') ||
+         error.message?.includes('quota') ||
+         error.message?.includes('SecurityError'))) {
+      console.warn('Storage error from error event handled:', error.message)
       event.preventDefault()
       return
     }
-    
-    // Let all other errors through for normal handling
   })
 }
 
