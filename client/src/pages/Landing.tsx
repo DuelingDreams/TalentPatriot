@@ -44,12 +44,12 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-2 md:gap-3">
               <Link href="/login">
-                <Button variant="ghost" className="text-[#5C667B] hover:text-[#1A1A1A] font-medium text-sm md:text-base px-3 md:px-4 py-2 transition">
+                <Button variant="ghost" className="text-teal-600 hover:text-teal-700 font-medium text-sm md:text-base px-3 md:px-4 py-2 transition">
                   Sign In
                 </Button>
               </Link>
               <Link href="/onboarding/step1">
-                <Button className="btn-primary font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap">
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
                   Start Free
                 </Button>
               </Link>
@@ -71,13 +71,13 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/onboarding/step1">
-              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+              <Button className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
                 Start Free
               </Button>
             </Link>
             <Button 
               variant="outline" 
-              className="px-8 py-4 font-medium text-base w-full sm:w-auto"
+              className="border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
             >
               Book a Demo
             </Button>
@@ -231,13 +231,13 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/onboarding/step1">
-              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+              <Button className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
                 Start Free
               </Button>
             </Link>
             <Button 
               variant="outline" 
-              className="px-8 py-4 font-medium text-base w-full sm:w-auto"
+              className="border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
             >
               Book a Demo
             </Button>
