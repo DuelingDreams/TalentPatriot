@@ -5,241 +5,280 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
+import { StatCard } from '@/components/dashboard/StatCard'
+import { RecentActivity } from '@/components/dashboard/RecentActivity'
+import { PipelineOverview } from '@/components/dashboard/PipelineOverview'
+import { JobsChart } from '@/components/dashboard/JobsChart'
+import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
+import { QuickActions } from '@/components/dashboard/QuickActions'
+import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator'
+import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 import { 
-  Users, Briefcase, Building2, Calendar, TrendingUp, 
-  FileText, UserPlus, ChevronRight, Info, PlayCircle,
-  BarChart3, Clock, Target, Award
+  Users, Briefcase, Calendar, TrendingUp, 
+  FileText, ChevronRight, PlayCircle,
+  UserCheck
 } from 'lucide-react'
 import { Link } from 'wouter'
 
-// Demo statistics
+// Demo statistics - matching real app structure
 const demoStats = {
   openJobs: 5,
   totalCandidates: 12,
-  activeClients: 3,
-  scheduledInterviews: 8,
-  offersPending: 2,
-  placementsThisMonth: 3,
+  activeCandidates: 8,
+  hiredThisMonth: 3,
   pipelineConversion: 25,
-  avgTimeToHire: 21
+  avgTimeToHire: 21,
+  clientSatisfaction: 92
 }
 
-const recentActivities = [
-  {
-    id: 1,
-    action: "New candidate applied",
-    description: "Sarah Chen applied for Senior Frontend Developer",
-    time: "2 hours ago",
-    icon: UserPlus,
-    color: "text-blue-600 bg-blue-50"
-  },
-  {
-    id: 2,
-    action: "Interview scheduled",
-    description: "Technical interview with Michael Park tomorrow",
-    time: "3 hours ago",
-    icon: Calendar,
-    color: "text-green-600 bg-green-50"
-  },
-  {
-    id: 3,
-    action: "Client feedback",
-    description: "TechCorp approved offer for Alex Rodriguez",
-    time: "5 hours ago",
-    icon: Building2,
-    color: "text-purple-600 bg-purple-50"
-  }
+// Demo pipeline data
+const demoPipelineData = [
+  { stage: 'Applied', count: 15, percentage: 25 },
+  { stage: 'Screening', count: 8, percentage: 13 },
+  { stage: 'Interview', count: 6, percentage: 10 },
+  { stage: 'Technical', count: 4, percentage: 7 },
+  { stage: 'Reference', count: 2, percentage: 3 },
+  { stage: 'Offer', count: 3, percentage: 5 },
+  { stage: 'Hired', count: 12, percentage: 20 },
+  { stage: 'Rejected', count: 10, percentage: 17 }
 ]
 
-const demoFeatures = [
-  {
-    title: "Interactive Pipeline",
-    description: "Drag and drop candidates between stages",
-    icon: <BarChart3 className="w-5 h-5" />,
-    link: "/pipeline",
-    color: "bg-blue-500"
-  },
-  {
-    title: "Client Management",
-    description: "View and filter client information",
-    icon: <Building2 className="w-5 h-5" />,
-    link: "/clients",
-    color: "bg-green-500"
-  },
-  {
-    title: "Candidate Database",
-    description: "Search and view candidate profiles",
-    icon: <Users className="w-5 h-5" />,
-    link: "/candidates",
-    color: "bg-purple-500"
-  },
-  {
-    title: "Job Listings",
-    description: "Browse open positions and requirements",
-    icon: <Briefcase className="w-5 h-5" />,
-    link: "/jobs",
-    color: "bg-orange-500"
-  }
+// Demo job status data
+const demoJobStatusData = [
+  { name: 'Open', value: 5, color: '#22c55e' },
+  { name: 'In Progress', value: 3, color: '#3b82f6' },
+  { name: 'On Hold', value: 1, color: '#f59e0b' },
+  { name: 'Filled', value: 2, color: '#8b5cf6' }
 ]
+
+
 
 export function DemoDashboard() {
   const { toast } = useToast()
+  const [lastRefreshed, setLastRefreshed] = useState(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const handleDemoAction = (action: string) => {
     toast({
       title: "Demo Mode",
-      description: `${action} would be available in the full version`,
+      description: `${action} feature available in demo - explore freely!`,
     })
   }
 
+  const handleRefresh = () => {
+    setIsRefreshing(true)
+    setTimeout(() => {
+      setIsRefreshing(false)
+      setLastRefreshed(new Date())
+      toast({
+        title: "Demo Data Refreshed",
+        description: "Dashboard updated with latest demo information",
+      })
+    }, 1000)
+  }
+
   return (
-    <div className="tp-container space-y-6">
-      {/* Welcome Banner */}
-      <Card className="card bg-gradient-to-r from-[#F7F9FC] to-[#F0F4F8] border-[#264C99]/20">
-        <CardContent className="p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="tp-h1 text-[#1A1A1A] mb-2">
-                Welcome to TalentPatriot Demo
-              </h2>
-              <p className="tp-body text-[#5C667B] mb-4">
-                Explore our modern ATS with interactive features. Try dragging candidates in the pipeline!
-              </p>
-              <Link href="/pipeline">
-                <Button className="btn-primary gap-2">
-                  <PlayCircle className="w-4 h-4" />
-                  Try Interactive Pipeline
-                </Button>
-              </Link>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Welcome to TalentPatriot Demo! Here's an overview of your recruitment pipeline.
+          </p>
+        </div>
+        <div className="mt-4 sm:mt-0 flex items-center gap-3">
+          <RefreshIndicator 
+            lastRefreshed={lastRefreshed}
+            isRefreshing={isRefreshing}
+            onRefresh={handleRefresh}
+          />
+          <Button 
+            onClick={() => handleDemoAction("Post Job")}
+            className="bg-[#1F3A5F] hover:bg-[#264C99] text-white"
+          >
+            <Briefcase className="w-4 h-4 mr-2" />
+            Post New Job
+          </Button>
+        </div>
+      </div>
+
+      {/* Smart Alerts */}
+      <SmartAlerts />
+
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          label="Open Positions"
+          value={demoStats.openJobs}
+          icon={Briefcase}
+          trend={{ value: 12, label: "from last month" }}
+          loading={false}
+        />
+        <StatCard
+          label="Total Candidates"
+          value={demoStats.totalCandidates}
+          icon={Users}
+          trend={{ value: 8, label: "from last month" }}
+          loading={false}
+        />
+        <StatCard
+          label="Active Candidates"
+          value={demoStats.activeCandidates}
+          icon={UserCheck}
+          loading={false}
+        />
+        <StatCard
+          label="Hired This Month"
+          value={demoStats.hiredThisMonth}
+          icon={TrendingUp}
+          trend={{ value: 25, label: "increase" }}
+          loading={false}
+        />
+      </div>
+
+      {/* Analytics Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PipelineOverview data={demoPipelineData} loading={false} />
+        <JobsChart data={demoJobStatusData} loading={false} />
+      </div>
+
+      {/* Performance Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
+              <span className="text-sm font-semibold text-gray-900">{demoStats.pipelineConversion}%</span>
             </div>
-            <Badge variant="secondary" className="bg-[#264C99]/10 text-[#264C99] border-[#264C99]/20">
-              Demo Mode
-            </Badge>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${demoStats.pipelineConversion}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Avg Time to Hire</span>
+              <span className="text-sm font-semibold text-gray-900">{demoStats.avgTimeToHire} days</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '70%' }}></div>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700">Client Satisfaction</span>
+              <span className="text-sm font-semibold text-gray-900">{demoStats.clientSatisfaction}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${demoStats.clientSatisfaction}%` }}></div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="card">
-          <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Open Jobs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">{demoStats.openJobs}</div>
-            <p className="text-xs text-[#5C667B] mt-1">Active positions</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="card">
-          <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Total Candidates</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">{demoStats.totalCandidates}</div>
-            <p className="text-xs text-[#5C667B] mt-1">In pipeline</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="card">
-          <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Active Clients</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">{demoStats.activeClients}</div>
-            <p className="text-xs text-[#5C667B] mt-1">Current partnerships</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="card">
-          <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Scheduled Interviews</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">{demoStats.scheduledInterviews}</div>
-            <p className="text-xs text-[#5C667B] mt-1">This week</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Performance Overview */}
+      {/* Activity and Actions Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="card lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="tp-h2 text-[#1A1A1A]">Performance Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-[#F7F9FC] rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="w-4 h-4 text-[#264C99]" />
-                  <span className="tp-label text-[#5C667B]">Pipeline Conversion</span>
+        <div className="lg:col-span-2">
+          <RecentActivity loading={false} />
+        </div>
+        
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <button
+                onClick={() => handleDemoAction("View Jobs")}
+                className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                      <Briefcase className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-900">View Jobs</p>
+                      <p className="text-sm text-gray-500">Browse open positions</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
-                <div className="text-xl font-bold text-[#1A1A1A]">{demoStats.pipelineConversion}%</div>
-              </div>
-              <div className="p-4 bg-[#F7F9FC] rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-[#264C99]" />
-                  <span className="tp-label text-[#5C667B]">Avg. Time to Hire</span>
+              </button>
+              
+              <button
+                onClick={() => handleDemoAction("Review Applications")}
+                className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                      <FileText className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-900">Review Applications</p>
+                      <p className="text-sm text-gray-500">8 pending reviews</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
-                <div className="text-xl font-bold text-[#1A1A1A]">{demoStats.avgTimeToHire} days</div>
-              </div>
-            </div>
-            <div className="p-4 bg-[#F7F9FC] rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Award className="w-4 h-4 text-[#264C99]" />
-                <span className="tp-label text-[#5C667B]">Placements This Month</span>
-              </div>
-              <div className="text-xl font-bold text-[#1A1A1A]">{demoStats.placementsThisMonth}</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity */}
-        <Card className="card">
-          <CardHeader>
-            <CardTitle className="tp-h2 text-[#1A1A1A]">Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 p-3 bg-[#F7F9FC] rounded-lg">
-                <div className={`p-2 rounded-lg ${activity.color}`}>
-                  <activity.icon className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={() => handleDemoAction("Schedule Interview")}
+                className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                      <Calendar className="w-5 h-5 text-purple-600" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-gray-900">Schedule Interview</p>
+                      <p className="text-sm text-gray-500">Book time slots</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-400" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="tp-label text-[#1A1A1A] font-medium">{activity.action}</p>
-                  <p className="tp-body text-[#5C667B] text-sm">{activity.description}</p>
-                  <p className="text-xs text-[#5C667B] mt-1">{activity.time}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              </button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
-      {/* Feature Highlights */}
-      <Card className="card">
-        <CardHeader>
-          <CardTitle className="tp-h2 text-[#1A1A1A]">Explore Demo Features</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {demoFeatures.map((feature, index) => (
-              <Link key={index} href={feature.link}>
-                <div className="p-4 border border-[#F0F4F8] rounded-lg hover:border-[#264C99]/30 hover:bg-[#F7F9FC] transition-all duration-200 cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${feature.color} text-white`}>
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h3 className="tp-label text-[#1A1A1A] font-medium">{feature.title}</h3>
-                      <p className="tp-body text-[#5C667B] text-sm">{feature.description}</p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-[#5C667B] ml-auto" />
-                  </div>
-                </div>
+      {/* Demo Welcome Banner */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                🎯 Demo Mode Active
+              </h3>
+              <p className="text-blue-700 mb-4">
+                You're viewing a fully interactive demo with sample data. All features are available to explore!
+              </p>
+              <Link href="/pipeline">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  Try Interactive Pipeline
+                </Button>
               </Link>
-            ))}
+            </div>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+              Demo
+            </Badge>
           </div>
         </CardContent>
       </Card>
