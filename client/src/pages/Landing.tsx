@@ -49,7 +49,7 @@ export default function Landing() {
                 </Button>
               </Link>
               <Link href="/onboarding/step1">
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
+                <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
                   Start Free
                 </Button>
               </Link>
@@ -71,7 +71,7 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/onboarding/step1">
-              <Button className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
                 Start Free
               </Button>
             </Link>
@@ -231,7 +231,7 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/onboarding/step1">
-              <Button className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
                 Start Free
               </Button>
             </Link>
