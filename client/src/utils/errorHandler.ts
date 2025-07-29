@@ -1,17 +1,38 @@
 // Minimal error handler - only handle critical DOM exceptions
 console.log('TalentPatriot error handler loaded')
 
-// Only handle critical storage-related DOM exceptions
+// Handle unhandled promise rejections more comprehensively
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
-    // Only handle specific storage-related DOM exceptions
+    // Handle Supabase auth errors gracefully
+    if (reason && typeof reason === 'object' && 
+        (reason.message?.includes('refresh_token_not_found') ||
+         reason.message?.includes('Invalid session') ||
+         reason.message?.includes('User not found') ||
+         reason.__isAuthError)) {
+      console.log('Auth error handled gracefully:', reason.message || 'Session expired')
+      event.preventDefault()
+      return
+    }
+    
+    // Handle storage-related DOM exceptions
     if (reason instanceof DOMException && 
         (reason.name === 'QuotaExceededError' || 
          reason.name === 'SecurityError' || 
          reason.name === 'NotAllowedError')) {
       console.warn('Storage DOM exception handled:', reason.name)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle network/fetch errors gracefully
+    if (reason instanceof Error && 
+        (reason.message?.includes('fetch') ||
+         reason.message?.includes('network') ||
+         reason.message?.includes('Failed to fetch'))) {
+      console.warn('Network error handled gracefully:', reason.message)
       event.preventDefault()
       return
     }

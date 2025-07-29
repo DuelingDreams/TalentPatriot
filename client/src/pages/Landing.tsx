@@ -44,7 +44,7 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-2 md:gap-3">
               <Link href="/login">
-                <Button variant="ghost" className="text-teal-600 hover:text-teal-700 font-medium text-sm md:text-base px-3 md:px-4 py-2 transition">
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm md:text-base px-3 md:px-4 py-2 transition-colors">
                   Sign In
                 </Button>
               </Link>
@@ -76,8 +76,7 @@ export default function Landing() {
               </Button>
             </Link>
             <Button 
-              variant="outline" 
-              className="border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
+              className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
             >
               Book a Demo
             </Button>
@@ -236,8 +235,7 @@ export default function Landing() {
               </Button>
             </Link>
             <Button 
-              variant="outline" 
-              className="border-teal-600 text-teal-600 hover:bg-teal-600 hover:text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
+              className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
             >
               Book a Demo
             </Button>
