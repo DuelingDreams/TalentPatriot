@@ -18,6 +18,8 @@ import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
 import { QuickActions } from '@/components/dashboard/QuickActions'
 import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator'
 import { useRealTimeRefresh } from '@/hooks/useRealTimeRefresh'
+import { TPCard } from '@/components/TPCard'
+import { TPButton } from '@/components/TPButton'
 
 import { 
   Briefcase, 
@@ -201,6 +203,30 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <QuickActions />
+
+        {/* New Color Scheme Demo Section */}
+        <div className="mt-8">
+          <h2 className="text-xl font-semibold mb-4">New Design System Demo</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <TPCard variant="primary">
+              <h3 className="text-xl font-bold mb-2">Active Jobs</h3>
+              <p className="mb-4">You have {openJobsCount} open positions</p>
+              <TPButton variant="secondary" size="sm">View Jobs</TPButton>
+            </TPCard>
+            
+            <TPCard variant="accent">
+              <h3 className="text-xl font-bold mb-2">New Candidates</h3>
+              <p className="mb-4">{totalCandidatesCount} total candidates in pipeline</p>
+              <TPButton variant="outline" size="sm">Review Applications</TPButton>
+            </TPCard>
+            
+            <TPCard variant="light">
+              <h3 className="text-xl font-bold mb-2">Recent Activity</h3>
+              <p className="mb-4">{hiredThisMonth} candidates hired this month</p>
+              <TPButton variant="primary" size="sm">View Reports</TPButton>
+            </TPCard>
+          </div>
+        </div>
 
         {/* Mobile-specific floating action button */}
         <div className="fixed bottom-6 right-6 md:hidden z-50">
