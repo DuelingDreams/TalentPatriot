@@ -61,12 +61,17 @@ Once configured, users will experience:
 1. **Signup Flow**: 
    - Click "Continue with Google/Microsoft" 
    - Authenticate with provider
-   - Redirect to `/onboarding/step2` for company setup
+   - Redirect to `/auth/callback` which checks onboarding status
+   - New users → `/onboarding/step2` for company setup
+   - Existing users → `/dashboard`
 
 2. **Login Flow**:
    - Click "Continue with Google/Microsoft"
    - Authenticate with provider  
-   - Redirect to `/dashboard`
+   - Redirect to `/auth/callback` which checks:
+     - If user has organization → `/dashboard`
+     - If no organization → `/settings/organization`
+     - If no role → `/onboarding/step2`
 
 ### 5. Redirect URLs to Configure
 

@@ -37,6 +37,7 @@ const OnboardingStep5 = lazy(() => import("@/pages/OnboardingStep5"));
 const OnboardingChecklist = lazy(() => import("@/pages/OnboardingChecklist"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 const Landing = lazy(() => import("@/pages/Landing"));
+const AuthCallback = lazy(() => import("@/pages/AuthCallback"));
 // Public job posting pages
 const PublicJobsList = lazy(() => import("@/pages/PublicJobsList"));
 const PublicJobDetail = lazy(() => import("@/pages/PublicJobDetail"));
@@ -50,6 +51,7 @@ function Router() {
         <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={Signup} />
+        <Route path="/auth/callback" component={AuthCallback} />
         <Route path="/onboarding/step1" component={OnboardingStep1} />
         <Route path="/onboarding/step2" component={OnboardingStep2} />
         <Route path="/onboarding/step3" component={OnboardingStep3} />

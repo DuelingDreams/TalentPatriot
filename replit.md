@@ -350,6 +350,11 @@ Preferred communication style: Simple, everyday language.
 - **FIXED CRITICAL USER ROLE BUG**: Resolved issue where users selecting "recruiter" during onboarding displayed as "Hiring Manager" - AuthContext now properly reads role from user metadata instead of hardcoding default
 
 **July 30, 2025**:
+- **FIXED OAUTH AUTHENTICATION FLOW**: Updated OAuth redirect to use `/auth/callback` route that checks user onboarding status
+- **CREATED AUTH CALLBACK PAGE**: Built AuthCallback component that intelligently routes users based on their onboarding completion
+- **ENHANCED ORGANIZATION DETECTION**: Dashboard now checks if user has organization and redirects to setup if missing
+- **IMPROVED SMART ALERTS**: Added special alert for users without organizations to guide them to setup
+- **OAUTH FLOW LOGIC**: New users without orgs → onboarding step 2, users with orgs → dashboard, users without orgs → org setup
 - **RESOLVED CRITICAL DATABASE TYPE CASTING ERRORS**: Fixed persistent "operator does not exist: character varying = uuid" errors in Supabase SQL deployment by implementing comprehensive type casting throughout all RLS policies
 - **CREATED SUPABASE-JOB-WORKFLOW-FIXED.SQL**: Built completely rewritten SQL script with proper UUID and ENUM type casting, fixing auth.uid() comparisons, ENUM literal casts ('demo'::record_status), and trigger function type safety
 - **SUCCESSFULLY DEPLOYED JOB WORKFLOW**: User confirmed successful deployment of fixed SQL script, enabling complete job workflow functionality (draft → open status transitions, public job applications, pipeline integration)

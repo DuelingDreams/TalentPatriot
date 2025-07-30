@@ -1,6 +1,7 @@
 import React from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
+import { useLocation } from 'wouter'
 
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
@@ -35,6 +36,7 @@ import { Button } from '@/components/ui/button'
 
 export default function Dashboard() {
   const { userRole, currentOrgId } = useAuth()
+  const [, setLocation] = useLocation()
 
   // Set up real-time refresh for dashboard data
   const realTimeRefresh = useRealTimeRefresh({
@@ -48,6 +50,14 @@ export default function Dashboard() {
   const { data: clients, isLoading: clientsLoading } = useClients()
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
   const { data: jobCandidates, isLoading: jobCandidatesLoading } = useJobCandidates()
+
+  // Check if user has an organization after hooks
+  React.useEffect(() => {
+    if (!currentOrgId && userRole !== 'demo_viewer' && !jobsLoading) {
+      // User has no organization, redirect to organization setup
+      setLocation('/settings/organization')
+    }
+  }, [currentOrgId, userRole, jobsLoading, setLocation])
 
   // Calculate real stats from data
   const openJobsCount = jobs?.filter((job: any) => job.status === 'open').length || 0
