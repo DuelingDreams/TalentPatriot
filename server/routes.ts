@@ -552,6 +552,70 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Public endpoints for careers page
+  app.get("/api/public/jobs", async (req, res) => {
+    try {
+      // Get all open jobs
+      const allJobs = await storage.getJobs();
+      const openJobs = allJobs.filter(job => job.status === 'open');
+      res.json(openJobs);
+    } catch (error) {
+      console.error('Error fetching public jobs:', error);
+      res.status(500).json({ error: "Failed to fetch job listings" });
+    }
+  });
+
+  app.post("/api/public/apply", writeLimiter, async (req, res) => {
+    try {
+      const { job_id, name, email, phone, resume_url, cover_letter } = req.body;
+      
+      // Get the job to find the org_id
+      const job = await storage.getJob(job_id);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+
+      // Create candidate
+      const candidate = await storage.createCandidate({
+        name,
+        email,
+        phone,
+        orgId: job.orgId,
+        resumeUrl: resume_url || null,
+        status: 'active'
+      });
+
+      // Create job-candidate relationship in "applied" stage
+      const jobCandidate = await storage.createJobCandidate({
+        jobId: job_id,
+        candidateId: candidate.id,
+        stage: 'applied',
+        orgId: job.orgId,
+        status: 'active'
+      });
+
+      // Create initial note with cover letter
+      if (cover_letter) {
+        await storage.createCandidateNote({
+          jobCandidateId: jobCandidate.id,
+          authorId: 'system', // System-generated note
+          content: `Cover Letter:\n\n${cover_letter}`,
+          orgId: job.orgId
+        });
+      }
+
+      res.status(201).json({ 
+        success: true, 
+        message: "Application submitted successfully",
+        candidateId: candidate.id
+      });
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to submit application", details: errorMessage });
+    }
+  });
+
   // Candidates routes
   app.get("/api/candidates", async (req, res) => {
     try {
@@ -937,11 +1001,11 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(404).json({ error: "Job not found" });
       }
 
-      console.log('Job org_id:', job.org_id);
+      console.log('Job org_id:', job.orgId);
       console.log('Job object:', job);
 
       // Check if candidate already exists by email for this org
-      let candidate = await storage.getCandidateByEmail(email, job.org_id);
+      let candidate = await storage.getCandidateByEmail(email, job.orgId);
 
       if (!candidate) {
         // Create new candidate
@@ -950,7 +1014,7 @@ Expires: 2025-12-31T23:59:59.000Z
           email,
           phone: phone || null,
           resumeUrl: resumeUrl || null,
-          orgId: job.org_id
+          orgId: job.orgId
         });
       }
 
@@ -971,7 +1035,7 @@ Expires: 2025-12-31T23:59:59.000Z
       // IMPORTANT: Also create pipeline entry so candidate appears in kanban board
       try {
         const pipelineEntry = await storage.createJobCandidate({
-          orgId: job.org_id,
+          orgId: job.orgId,
           jobId,
           candidateId: candidate.id,
           applicationId: application.id,
