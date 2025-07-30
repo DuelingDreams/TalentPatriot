@@ -18,6 +18,81 @@ export default function Jobs() {
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
+  
+  // Show demo jobs for demo viewers - check this FIRST
+  if (userRole === 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Jobs">
+        <div className="p-6">
+          {/* Demo jobs content */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">Jobs</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Explore demo job postings and recruitment positions.
+            </p>
+          </div>
+          {/* Demo stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-[#5C667B]">Total Jobs</p>
+                    <p className="text-2xl font-bold text-[#1A1A1A]">12</p>
+                  </div>
+                  <Briefcase className="h-8 w-8 text-[#264C99]" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-[#5C667B]">Open Positions</p>
+                    <p className="text-2xl font-bold text-[#1A1A1A]">8</p>
+                  </div>
+                  <Users className="h-8 w-8 text-green-600" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-[#5C667B]">Active Clients</p>
+                    <p className="text-2xl font-bold text-[#1A1A1A]">5</p>
+                  </div>
+                  <Building2 className="h-8 w-8 text-blue-600" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          {/* Demo jobs list */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Demo Job Postings</CardTitle>
+                <Badge variant="secondary">Demo Mode</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {getDemoJobStats().map((job) => (
+                  <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-semibold">{job.title}</h3>
+                      <p className="text-sm text-[#5C667B]">{job.location} • {job.type}</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800">{job.status}</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    )
+  }
 
   // Fetch data using our hooks
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()

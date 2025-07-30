@@ -38,6 +38,11 @@ export default function Dashboard() {
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
 
+  // Show demo dashboard for demo viewers - check this FIRST
+  if (userRole === 'demo_viewer') {
+    return <DemoDashboard />
+  }
+
   // Set up real-time refresh for dashboard data
   const realTimeRefresh = useRealTimeRefresh({
     interval: 30000, // 30 seconds
@@ -51,7 +56,7 @@ export default function Dashboard() {
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
   const { data: jobCandidates, isLoading: jobCandidatesLoading } = useJobCandidates()
 
-  // Check if user has an organization after hooks
+  // Check if user has an organization after hooks - only for non-demo users
   React.useEffect(() => {
     if (!currentOrgId && userRole !== 'demo_viewer' && !jobsLoading) {
       // User has no organization, redirect to organization setup
@@ -159,16 +164,7 @@ export default function Dashboard() {
     return alerts
   }, [currentOrgId, jobCandidates])
 
-  // Show demo dashboard for demo viewers (after all hooks are called)
-  if (userRole === 'demo_viewer') {
-    return (
-      <DashboardLayout pageTitle="Demo Dashboard">
-        <div className="p-6">
-          <DemoDashboard />
-        </div>
-      </DashboardLayout>
-    )
-  }
+
 
   return (
     <DashboardLayout pageTitle="Dashboard">

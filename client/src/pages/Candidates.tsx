@@ -20,7 +20,8 @@ import {
   Phone,
   Briefcase,
   Clock,
-  Plus
+  Plus,
+  Building2
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Link, useLocation } from 'wouter'
@@ -41,6 +42,35 @@ export default function Candidates() {
             <p className="body-text text-[#5C667B] mt-1">Explore our demo candidate profiles</p>
           </div>
           <DemoCandidates />
+        </div>
+      </DashboardLayout>
+    )
+  }
+  
+  // Check if user has organization - only for non-demo users
+  if (!currentOrgId && userRole !== 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Candidates">
+        <div className="p-6">
+          <Card className="max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Building2 className="w-8 h-8 text-blue-600" />
+              </div>
+              <CardTitle className="text-2xl">Organization Setup Required</CardTitle>
+              <p className="text-[#5C667B] mt-2">
+                You need to set up your organization before you can manage candidates.
+              </p>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button 
+                onClick={() => setLocation('/settings/organization')}
+                className="btn-primary"
+              >
+                Set Up Organization
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     )

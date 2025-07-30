@@ -391,6 +391,8 @@ Preferred communication style: Simple, everyday language.
 - **FIXED CLIENT CREATION ORGANIZATION ISSUE**: Resolved client creation failures by adding organization setup checks to Clients, Jobs, and Candidates pages
 - **ADDED ORGANIZATION SETUP PROMPTS**: Created user-friendly prompts guiding users to set up their organization before creating clients or jobs
 - **PREVENTED UUID VALIDATION ERRORS**: Fixed "invalid input syntax for type uuid" errors by ensuring orgId is properly set before any create operations
+- **FIXED DEMO MODE REGRESSION**: Resolved issue where demo viewers were being prompted to create organizations by ensuring demo viewer checks occur BEFORE organization validation
+- **UPDATED ALL PAGES WITH DEMO-FIRST CHECKS**: Modified Dashboard, Jobs, Clients, and Candidates pages to check for demo_viewer role before any hooks or organization checks
 
 **July 28, 2025**:
 - **COMPLETED COMPREHENSIVE DEMO VS REAL APP ANALYSIS**: Verified complete feature parity across all 7 main pages (Dashboard, Jobs, Clients, Candidates, Pipeline, Calendar, Messages) with proper demo/real user data isolation
