@@ -247,6 +247,9 @@ ALTER TABLE interviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_recipients ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing functions if they exist to handle conflicts
+DROP FUNCTION IF EXISTS get_user_org_ids(uuid);
+
 -- Helper function to get user's organization IDs
 CREATE OR REPLACE FUNCTION get_user_org_ids(user_uuid uuid)
 RETURNS uuid[] AS $$
@@ -258,6 +261,9 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Drop existing function if it exists to handle return type conflicts
+DROP FUNCTION IF EXISTS get_user_role(uuid);
 
 -- Helper function to get user role
 CREATE OR REPLACE FUNCTION get_user_role(user_uuid uuid)
@@ -451,6 +457,9 @@ VALUES (
     null
 ) ON CONFLICT (slug) DO NOTHING;
 
+-- Drop existing trigger function if it exists
+DROP FUNCTION IF EXISTS auto_add_owner_to_user_organizations() CASCADE;
+
 -- Auto-owner trigger for organizations
 CREATE OR REPLACE FUNCTION auto_add_owner_to_user_organizations()
 RETURNS TRIGGER AS $$
@@ -470,6 +479,9 @@ CREATE TRIGGER auto_add_owner_trigger
     AFTER INSERT ON organizations
     FOR EACH ROW
     EXECUTE FUNCTION auto_add_owner_to_user_organizations();
+
+-- Drop existing trigger function if it exists
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 
 -- Updated timestamp triggers
 CREATE OR REPLACE FUNCTION update_updated_at_column()
