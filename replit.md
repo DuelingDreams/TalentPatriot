@@ -359,6 +359,8 @@ Preferred communication style: Simple, everyday language.
 - **CREATED OAUTH TROUBLESHOOTING GUIDE**: Built comprehensive guide for configuring Supabase redirect URLs and resolving OAuth authentication issues
 - **ENHANCED SUPABASE CLIENT**: Updated detectSessionInUrl to true and added PKCE flow for proper OAuth handling
 - **CREATED PRIVACY POLICY PAGE**: Built comprehensive privacy policy page with professional design, GDPR-compliant sections, and proper routing from landing page footer
+- **UPDATED CONTACT LINK**: Changed footer Contact link to mailto:contact@talentpatriot.com for direct email functionality
+- **CREATED TERMS OF SERVICE PAGE**: Built professional terms of service page with 12 comprehensive sections covering acceptance, payment, termination, liability, and legal requirements
 - **RESOLVED CRITICAL DATABASE TYPE CASTING ERRORS**: Fixed persistent "operator does not exist: character varying = uuid" errors in Supabase SQL deployment by implementing comprehensive type casting throughout all RLS policies
 - **CREATED SUPABASE-JOB-WORKFLOW-FIXED.SQL**: Built completely rewritten SQL script with proper UUID and ENUM type casting, fixing auth.uid() comparisons, ENUM literal casts ('demo'::record_status), and trigger function type safety
 - **SUCCESSFULLY DEPLOYED JOB WORKFLOW**: User confirmed successful deployment of fixed SQL script, enabling complete job workflow functionality (draft → open status transitions, public job applications, pipeline integration)
