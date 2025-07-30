@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS clients (
     contact_name text,
     contact_email text,
     notes text,
-    status record_status DEFAULT 'active',
+    record_status record_status DEFAULT 'active',
     created_by uuid REFERENCES auth.users(id),
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     email text NOT NULL,
     phone text,
     resume_url text,
-    status record_status DEFAULT 'active',
+    record_status record_status DEFAULT 'active',
     created_by uuid REFERENCES auth.users(id),
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
@@ -295,7 +295,7 @@ DROP POLICY IF EXISTS "Users can view clients in their organizations" ON clients
 CREATE POLICY "Users can view clients in their organizations" ON clients
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage clients in their organizations" ON clients;
@@ -310,7 +310,7 @@ DROP POLICY IF EXISTS "Users can view jobs in their organizations" ON jobs;
 CREATE POLICY "Users can view jobs in their organizations" ON jobs
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage jobs in their organizations" ON jobs;
@@ -322,14 +322,14 @@ CREATE POLICY "Users can manage jobs in their organizations" ON jobs
 
 DROP POLICY IF EXISTS "Public can view open jobs" ON jobs;
 CREATE POLICY "Public can view open jobs" ON jobs
-    FOR SELECT USING (status = 'open' AND record_status = 'active');
+    FOR SELECT USING (status = 'open' AND record_status::TEXT = 'active');
 
 -- Candidates policies
 DROP POLICY IF EXISTS "Users can view candidates in their organizations" ON candidates;
 CREATE POLICY "Users can view candidates in their organizations" ON candidates
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage candidates in their organizations" ON candidates;
@@ -359,7 +359,7 @@ CREATE POLICY "Users can view pipeline in their organizations" ON job_candidate
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
         (get_user_role(auth.uid()) = 'demo_viewer' AND 
-         job_id IN (SELECT id FROM jobs WHERE record_status = 'demo'))
+         job_id IN (SELECT id FROM jobs WHERE record_status::TEXT = 'demo'))
     );
 
 DROP POLICY IF EXISTS "Users can manage pipeline in their organizations" ON job_candidate;
@@ -378,7 +378,7 @@ CREATE POLICY "Users can view notes in their organizations" ON candidate_notes
          job_candidate_id IN (
              SELECT id FROM job_candidate jc
              JOIN jobs j ON jc.job_id = j.id
-             WHERE j.record_status = 'demo'
+             WHERE j.record_status::TEXT = 'demo'
          ))
     );
 
@@ -399,7 +399,7 @@ CREATE POLICY "Users can view interviews in their organizations" ON interviews
          job_candidate_id IN (
              SELECT id FROM job_candidate jc
              JOIN jobs j ON jc.job_id = j.id
-             WHERE j.record_status = 'demo'
+             WHERE j.record_status::TEXT = 'demo'
          ))
     );
 

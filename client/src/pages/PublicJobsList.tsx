@@ -13,7 +13,7 @@ interface PublicJobsListProps {
   className?: string;
 }
 
-export default function PublicJobsList({ className }: PublicJobsListProps) {
+export default function PublicJobsList(_props?: any) {
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
