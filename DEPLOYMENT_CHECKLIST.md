@@ -88,6 +88,7 @@
 
 ### 🔍 Known Issues
 - None critical for deployment
+- Port conflict resolved (EADDRINUSE fixed by workflow restart)
 
 ### 📊 Performance Metrics
 - Initial load: < 2 seconds
