@@ -10,13 +10,14 @@ import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { Plus, Briefcase, Building2, Calendar, Loader2, Users } from 'lucide-react'
-import { Link } from 'wouter'
+import { Link, useLocation } from 'wouter'
 import GuidedJobCreation from '@/components/GuidedJobCreation'
 
 export default function Jobs() {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false)
   const { toast } = useToast()
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
+  const [, setLocation] = useLocation()
 
   // Fetch data using our hooks
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
@@ -71,6 +72,35 @@ export default function Jobs() {
         variant: "destructive",
       })
     }
+  }
+
+  // Check if user has organization
+  if (!currentOrgId && userRole !== 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Jobs">
+        <div className="p-6">
+          <Card className="max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Building2 className="w-8 h-8 text-blue-600" />
+              </div>
+              <CardTitle className="text-2xl">Organization Setup Required</CardTitle>
+              <p className="text-[#5C667B] mt-2">
+                You need to set up your organization before you can post jobs.
+              </p>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button 
+                onClick={() => setLocation('/settings/organization')}
+                className="btn-primary"
+              >
+                Set Up Organization
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    )
   }
 
   return (

@@ -20,7 +20,7 @@ import { DemoClients } from '@/components/demo/DemoClients'
 import { Plus, Search, Building2, MapPin, Globe, User, Mail, Phone, Calendar, Briefcase, MoreHorizontal, Edit, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Link } from 'wouter'
+import { Link, useLocation } from 'wouter'
 
 // Form schema for client data
 const clientSchema = z.object({
@@ -57,6 +57,7 @@ export default function Clients() {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const { userRole, currentOrgId } = useAuth()
   const { toast } = useToast()
+  const [, setLocation] = useLocation()
   
   // Show demo clients view for demo viewers
   if (userRole === 'demo_viewer') {
@@ -68,6 +69,35 @@ export default function Clients() {
             <p className="text-[#5C667B] mt-1">Explore our demo client database</p>
           </div>
           <DemoClients />
+        </div>
+      </DashboardLayout>
+    )
+  }
+  
+  // Check if user has organization
+  if (!currentOrgId && userRole !== 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Clients">
+        <div className="p-6">
+          <Card className="max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Building2 className="w-8 h-8 text-blue-600" />
+              </div>
+              <CardTitle className="text-2xl">Organization Setup Required</CardTitle>
+              <p className="text-[#5C667B] mt-2">
+                You need to set up your organization before you can add clients.
+              </p>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Button 
+                onClick={() => setLocation('/settings/organization')}
+                className="btn-primary"
+              >
+                Set Up Organization
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </DashboardLayout>
     )
@@ -129,9 +159,17 @@ export default function Clients() {
         })
         setEditingClient(null)
       } else {
+        if (!currentOrgId) {
+          toast({
+            title: "Organization Required",
+            description: "Please set up your organization before adding clients.",
+            variant: "destructive",
+          })
+          return
+        }
         await createClientMutation.mutateAsync({
           ...data,
-          orgId: currentOrgId || ''
+          orgId: currentOrgId
         })
         toast({
           title: "Client Added",

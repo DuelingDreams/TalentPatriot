@@ -23,10 +23,11 @@ import {
   Plus
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { Link } from 'wouter'
+import { Link, useLocation } from 'wouter'
 
 export default function Candidates() {
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
+  const [, setLocation] = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('all')
   
