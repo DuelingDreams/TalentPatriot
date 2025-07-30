@@ -47,6 +47,10 @@ export const demoJobs = [
     recordStatus: 'demo' as const,
     assignedTo: 'demo-user',
     orgId: DEMO_ORG_ID,
+    location: 'San Francisco, CA',
+    jobType: 'full_time' as const,
+    department: 'Engineering',
+    salaryRange: '$150,000 - $200,000',
     createdAt: new Date('2024-07-01'),
     updatedAt: new Date('2024-07-01'),
     createdBy: 'demo-user'
@@ -60,6 +64,10 @@ export const demoJobs = [
     recordStatus: 'demo' as const,
     assignedTo: 'demo-user',
     orgId: DEMO_ORG_ID,
+    location: 'Austin, TX',
+    jobType: 'full_time' as const,
+    department: 'Product',
+    salaryRange: '$130,000 - $170,000',
     createdAt: new Date('2024-07-10'),
     updatedAt: new Date('2024-07-10'),
     createdBy: 'demo-user'
