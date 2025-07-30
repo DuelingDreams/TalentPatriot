@@ -4,7 +4,8 @@ import {
   userOrganizations,
   clients, 
   jobs, 
-  candidates, 
+  candidates,
+  applications,
   jobCandidate, 
   candidateNotes,
   interviews,
@@ -15,7 +16,8 @@ import {
   type UserOrganization,
   type Client, 
   type Job, 
-  type Candidate, 
+  type Candidate,
+  type Application,
   type JobCandidate, 
   type CandidateNotes,
   type Interview,
@@ -27,6 +29,7 @@ import {
   type InsertClient,
   type InsertJob,
   type InsertCandidate,
+  type InsertApplication,
   type InsertJobCandidate,
   type InsertCandidateNotes,
   type InsertInterview,
@@ -85,7 +88,23 @@ export interface IStorage {
   getCandidate(id: string): Promise<Candidate | undefined>;
   getCandidates(): Promise<Candidate[]>;
   getCandidatesByOrg(orgId: string): Promise<Candidate[]>;
+  getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined>;
   createCandidate(candidate: InsertCandidate): Promise<Candidate>;
+  updateCandidate(id: string, candidate: Partial<InsertCandidate>): Promise<Candidate>;
+  deleteCandidate(id: string): Promise<void>;
+
+  // Applications
+  getApplication(id: string): Promise<Application | undefined>;
+  getApplications(): Promise<Application[]>;
+  getApplicationsByJob(jobId: string): Promise<Application[]>;
+  getApplicationsByCandidate(candidateId: string): Promise<Application[]>;
+  createApplication(application: InsertApplication): Promise<Application>;
+  updateApplication(id: string, application: Partial<InsertApplication>): Promise<Application>;
+  deleteApplication(id: string): Promise<void>;
+
+  // Public job access (no authentication required)
+  getPublicJobs(): Promise<Job[]>;
+  getPublicJob(id: string): Promise<Job | undefined>;
   
   // Job-Candidate relationships
   getJobCandidate(id: string): Promise<JobCandidate | undefined>;
@@ -1400,6 +1419,41 @@ class DatabaseStorage implements IStorage {
     return data as Candidate[]
   }
 
+  async getCandidatesByOrg(orgId: string): Promise<Candidate[]> {
+    try {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        throw new Error(`Failed to fetch candidates: ${error.message}`)
+      }
+      
+      return data as Candidate[]
+    } catch (err) {
+      console.error('Exception in getCandidatesByOrg:', err)
+      throw err
+    }
+  }
+
+  async getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('*')
+      .eq('email', email)
+      .eq('org_id', orgId)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as Candidate
+  }
+
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
     try {
       // Map the camelCase fields to snake_case for database with full column support
@@ -1435,6 +1489,185 @@ class DatabaseStorage implements IStorage {
       console.error('Candidate creation exception:', err)
       throw err
     }
+  }
+
+  async updateCandidate(id: string, updateData: Partial<InsertCandidate>): Promise<Candidate> {
+    try {
+      const dbUpdate: any = {}
+      if (updateData.name !== undefined) dbUpdate.name = updateData.name
+      if (updateData.email !== undefined) dbUpdate.email = updateData.email
+      if (updateData.phone !== undefined) dbUpdate.phone = updateData.phone
+      if (updateData.resumeUrl !== undefined) dbUpdate.resume_url = updateData.resumeUrl
+      if (updateData.linkedinUrl !== undefined) dbUpdate.linkedin_url = updateData.linkedinUrl
+      if (updateData.githubUrl !== undefined) dbUpdate.github_url = updateData.githubUrl
+      if (updateData.portfolioUrl !== undefined) dbUpdate.portfolio_url = updateData.portfolioUrl
+      if (updateData.skills !== undefined) dbUpdate.skills = updateData.skills
+      if (updateData.experienceYears !== undefined) dbUpdate.experience_years = updateData.experienceYears
+      if (updateData.location !== undefined) dbUpdate.location = updateData.location
+      if (updateData.recordStatus !== undefined) dbUpdate.record_status = updateData.recordStatus
+      
+      const { data, error } = await supabase
+        .from('candidates')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        throw new Error(`Failed to update candidate: ${error.message}`)
+      }
+      
+      return data as Candidate
+    } catch (err) {
+      console.error('Candidate update exception:', err)
+      throw err
+    }
+  }
+
+  async deleteCandidate(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('candidates')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  // Applications
+  async getApplication(id: string): Promise<Application | undefined> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as Application
+  }
+
+  async getApplications(): Promise<Application[]> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .order('applied_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Application[]
+  }
+
+  async getApplicationsByJob(jobId: string): Promise<Application[]> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('job_id', jobId)
+      .order('applied_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Application[]
+  }
+
+  async getApplicationsByCandidate(candidateId: string): Promise<Application[]> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('candidate_id', candidateId)
+      .order('applied_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Application[]
+  }
+
+  async createApplication(insertApplication: InsertApplication): Promise<Application> {
+    const { data, error } = await supabase
+      .from('applications')
+      .insert({
+        job_id: insertApplication.jobId,
+        candidate_id: insertApplication.candidateId,
+        status: insertApplication.status || 'applied'
+      })
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(`Failed to create application: ${error.message}`)
+    }
+    
+    return data as Application
+  }
+
+  async updateApplication(id: string, updateData: Partial<InsertApplication>): Promise<Application> {
+    const dbUpdate: any = {}
+    if (updateData.status !== undefined) dbUpdate.status = updateData.status
+    
+    const { data, error } = await supabase
+      .from('applications')
+      .update(dbUpdate)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(`Failed to update application: ${error.message}`)
+    }
+    
+    return data as Application
+  }
+
+  async deleteApplication(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  // Public job access (no authentication required)
+  async getPublicJobs(): Promise<Job[]> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Job[]
+  }
+
+  async getPublicJob(id: string): Promise<Job | undefined> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'open')
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as Job
   }
 
   async getJobCandidate(id: string): Promise<JobCandidate | undefined> {

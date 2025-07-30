@@ -4,7 +4,9 @@ import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // Enums
-export const jobStatusEnum = pgEnum('job_status', ['open', 'closed', 'on_hold', 'filled']);
+export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'on_hold', 'filled']);
+export const jobTypeEnum = pgEnum('job_type', ['full-time', 'part-time', 'contract', 'internship']);
+export const applicationStatusEnum = pgEnum('application_status', ['applied', 'in_review', 'interview', 'offer', 'hired', 'rejected']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
 export const userRoleEnum = pgEnum('user_role', ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer']);
@@ -63,8 +65,11 @@ export const jobs = pgTable("jobs", {
   orgId: uuid("org_id").references(() => organizations.id).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   description: text("description"),
+  location: varchar("location", { length: 255 }),
+  jobType: jobTypeEnum("job_type").default('full-time').notNull(),
+  department: varchar("department", { length: 100 }),
   clientId: uuid("client_id").references(() => clients.id),
-  status: jobStatusEnum("status").default('open').notNull(),
+  status: jobStatusEnum("status").default('draft').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -85,11 +90,24 @@ export const candidates = pgTable("candidates", {
   createdBy: uuid("created_by"),
 });
 
+// Applications table - job-candidate relationships
+export const applications = pgTable("applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobId: uuid("job_id").references(() => jobs.id).notNull(),
+  candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  status: applicationStatusEnum("status").default('applied').notNull(),
+  appliedAt: timestamp("applied_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueJobCandidate: uniqueIndex("unique_job_application").on(table.jobId, table.candidateId),
+}));
+
+// Keep existing job_candidate table for backwards compatibility and additional tracking
 export const jobCandidate = pgTable("job_candidate", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").references(() => organizations.id).notNull(),
   jobId: uuid("job_id").references(() => jobs.id).notNull(),
   candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  applicationId: uuid("application_id").references(() => applications.id),
   stage: candidateStageEnum("stage").default('applied').notNull(),
   notes: text("notes"),
   assignedTo: uuid("assigned_to"),
@@ -183,11 +201,24 @@ export const jobsRelations = relations(jobs, ({ one, many }) => ({
     fields: [jobs.clientId],
     references: [clients.id],
   }),
+  applications: many(applications),
   jobCandidates: many(jobCandidate),
 }));
 
 export const candidatesRelations = relations(candidates, ({ many }) => ({
+  applications: many(applications),
   jobCandidates: many(jobCandidate),
+}));
+
+export const applicationsRelations = relations(applications, ({ one }) => ({
+  job: one(jobs, {
+    fields: [applications.jobId],
+    references: [jobs.id],
+  }),
+  candidate: one(candidates, {
+    fields: [applications.candidateId],
+    references: [candidates.id],
+  }),
 }));
 
 export const jobCandidateRelations = relations(jobCandidate, ({ one, many }) => ({
@@ -281,6 +312,11 @@ export const insertJobCandidateSchema = createInsertSchema(jobCandidate).omit({
   updatedAt: true,
 });
 
+export const insertApplicationSchema = createInsertSchema(applications).omit({
+  id: true,
+  appliedAt: true,
+});
+
 export const insertCandidateNotesSchema = createInsertSchema(candidateNotes).omit({
   id: true,
   createdAt: true,
@@ -321,6 +357,9 @@ export type InsertJob = z.infer<typeof insertJobSchema>;
 
 export type Candidate = typeof candidates.$inferSelect;
 export type InsertCandidate = z.infer<typeof insertCandidateSchema>;
+
+export type Application = typeof applications.$inferSelect;
+export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 
 export type JobCandidate = typeof jobCandidate.$inferSelect;
 export type InsertJobCandidate = z.infer<typeof insertJobCandidateSchema>;

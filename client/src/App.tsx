@@ -37,6 +37,9 @@ const OnboardingStep5 = lazy(() => import("@/pages/OnboardingStep5"));
 const OnboardingChecklist = lazy(() => import("@/pages/OnboardingChecklist"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 const Landing = lazy(() => import("@/pages/Landing"));
+// Public job posting pages
+const PublicJobsList = lazy(() => import("@/pages/PublicJobsList"));
+const PublicJobDetail = lazy(() => import("@/pages/PublicJobDetail"));
 
 function Router() {
   return (
@@ -53,6 +56,10 @@ function Router() {
         <Route path="/onboarding/step5" component={OnboardingStep5} />
         <Route path="/onboarding/checklist" component={OnboardingChecklist} />
         <Route path="/unauthorized" component={Unauthorized} />
+        
+        {/* Public job posting routes */}
+        <Route path="/jobs" component={PublicJobsList} />
+        <Route path="/jobs/:id" component={PublicJobDetail} />
         
         {/* Protected routes */}
         <Route path="/dashboard">

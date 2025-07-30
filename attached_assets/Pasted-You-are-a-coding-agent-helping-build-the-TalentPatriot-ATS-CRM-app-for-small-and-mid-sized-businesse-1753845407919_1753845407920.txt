@@ -1,0 +1,105 @@
+You are a coding agent helping build the TalentPatriot ATS/CRM app for small and mid-sized businesses using Replit + Supabase + React + shadcn-ui + Tailwind CSS.
+
+**Goal:** Implement the full Candidate & Application Flow for SMBs, including:
+1. Public Job and Application Pages (hosted by TalentPatriot)
+2. Candidate & Application Flow with Supabase tables
+3. Direct posting links to hosted job pages
+
+---
+
+### 1. Supabase Schema Updates
+
+Create or update the following tables:
+
+jobs
+- id (uuid, pk)
+- organization_id (uuid, fk)
+- title (text)
+- description (text)
+- location (text)
+- job_type (enum: 'full-time','part-time','contract','internship')
+- department (text)
+- status (enum: 'draft','open','closed')
+- created_by (uuid, fk -> users)
+- created_at (timestamptz default now())
+
+candidates
+- id (uuid, pk)
+- organization_id (uuid, fk)
+- name (text)
+- email (text)
+- phone (text)
+- resume_url (text)
+- created_at (timestamptz default now())
+
+applications
+- id (uuid, pk)
+- job_id (uuid, fk -> jobs)
+- candidate_id (uuid, fk -> candidates)
+- status (enum: 'applied','in_review','interview','offer','hired','rejected')
+- applied_at (timestamptz default now())
+
+Add RLS policies:
+- Recruiters/Admins can manage jobs, candidates, and applications for their organization.
+- Public (unauthenticated) can only insert into applications for open jobs.
+
+---
+
+### 2. API Endpoints
+
+Implement these API routes using Express + Supabase client:
+
+POST /api/jobs
+- Create a new job
+
+GET /api/jobs/public
+- Return all open jobs (for public careers page)
+
+GET /api/jobs/:id
+- Return job detail with status check
+
+POST /api/applications
+- Accept a candidate application
+- If candidate does not exist, create candidate
+- Insert into applications with status = applied
+
+---
+
+### 3. Public Job & Application Pages (React + shadcn-ui)
+
+Create:
+
+src/pages/jobs/index.tsx
+- Public Careers Page
+- Fetch from `/api/jobs/public`
+- Display list of open jobs with links to `/jobs/[id]`
+
+src/pages/jobs/[id].tsx
+- Job Details Page
+- Display job info
+- Include “Apply Now” button → opens Application Form modal
+
+src/components/ApplicationForm.tsx
+- Candidate name, email, phone, resume upload
+- POST to `/api/applications`
+- Show success message
+
+---
+
+### 4. Direct Posting Links
+
+- After a job is published (status = open), generate a public link:
+  https://talentpatriot.com/jobs/{job_id}
+- Show a “Copy Link” button in Recruiter Dashboard for easy sharing.
+- Add optional social sharing buttons.
+
+---
+
+### 5. Success Criteria
+
+- Recruiters can post jobs → automatically get public links
+- Public visitors can view and apply to jobs
+- Applications auto-create candidates and appear in the pipeline
+- RLS ensures security (org-specific access)
+
+Implement all of the above with working routes, Supabase integration, and a clean UI in React + Tailwind + shadcn-ui.

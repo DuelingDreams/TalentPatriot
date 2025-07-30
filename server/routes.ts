@@ -794,6 +794,129 @@ Expires: 2025-12-31T23:59:59.000Z
   // Serve uploaded files statically
   app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
+  // PUBLIC ROUTES - No authentication required
+
+  // Public job listings
+  app.get("/api/public/jobs", async (req, res) => {
+    try {
+      const jobs = await storage.getPublicJobs();
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error fetching public jobs:", error);
+      res.status(500).json({ error: "Failed to fetch jobs" });
+    }
+  });
+
+  // Public single job details
+  app.get("/api/public/jobs/:id", async (req, res) => {
+    try {
+      const job = await storage.getPublicJob(req.params.id);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      res.json(job);
+    } catch (error) {
+      console.error("Error fetching public job:", error);
+      res.status(500).json({ error: "Failed to fetch job" });
+    }
+  });
+
+  // Submit job application (public)
+  app.post("/api/public/jobs/:jobId/apply", writeLimiter, async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const { name, email, phone, resumeUrl } = req.body;
+
+      // Get the job to verify it exists and get orgId
+      const job = await storage.getPublicJob(jobId);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+
+      // Check if candidate already exists by email for this org
+      let candidate = await storage.getCandidateByEmail(email, job.orgId);
+
+      if (!candidate) {
+        // Create new candidate
+        candidate = await storage.createCandidate({
+          name,
+          email,
+          phone: phone || null,
+          resumeUrl: resumeUrl || null,
+          orgId: job.orgId
+        });
+      }
+
+      // Check if application already exists
+      const existingApplications = await storage.getApplicationsByJob(jobId);
+      const existingApplication = existingApplications.find(app => app.candidateId === candidate.id);
+
+      if (existingApplication) {
+        return res.status(400).json({ error: "You have already applied to this job" });
+      }
+
+      // Create application
+      const application = await storage.createApplication({
+        jobId,
+        candidateId: candidate.id,
+        status: 'applied'
+      });
+
+      res.status(201).json({ 
+        message: "Application submitted successfully",
+        application,
+        candidate
+      });
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      res.status(500).json({ error: "Failed to submit application" });
+    }
+  });
+
+  // Applications API endpoints (authenticated)
+  app.get("/api/applications", async (req, res) => {
+    try {
+      const applications = await storage.getApplications();
+      res.json(applications);
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+      res.status(500).json({ error: "Failed to fetch applications" });
+    }
+  });
+
+  app.get("/api/applications/:id", async (req, res) => {
+    try {
+      const application = await storage.getApplication(req.params.id);
+      if (!application) {
+        return res.status(404).json({ error: "Application not found" });
+      }
+      res.json(application);
+    } catch (error) {
+      console.error("Error fetching application:", error);
+      res.status(500).json({ error: "Failed to fetch application" });
+    }
+  });
+
+  app.put("/api/applications/:id", writeLimiter, async (req, res) => {
+    try {
+      const application = await storage.updateApplication(req.params.id, req.body);
+      res.json(application);
+    } catch (error) {
+      console.error("Error updating application:", error);
+      res.status(500).json({ error: "Failed to update application" });
+    }
+  });
+
+  app.delete("/api/applications/:id", writeLimiter, async (req, res) => {
+    try {
+      await storage.deleteApplication(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      res.status(500).json({ error: "Failed to delete application" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   console.log("📡 Registered all API routes");
