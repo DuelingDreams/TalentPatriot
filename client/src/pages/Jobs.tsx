@@ -1,23 +1,15 @@
+import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs, useCreateJob } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { insertJobSchema } from '@/../../shared/schema'
-import { z } from 'zod'
-import { Plus, Briefcase, Building2, Calendar, Loader2, Users, AlertCircle } from 'lucide-react'
+import { Plus, Briefcase, Building2, Calendar, Loader2, Users, AlertCircle, Eye, Edit, Trash2 } from 'lucide-react'
 import { Link } from 'wouter'
 import GuidedJobCreation from '@/components/GuidedJobCreation'
 
@@ -41,7 +33,7 @@ export default function Jobs() {
   const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
   const { data: clients, isLoading: clientsLoading } = useClients()
   const createJobMutation = useCreateJob()
-  
+
   // Use demo data for demo users
   const displayJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
   const displayClients = userRole === 'demo_viewer' ? getDemoClientStats() : clients || []
@@ -52,7 +44,7 @@ export default function Jobs() {
     const urlParams = new URLSearchParams(window.location.search)
     const isOnboarding = urlParams.get('onboarding') === 'true'
     const action = urlParams.get('action')
-    
+
     if (isOnboarding && action === 'create-guided') {
       setIsGuidedModalOpen(true)
     }
@@ -73,7 +65,7 @@ export default function Jobs() {
   const onSubmit = async (data: NewJobFormData) => {
     console.log('Form submission triggered with data:', data)
     console.log('Form errors:', form.formState.errors)
-    
+
     if (isDemoMode) {
       toast({
         title: "Demo Mode",
@@ -82,7 +74,7 @@ export default function Jobs() {
       })
       return
     }
-    
+
     try {
       console.log('Calling createJobMutation with data:', data)
       await createJobMutation.mutateAsync({
@@ -179,7 +171,7 @@ export default function Jobs() {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={form.control}
                         name="description"
@@ -321,11 +313,11 @@ export default function Jobs() {
                           </div>
                         </div>
                       </div>
-                      
+
                       {job.description && (
                         <p className="text-slate-600 mb-4 line-clamp-2">{job.description}</p>
                       )}
-                      
+
                       <div className="flex items-center gap-4 text-sm text-slate-500">
                         <div className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
@@ -333,7 +325,7 @@ export default function Jobs() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col items-end gap-2">
                       <Link href={`/jobs/${job.id}`}>
                         <Button size="sm" variant="outline" className="text-xs">
@@ -383,7 +375,7 @@ export default function Jobs() {
         )}
       </div>
     </DashboardLayout>
-    
+
     {/* Guided Job Creation Modal */}
     <GuidedJobCreation
       isOpen={isGuidedModalOpen}
@@ -401,3 +393,4 @@ export default function Jobs() {
     </>
   )
 }
+//The code imports necessary modules and defines a functional component Jobs to manage job postings, incorporating UI elements, data fetching, and job creation functionalities.

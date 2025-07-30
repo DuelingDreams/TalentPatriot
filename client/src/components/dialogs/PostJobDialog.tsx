@@ -81,9 +81,10 @@ const jobBoards = [
 interface PostJobDialogProps {
   trigger?: React.ReactNode
   triggerButton?: React.ReactNode
+  onJobCreated?: () => void
 }
 
-export function PostJobDialog({ trigger, triggerButton }: PostJobDialogProps) {
+export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
@@ -145,16 +146,24 @@ export function PostJobDialog({ trigger, triggerButton }: PostJobDialogProps) {
       
       await createJobMutation.mutateAsync(jobData)
       
-      // Show success message with job board information
+      // Show success message based on job status
+      const successMessage = data.status === 'draft' 
+        ? "Job saved as draft! You can publish it when ready to make it live."
+        : "Job posted successfully and is now active for applications!"
+      
       const boardCount = data.posting_targets.length
-      const boardNames = data.posting_targets.map(id => jobBoards.find(b => b.id === id)?.name).filter(Boolean).join(', ')
+      const additionalInfo = boardCount > 0 
+        ? ` Will be distributed to ${boardCount} job board${boardCount > 1 ? 's' : ''}.`
+        : ""
       
       toast({
-        title: "Job Saved as Draft!",
-        description: "Job has been saved as a draft. You can publish it when ready to make it live.",
+        title: data.status === 'draft' ? "Job Saved as Draft!" : "Job Posted Successfully!",
+        description: successMessage + additionalInfo,
       })
+      
       setIsOpen(false)
       form.reset()
+      onJobCreated?.() // Call success callback
     } catch (error) {
       console.error('Job posting error:', error)
       toast({

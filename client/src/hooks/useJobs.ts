@@ -9,8 +9,8 @@ export function useJobs(options: { refetchInterval?: number } = {}) {
     endpoint: '/api/jobs',
     queryKey: '/api/jobs',
     getDemoData: () => demoJobs,
-    refetchInterval: options.refetchInterval,
-    staleTime: 2 * 60 * 1000, // 2 minutes for jobs
+    refetchInterval: options.refetchInterval || 30000, // Default 30 second refresh
+    staleTime: 1 * 60 * 1000, // 1 minute for jobs (reduced for more responsiveness)
   })
 }
 
