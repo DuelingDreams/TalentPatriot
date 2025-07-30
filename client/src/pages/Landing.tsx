@@ -24,7 +24,7 @@ import { Link } from 'wouter'
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-background font-[Inter,sans-serif]">
+    <div className="min-h-screen bg-white font-[Inter,sans-serif]">
       {/* Navigation */}
       <nav className="bg-primary text-white fixed w-full z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
@@ -33,18 +33,18 @@ export default function Landing() {
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center bg-accent">
                 <span className="text-primary font-bold text-lg">TP</span>
               </div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">
                 TalentPatriot
               </h1>
             </div>
             <div className="flex items-center gap-2 md:gap-3">
               <Link href="/login">
-                <TPButton variant="secondary" className="font-medium text-sm md:text-base shadow-[0_0_15px_rgba(0,255,255,0.3)]">
+                <TPButton variant="secondary" className="font-medium text-sm md:text-base">
                   Sign In
                 </TPButton>
               </Link>
               <Link href="/onboarding/step1">
-                <TPButton variant="outline" className="font-medium text-sm md:text-base whitespace-nowrap">
+                <TPButton variant="outline" className="font-medium text-sm md:text-base bg-white text-primary hover:bg-gray-50">
                   Start Free
                 </TPButton>
               </Link>
@@ -54,26 +54,26 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 py-16 bg-background">
+      <section className="pt-32 pb-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 tracking-tight font-[Inter,sans-serif]">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-6 tracking-tight">
             The Simple ATS + CRM Built for Growing Teams
           </h1>
           
-          <p className="text-lg md:text-xl lg:text-2xl text-primary font-medium mb-8 max-w-4xl mx-auto font-[Inter,sans-serif]">
+          <p className="text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 max-w-4xl mx-auto">
             Stop losing track of candidates and start hiring smarter.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/onboarding/step1">
-              <TPButton variant="primary" size="lg" className="font-medium shadow-lg">
+              <TPButton variant="primary" size="lg" className="font-medium shadow-lg w-full sm:w-auto">
                 Start Free
               </TPButton>
             </Link>
             <TPButton 
               variant="secondary" 
               size="lg" 
-              className="font-medium shadow-[0_0_20px_rgba(0,255,255,0.4)]"
+              className="font-medium w-full sm:w-auto"
             >
               Book a Demo
             </TPButton>
@@ -81,10 +81,10 @@ export default function Landing() {
           
           {/* Responsive Placeholder Image/Video Section */}
           <div className="mb-8 relative max-w-5xl mx-auto">
-            <div className="rounded-xl shadow-xl border-2 border-accent overflow-hidden bg-gradient-to-br from-white to-accent/10 p-6 md:p-8 aspect-video flex items-center justify-center">
+            <div className="rounded-xl shadow-xl border-2 border-accent overflow-hidden bg-gradient-to-br from-gray-50 to-accent/10 p-6 md:p-8 aspect-video flex items-center justify-center">
               <div className="text-center">
                 <BarChart3 className="w-12 h-12 md:w-16 md:h-16 text-primary mx-auto mb-4" />
-                <p className="text-primary text-base md:text-lg font-medium font-[Inter,sans-serif]">Product Demo Video Coming Soon</p>
+                <p className="text-primary text-base md:text-lg font-medium">Product Demo Video Coming Soon</p>
               </div>
             </div>
           </div>
@@ -94,37 +94,37 @@ export default function Landing() {
       {/* Who It's For Section */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12 font-[Inter,sans-serif]">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
             Built for Busy Recruiters, Founders, and Hiring Managers
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <TPCard variant="light" className="text-center">
+            <TPCard variant="light" className="text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
                 <UserCheck className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Recruiters</h3>
-              <p className="text-base text-primary/80 font-[Inter,sans-serif]">
+              <h3 className="text-xl font-semibold text-primary mb-4">Recruiters</h3>
+              <p className="text-base text-gray-600">
                 Track candidates and communication in one place.
               </p>
             </TPCard>
             
-            <TPCard variant="light" className="text-center">
+            <TPCard variant="light" className="text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
                 <Rocket className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Founders</h3>
-              <p className="text-base text-primary/80 font-[Inter,sans-serif]">
+              <h3 className="text-xl font-semibold text-primary mb-4">Founders</h3>
+              <p className="text-base text-gray-600">
                 Stay in the loop — even if you don't have a hiring team.
               </p>
             </TPCard>
             
-            <TPCard variant="light" className="text-center">
+            <TPCard variant="light" className="text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
                 <Target className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Hiring Managers</h3>
-              <p className="text-base text-primary/80 font-[Inter,sans-serif]">
+              <h3 className="text-xl font-semibold text-primary mb-4">Hiring Managers</h3>
+              <p className="text-base text-gray-600">
                 Ditch the spreadsheet. See the pipeline at a glance.
               </p>
             </TPCard>
@@ -133,49 +133,49 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-background">
+      <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12 font-[Inter,sans-serif]">
+          <h2 className="text-3xl md:text-4xl font-bold text-primary text-center mb-12">
             Everything You Need — Nothing You Don't
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <TPCard variant="light" className="text-center">
+            <TPCard variant="light" className="text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Drag-and-drop pipelines</h3>
-              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+              <h3 className="text-lg font-semibold text-primary mb-3">Drag-and-drop pipelines</h3>
+              <p className="text-sm text-gray-600">
                 Move candidates through stages with simple drag and drop
               </p>
             </TPCard>
             
-            <TPCard variant="light" className="text-center">
+            <TPCard variant="light" className="text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
                 <Users className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Candidate profiles</h3>
-              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+              <h3 className="text-lg font-semibold text-primary mb-3">Candidate profiles</h3>
+              <p className="text-sm text-gray-600">
                 All candidate information in one searchable place
               </p>
             </TPCard>
             
-            <TPCard variant="light" className="text-center">
+            <TPCard variant="light" className="text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
                 <FileText className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Notes and reminders</h3>
-              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+              <h3 className="text-lg font-semibold text-primary mb-3">Notes and reminders</h3>
+              <p className="text-sm text-gray-600">
                 Track every interaction and never miss follow-ups
               </p>
             </TPCard>
             
-            <TPCard variant="light" className="text-center">
+            <TPCard variant="light" className="text-center hover:shadow-lg transition-shadow">
               <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
                 <Building2 className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">CRM-lite for contacts</h3>
-              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+              <h3 className="text-lg font-semibold text-primary mb-3">CRM-lite for contacts</h3>
+              <p className="text-sm text-gray-600">
                 Build talent pools for future opportunities
               </p>
             </TPCard>
@@ -196,7 +196,7 @@ export default function Landing() {
               />
             </div>
             <div className="text-center mt-6">
-              <p className="text-primary text-base md:text-lg font-medium font-[Inter,sans-serif]">
+              <p className="text-primary text-base md:text-lg font-medium">
                 See your entire hiring pipeline at a glance
               </p>
             </div>
@@ -205,22 +205,22 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary to-primary/80">
+      <section className="py-16 bg-gradient-to-r from-primary to-primary/90">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-8 font-[Inter,sans-serif]">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-8">
             Start Hiring Smarter Today
           </h2>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/onboarding/step1">
-              <TPButton variant="outline" size="lg" className="font-medium shadow-lg">
+              <TPButton variant="outline" size="lg" className="font-medium shadow-lg bg-white text-primary hover:bg-gray-50">
                 Start Free
               </TPButton>
             </Link>
             <TPButton 
               variant="secondary" 
               size="lg" 
-              className="font-medium shadow-[0_0_20px_rgba(0,255,255,0.4)]"
+              className="font-medium"
             >
               Book a Demo
             </TPButton>
@@ -233,24 +233,20 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                <img 
-                  src="/tp-logo.png" 
-                  alt="TalentPatriot Logo" 
-                  className="w-8 h-8 object-contain"
-                />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-accent">
+                <span className="text-primary font-bold text-lg">TP</span>
               </div>
-              <span className="text-lg font-semibold font-[Inter,sans-serif]">TalentPatriot</span>
+              <span className="text-lg font-semibold">TalentPatriot</span>
             </div>
             
-            <nav className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-white/80 text-center font-[Inter,sans-serif]">
+            <nav className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-white/80 text-center">
               <a href="#" className="hover:text-white transition-colors px-2">About</a>
               <Link href="/privacy" className="hover:text-white transition-colors px-2">Privacy</Link>
               <Link href="/terms" className="hover:text-white transition-colors px-2">Terms</Link>
               <a href="mailto:contact@talentpatriot.com" className="hover:text-white transition-colors px-2">Contact</a>
             </nav>
             
-            <p className="text-sm text-white/60 text-center font-[Inter,sans-serif]">
+            <p className="text-sm text-white/60 text-center">
               © 2025 TalentPatriot
             </p>
           </div>
