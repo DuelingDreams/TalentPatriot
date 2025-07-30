@@ -1,197 +1,52 @@
-// Enhanced DOM exception and promise rejection handler
+// Simplified error handler focused on critical issues only
 console.log('TalentPatriot error handler loaded')
 
-// Ultra-comprehensive unhandled promise rejection handler
+// Targeted promise rejection handler
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
-    // Always prevent the default behavior first
-    event.preventDefault()
-    
-    // Handle null/undefined rejections
-    if (reason === null || reason === undefined) {
-      console.log('Empty promise rejection handled gracefully')
-      return
-    }
-    
-    // Handle string rejections
-    if (typeof reason === 'string') {
-      if (reason.includes('refresh_token') || 
-          reason.includes('Invalid session') ||
-          reason.includes('User not found') ||
-          reason.includes('JWT') ||
-          reason.includes('auth') ||
-          reason.includes('session')) {
-        console.log('String auth error handled gracefully:', reason)
-        return
-      }
-      console.log('String rejection handled gracefully:', reason)
-      return
-    }
-    
-    // Handle object-based rejections (most Supabase errors)
+    // Handle critical auth errors silently
     if (reason && typeof reason === 'object') {
-      // Supabase auth errors (comprehensive)
       if (reason.message?.includes('refresh_token_not_found') ||
-          reason.message?.includes('refresh_token') ||
-          reason.message?.includes('Invalid session') ||
-          reason.message?.includes('User not found') ||
-          reason.message?.includes('JWT') ||
-          reason.message?.includes('Unauthorized') ||
-          reason.message?.includes('401') ||
-          reason.message?.includes('Invalid JWT') ||
-          reason.message?.includes('Token') ||
-          reason.__isAuthError ||
           reason.code === 'refresh_token_not_found' ||
-          reason.name === 'AuthApiError' ||
-          reason.status === 401) {
-        console.log('Auth error handled gracefully:', reason.message || reason.code || reason.status || 'Session expired')
-        return
-      }
-      
-      // Supabase network/connection errors (comprehensive)
-      if (reason.message?.includes('Failed to fetch') ||
-          reason.message?.includes('NetworkError') ||
-          reason.message?.includes('Connection') ||
-          reason.message?.includes('fetch') ||
-          reason.message?.includes('network') ||
-          reason.message?.includes('NETWORK_ERROR') ||
-          reason.message?.includes('ERR_NETWORK') ||
-          reason.message?.includes('ERR_INTERNET_DISCONNECTED') ||
-          reason.name === 'TypeError' ||
-          reason.name === 'NetworkError' ||
-          reason.cause?.code === 'NETWORK_ERROR') {
-        console.log('Network error handled gracefully:', reason.message || reason.name)
-        return
-      }
-      
-      // Supabase API errors
-      if (reason.message?.includes('supabase') ||
-          reason.message?.includes('postgresql') ||
-          reason.message?.includes('database') ||
-          reason.message?.includes('relation') ||
-          reason.code?.includes('PGRST') ||
-          reason.__isSupabaseError) {
-        console.log('Supabase API error handled gracefully:', reason.message || reason.code)
+          reason.name === 'AuthApiError') {
+        console.log('Auth session expired (handled gracefully)')
+        event.preventDefault()
         return
       }
     }
     
-    // Handle DOM exceptions comprehensively
-    if (reason instanceof DOMException) {
-      console.warn('DOM exception handled:', reason.name, reason.message)
+    // Handle string auth errors
+    if (typeof reason === 'string' && 
+        (reason.includes('refresh_token') || reason.includes('Invalid session'))) {
+      console.log('Auth error handled gracefully:', reason)
+      event.preventDefault()
       return
     }
     
-    // Handle all Error objects
-    if (reason instanceof Error) {
-      // Storage-related errors
-      if (reason.message?.includes('storage') ||
-          reason.message?.includes('quota') ||
-          reason.message?.includes('blocked') ||
-          reason.message?.includes('SecurityError') ||
-          reason.name === 'QuotaExceededError' ||
-          reason.name === 'SecurityError') {
-        console.warn('Storage error handled gracefully:', reason.message)
-        return
-      }
-      
-      // Network/fetch errors (comprehensive)
-      if (reason.message?.includes('fetch') ||
-          reason.message?.includes('network') ||
-          reason.message?.includes('Failed to fetch') ||
-          reason.message?.includes('TypeError') ||
-          reason.name === 'TypeError' ||
-          reason.name === 'NetworkError' ||
-          reason.name === 'AbortError') {
-        console.log('Network error handled gracefully:', reason.message)
-        return
-      }
-      
-      // Auth-related errors
-      if (reason.message?.includes('auth') ||
-          reason.message?.includes('session') ||
-          reason.message?.includes('token') ||
-          reason.message?.includes('login') ||
-          reason.message?.includes('unauthorized')) {
-        console.log('Auth-related error handled gracefully:', reason.message)
-        return
-      }
+    // Only log other errors for debugging, don't prevent default
+    if (reason && typeof reason === 'object' && 'message' in reason) {
+      console.log('Unhandled promise rejection:', (reason as any).message)
+    } else if (typeof reason === 'string') {
+      console.log('Unhandled promise rejection:', reason)
+    } else {
+      console.log('Unhandled promise rejection:', reason)
     }
-    
-    // Catch-all: handle ANY remaining promise rejections
-    console.log('Any promise rejection safely handled:', {
-      type: typeof reason,
-      constructor: reason?.constructor?.name,
-      message: reason?.message,
-      name: reason?.name,
-      code: reason?.code,
-      status: reason?.status,
-      reason: reason
-    })
   })
   
-  // Comprehensive general error handler
+  // Minimal error handler for critical DOM exceptions only
   window.addEventListener('error', (event) => {
     const error = event.error
     
-    // Always prevent default to avoid console spam
-    event.preventDefault()
-    
-    // Handle DOM exceptions from regular errors
-    if (error instanceof DOMException) {
-      console.warn('DOM exception from error event handled:', error.name, error.message)
-      return
-    }
-    
-    // Handle all script errors
-    if (error instanceof Error) {
-      // Storage-related errors
-      if (error.message?.includes('storage') ||
-          error.message?.includes('quota') ||
-          error.message?.includes('SecurityError') ||
-          error.name === 'QuotaExceededError' ||
-          error.name === 'SecurityError') {
-        console.warn('Storage error from error event handled:', error.message)
-        return
-      }
-      
-      // Network-related errors
-      if (error.message?.includes('fetch') ||
-          error.message?.includes('network') ||
-          error.message?.includes('Failed to fetch') ||
-          error.name === 'NetworkError' ||
-          error.name === 'TypeError') {
-        console.log('Network error from error event handled:', error.message)
-        return
-      }
-      
-      // Auth-related errors
-      if (error.message?.includes('auth') ||
-          error.message?.includes('session') ||
-          error.message?.includes('token') ||
-          error.message?.includes('supabase')) {
-        console.log('Auth error from error event handled:', error.message)
-        return
-      }
-      
-      // Generic error handling
-      console.log('Script error safely handled:', error.message || error.name)
-      return
-    }
-    
-    // Handle any other error types
-    console.log('General error safely handled:', typeof error, error)
-  })
-  
-  // Handle resource loading errors
-  window.addEventListener('error', (event) => {
-    if (event.target !== window) {
-      console.log('Resource loading error handled:', event.target)
+    // Only handle critical storage errors that could break the app
+    if (error instanceof DOMException && 
+        (error.name === 'QuotaExceededError' || error.name === 'SecurityError')) {
+      console.warn('Critical DOM exception handled:', error.name, error.message)
       event.preventDefault()
+      return
     }
-  }, true) // Use capture phase for resource errors
+  })
 }
 
 // Safe storage operations with comprehensive DOM exception handling
@@ -268,8 +123,8 @@ export const safeAuthOperation = async <T>(
     }
     
     // Handle object-based errors (Supabase API errors)
-    if (error && typeof error === 'object' && error.message) {
-      console.warn(`API error in ${operationName}:`, error.message)
+    if (error && typeof error === 'object' && 'message' in error) {
+      console.warn(`API error in ${operationName}:`, (error as any).message)
       return null
     }
     
