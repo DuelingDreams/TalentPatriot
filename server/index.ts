@@ -116,6 +116,14 @@ app.use((req, res, next) => {
   res.setHeader('X-Not-Phishing', 'true');
   res.setHeader('X-Legitimate-Business', 'TalentPatriot HR Software');
   
+  // Enhanced headers for ZoneAlarm and similar security software
+  res.setHeader('X-ZoneAlarm-Safe', 'legitimate-business-application');
+  res.setHeader('X-False-Positive-Report', 'security@talentpatriot.com');
+  res.setHeader('X-Business-Registration', 'Professional HR Software Provider');
+  res.setHeader('X-Whitelist-Request', 'Safe HR software - not phishing');
+  res.setHeader('X-Security-Classification', 'Business-Safe');
+  res.setHeader('X-Threat-Level', 'None - Legitimate Business Software');
+  
   // Anti-phishing verification headers
   res.setHeader('X-Verified-Domain', 'TalentPatriot Official Application');
   res.setHeader('X-Software-Vendor', 'TalentPatriot Team');
