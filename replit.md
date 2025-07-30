@@ -393,6 +393,8 @@ Preferred communication style: Simple, everyday language.
 - **PREVENTED UUID VALIDATION ERRORS**: Fixed "invalid input syntax for type uuid" errors by ensuring orgId is properly set before any create operations
 - **FIXED DEMO MODE REGRESSION**: Resolved issue where demo viewers were being prompted to create organizations by ensuring demo viewer checks occur BEFORE organization validation
 - **UPDATED ALL PAGES WITH DEMO-FIRST CHECKS**: Modified Dashboard, Jobs, Clients, and Candidates pages to check for demo_viewer role before any hooks or organization checks
+- **CONFIRMED DEMO DATA DISPLAY**: Demo dashboard shows hardcoded demo statistics (5 open jobs, 12 candidates, etc.) without making API calls
+- **VERIFIED DEMO MODE ISOLATION**: Demo viewers see complete demo experience with static data while API endpoints correctly reject requests without orgId
 
 **July 28, 2025**:
 - **COMPLETED COMPREHENSIVE DEMO VS REAL APP ANALYSIS**: Verified complete feature parity across all 7 main pages (Dashboard, Jobs, Clients, Candidates, Pipeline, Calendar, Messages) with proper demo/real user data isolation

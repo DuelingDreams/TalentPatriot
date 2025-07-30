@@ -40,7 +40,13 @@ export default function Dashboard() {
 
   // Show demo dashboard for demo viewers - check this FIRST
   if (userRole === 'demo_viewer') {
-    return <DemoDashboard />
+    return (
+      <DashboardLayout pageTitle="Demo Dashboard">
+        <div className="p-6">
+          <DemoDashboard />
+        </div>
+      </DashboardLayout>
+    )
   }
 
   // Set up real-time refresh for dashboard data
