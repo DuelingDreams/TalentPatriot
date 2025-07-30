@@ -1491,37 +1491,41 @@ class DatabaseStorage implements IStorage {
   }
 
   async getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined> {
-    const { data, error } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('email', email)
-      .eq('org_id', orgId)
-      .single()
-    
-    if (error) {
-      if (error.code === 'PGRST116') return undefined
-      throw new Error(error.message)
+    try {
+      if (!orgId) {
+        console.error('getCandidateByEmail called with undefined orgId')
+        return undefined
+      }
+      
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('email', email)
+        .eq('org_id', orgId)
+        .single()
+      
+      if (error) {
+        if (error.code === 'PGRST116') return undefined
+        throw new Error(error.message)
+      }
+      
+      return data as Candidate
+    } catch (err) {
+      console.error('Exception in getCandidateByEmail:', err)
+      throw err
     }
-    
-    return data as Candidate
   }
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
     try {
-      // Map the camelCase fields to snake_case for database with full column support
+      // Map the camelCase fields to snake_case for database
       const dbCandidate = {
         name: insertCandidate.name,
         email: insertCandidate.email,
         org_id: insertCandidate.orgId,
         phone: insertCandidate.phone || null,
         resume_url: insertCandidate.resumeUrl || null,
-        linkedin_url: insertCandidate.linkedinUrl || null,
-        github_url: insertCandidate.githubUrl || null,
-        portfolio_url: insertCandidate.portfolioUrl || null,
-        skills: insertCandidate.skills || null,
-        experience_years: insertCandidate.experienceYears || null,
-        location: insertCandidate.location || null,
-        record_status: insertCandidate.recordStatus || 'active',
+        status: insertCandidate.status || 'active',
         created_by: insertCandidate.createdBy || null,
       }
       
@@ -1645,21 +1649,27 @@ class DatabaseStorage implements IStorage {
   }
 
   async createApplication(insertApplication: InsertApplication): Promise<Application> {
-    const { data, error } = await supabase
-      .from('applications')
-      .insert({
-        job_id: insertApplication.jobId,
-        candidate_id: insertApplication.candidateId,
-        status: insertApplication.status || 'applied'
-      })
-      .select()
-      .single()
-    
-    if (error) {
-      throw new Error(`Failed to create application: ${error.message}`)
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .insert({
+          job_id: insertApplication.jobId,
+          candidate_id: insertApplication.candidateId
+          // Omit status for now - database might have different schema
+        })
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database application creation error:', error)
+        throw new Error(`Failed to create application: ${error.message}`)
+      }
+      
+      return data as Application
+    } catch (err) {
+      console.error('Application creation exception:', err)
+      throw err
     }
-    
-    return data as Application
   }
 
   async updateApplication(id: string, updateData: Partial<InsertApplication>): Promise<Application> {

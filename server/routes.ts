@@ -937,8 +937,11 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(404).json({ error: "Job not found" });
       }
 
+      console.log('Job org_id:', job.org_id);
+      console.log('Job object:', job);
+
       // Check if candidate already exists by email for this org
-      let candidate = await storage.getCandidateByEmail(email, job.orgId);
+      let candidate = await storage.getCandidateByEmail(email, job.org_id);
 
       if (!candidate) {
         // Create new candidate
@@ -947,7 +950,7 @@ Expires: 2025-12-31T23:59:59.000Z
           email,
           phone: phone || null,
           resumeUrl: resumeUrl || null,
-          orgId: job.orgId
+          orgId: job.org_id
         });
       }
 
@@ -962,14 +965,13 @@ Expires: 2025-12-31T23:59:59.000Z
       // Create application
       const application = await storage.createApplication({
         jobId,
-        candidateId: candidate.id,
-        status: 'applied'
+        candidateId: candidate.id
       });
 
       // IMPORTANT: Also create pipeline entry so candidate appears in kanban board
       try {
         const pipelineEntry = await storage.createJobCandidate({
-          orgId: job.orgId,
+          orgId: job.org_id,
           jobId,
           candidateId: candidate.id,
           applicationId: application.id,
