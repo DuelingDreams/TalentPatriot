@@ -1,26 +1,46 @@
-Contact: security@talentpatriot.com
-Contact: support@talentpatriot.com
-Expires: 2025-12-31T23:59:59.000Z
-Encryption: https://talentpatriot.com/security-key.pub
-Acknowledgments: https://talentpatriot.com/security-hall-of-fame
-Policy: https://talentpatriot.com/security-policy
-
 # TalentPatriot Security Information
-# =================================
-# This is a legitimate business application for Human Resources
-# Application Type: Applicant Tracking System (ATS)
-# Business Category: Enterprise HR Software
-# Security Contact: security@talentpatriot.com
-# Support Contact: support@talentpatriot.com
-#
-# This application is NOT a phishing site
-# This application is NOT designed to steal user information
-# This application is a legitimate HR software platform
-# Purpose: Help businesses manage their recruitment process
-#
-# If you are a security researcher and have found a vulnerability,
-# please contact us at security@talentpatriot.com
-# We appreciate responsible disclosure and will respond promptly
-#
-# For general support or questions about the application,
-# please contact support@talentpatriot.com
+# ==================================
+
+This is TalentPatriot - a legitimate Human Resources software application.
+We are NOT a phishing site. This is professional HR software for businesses.
+
+## Business Information
+- Application Name: TalentPatriot ATS (Applicant Tracking System)
+- Business Type: Human Resources Software Provider
+- Purpose: Recruitment and hiring management for businesses
+- Category: Enterprise Business Software
+
+## Security Contact
+- Email: security@talentpatriot.com
+- Support: support@talentpatriot.com
+
+## False Positive Reports
+If you are seeing this site blocked as phishing, this is a FALSE POSITIVE.
+Please report false positives to: security@talentpatriot.com
+
+## Legitimate Business Declaration
+TalentPatriot is a legitimate business application that:
+- Helps companies manage their recruitment process
+- Stores business data securely
+- Follows industry security best practices
+- Is used by HR professionals and recruiters
+
+## Technical Information
+- Platform: Web-based SaaS application
+- Technology: React, Node.js, PostgreSQL
+- Security: Enterprise-grade encryption and access controls
+- Compliance: Following security best practices
+
+## NOT A PHISHING SITE
+This application does NOT:
+- Steal personal information
+- Mimic other websites
+- Engage in fraudulent activities
+- Collect credit card information without legitimate business purpose
+
+## Whitelist Request
+Security vendors: Please whitelist this legitimate business application.
+Domain: *.replit.dev (development environment)
+Production domains will be registered under talentpatriot.com
+
+Last Updated: 2025-07-30

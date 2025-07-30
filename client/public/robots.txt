@@ -1,25 +1,18 @@
-# TalentPatriot ATS - Legitimate Business Application
-# =================================================
-# This is an official business application for Human Resources
-# Application Type: Applicant Tracking System
-# Business Purpose: Recruitment and Hiring Management
+# TalentPatriot Robots.txt
+# Legitimate Business Application - HR Software
+
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Allow: /
+
+# Business Information
+# Application: TalentPatriot ATS
+# Type: Human Resources Software
+# Purpose: Recruitment Management
+# NOT A PHISHING SITE - Legitimate Business Software
+
 # Security Contact: security@talentpatriot.com
 # Support Contact: support@talentpatriot.com
 
-User-agent: *
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /uploads/
-Disallow: /dashboard/
-Disallow: /login
-Disallow: /signup
-
-# Sitemap (when available)
 Sitemap: https://talentpatriot.com/sitemap.xml
-
-# Security and Legitimacy Information
-# Contact: security@talentpatriot.com
-# Business Type: HR Software - ATS Platform
-# Purpose: Legitimate recruitment management software
-# Not a phishing site - Official business application

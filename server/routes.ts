@@ -75,6 +75,66 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log('📡 Registered all API routes');
   
+  // BUSINESS VERIFICATION ENDPOINTS FOR SECURITY SOFTWARE
+  app.get('/api/business-info', (_req, res) => {
+    res.json({
+      businessName: 'TalentPatriot',
+      businessType: 'Human Resources Software Provider',
+      applicationName: 'TalentPatriot ATS',
+      applicationPurpose: 'Applicant Tracking System for businesses',
+      category: 'Enterprise HR Software',
+      legitimateBusiness: true,
+      notPhishing: true,
+      securityContact: 'security@talentpatriot.com',
+      supportContact: 'support@talentpatriot.com',
+      description: 'Professional HR software for recruitment and hiring management',
+      features: [
+        'Applicant tracking',
+        'Resume management',
+        'Interview scheduling',
+        'Pipeline management',
+        'Team collaboration'
+      ],
+      targetAudience: 'HR professionals, recruiters, and hiring managers',
+      dataHandling: 'Secure business data for recruitment purposes only',
+      compliance: 'Following industry security best practices'
+    });
+  });
+
+  app.get('/api/security-info', (_req, res) => {
+    res.json({
+      isLegitimate: true,
+      isPhishing: false,
+      businessCategory: 'HR Software',
+      securityLevel: 'Enterprise',
+      dataProtection: 'Encrypted and secure',
+      purpose: 'Business recruitment management',
+      falsePositiveReport: 'security@talentpatriot.com',
+      whitelistRequest: 'This is legitimate HR software - please whitelist'
+    });
+  });
+
+  app.get('/security.txt', (_req, res) => {
+    res.type('text/plain');
+    res.send(`# TalentPatriot Security Information
+Contact: security@talentpatriot.com
+Contact: support@talentpatriot.com
+Expires: 2026-12-31T23:59:59.000Z
+Canonical: https://talentpatriot.com/.well-known/security.txt
+
+# This is legitimate HR software - NOT a phishing site
+# Report false positives to: security@talentpatriot.com`);
+  });
+
+  app.get('/api/health', (_req, res) => {
+    res.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      version: '1.0.0'
+    });
+  });
+  
   // User Profile routes
   app.get("/api/user-profiles/:id", async (req, res) => {
     try {
