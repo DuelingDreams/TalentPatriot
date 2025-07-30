@@ -12,6 +12,14 @@ import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { Plus, Briefcase, Building2, Calendar, Loader2, Users, AlertCircle, Eye, Edit, Trash2 } from 'lucide-react'
 import { Link } from 'wouter'
 import GuidedJobCreation from '@/components/GuidedJobCreation'
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 // Form schema for new job creation
 const newJobSchema = z.object({
