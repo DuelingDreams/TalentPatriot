@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS clients (
     contact_name text,
     contact_email text,
     notes text,
-    record_status record_status DEFAULT 'active',
+    status record_status DEFAULT 'active',
     created_by uuid REFERENCES auth.users(id),
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS candidates (
     email text NOT NULL,
     phone text,
     resume_url text,
-    record_status record_status DEFAULT 'active',
+    status record_status DEFAULT 'active',
     created_by uuid REFERENCES auth.users(id),
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
@@ -136,8 +136,9 @@ CREATE TABLE IF NOT EXISTS job_candidate (
     candidate_id uuid REFERENCES candidates(id) ON DELETE CASCADE,
     application_id uuid REFERENCES applications(id) ON DELETE CASCADE,
     stage candidate_stage DEFAULT 'applied',
-    status text DEFAULT 'active',
     notes text,
+    assigned_to uuid REFERENCES auth.users(id),
+    status record_status DEFAULT 'active',
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now(),
     UNIQUE(job_id, candidate_id)
@@ -150,7 +151,7 @@ CREATE TABLE IF NOT EXISTS candidate_notes (
     job_candidate_id uuid REFERENCES job_candidate(id) ON DELETE CASCADE,
     author_id uuid REFERENCES auth.users(id),
     content text NOT NULL,
-    is_private boolean DEFAULT false,
+    is_private text DEFAULT 'false',
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -160,14 +161,17 @@ CREATE TABLE IF NOT EXISTS interviews (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
     job_candidate_id uuid REFERENCES job_candidate(id) ON DELETE CASCADE,
-    interviewer_id uuid REFERENCES auth.users(id),
+    title text NOT NULL,
+    type interview_type NOT NULL,
+    status interview_status DEFAULT 'scheduled',
     scheduled_at timestamptz NOT NULL,
-    duration_minutes integer DEFAULT 60,
+    duration text DEFAULT '60',
     location text,
-    interview_type text DEFAULT 'phone',
-    status text DEFAULT 'scheduled',
+    interviewer_id uuid REFERENCES auth.users(id),
     notes text,
     feedback text,
+    rating text,
+    record_status record_status DEFAULT 'active',
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -176,17 +180,24 @@ CREATE TABLE IF NOT EXISTS interviews (
 CREATE TABLE IF NOT EXISTS messages (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
-    author_id uuid REFERENCES auth.users(id),
+    type message_type NOT NULL,
+    priority message_priority DEFAULT 'normal',
     subject text NOT NULL,
     content text NOT NULL,
-    priority text DEFAULT 'normal',
-    category text DEFAULT 'general',
-    thread_id uuid,
+    sender_id uuid REFERENCES auth.users(id),
+    recipient_id uuid REFERENCES auth.users(id),
     client_id uuid REFERENCES clients(id),
     job_id uuid REFERENCES jobs(id),
     candidate_id uuid REFERENCES candidates(id),
+    job_candidate_id uuid REFERENCES job_candidate(id),
     is_read boolean DEFAULT false,
+    read_at timestamptz,
     is_archived boolean DEFAULT false,
+    thread_id uuid,
+    reply_to_id uuid,
+    attachments text[],
+    tags text[],
+    record_status record_status DEFAULT 'active',
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -194,8 +205,9 @@ CREATE TABLE IF NOT EXISTS messages (
 -- Message Recipients table
 CREATE TABLE IF NOT EXISTS message_recipients (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
     message_id uuid REFERENCES messages(id) ON DELETE CASCADE,
-    user_id uuid REFERENCES auth.users(id),
+    recipient_id uuid REFERENCES auth.users(id),
     is_read boolean DEFAULT false,
     read_at timestamptz,
     created_at timestamptz DEFAULT now()
@@ -295,7 +307,7 @@ DROP POLICY IF EXISTS "Users can view clients in their organizations" ON clients
 CREATE POLICY "Users can view clients in their organizations" ON clients
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status::TEXT = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage clients in their organizations" ON clients;
@@ -329,7 +341,7 @@ DROP POLICY IF EXISTS "Users can view candidates in their organizations" ON cand
 CREATE POLICY "Users can view candidates in their organizations" ON candidates
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status::TEXT = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage candidates in their organizations" ON candidates;
@@ -359,7 +371,7 @@ CREATE POLICY "Users can view pipeline in their organizations" ON job_candidate
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
         (get_user_role(auth.uid()) = 'demo_viewer' AND 
-         job_id IN (SELECT id FROM jobs WHERE record_status::TEXT = 'demo'))
+         status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage pipeline in their organizations" ON job_candidate;
@@ -377,8 +389,7 @@ CREATE POLICY "Users can view notes in their organizations" ON candidate_notes
         (get_user_role(auth.uid()) = 'demo_viewer' AND
          job_candidate_id IN (
              SELECT id FROM job_candidate jc
-             JOIN jobs j ON jc.job_id = j.id
-             WHERE j.record_status::TEXT = 'demo'
+             WHERE jc.status::TEXT = 'demo'
          ))
     );
 
@@ -396,11 +407,7 @@ CREATE POLICY "Users can view interviews in their organizations" ON interviews
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
         (get_user_role(auth.uid()) = 'demo_viewer' AND
-         job_candidate_id IN (
-             SELECT id FROM job_candidate jc
-             JOIN jobs j ON jc.job_id = j.id
-             WHERE j.record_status::TEXT = 'demo'
-         ))
+         record_status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage interviews in their organizations" ON interviews;
