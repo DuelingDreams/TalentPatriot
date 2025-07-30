@@ -43,6 +43,7 @@ const AuthCallback = lazy(() => import("@/pages/AuthCallback"));
 const PublicJobsList = lazy(() => import("@/pages/PublicJobsList"));
 const PublicJobDetail = lazy(() => import("@/pages/PublicJobDetail"));
 const OrganizationSetup = lazy(() => import("@/pages/OrganizationSetup"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -80,6 +81,7 @@ function Router() {
         <Route path="/onboarding/step5" component={OnboardingStep5} />
         <Route path="/onboarding/checklist" component={OnboardingChecklist} />
         <Route path="/unauthorized" component={Unauthorized} />
+        <Route path="/privacy" component={PrivacyPolicy} />
         
         {/* Public job posting routes */}
         <Route path="/careers" component={PublicJobsList} />
