@@ -262,7 +262,7 @@ export default function Landing() {
               <a href="#" className="hover:text-[#1A1A1A] transition-colors px-2">About</a>
               <Link href="/privacy" className="hover:text-[#1A1A1A] transition-colors px-2">Privacy</Link>
               <a href="#" className="hover:text-[#1A1A1A] transition-colors px-2">Terms</a>
-              <a href="#" className="hover:text-[#1A1A1A] transition-colors px-2">Contact</a>
+              <a href="mailto:contact@talentpatriot.com" className="hover:text-[#1A1A1A] transition-colors px-2">Contact</a>
             </nav>
             
             <p className="text-sm text-[#5C667B] text-center font-[Inter,sans-serif]">
