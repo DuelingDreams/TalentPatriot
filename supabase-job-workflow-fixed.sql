@@ -1,45 +1,40 @@
--- Complete Supabase Schema and RLS Policies for TalentPatriot Job Workflow
--- Execute this script in your Supabase SQL Editor
+-- Drop existing tables (if needed for clean slate)
+DROP TABLE IF EXISTS message_recipients CASCADE;
+DROP TABLE IF EXISTS messages CASCADE;
+DROP TABLE IF EXISTS interviews CASCADE;
+DROP TABLE IF EXISTS candidate_notes CASCADE;
+DROP TABLE IF EXISTS job_candidate CASCADE;
+DROP TABLE IF EXISTS applications CASCADE;
+DROP TABLE IF EXISTS candidates CASCADE;
+DROP TABLE IF EXISTS jobs CASCADE;
+DROP TABLE IF EXISTS clients CASCADE;
+DROP TABLE IF EXISTS user_organizations CASCADE;
+DROP TABLE IF EXISTS organizations CASCADE;
+DROP TABLE IF EXISTS user_profiles CASCADE;
 
--- Enable required extensions
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Drop existing types
+DROP TYPE IF EXISTS job_status CASCADE;
+DROP TYPE IF EXISTS job_type CASCADE;
+DROP TYPE IF EXISTS candidate_stage CASCADE;
+DROP TYPE IF EXISTS record_status CASCADE;
+DROP TYPE IF EXISTS user_role CASCADE;
+DROP TYPE IF EXISTS organization_role CASCADE;
+DROP TYPE IF EXISTS interview_type CASCADE;
+DROP TYPE IF EXISTS interview_status CASCADE;
+DROP TYPE IF EXISTS message_type CASCADE;
+DROP TYPE IF EXISTS message_priority CASCADE;
 
--- Create ENUM types if they don't exist
-DO $$ BEGIN
-    CREATE TYPE job_status AS ENUM ('draft', 'open', 'closed', 'cancelled');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE job_type AS ENUM ('full-time', 'part-time', 'contract', 'internship');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE candidate_stage AS ENUM ('applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE record_status AS ENUM ('active', 'inactive', 'demo');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE organization_role AS ENUM ('owner', 'admin', 'recruiter', 'viewer');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
+-- Create ENUM types
+CREATE TYPE job_status AS ENUM ('draft', 'open', 'closed', 'on_hold');
+CREATE TYPE job_type AS ENUM ('full-time', 'part-time', 'contract', 'freelance', 'internship');
+CREATE TYPE candidate_stage AS ENUM ('applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected');
+CREATE TYPE record_status AS ENUM ('active', 'inactive', 'demo');
+CREATE TYPE user_role AS ENUM ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
+CREATE TYPE organization_role AS ENUM ('owner', 'admin', 'recruiter', 'viewer');
+CREATE TYPE interview_type AS ENUM ('phone', 'video', 'in_person', 'technical');
+CREATE TYPE interview_status AS ENUM ('scheduled', 'completed', 'cancelled', 'no_show');
+CREATE TYPE message_type AS ENUM ('general', 'interview', 'application', 'team');
+CREATE TYPE message_priority AS ENUM ('low', 'normal', 'high', 'urgent');
 
 -- User Profiles table (secure user role storage)
 CREATE TABLE IF NOT EXISTS user_profiles (
@@ -189,15 +184,7 @@ CREATE TABLE IF NOT EXISTS messages (
     client_id uuid REFERENCES clients(id),
     job_id uuid REFERENCES jobs(id),
     candidate_id uuid REFERENCES candidates(id),
-    job_candidate_id uuid REFERENCES job_candidate(id),
-    is_read boolean DEFAULT false,
-    read_at timestamptz,
-    is_archived boolean DEFAULT false,
-    thread_id uuid,
-    reply_to_id uuid,
-    attachments text[],
-    tags text[],
-    record_status record_status DEFAULT 'active',
+    is_read text DEFAULT 'false',
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -205,22 +192,18 @@ CREATE TABLE IF NOT EXISTS messages (
 -- Message Recipients table
 CREATE TABLE IF NOT EXISTS message_recipients (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
     message_id uuid REFERENCES messages(id) ON DELETE CASCADE,
     recipient_id uuid REFERENCES auth.users(id),
-    is_read boolean DEFAULT false,
+    is_read text DEFAULT 'false',
     read_at timestamptz,
     created_at timestamptz DEFAULT now()
 );
 
--- Sessions table (required for authentication)
-CREATE TABLE IF NOT EXISTS sessions (
-    sid text PRIMARY KEY,
-    sess jsonb NOT NULL,
-    expire timestamptz NOT NULL
-);
-
 -- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_organizations_owner ON organizations(owner_id);
+CREATE INDEX IF NOT EXISTS idx_user_organizations_user ON user_organizations(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_organizations_org ON user_organizations(org_id);
+CREATE INDEX IF NOT EXISTS idx_clients_org_id ON clients(org_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_org_id ON jobs(org_id);
 CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
 CREATE INDEX IF NOT EXISTS idx_jobs_client_id ON jobs(client_id);
@@ -229,13 +212,10 @@ CREATE INDEX IF NOT EXISTS idx_candidates_email ON candidates(email);
 CREATE INDEX IF NOT EXISTS idx_job_candidate_job_id ON job_candidate(job_id);
 CREATE INDEX IF NOT EXISTS idx_job_candidate_stage ON job_candidate(stage);
 CREATE INDEX IF NOT EXISTS idx_applications_job_candidate ON applications(job_id, candidate_id);
-CREATE INDEX IF NOT EXISTS idx_user_organizations_user ON user_organizations(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_organizations_org ON user_organizations(org_id);
 CREATE INDEX IF NOT EXISTS idx_messages_org_id ON messages(org_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire);
 
 -- Enable Row Level Security on all tables
--- Note: user_profiles table doesn't exist in this script, skipping
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
@@ -248,8 +228,9 @@ ALTER TABLE interviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE message_recipients ENABLE ROW LEVEL SECURITY;
 
--- Drop existing functions if they exist to handle conflicts
+-- Drop existing functions if they exist
 DROP FUNCTION IF EXISTS get_user_org_ids(uuid);
+DROP FUNCTION IF EXISTS get_user_role(uuid);
 
 -- Helper function to get user's organization IDs
 CREATE OR REPLACE FUNCTION get_user_org_ids(user_uuid uuid)
@@ -262,9 +243,6 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- Drop existing function if it exists to handle return type conflicts
-DROP FUNCTION IF EXISTS get_user_role(uuid);
 
 -- Helper function to get user role
 CREATE OR REPLACE FUNCTION get_user_role(user_uuid uuid)
@@ -298,8 +276,14 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- RLS Policies
 
--- Auth Users policies - Note: user_profiles table doesn't exist in this script
--- Skipping user_profiles policies since the table is not created here
+-- User Profiles policies
+DROP POLICY IF EXISTS "Users can view their own profile" ON user_profiles;
+CREATE POLICY "Users can view their own profile" ON user_profiles
+    FOR SELECT USING (id = auth.uid());
+
+DROP POLICY IF EXISTS "Users can update their own profile" ON user_profiles;
+CREATE POLICY "Users can update their own profile" ON user_profiles
+    FOR UPDATE USING (id = auth.uid());
 
 -- Organizations policies
 DROP POLICY IF EXISTS "Users can view organizations they belong to" ON organizations;
@@ -310,13 +294,13 @@ CREATE POLICY "Users can view organizations they belong to" ON organizations
 
 DROP POLICY IF EXISTS "Organization owners can update" ON organizations;
 CREATE POLICY "Organization owners can update" ON organizations
-    FOR UPDATE USING (owner_id = auth.uid()::uuid);
+    FOR UPDATE USING (owner_id = auth.uid());
 
 -- User Organizations policies
 DROP POLICY IF EXISTS "Users can view their organization memberships" ON user_organizations;
 CREATE POLICY "Users can view their organization memberships" ON user_organizations
     FOR SELECT USING (
-        user_id = auth.uid()::uuid OR 
+        user_id = auth.uid() OR 
         org_id = ANY(get_user_org_ids(auth.uid()))
     );
 
@@ -325,14 +309,14 @@ DROP POLICY IF EXISTS "Users can view clients in their organizations" ON clients
 CREATE POLICY "Users can view clients in their organizations" ON clients
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND status::TEXT = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND status = 'demo'::record_status)
     );
 
 DROP POLICY IF EXISTS "Users can manage clients in their organizations" ON clients;
 CREATE POLICY "Users can manage clients in their organizations" ON clients
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid())::TEXT != 'demo_viewer'
+        get_user_role(auth.uid()) != 'demo_viewer'
     );
 
 -- Jobs policies
@@ -340,33 +324,33 @@ DROP POLICY IF EXISTS "Users can view jobs in their organizations" ON jobs;
 CREATE POLICY "Users can view jobs in their organizations" ON jobs
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND record_status::TEXT = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status = 'demo'::record_status)
     );
 
 DROP POLICY IF EXISTS "Users can manage jobs in their organizations" ON jobs;
 CREATE POLICY "Users can manage jobs in their organizations" ON jobs
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid())::TEXT != 'demo_viewer'
+        get_user_role(auth.uid()) != 'demo_viewer'
     );
 
 DROP POLICY IF EXISTS "Public can view open jobs" ON jobs;
 CREATE POLICY "Public can view open jobs" ON jobs
-    FOR SELECT USING (status::TEXT = 'open' AND record_status::TEXT = 'active');
+    FOR SELECT USING (status = 'open'::job_status AND record_status = 'active'::record_status);
 
 -- Candidates policies
 DROP POLICY IF EXISTS "Users can view candidates in their organizations" ON candidates;
 CREATE POLICY "Users can view candidates in their organizations" ON candidates
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND status::TEXT = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND status = 'demo'::record_status)
     );
 
 DROP POLICY IF EXISTS "Users can manage candidates in their organizations" ON candidates;
 CREATE POLICY "Users can manage candidates in their organizations" ON candidates
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid())::TEXT != 'demo_viewer'
+        get_user_role(auth.uid()) != 'demo_viewer'
     );
 
 -- Applications policies
@@ -388,15 +372,14 @@ DROP POLICY IF EXISTS "Users can view pipeline in their organizations" ON job_ca
 CREATE POLICY "Users can view pipeline in their organizations" ON job_candidate
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND 
-         status::TEXT = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND status = 'demo'::record_status)
     );
 
 DROP POLICY IF EXISTS "Users can manage pipeline in their organizations" ON job_candidate;
 CREATE POLICY "Users can manage pipeline in their organizations" ON job_candidate
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid())::TEXT != 'demo_viewer'
+        get_user_role(auth.uid()) != 'demo_viewer'
     );
 
 -- Candidate Notes policies
@@ -404,10 +387,10 @@ DROP POLICY IF EXISTS "Users can view notes in their organizations" ON candidate
 CREATE POLICY "Users can view notes in their organizations" ON candidate_notes
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND
+        (get_user_role(auth.uid()) = 'demo_viewer' AND
          job_candidate_id IN (
              SELECT id FROM job_candidate jc
-             WHERE jc.status::TEXT = 'demo'
+             WHERE jc.status = 'demo'::record_status
          ))
     );
 
@@ -415,8 +398,8 @@ DROP POLICY IF EXISTS "Users can create notes in their organizations" ON candida
 CREATE POLICY "Users can create notes in their organizations" ON candidate_notes
     FOR INSERT WITH CHECK (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid())::TEXT != 'demo_viewer' AND
-        author_id = auth.uid()::uuid
+        get_user_role(auth.uid()) != 'demo_viewer' AND
+        author_id = auth.uid()
     );
 
 -- Interviews policies
@@ -424,15 +407,14 @@ DROP POLICY IF EXISTS "Users can view interviews in their organizations" ON inte
 CREATE POLICY "Users can view interviews in their organizations" ON interviews
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND
-         record_status::TEXT = 'demo')
+        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status = 'demo'::record_status)
     );
 
 DROP POLICY IF EXISTS "Users can manage interviews in their organizations" ON interviews;
 CREATE POLICY "Users can manage interviews in their organizations" ON interviews
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid())::TEXT != 'demo_viewer'
+        get_user_role(auth.uid()) != 'demo_viewer'
     );
 
 -- Messages policies
@@ -440,25 +422,25 @@ DROP POLICY IF EXISTS "Users can view messages in their organizations" ON messag
 CREATE POLICY "Users can view messages in their organizations" ON messages
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND org_id = '00000000-0000-0000-0000-000000000000'::uuid)
+        (get_user_role(auth.uid()) = 'demo_viewer' AND org_id = '00000000-0000-0000-0000-000000000000'::uuid)
     );
 
 DROP POLICY IF EXISTS "Users can create messages in their organizations" ON messages;
 CREATE POLICY "Users can create messages in their organizations" ON messages
     FOR INSERT WITH CHECK (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid())::TEXT != 'demo_viewer' AND
-        sender_id = auth.uid()::uuid
+        get_user_role(auth.uid()) != 'demo_viewer' AND
+        sender_id = auth.uid()
     );
 
 -- Message Recipients policies
 DROP POLICY IF EXISTS "Users can view their message receipts" ON message_recipients;
 CREATE POLICY "Users can view their message receipts" ON message_recipients
-    FOR SELECT USING (recipient_id = auth.uid()::uuid);
+    FOR SELECT USING (recipient_id = auth.uid());
 
 DROP POLICY IF EXISTS "Users can update their message receipts" ON message_recipients;
 CREATE POLICY "Users can update their message receipts" ON message_recipients
-    FOR UPDATE USING (recipient_id = auth.uid()::uuid);
+    FOR UPDATE USING (recipient_id = auth.uid());
 
 -- Create demo organization and data if not exists
 INSERT INTO organizations (id, name, slug, owner_id) 
@@ -479,7 +461,7 @@ BEGIN
     -- Add the organization owner as an owner in user_organizations
     IF NEW.owner_id IS NOT NULL THEN
         INSERT INTO user_organizations (user_id, org_id, role)
-        VALUES (NEW.owner_id::uuid, NEW.id::uuid, 'owner'::organization_role)
+        VALUES (NEW.owner_id, NEW.id, 'owner'::organization_role)
         ON CONFLICT (user_id, org_id) DO NOTHING;
     END IF;
     RETURN NEW;
@@ -560,10 +542,13 @@ CREATE TRIGGER update_messages_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Grant necessary permissions
-GRANT USAGE ON SCHEMA public TO anon, authenticated;
-GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
 
--- Complete setup
-SELECT 'TalentPatriot schema setup complete!' as status;
+-- Grant anonymous access for public job listings
+GRANT SELECT ON jobs TO anon;
+GRANT SELECT ON organizations TO anon;
+GRANT SELECT ON clients TO anon;
+GRANT INSERT ON applications TO anon;
+GRANT INSERT ON candidates TO anon;
