@@ -1,5 +1,5 @@
-import { lazy, Suspense } from "react";
-import { Switch, Route } from "wouter";
+import { lazy, Suspense, useEffect } from "react";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppErrorBoundary } from "@/utils/appErrorBoundary";
+import { supabase } from "@/lib/supabase";
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -44,6 +45,26 @@ const PublicJobDetail = lazy(() => import("@/pages/PublicJobDetail"));
 const OrganizationSetup = lazy(() => import("@/pages/OrganizationSetup"));
 
 function Router() {
+  const [location, setLocation] = useLocation();
+  
+  // Handle OAuth callbacks that arrive as hash parameters
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      // Check if we have an access_token in the hash
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        // Let Supabase handle the OAuth callback
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (!error && data.session) {
+          // Redirect to our auth callback handler
+          setLocation('/auth/callback');
+        }
+      }
+    };
+    
+    handleOAuthCallback();
+  }, [setLocation]);
+  
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>

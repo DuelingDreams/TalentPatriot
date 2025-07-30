@@ -11,6 +11,21 @@ The OAuth functionality is now fully implemented in the application:
 - **Auth Context**: Complete OAuth flow handling with proper redirects
 - **Error Handling**: Comprehensive error management for OAuth failures
 
+## Important: Supabase URL Configuration
+
+Before configuring OAuth providers, you MUST set up your redirect URLs in Supabase:
+
+1. Go to **Authentication** → **URL Configuration** in Supabase Dashboard
+2. Set the **Site URL** to your production URL (e.g., `https://talentpatriot.com`)
+3. Add ALL of these to **Redirect URLs**:
+   - `http://localhost:3000` (for local development)
+   - `http://localhost:3000/auth/callback`
+   - `https://talentpatriot.com` (your production URL)
+   - `https://talentpatriot.com/auth/callback`
+   - For Replit: `https://talentpatriot.com.user.repl.co` and `https://talentpatriot.com.user.repl.co/auth/callback`
+
+⚠️ **Critical**: Without these redirect URLs configured, OAuth will fail with "localhost refused to connect" errors.
+
 ## Supabase Dashboard Configuration Required
 
 To enable OAuth authentication, you need to configure the providers in your Supabase dashboard:

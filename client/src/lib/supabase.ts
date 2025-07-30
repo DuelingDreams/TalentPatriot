@@ -23,7 +23,8 @@ export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnon
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: true, // Enable to handle OAuth redirects
+    flowType: 'pkce', // Use PKCE flow for better security
     // Handle storage errors gracefully in Replit environment
     storage: {
       getItem: (key: string) => {
