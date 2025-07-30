@@ -20,12 +20,12 @@ const jobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
   description: z.string().min(1, 'Job description is required'),
   client_id: z.string().optional(),
-  status: z.enum(['open', 'closed', 'on_hold', 'filled']).default('open'),
+  status: z.enum(['draft', 'open', 'closed', 'on_hold', 'filled']).default('draft'),
   location: z.string().min(1, 'Job location is required'),
   remote_option: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
   salary_range: z.string().optional(),
   experience_level: z.enum(['entry', 'mid', 'senior', 'executive']).default('mid'),
-  job_type: z.enum(['full_time', 'part_time', 'contract', 'freelance']).default('full_time'),
+  job_type: z.enum(['full-time', 'part-time', 'contract', 'internship']).default('full-time'),
   posting_targets: z.array(z.string()).default([]),
   auto_post: z.boolean().default(false)
 })
@@ -96,12 +96,12 @@ export function PostJobDialog({ trigger, triggerButton }: PostJobDialogProps) {
       title: '',
       description: '',
       client_id: '',
-      status: 'open',
+      status: 'draft',
       location: '',
       remote_option: 'onsite',
       salary_range: '',
       experience_level: 'mid',
-      job_type: 'full_time',
+      job_type: 'full-time',
       posting_targets: [],
       auto_post: false
     }
@@ -133,12 +133,12 @@ export function PostJobDialog({ trigger, triggerButton }: PostJobDialogProps) {
         description: data.description,
         clientId: data.client_id, // Map client_id to clientId
         orgId: currentOrgId, // Add required orgId (now guaranteed to be non-null)
-        status: data.status,
+        status: data.status as 'draft' | 'open' | 'closed' | 'on_hold' | 'filled',
         location: data.location,
         remoteOption: data.remote_option,
         salaryRange: data.salary_range || null,
         experienceLevel: data.experience_level,
-        jobType: data.job_type,
+        jobType: data.job_type as 'full-time' | 'part-time' | 'contract' | 'internship',
         postingTargets: data.posting_targets,
         autoPost: data.auto_post
       }
@@ -150,10 +150,8 @@ export function PostJobDialog({ trigger, triggerButton }: PostJobDialogProps) {
       const boardNames = data.posting_targets.map(id => jobBoards.find(b => b.id === id)?.name).filter(Boolean).join(', ')
       
       toast({
-        title: "Job Created Successfully!",
-        description: boardCount > 0 
-          ? `Job posted to ATS${data.auto_post ? ` and queued for ${boardNames}` : `. Selected for posting to: ${boardNames}`}`
-          : "Job posted to internal ATS pipeline.",
+        title: "Job Saved as Draft!",
+        description: "Job has been saved as a draft. You can publish it when ready to make it live.",
       })
       setIsOpen(false)
       form.reset()
@@ -343,10 +341,10 @@ export function PostJobDialog({ trigger, triggerButton }: PostJobDialogProps) {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="full_time">Full Time</SelectItem>
-                        <SelectItem value="part_time">Part Time</SelectItem>
+                        <SelectItem value="full-time">Full Time</SelectItem>
+                        <SelectItem value="part-time">Part Time</SelectItem>
                         <SelectItem value="contract">Contract</SelectItem>
-                        <SelectItem value="freelance">Freelance</SelectItem>
+                        <SelectItem value="internship">Internship</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

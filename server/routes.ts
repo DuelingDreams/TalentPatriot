@@ -448,6 +448,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Publish job (change status from draft to open)
+  app.patch("/api/jobs/:id/publish", writeLimiter, async (req, res) => {
+    try {
+      const jobId = req.params.id;
+      const job = await storage.updateJob(jobId, { status: 'open' });
+      res.json(job);
+    } catch (error) {
+      console.error('Error publishing job:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to publish job", details: errorMessage });
+    }
+  });
+
   // Candidates routes
   app.get("/api/candidates", async (req, res) => {
     try {
@@ -861,6 +874,22 @@ Expires: 2025-12-31T23:59:59.000Z
         candidateId: candidate.id,
         status: 'applied'
       });
+
+      // IMPORTANT: Also create pipeline entry so candidate appears in kanban board
+      try {
+        const pipelineEntry = await storage.createJobCandidate({
+          orgId: job.orgId,
+          jobId,
+          candidateId: candidate.id,
+          applicationId: application.id,
+          stage: 'applied',
+          status: 'active'
+        });
+        console.log('Created pipeline entry:', pipelineEntry.id);
+      } catch (pipelineError) {
+        console.error('Error creating pipeline entry:', pipelineError);
+        // Continue even if pipeline creation fails
+      }
 
       res.status(201).json({ 
         message: "Application submitted successfully",

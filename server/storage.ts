@@ -83,6 +83,7 @@ export interface IStorage {
   getJobsByOrg(orgId: string): Promise<Job[]>;
   getJobsByClient(clientId: string): Promise<Job[]>;
   createJob(job: InsertJob): Promise<Job>;
+  updateJob(id: string, data: Partial<InsertJob>): Promise<Job>;
   
   // Candidates
   getCandidate(id: string): Promise<Candidate | undefined>;
@@ -482,7 +483,7 @@ export class MemStorage implements IStorage {
     const now = new Date();
     const job: Job = { 
       ...insertJob,
-      status: insertJob.status ?? 'open',
+      status: insertJob.status ?? 'draft',
       description: insertJob.description ?? null,
       recordStatus: insertJob.recordStatus ?? 'active',
       assignedTo: insertJob.assignedTo ?? null,
@@ -493,6 +494,22 @@ export class MemStorage implements IStorage {
     };
     this.jobs.set(id, job);
     return job;
+  }
+
+  async updateJob(id: string, updateData: Partial<InsertJob>): Promise<Job> {
+    const existingJob = this.jobs.get(id);
+    if (!existingJob) {
+      throw new Error(`Job with id ${id} not found`);
+    }
+    
+    const updatedJob = {
+      ...existingJob,
+      ...updateData,
+      updatedAt: new Date()
+    };
+    
+    this.jobs.set(id, updatedJob);
+    return updatedJob;
   }
 
   // Candidates
@@ -1367,7 +1384,7 @@ class DatabaseStorage implements IStorage {
         org_id: insertJob.orgId,
         client_id: insertJob.clientId || null, // Make client_id optional
         description: insertJob.description || null,
-        status: insertJob.status || 'open',
+        status: insertJob.status || 'draft',
         record_status: insertJob.recordStatus || 'active',
         assigned_to: insertJob.assignedTo || null,
         created_by: insertJob.createdBy || null,
@@ -1387,6 +1404,36 @@ class DatabaseStorage implements IStorage {
       return data as Job
     } catch (err) {
       console.error('Job creation exception:', err)
+      throw err
+    }
+  }
+
+  async updateJob(id: string, updateData: Partial<InsertJob>): Promise<Job> {
+    try {
+      // Map the camelCase fields to snake_case for database with full column support
+      const dbUpdate: any = {}
+      if (updateData.title !== undefined) dbUpdate.title = updateData.title
+      if (updateData.description !== undefined) dbUpdate.description = updateData.description
+      if (updateData.status !== undefined) dbUpdate.status = updateData.status
+      if (updateData.clientId !== undefined) dbUpdate.client_id = updateData.clientId
+      if (updateData.assignedTo !== undefined) dbUpdate.assigned_to = updateData.assignedTo
+      if (updateData.recordStatus !== undefined) dbUpdate.record_status = updateData.recordStatus
+      
+      const { data, error } = await supabase
+        .from('jobs')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database job update error:', error)
+        throw new Error(`Failed to update job: ${error.message}`)
+      }
+      
+      return data as Job
+    } catch (err) {
+      console.error('Job update exception:', err)
       throw err
     }
   }

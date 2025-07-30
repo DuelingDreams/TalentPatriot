@@ -110,11 +110,34 @@ export default function Jobs() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'draft': return 'bg-gray-100 text-gray-600'
       case 'open': return 'bg-green-100 text-green-800'
       case 'closed': return 'bg-gray-100 text-gray-800'
       case 'on_hold': return 'bg-yellow-100 text-yellow-800'
       case 'filled': return 'bg-blue-100 text-blue-800'
       default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const handlePublishJob = async (jobId: string) => {
+    try {
+      await fetch(`/api/jobs/${jobId}/publish`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      toast({
+        title: "Job Published!",
+        description: "Job is now live and available for applications.",
+      })
+      // Refresh jobs list
+      window.location.reload()
+    } catch (error) {
+      console.error('Error publishing job:', error)
+      toast({
+        title: "Error",
+        description: "Failed to publish job. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -318,9 +341,21 @@ export default function Jobs() {
                           View Pipeline
                         </Button>
                       </Link>
-                      <Badge className={getStatusColor(job.status)}>
-                        {job.status.replace('_', ' ')}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(job.status)}>
+                          {job.status.replace('_', ' ')}
+                        </Badge>
+                        {job.status === 'draft' && !isDemoMode && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePublishJob(job.id)}
+                            className="text-xs"
+                          >
+                            Publish
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
