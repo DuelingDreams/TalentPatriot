@@ -111,6 +111,7 @@ export interface IStorage {
   getJobCandidate(id: string): Promise<JobCandidate | undefined>;
   getJobCandidatesByJob(jobId: string): Promise<JobCandidate[]>;
   getJobCandidatesByCandidate(candidateId: string): Promise<JobCandidate[]>;
+  getJobCandidatesByOrg(orgId: string): Promise<JobCandidate[]>;
   createJobCandidate(jobCandidate: InsertJobCandidate): Promise<JobCandidate>;
   updateJobCandidate(id: string, jobCandidate: Partial<InsertJobCandidate>): Promise<JobCandidate>;
   
@@ -591,6 +592,10 @@ export class MemStorage implements IStorage {
 
   async getJobCandidatesByCandidate(candidateId: string): Promise<JobCandidate[]> {
     return Array.from(this.jobCandidates.values()).filter(jc => jc.candidateId === candidateId);
+  }
+
+  async getJobCandidatesByOrg(orgId: string): Promise<JobCandidate[]> {
+    return Array.from(this.jobCandidates.values()).filter(jc => jc.orgId === orgId);
   }
 
   async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
@@ -1823,6 +1828,36 @@ class DatabaseStorage implements IStorage {
     }
     
     return data as JobCandidate[]
+  }
+
+  async getJobCandidatesByOrg(orgId: string): Promise<JobCandidate[]> {
+    try {
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .select(`
+          *,
+          candidates (
+            id,
+            name,
+            email,
+            phone,
+            resume_url,
+            created_at
+          )
+        `)
+        .eq('org_id', orgId)
+        .order('updated_at', { ascending: false })
+      
+      if (error) {
+        console.error('Database error fetching job candidates by org:', error)
+        throw new Error(`Failed to fetch job candidates: ${error.message}`)
+      }
+      
+      return data as JobCandidate[]
+    } catch (err) {
+      console.error('Exception in getJobCandidatesByOrg:', err)
+      throw err
+    }
   }
 
   async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {

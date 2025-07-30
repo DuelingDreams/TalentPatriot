@@ -1,6 +1,3 @@
-The code changes enhance the signOut function to include error handling, state clearing, and redirection.
-```
-```replit_final_file
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
