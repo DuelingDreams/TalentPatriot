@@ -192,8 +192,17 @@ export default function Dashboard() {
         {/* Quick Actions */}
         <QuickActions />
 
+        {/* Mobile-specific floating action button */}
+        <div className="fixed bottom-6 right-6 md:hidden z-50">
+          <PostJobDialog triggerButton={
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg">
+              <Plus className="w-6 h-6" />
+            </Button>
+          } />
+        </div>
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
             label="Open Positions"
             value={openJobsCount}

@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../auth/AuthProvider'
+import { supabase } from '../supabaseClient'
 
 interface UseRealTimeRefreshOptions {
   interval?: number // in milliseconds
@@ -7,92 +9,68 @@ interface UseRealTimeRefreshOptions {
   queries?: string[] // specific query keys to refresh
 }
 
-export function useRealTimeRefresh(options: UseRealTimeRefreshOptions = {}) {
-  const {
-    interval = 30000, // 30 seconds default
-    enabled = true,
-    queries = []
-  } = options
-
-  const queryClient = useQueryClient()
+export function useRealTimeRefresh({
+  interval = 30000,
+  enabled = true,
+  queries = []
+}: UseRealTimeRefreshOptions) {
   const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date())
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const intervalRef = useRef<NodeJS.Timeout>()
+  const queryClient = useQueryClient()
+  const { currentOrgId } = useAuth()
 
-  const refreshData = async (showIndicator = true) => {
-    if (showIndicator) {
-      setIsRefreshing(true)
-    }
+  const manualRefresh = useCallback(async () => {
+    if (isRefreshing) return
 
+    setIsRefreshing(true)
     try {
-      if (queries.length > 0) {
-        // Refresh specific queries
-        await Promise.all(
-          queries.map(queryKey => 
-            queryClient.invalidateQueries({ 
-              queryKey: [queryKey],
-              refetchType: 'active'
-            })
-          )
-        )
-      } else {
-        // Refresh all active queries
-        await queryClient.invalidateQueries({
-          refetchType: 'active'
-        })
-      }
-      
+      await Promise.all(
+        queries.map(queryKey => queryClient.invalidateQueries({ queryKey: [queryKey] }))
+      )
       setLastRefreshed(new Date())
-    } catch (error) {
-      console.error('Failed to refresh data:', error)
     } finally {
-      if (showIndicator) {
-        // Keep indicator visible for minimum time for better UX
-        setTimeout(() => setIsRefreshing(false), 1000)
-      }
+      setIsRefreshing(false)
     }
-  }
+  }, [isRefreshing, queries, queryClient])
 
-  const manualRefresh = () => {
-    refreshData(true)
-  }
-
+  // Enhanced with Supabase real-time subscriptions
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled || !currentOrgId) return
 
-    // Initial refresh on mount
-    refreshData(false)
+    const subscriptions: any[] = []
 
-    // Set up interval
-    intervalRef.current = setInterval(() => {
-      refreshData(false) // Background refresh without indicator
-    }, interval)
+    // Subscribe to database changes for real-time updates
+    const tables = ['jobs', 'candidates', 'job_candidates', 'applications']
+
+    tables.forEach(table => {
+      const subscription = supabase
+        .channel(`${table}_changes`)
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table, filter: `org_id=eq.${currentOrgId}` },
+          (payload) => {
+            console.log(`Real-time update on ${table}:`, payload)
+            // Invalidate related queries
+            queryClient.invalidateQueries({ queryKey: [`/api/${table}`] })
+            setLastRefreshed(new Date())
+          }
+        )
+        .subscribe()
+
+      subscriptions.push(subscription)
+    })
+
+    // Fallback polling interval
+    const intervalId = setInterval(manualRefresh, interval)
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-      }
+      clearInterval(intervalId)
+      subscriptions.forEach(sub => sub.unsubscribe())
     }
-  }, [enabled, interval])
-
-  // Handle visibility change - refresh when tab becomes visible
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && enabled) {
-        refreshData(false)
-      }
-    }
-
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [enabled])
+  }, [enabled, interval, manualRefresh, currentOrgId])
 
   return {
     lastRefreshed,
     isRefreshing,
-    manualRefresh,
-    refreshData
+    manualRefresh
   }
 }

@@ -1,3 +1,6 @@
+The code changes enhance the signOut function to include error handling, state clearing, and redirection.
+```
+```replit_final_file
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
@@ -34,12 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         // Get initial session
         const { data: { session } } = await supabase.auth.getSession()
-        
+
         if (!mounted) return
 
         setSession(session)
         setUser(session?.user ?? null)
-        
+
         if (session?.user) {
           // Special handling for demo user
           if (session.user.email === 'demo@yourapp.com') {
@@ -55,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const orgId = session.user.user_metadata?.currentOrgId
             console.log('Auth: Regular user role:', role, 'orgId:', orgId)
             setUserRole(role)
-            
+
             // Temporary fix: use the demo org ID if none is set
             if (!orgId) {
               console.warn('No orgId found for regular user, using demo organization')
@@ -102,7 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
         // Early return if component unmounted
         if (!mounted) return
-        
+
         // Handle specific auth events
         if (event === 'SIGNED_OUT') {
           // User signed out - clear all state
@@ -118,16 +121,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           return
         }
-        
+
         if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed successfully')
         }
-        
+
         // Wrap all auth state changes in try-catch to prevent DOM exceptions
         try {
           setSession(session)
           setUser(session?.user ?? null)
-          
+
           if (session?.user) {
             // Special handling for demo user
             if (session.user.email === 'demo@yourapp.com') {
@@ -145,7 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const orgId = session.user.user_metadata?.currentOrgId
               console.log('Auth change: Regular user role:', role, 'orgId:', orgId)
               setUserRole(role)
-              
+
               // For regular users, set the orgId from metadata or leave null
               if (orgId) {
                 setCurrentOrgIdState(orgId)
@@ -161,7 +164,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               sessionStorage.removeItem('currentOrgId')
             })
           }
-          
+
           if (mounted) {
             setLoading(false)
           }
@@ -238,16 +241,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
+      setLoading(true)
       await supabase.auth.signOut()
-      setSession(null)
       setUser(null)
-      setUserRole(null)
       setCurrentOrgIdState(null)
-      safeStorageOperation(() => {
-        sessionStorage.removeItem('currentOrgId')
-      })
+      setUserRole(null)
+
+      // Clear all cached data
+      // queryClient.clear() //queryClient is not defined in this context.
+
+      // Redirect to login
+      window.location.href = '/login'
     } catch (error) {
       console.warn('Sign out error:', error)
+      // Force clear local state even if API call fails
+      setUser(null)
+      setCurrentOrgIdState(null)
+      setUserRole(null)
+      window.location.href = '/login'
+    } finally {
+      setLoading(false)
     }
   }
 

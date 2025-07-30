@@ -229,6 +229,35 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Batch data endpoint for dashboard
+  app.get("/api/batch/dashboard-data", async (req, res) => {
+    try {
+      const orgId = req.query.org_id as string;
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+      
+      const [jobs, candidates, clients, jobCandidates] = await Promise.all([
+        storage.getJobsByOrg(orgId),
+        storage.getCandidatesByOrg(orgId),
+        storage.getClientsByOrg(orgId),
+        storage.getJobCandidatesByOrg(orgId)
+      ]);
+      
+      res.setHeader('Cache-Control', 'public, max-age=60'); // 1 minute cache
+      res.json({
+        jobs,
+        candidates,
+        clients,
+        jobCandidates,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error fetching batch dashboard data:", error);
+      res.status(500).json({ error: "Failed to fetch dashboard data" });
+    }
+  });
+
   // Optimized search endpoint with full-text search
   app.get("/api/search/:type", async (req, res) => {
     try {
