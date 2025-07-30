@@ -1,0 +1,62 @@
+Update the TalentPatriot app to implement the new color scheme with Tailwind theme configuration.
+
+New Color Scheme:
+- Primary: Deep Navy Blue (#01257D)
+- Accent: Electric Blue (#00FFFF)
+- Background: White (#FFFFFF)
+
+Steps:
+
+1. **Tailwind Theme Configuration**
+   - Open `tailwind.config.js` and extend the theme with the new colors:
+     ```js
+     theme: {
+       extend: {
+         colors: {
+           primary: '#01257D',
+           accent: '#00FFFF',
+           background: '#FFFFFF',
+         },
+       },
+     }
+     ```
+   - Save the file and ensure Tailwind is picking up the new colors.
+
+2. **CSS Variables (Optional for custom styles)**
+   - In `globals.css` or `index.css`, add:
+     ```css
+     :root {
+       --primary-color: #01257D;
+       --accent-color: #00FFFF;
+       --background-color: #FFFFFF;
+     }
+     ```
+
+3. **Refactor Components and Pages**
+   - Replace old brand colors with new Tailwind classes:
+     - `bg-primary text-white` for headers, navbars, and footers.
+     - `bg-accent text-primary hover:bg-primary hover:text-accent` for CTA buttons.
+     - `bg-background text-primary` for page backgrounds and body text.
+   - Ensure all buttons, links, and hover states are updated to the new palette.
+
+4. **Clean Up Old Colors**
+   - Remove unused color classes or inline styles that are no longer needed.
+   - Update any custom SCSS or CSS variables to match the new scheme.
+
+5. **Verify Accessibility**
+   - Ensure Deep Navy (#01257D) has sufficient contrast on white backgrounds.
+   - Check hover states and focus rings for visibility.
+
+6. **Apply Across App**
+   - Landing page
+   - Dashboard
+   - Public job pages
+   - Login/sign-up pages
+
+7. **Final Check**
+   - Test in light mode (and dark mode if supported).
+   - Confirm that all pages now use `primary`, `accent`, and `background` colors consistently.
+
+After completing the changes:
+- Provide a summary of updated files and components.
+- Confirm Tailwind classes like `bg-primary` and `text-accent` work correctly.

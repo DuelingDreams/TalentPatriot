@@ -14,6 +14,9 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
+        'primary': '#01257D',
+        'accent': '#00FFFF',
+        'background': '#FFFFFF',
         'tp-primary': '#1F3A5F',
         'tp-accent': '#264C99',
         'tp-page-bg': '#F7F9FC',

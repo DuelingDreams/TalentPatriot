@@ -155,13 +155,13 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#1F3A5F] rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="heading-1 text-[#1A1A1A]">Welcome back</h1>
+          <h1 className="heading-1">Welcome back</h1>
           <p className="body-text mt-2">Sign in to your ATS account</p>
         </div>
 
@@ -201,7 +201,7 @@ export default function Login() {
             <div className="relative mb-6">
               <Separator />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-white px-4 text-sm text-[#5C667B]">or</span>
+                <span className="bg-white px-4 text-sm text-gray-500">or</span>
               </div>
             </div>
 
@@ -273,7 +273,7 @@ export default function Login() {
                   onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   disabled={loading}
                 />
-                <Label htmlFor="remember" className="text-sm text-[#5C667B]">
+                <Label htmlFor="remember" className="text-sm text-gray-600">
                   Remember me for 30 days
                 </Label>
               </div>
@@ -291,10 +291,10 @@ export default function Login() {
             </form>
             
             <div className="mt-6 text-center">
-              <p className="text-sm text-[#5C667B]">
+              <p className="text-sm text-gray-600">
                 Don't have an account?{' '}
                 <Link href="/signup">
-                  <span className="link-primary font-medium">
+                  <span className="text-primary hover:text-primary/80 font-medium">
                     Sign up
                   </span>
                 </Link>
@@ -305,7 +305,7 @@ export default function Login() {
 
         {showDemoOption && (
           <div className="mt-8 text-center">
-            <p className="text-sm text-[#5C667B] mb-3">
+            <p className="text-sm text-gray-600 mb-3">
               Developer Demo Access
             </p>
             <Button 
