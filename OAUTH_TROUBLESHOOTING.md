@@ -58,13 +58,24 @@ In your Supabase Dashboard:
 3. Click "Continue with Google/Microsoft"
 4. After authentication, you should be redirected to your app
 
+### Microsoft OAuth Specific Issues
+
+**Common Microsoft OAuth Problems:**
+
+1. **Provider Name**: The app correctly maps "microsoft" to "azure" (Supabase's provider name)
+2. **Account Types**: Ensure your Azure app registration supports:
+   - "Accounts in any organizational directory and personal Microsoft accounts"
+   - NOT just "Personal Microsoft accounts only"
+3. **Tenant Configuration**: In Supabase, leave "Azure Tenant URL" empty for multi-tenant support
+
 ### Current Implementation
 
 The app has been updated to handle both redirect types:
 
 1. **Hash-based redirects**: App.tsx detects `#access_token` in URL and processes it
 2. **Path-based redirects**: AuthCallback page handles `/auth/callback` route
-3. **Automatic routing**: Based on user's onboarding status:
+3. **Provider Mapping**: "microsoft" → "azure" for Supabase compatibility
+4. **Automatic routing**: Based on user's onboarding status:
    - New users → Onboarding Step 2
    - Users without organization → Organization Setup
    - Existing users with organization → Dashboard

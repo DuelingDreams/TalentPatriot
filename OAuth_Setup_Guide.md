@@ -63,11 +63,15 @@ To enable OAuth authentication, you need to configure the providers in your Supa
    - Go to [Azure Portal](https://portal.azure.com)
    - Navigate to **App registrations** → **New registration**
    - Name: TalentPatriot ATS
-   - Redirect URI: `https://[your-supabase-project].supabase.co/auth/v1/callback`
+   - **Supported account types**: Select "Accounts in any organizational directory and personal Microsoft accounts"
+   - Redirect URI: 
+     - Platform: **Web**
+     - URI: `https://[your-supabase-project].supabase.co/auth/v1/callback`
 
 3. **Configure in Supabase**:
    - Client ID: Your Azure Application (client) ID
    - Client Secret: Create a new client secret in Azure
+   - Azure Tenant URL: **Leave empty** (for multi-tenant support)
 
 ### 4. User Flow After Configuration
 
