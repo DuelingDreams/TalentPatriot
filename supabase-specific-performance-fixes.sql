@@ -5,8 +5,11 @@
 -- CRITICAL FIX 1: Timezone Query Optimization (26.6% of query time!)
 -- ========================================
 
+-- Drop and recreate to ensure clean state
+DROP TABLE IF EXISTS mv_timezone_names;
+
 -- Create a cached timezone table to avoid expensive pg_timezone_names queries
-CREATE TABLE IF NOT EXISTS mv_timezone_names (
+CREATE TABLE mv_timezone_names (
     name text PRIMARY KEY,
     created_at timestamp DEFAULT now()
 );
@@ -14,8 +17,7 @@ CREATE TABLE IF NOT EXISTS mv_timezone_names (
 -- Populate the timezone cache with just the names
 INSERT INTO mv_timezone_names (name)
 SELECT DISTINCT name 
-FROM pg_timezone_names
-ON CONFLICT (name) DO NOTHING;
+FROM pg_timezone_names;
 
 -- Create index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_mv_timezone_names ON mv_timezone_names(name);
