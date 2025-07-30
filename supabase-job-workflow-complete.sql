@@ -310,13 +310,13 @@ CREATE POLICY "Users can view organizations they belong to" ON organizations
 
 DROP POLICY IF EXISTS "Organization owners can update" ON organizations;
 CREATE POLICY "Organization owners can update" ON organizations
-    FOR UPDATE USING (owner_id = auth.uid());
+    FOR UPDATE USING (owner_id = auth.uid()::uuid);
 
 -- User Organizations policies
 DROP POLICY IF EXISTS "Users can view their organization memberships" ON user_organizations;
 CREATE POLICY "Users can view their organization memberships" ON user_organizations
     FOR SELECT USING (
-        user_id = auth.uid() OR 
+        user_id = auth.uid()::uuid OR 
         org_id = ANY(get_user_org_ids(auth.uid()))
     );
 
@@ -416,7 +416,7 @@ CREATE POLICY "Users can create notes in their organizations" ON candidate_notes
     FOR INSERT WITH CHECK (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
         get_user_role(auth.uid())::TEXT != 'demo_viewer' AND
-        author_id = auth.uid()
+        author_id = auth.uid()::uuid
     );
 
 -- Interviews policies
@@ -450,17 +450,17 @@ CREATE POLICY "Users can create messages in their organizations" ON messages
     FOR INSERT WITH CHECK (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
         get_user_role(auth.uid())::TEXT != 'demo_viewer' AND
-        sender_id = auth.uid()
+        sender_id = auth.uid()::uuid
     );
 
 -- Message Recipients policies
 DROP POLICY IF EXISTS "Users can view their message receipts" ON message_recipients;
 CREATE POLICY "Users can view their message receipts" ON message_recipients
-    FOR SELECT USING (recipient_id = auth.uid());
+    FOR SELECT USING (recipient_id = auth.uid()::uuid);
 
 DROP POLICY IF EXISTS "Users can update their message receipts" ON message_recipients;
 CREATE POLICY "Users can update their message receipts" ON message_recipients
-    FOR UPDATE USING (recipient_id = auth.uid());
+    FOR UPDATE USING (recipient_id = auth.uid()::uuid);
 
 -- Create demo organization and data if not exists
 INSERT INTO organizations (id, name, slug, owner_id) 
