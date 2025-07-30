@@ -366,6 +366,7 @@ Preferred communication style: Simple, everyday language.
 - **ENHANCED DOM EXCEPTION HANDLING**: Improved error handler to comprehensively catch Supabase auth errors, network errors, and storage exceptions preventing unhandled promise rejections
 - **OPTIMIZED PIPELINE SCREENSHOT SIZING**: Reduced container width from max-w-6xl to max-w-5xl and added height constraints (max-h-[500px] md:max-h-[600px]) for better visual focus and professional appearance across all screen sizes
 - **COMPREHENSIVE DOM EXCEPTION FIX**: Enhanced error handler with comprehensive promise rejection handling covering all Supabase errors, network errors, DOM exceptions, storage errors, and general error events to completely eliminate unhandled rejections
+- **FIXED CRITICAL JOB CREATION BUTTON CRASHES**: Resolved PostJobDialog interface mismatch causing app crashes on Dashboard "Post New Job", Jobs page "New Job", and "Create Your First Job" buttons by updating PostJobDialog to accept both 'trigger' and 'triggerButton' props and fixing Dashboard component usage
 
 ## System Architecture
 

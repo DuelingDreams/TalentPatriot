@@ -24,7 +24,8 @@ import {
   TrendingUp,
   UserCheck,
   Clock,
-  DollarSign
+  DollarSign,
+  Plus
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -110,7 +111,12 @@ export default function Dashboard() {
               isRefreshing={realTimeRefresh.isRefreshing}
               onRefresh={realTimeRefresh.manualRefresh}
             />
-            <PostJobDialog />
+            <PostJobDialog triggerButton={
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Post New Job
+              </Button>
+            } />
           </div>
         </div>
 

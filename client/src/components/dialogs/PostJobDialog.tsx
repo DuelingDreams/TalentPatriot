@@ -79,10 +79,11 @@ const jobBoards = [
 ]
 
 interface PostJobDialogProps {
+  trigger?: React.ReactNode
   triggerButton?: React.ReactNode
 }
 
-export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
+export function PostJobDialog({ trigger, triggerButton }: PostJobDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
@@ -176,7 +177,7 @@ export function PostJobDialog({ triggerButton }: PostJobDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        {triggerButton || defaultTrigger}
+        {trigger || triggerButton || defaultTrigger}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
