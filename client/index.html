@@ -137,6 +137,21 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // Prevent runtime error plugin from loading in production
+      if (typeof window !== 'undefined') {
+        // Override fetch to prevent runtime-error-plugin loading
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+          const url = args[0];
+          if (typeof url === 'string' && url.includes('runtime-error-plugin')) {
+            console.log('Blocked runtime error plugin loading');
+            return Promise.reject(new Error('Runtime error plugin blocked'));
+          }
+          return originalFetch.apply(this, args);
+        };
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
