@@ -33,7 +33,7 @@ import { Button } from '@/components/ui/button'
 
 
 export default function Dashboard() {
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
   
   // Set up real-time refresh for dashboard data
   const realTimeRefresh = useRealTimeRefresh({
@@ -83,6 +83,71 @@ export default function Dashboard() {
     { name: 'Filled', value: jobs?.filter((j: any) => j.status === 'filled').length || 0, color: '#8b5cf6' },
   ]
 
+  // Generate smart alerts based on real data
+  const generateSmartAlerts = () => {
+    const alerts: any[] = []
+    
+    if (!currentOrgId) {
+      // Special alert for users without organization
+      alerts.push({
+        id: 'no-org',
+        type: 'urgent',
+        title: 'Organization Setup Required',
+        description: 'Please complete your organization setup to access your data',
+        action: {
+          label: 'Setup Organization',
+          href: '/settings/organization'
+        },
+        dismissible: false
+      })
+      return alerts
+    }
+
+    // Check for new applications
+    const recentApplications = jobCandidates?.filter((jc: any) => {
+      const appliedDate = new Date(jc.created_at)
+      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+      return jc.stage === 'applied' && appliedDate > dayAgo
+    })
+    
+    if (recentApplications && recentApplications.length > 0) {
+      alerts.push({
+        id: 'new-applications',
+        type: 'warning',
+        title: `${recentApplications.length} New Application${recentApplications.length > 1 ? 's' : ''}`,
+        description: 'Recent applications require review',
+        action: {
+          label: 'Review Applications',
+          href: '/candidates'
+        },
+        dismissible: true
+      })
+    }
+
+    // Check for pipeline bottlenecks
+    const stuckCandidates = jobCandidates?.filter((jc: any) => {
+      const updatedDate = new Date(jc.updated_at)
+      const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+      return ['screening', 'interview', 'technical'].includes(jc.stage) && updatedDate < fiveDaysAgo
+    })
+    
+    if (stuckCandidates && stuckCandidates.length > 3) {
+      alerts.push({
+        id: 'pipeline-bottleneck',
+        type: 'info',
+        title: 'Pipeline Bottleneck',
+        description: `${stuckCandidates.length} candidates stuck in pipeline for >5 days`,
+        action: {
+          label: 'View Pipeline',
+          href: '/pipeline'
+        },
+        dismissible: true
+      })
+    }
+
+    return alerts
+  }
+
   // Show demo dashboard for demo viewers (after all hooks are called)
   if (userRole === 'demo_viewer') {
     return (
@@ -121,7 +186,7 @@ export default function Dashboard() {
         </div>
 
         {/* Smart Alerts */}
-        <SmartAlerts />
+        <SmartAlerts alerts={generateSmartAlerts()} />
 
         {/* Quick Actions */}
         <QuickActions />

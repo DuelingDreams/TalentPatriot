@@ -40,6 +40,7 @@ const Landing = lazy(() => import("@/pages/Landing"));
 // Public job posting pages
 const PublicJobsList = lazy(() => import("@/pages/PublicJobsList"));
 const PublicJobDetail = lazy(() => import("@/pages/PublicJobDetail"));
+const OrganizationSetup = lazy(() => import("@/pages/OrganizationSetup"));
 
 function Router() {
   return (
@@ -62,6 +63,11 @@ function Router() {
         <Route path="/careers/:id" component={PublicJobDetail} />
         
         {/* Protected routes */}
+        <Route path="/settings/organization">
+          <ProtectedRoute>
+            <OrganizationSetup />
+          </ProtectedRoute>
+        </Route>
         <Route path="/dashboard">
           <ProtectedRoute>
             <Dashboard />

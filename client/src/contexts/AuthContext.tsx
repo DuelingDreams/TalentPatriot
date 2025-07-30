@@ -146,13 +146,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               console.log('Auth change: Regular user role:', role, 'orgId:', orgId)
               setUserRole(role)
               
-              // Temporary fix: use the demo org ID if none is set
-              if (!orgId) {
-                console.warn('No orgId found for regular user, using demo organization')
-                const demoOrgId = '550e8400-e29b-41d4-a716-446655440000' // Use demo org with existing clients
-                setCurrentOrgIdState(demoOrgId)
-              } else {
+              // For regular users, set the orgId from metadata or leave null
+              if (orgId) {
                 setCurrentOrgIdState(orgId)
+              } else {
+                console.warn('No orgId found for regular user - organization selection needed')
+                setCurrentOrgIdState(null)
               }
             }
           } else {

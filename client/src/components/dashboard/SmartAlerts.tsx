@@ -33,49 +33,15 @@ interface SmartAlertsProps {
 export function SmartAlerts({ alerts, onDismiss }: SmartAlertsProps) {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
 
-  // Demo alerts if none provided
-  const demoAlerts: AlertItem[] = alerts || [
-    {
-      id: '1',
-      type: 'urgent',
-      title: '3 Overdue Interviews',
-      description: 'Interviews scheduled for yesterday need rescheduling',
-      action: {
-        label: 'Review Calendar',
-        href: '/calendar'
-      },
-      dismissible: true
-    },
-    {
-      id: '2', 
-      type: 'warning',
-      title: '5 New Applications',
-      description: 'Senior Frontend Developer applications require review',
-      action: {
-        label: 'Review Applications',
-        href: '/candidates'
-      },
-      dismissible: true
-    },
-    {
-      id: '3',
-      type: 'info',
-      title: 'Pipeline Bottleneck',
-      description: '8 candidates stuck in Technical stage for >5 days',
-      action: {
-        label: 'View Pipeline',
-        href: '/pipeline'
-      },
-      dismissible: true
-    }
-  ]
+  // Use provided alerts or empty array for real users
+  const displayAlerts: AlertItem[] = alerts || []
 
   const handleDismiss = (alertId: string) => {
     setDismissedAlerts(prev => new Set(Array.from(prev).concat(alertId)))
     onDismiss?.(alertId)
   }
 
-  const visibleAlerts = demoAlerts.filter(alert => !dismissedAlerts.has(alert.id))
+  const visibleAlerts = displayAlerts.filter((alert: AlertItem) => !dismissedAlerts.has(alert.id))
 
   if (visibleAlerts.length === 0) {
     return null
@@ -122,7 +88,7 @@ export function SmartAlerts({ alerts, onDismiss }: SmartAlertsProps) {
 
   return (
     <div className="space-y-3">
-      {visibleAlerts.map((alert) => (
+      {visibleAlerts.map((alert: AlertItem) => (
         <Alert key={alert.id} className={`${getAlertStyle(alert.type)} border`}>
           <div className="flex items-start gap-3">
             {getAlertIcon(alert.type)}
