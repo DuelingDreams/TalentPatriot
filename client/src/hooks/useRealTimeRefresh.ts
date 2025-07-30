@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '../auth/AuthProvider'
-import { supabase } from '../supabaseClient'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 
 interface UseRealTimeRefreshOptions {
   interval?: number // in milliseconds
