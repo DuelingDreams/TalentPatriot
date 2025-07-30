@@ -210,6 +210,20 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Add New Candidate</DialogTitle>
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              Basic Info
+            </span>
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+              Resume
+            </span>
+            <span className="flex items-center gap-1">
+              <div className="w-2 h-2 bg-slate-300 rounded-full"></div>
+              Details
+            </span>
+          </div>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto pr-2">
           <Form {...form}>
@@ -364,9 +378,21 @@ export function AddCandidateDialog({ triggerButton }: AddCandidateDialogProps) {
                   name="skills"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Skills</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        Skills
+                        <span className="text-xs bg-slate-100 px-2 py-1 rounded">Optional</span>
+                      </FormLabel>
                       <FormControl>
-                        <Input placeholder="React, TypeScript, Node.js" {...field} />
+                        <div className="relative">
+                          <Input 
+                            placeholder="React, TypeScript, Node.js" 
+                            {...field}
+                            className="pr-10"
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                            {field.value ? field.value.split(',').length : 0} skills
+                          </div>
+                        </div>
                       </FormControl>
                       <p className="text-xs text-slate-500">Separate multiple skills with commas</p>
                       <FormMessage />

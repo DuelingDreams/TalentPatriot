@@ -402,6 +402,10 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
 
             {/* Job Board Selection Section */}
             <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
+              <div className="flex items-center gap-2 mb-2">
+                <Globe className="w-4 h-4 text-blue-600" />
+                <span className="text-sm font-medium text-slate-700">Distribution Settings</span>
+              </div>
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-medium">Job Board Distribution</h4>

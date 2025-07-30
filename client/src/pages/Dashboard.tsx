@@ -35,14 +35,14 @@ import { Button } from '@/components/ui/button'
 
 export default function Dashboard() {
   const { userRole, currentOrgId } = useAuth()
-  
+
   // Set up real-time refresh for dashboard data
   const realTimeRefresh = useRealTimeRefresh({
     interval: 30000, // 30 seconds
     enabled: true,
     queries: ['/api/jobs', '/api/clients', '/api/candidates', '/api/job-candidates']
   })
-  
+
   // Fetch real data using our hooks with real-time refresh - MUST be called before any conditional returns
   const { data: jobs, isLoading: jobsLoading } = useJobs()
   const { data: clients, isLoading: clientsLoading } = useClients()
@@ -87,7 +87,7 @@ export default function Dashboard() {
   // Generate smart alerts based on real data
   const smartAlerts = React.useMemo(() => {
     const alerts: any[] = []
-    
+
     if (!currentOrgId) {
       // Special alert for users without organization
       alerts.push({
@@ -110,7 +110,7 @@ export default function Dashboard() {
       const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
       return jc.stage === 'applied' && appliedDate > dayAgo
     })
-    
+
     if (recentApplications && recentApplications.length > 0) {
       alerts.push({
         id: 'new-applications',
@@ -131,7 +131,7 @@ export default function Dashboard() {
       const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
       return ['screening', 'interview', 'technical'].includes(jc.stage) && updatedDate < fiveDaysAgo
     })
-    
+
     if (stuckCandidates && stuckCandidates.length > 3) {
       alerts.push({
         id: 'pipeline-bottleneck',
@@ -255,7 +255,7 @@ export default function Dashboard() {
                 ></div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Avg Time to Hire</span>
@@ -265,7 +265,7 @@ export default function Dashboard() {
                 <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '70%' }}></div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Client Satisfaction</span>
@@ -283,7 +283,7 @@ export default function Dashboard() {
           <div className="lg:col-span-2">
             <RecentActivity loading={false} />
           </div>
-          
+
           <div className="space-y-6">
             {/* Quick Actions */}
             <Card>
@@ -309,7 +309,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </button>
-                
+
                 <button
                   onClick={() => window.location.href = '/pipeline'}
                   className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
@@ -328,7 +328,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </button>
-                
+
                 <button
                   onClick={() => window.location.href = '/candidates'}
                   className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"

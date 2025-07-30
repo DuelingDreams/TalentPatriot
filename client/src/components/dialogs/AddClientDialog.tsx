@@ -101,9 +101,20 @@ export function AddClientDialog({ children }: AddClientDialogProps) {
                 id="industry"
                 value={formData.industry}
                 onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                placeholder="Technology"
+                placeholder="e.g. Technology, Healthcare, Finance"
+                list="industry-suggestions"
                 className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
               />
+              <datalist id="industry-suggestions">
+                <option value="Technology" />
+                <option value="Healthcare" />
+                <option value="Finance" />
+                <option value="Manufacturing" />
+                <option value="Retail" />
+                <option value="Consulting" />
+                <option value="Education" />
+                <option value="Real Estate" />
+              </datalist>
             </div>
             
             <div className="space-y-2">
