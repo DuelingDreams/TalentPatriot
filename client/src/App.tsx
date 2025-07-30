@@ -58,8 +58,8 @@ function Router() {
         <Route path="/unauthorized" component={Unauthorized} />
         
         {/* Public job posting routes */}
-        <Route path="/jobs" component={PublicJobsList} />
-        <Route path="/jobs/:id" component={PublicJobDetail} />
+        <Route path="/careers" component={PublicJobsList} />
+        <Route path="/careers/:id" component={PublicJobDetail} />
         
         {/* Protected routes */}
         <Route path="/dashboard">
