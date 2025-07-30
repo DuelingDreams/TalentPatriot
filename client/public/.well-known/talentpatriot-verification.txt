@@ -1,0 +1,6 @@
+talentpatriot-domain-verification=2025-07-30-legitimate-hr-software
+business-name=TalentPatriot
+business-type=HR-Software-Provider
+application-purpose=Applicant-Tracking-System
+legitimate-business=true
+not-phishing=true

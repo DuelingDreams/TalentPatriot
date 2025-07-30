@@ -16,3 +16,8 @@ Allow: /
 # Support Contact: support@talentpatriot.com
 
 Sitemap: https://talentpatriot.com/sitemap.xml
+
+# Verification for security scanners
+# Domain: talentpatriot.com
+# Business: TalentPatriot - Professional ATS Software
+# Contact: support@talentpatriot.com

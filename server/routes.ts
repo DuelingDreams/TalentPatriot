@@ -117,12 +117,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/security.txt', (_req, res) => {
     res.type('text/plain');
     res.send(`# TalentPatriot Security Information
-Contact: security@talentpatriot.com
-Contact: support@talentpatriot.com
+Contact: mailto:security@talentpatriot.com
+Contact: mailto:support@talentpatriot.com
 Expires: 2026-12-31T23:59:59.000Z
 Canonical: https://talentpatriot.com/.well-known/security.txt
+Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
 # This is legitimate HR software - NOT a phishing site
+# Domain: talentpatriot.com
 # Report false positives to: security@talentpatriot.com`);
   });
 

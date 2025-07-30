@@ -1,11 +1,12 @@
 # TalentPatriot Security Information
 # ==================================
 
-Contact: security@talentpatriot.com
-Contact: support@talentpatriot.com
+Contact: mailto:security@talentpatriot.com
+Contact: mailto:support@talentpatriot.com
 Expires: 2026-12-31T23:59:59.000Z
 Preferred-Languages: en
 Canonical: https://talentpatriot.com/.well-known/security.txt
+Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
 # Business Legitimacy Declaration
 # This is TalentPatriot - Professional HR Software
