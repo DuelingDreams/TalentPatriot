@@ -43,15 +43,10 @@ END $$;
 
 -- User Profiles table (secure user role storage)
 CREATE TABLE IF NOT EXISTS user_profiles (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-    role user_role NOT NULL DEFAULT 'recruiter',
-    email text,
-    first_name text,
-    last_name text,
+    id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    role user_role NOT NULL DEFAULT 'hiring_manager',
     created_at timestamptz DEFAULT now(),
-    updated_at timestamptz DEFAULT now(),
-    UNIQUE(user_id)
+    updated_at timestamptz DEFAULT now()
 );
 
 -- Organizations table
@@ -70,8 +65,7 @@ CREATE TABLE IF NOT EXISTS user_organizations (
     user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
     org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
     role organization_role NOT NULL DEFAULT 'recruiter',
-    created_at timestamptz DEFAULT now(),
-    updated_at timestamptz DEFAULT now(),
+    joined_at timestamptz DEFAULT now(),
     UNIQUE(user_id, org_id)
 );
 
@@ -86,7 +80,8 @@ CREATE TABLE IF NOT EXISTS clients (
     contact_name text,
     contact_email text,
     notes text,
-    record_status record_status DEFAULT 'active',
+    status record_status DEFAULT 'active',
+    created_by uuid REFERENCES auth.users(id),
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -98,16 +93,13 @@ CREATE TABLE IF NOT EXISTS jobs (
     client_id uuid REFERENCES clients(id) ON DELETE SET NULL,
     title text NOT NULL,
     description text,
-    status job_status DEFAULT 'draft',
-    job_type job_type DEFAULT 'full-time',
     location text,
-    salary_min integer,
-    salary_max integer,
-    requirements text[],
-    benefits text[],
+    job_type job_type DEFAULT 'full-time',
+    department text,
+    status job_status DEFAULT 'draft',
+    record_status record_status DEFAULT 'active',
     assigned_to uuid REFERENCES auth.users(id),
     created_by uuid REFERENCES auth.users(id),
-    record_status record_status DEFAULT 'active',
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -120,11 +112,8 @@ CREATE TABLE IF NOT EXISTS candidates (
     email text NOT NULL,
     phone text,
     resume_url text,
-    skills text[],
-    experience_years integer,
-    status text DEFAULT 'active',
+    status record_status DEFAULT 'active',
     created_by uuid REFERENCES auth.users(id),
-    record_status record_status DEFAULT 'active',
     created_at timestamptz DEFAULT now(),
     updated_at timestamptz DEFAULT now()
 );
@@ -268,7 +257,7 @@ DROP FUNCTION IF EXISTS get_user_role(uuid);
 -- Helper function to get user role
 CREATE OR REPLACE FUNCTION get_user_role(user_uuid uuid)
 RETURNS user_role AS $$
-    SELECT role FROM user_profiles WHERE user_id = user_uuid;
+    SELECT role FROM user_profiles WHERE id = user_uuid;
 $$ LANGUAGE sql SECURITY DEFINER;
 
 -- RLS Policies
@@ -276,11 +265,11 @@ $$ LANGUAGE sql SECURITY DEFINER;
 -- User Profiles policies
 DROP POLICY IF EXISTS "Users can view own profile" ON user_profiles;
 CREATE POLICY "Users can view own profile" ON user_profiles
-    FOR SELECT USING (auth.uid() = user_id);
+    FOR SELECT USING (auth.uid() = id);
 
 DROP POLICY IF EXISTS "Users can update own profile" ON user_profiles;
 CREATE POLICY "Users can update own profile" ON user_profiles
-    FOR UPDATE USING (auth.uid() = user_id);
+    FOR UPDATE USING (auth.uid() = id);
 
 -- Organizations policies
 DROP POLICY IF EXISTS "Users can view organizations they belong to" ON organizations;
