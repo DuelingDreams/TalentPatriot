@@ -6,6 +6,16 @@ if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
+    // Handle runtime error plugin failures
+    if (reason && typeof reason === 'object' && reason.message) {
+      if (reason.message.includes('Failed to fetch dynamically imported module') &&
+          reason.message.includes('runtime-error-plugin')) {
+        console.log('Suppressed runtime error plugin import error')
+        event.preventDefault()
+        return
+      }
+    }
+    
     // Handle critical auth errors silently
     if (reason && typeof reason === 'object') {
       if (reason.message?.includes('refresh_token_not_found') ||
@@ -38,6 +48,16 @@ if (typeof window !== 'undefined') {
   // Minimal error handler for critical DOM exceptions only
   window.addEventListener('error', (event) => {
     const error = event.error
+    
+    // Handle runtime error plugin failures
+    if (error && error.message) {
+      if (error.message.includes('Failed to fetch dynamically imported module') &&
+          error.message.includes('runtime-error-plugin')) {
+        console.log('Suppressed runtime error plugin import error')
+        event.preventDefault()
+        return
+      }
+    }
     
     // Only handle critical storage errors that could break the app
     if (error instanceof DOMException && 
