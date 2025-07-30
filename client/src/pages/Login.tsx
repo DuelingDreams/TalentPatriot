@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'wouter'
 import { useAuth } from '@/contexts/AuthContext'
-import { TPButton } from '@/components/TPButton'
-import { TPCard } from '@/components/TPCard'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -155,52 +155,53 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[#1F3A5F] rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="heading-1">Welcome back</h1>
+          <h1 className="heading-1 text-[#1A1A1A]">Welcome back</h1>
           <p className="body-text mt-2">Sign in to your ATS account</p>
         </div>
 
-        <TPCard variant="light" className="max-w-md">
-          <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-primary">Sign In</h2>
-            <p className="text-sm text-primary/70 mt-1">
+        <Card>
+          <CardHeader>
+            <CardTitle>Sign In</CardTitle>
+            <CardDescription>
               Enter your email and password to access your account
-            </p>
-          </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
             {/* OAuth Options */}
             <div className="space-y-3 mb-6">
-              <TPButton
+              <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12"
+                className="w-full h-12 border-2 hover:bg-slate-50"
                 onClick={() => handleOAuthSignIn('google')}
                 disabled={loading}
               >
                 <Chrome className="w-5 h-5 mr-3" />
                 Continue with Google
-              </TPButton>
+              </Button>
               
-              <TPButton
+              <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12"
+                className="w-full h-12 border-2 hover:bg-slate-50"
                 onClick={() => handleOAuthSignIn('microsoft')}
                 disabled={loading}
               >
                 <Mail className="w-5 h-5 mr-3" />
                 Continue with Microsoft
-              </TPButton>
+              </Button>
             </div>
 
             <div className="relative mb-6">
               <Separator />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-white px-4 text-sm text-gray-500">or</span>
+                <span className="bg-white px-4 text-sm text-[#5C667B]">or</span>
               </div>
             </div>
 
@@ -245,9 +246,9 @@ export default function Login() {
                     disabled={loading}
                     className={passwordError ? 'border-red-500 focus-visible:ring-red-500 pr-10' : 'pr-10'}
                   />
-                  <TPButton
+                  <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
@@ -258,7 +259,7 @@ export default function Login() {
                     ) : (
                       <Eye className="h-4 w-4 text-slate-500" />
                     )}
-                  </TPButton>
+                  </Button>
                 </div>
                 {passwordError && (
                   <p className="text-sm text-red-600">{passwordError}</p>
@@ -272,41 +273,42 @@ export default function Login() {
                   onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   disabled={loading}
                 />
-                <Label htmlFor="remember" className="text-sm text-gray-600">
+                <Label htmlFor="remember" className="text-sm text-[#5C667B]">
                   Remember me for 30 days
                 </Label>
               </div>
               
-              <TPButton 
+              <Button 
                 type="submit" 
-                variant="primary"
+                variant="default"
                 size="lg"
                 className="w-full" 
                 disabled={loading}
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {loading ? 'Signing in...' : 'Sign In'}
-              </TPButton>
+              </Button>
             </form>
             
             <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-[#5C667B]">
                 Don't have an account?{' '}
                 <Link href="/signup">
-                  <span className="text-primary hover:text-primary/80 font-medium">
+                  <span className="link-primary font-medium">
                     Sign up
                   </span>
                 </Link>
               </p>
             </div>
-        </TPCard>
+          </CardContent>
+        </Card>
 
         {showDemoOption && (
           <div className="mt-8 text-center">
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-[#5C667B] mb-3">
               Developer Demo Access
             </p>
-            <TPButton 
+            <Button 
               variant="outline" 
               className="w-full"
               onClick={async () => {
@@ -337,7 +339,7 @@ export default function Login() {
                 <span className="mr-2">🔓</span>
               )}
               Try Demo Account
-            </TPButton>
+            </Button>
           </div>
         )}
       </div>

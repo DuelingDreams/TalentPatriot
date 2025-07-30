@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import { cn } from '@/lib/utils'
-import { TPButton } from '@/components/TPButton'
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
@@ -63,10 +63,14 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       )}>
         <div className="flex h-full flex-col">
           {/* Logo/Brand */}
-          <div className="flex h-16 items-center px-6 border-b border-gray-200 bg-gradient-to-r from-primary to-primary/80">
+          <div className="flex h-16 items-center px-6 border-b border-gray-200 bg-gradient-to-r from-[#1F3A5F] to-[#264C99]">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center p-1">
-                <span className="text-primary font-bold text-lg">TP</span>
+              <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center p-1">
+                <img 
+                  src="/tp-logo.png" 
+                  alt="TalentPatriot Logo" 
+                  className="w-8 h-8 object-contain filter brightness-0 invert"
+                />
               </div>
               <div>
                 <span className="text-xl font-bold text-white font-[Inter,sans-serif]">TalentPatriot</span>
@@ -83,19 +87,19 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
               
               return (
                 <Link key={item.href} href={item.href}>
-                  <TPButton
-                    variant={isActive ? "secondary" : "outline"}
+                  <Button
+                    variant={isActive ? "secondary" : "ghost"}
                     className={cn(
                       "w-full justify-start text-sm font-medium",
                       isActive 
-                        ? "shadow-[0_0_10px_rgba(0,255,255,0.3)]" 
-                        : ""
+                        ? "text-[#1F3A5F] bg-[#E6F0FF] hover:bg-[#D1E7FF]" 
+                        : "text-[#5C667B] hover:bg-[#F0F4F8]"
                     )}
                     onClick={onClose}
                   >
                     <Icon className="w-5 h-5 mr-3" />
                     {item.label}
-                  </TPButton>
+                  </Button>
                 </Link>
               )
             })}
@@ -109,14 +113,14 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
               
               return (
                 <Link key={item.href} href={item.href}>
-                  <TPButton
-                    variant="outline"
-                    className="w-full justify-start text-sm font-medium"
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-sm font-medium text-[#5C667B] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
                     onClick={onClose}
                   >
                     <Icon className="w-5 h-5 mr-3" />
                     {item.label}
-                  </TPButton>
+                  </Button>
                 </Link>
               )
             })}
