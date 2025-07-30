@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { TPButton } from '@/components/TPButton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/AuthContext'
 import { 
@@ -83,19 +83,19 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
               
               return (
                 <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
+                  <TPButton
+                    variant={isActive ? "secondary" : "outline"}
                     className={cn(
                       "w-full justify-start text-sm font-medium",
                       isActive 
-                        ? "text-white bg-accent hover:bg-accent hover:brightness-110" 
-                        : "text-gray-700 hover:bg-gray-100"
+                        ? "shadow-[0_0_10px_rgba(0,255,255,0.3)]" 
+                        : ""
                     )}
                     onClick={onClose}
                   >
                     <Icon className="w-5 h-5 mr-3" />
                     {item.label}
-                  </Button>
+                  </TPButton>
                 </Link>
               )
             })}
@@ -109,14 +109,14 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
               
               return (
                 <Link key={item.href} href={item.href}>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-primary"
+                  <TPButton
+                    variant="outline"
+                    className="w-full justify-start text-sm font-medium"
                     onClick={onClose}
                   >
                     <Icon className="w-5 h-5 mr-3" />
                     {item.label}
-                  </Button>
+                  </TPButton>
                 </Link>
               )
             })}

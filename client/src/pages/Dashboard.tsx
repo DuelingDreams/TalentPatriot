@@ -31,8 +31,7 @@ import {
   DollarSign,
   Plus
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+
 
 
 
@@ -190,10 +189,10 @@ export default function Dashboard() {
               onRefresh={realTimeRefresh.manualRefresh}
             />
             <PostJobDialog triggerButton={
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              <TPButton variant="primary" className="shadow-lg">
                 <Plus className="w-4 h-4 mr-2" />
                 Post New Job
-              </Button>
+              </TPButton>
             } />
           </div>
         </div>
@@ -231,9 +230,9 @@ export default function Dashboard() {
         {/* Mobile-specific floating action button */}
         <div className="fixed bottom-6 right-6 md:hidden z-50">
           <PostJobDialog triggerButton={
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 shadow-lg">
+            <TPButton variant="primary" className="rounded-full w-14 h-14 shadow-lg p-0">
               <Plus className="w-6 h-6" />
-            </Button>
+            </TPButton>
           } />
         </div>
 
@@ -275,11 +274,9 @@ export default function Dashboard() {
         </div>
 
         {/* Performance Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
+        <TPCard variant="light">
+          <h3 className="text-lg font-semibold mb-6">Performance Overview</h3>
+          <div className="space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
@@ -320,8 +317,8 @@ export default function Dashboard() {
                 <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '92%' }}></div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </TPCard>
 
         {/* Activity and Actions Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

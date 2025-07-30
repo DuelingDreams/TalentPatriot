@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'wouter'
 import { useAuth } from '@/contexts/AuthContext'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { TPButton } from '@/components/TPButton'
+import { TPCard } from '@/components/TPCard'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -165,37 +165,36 @@ export default function Login() {
           <p className="body-text mt-2">Sign in to your ATS account</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>
+        <TPCard variant="light" className="max-w-md">
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-primary">Sign In</h2>
+            <p className="text-sm text-primary/70 mt-1">
               Enter your email and password to access your account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
             {/* OAuth Options */}
             <div className="space-y-3 mb-6">
-              <Button
+              <TPButton
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-2 hover:bg-slate-50"
+                className="w-full h-12"
                 onClick={() => handleOAuthSignIn('google')}
                 disabled={loading}
               >
                 <Chrome className="w-5 h-5 mr-3" />
                 Continue with Google
-              </Button>
+              </TPButton>
               
-              <Button
+              <TPButton
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-2 hover:bg-slate-50"
+                className="w-full h-12"
                 onClick={() => handleOAuthSignIn('microsoft')}
                 disabled={loading}
               >
                 <Mail className="w-5 h-5 mr-3" />
                 Continue with Microsoft
-              </Button>
+              </TPButton>
             </div>
 
             <div className="relative mb-6">
@@ -246,9 +245,9 @@ export default function Login() {
                     disabled={loading}
                     className={passwordError ? 'border-red-500 focus-visible:ring-red-500 pr-10' : 'pr-10'}
                   />
-                  <Button
+                  <TPButton
                     type="button"
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
@@ -259,7 +258,7 @@ export default function Login() {
                     ) : (
                       <Eye className="h-4 w-4 text-slate-500" />
                     )}
-                  </Button>
+                  </TPButton>
                 </div>
                 {passwordError && (
                   <p className="text-sm text-red-600">{passwordError}</p>
@@ -278,16 +277,16 @@ export default function Login() {
                 </Label>
               </div>
               
-              <Button 
+              <TPButton 
                 type="submit" 
-                variant="default"
+                variant="primary"
                 size="lg"
                 className="w-full" 
                 disabled={loading}
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                 {loading ? 'Signing in...' : 'Sign In'}
-              </Button>
+              </TPButton>
             </form>
             
             <div className="mt-6 text-center">
@@ -300,15 +299,14 @@ export default function Login() {
                 </Link>
               </p>
             </div>
-          </CardContent>
-        </Card>
+        </TPCard>
 
         {showDemoOption && (
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600 mb-3">
               Developer Demo Access
             </p>
-            <Button 
+            <TPButton 
               variant="outline" 
               className="w-full"
               onClick={async () => {
@@ -339,7 +337,7 @@ export default function Login() {
                 <span className="mr-2">🔓</span>
               )}
               Try Demo Account
-            </Button>
+            </TPButton>
           </div>
         )}
       </div>
