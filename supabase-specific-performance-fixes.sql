@@ -5,7 +5,9 @@
 -- CRITICAL FIX 1: Timezone Query Optimization (26.6% of query time!)
 -- ========================================
 
--- Drop and recreate to ensure clean state
+-- Drop existing materialized view if it exists
+DROP MATERIALIZED VIEW IF EXISTS mv_timezone_names;
+-- Drop table if it exists
 DROP TABLE IF EXISTS mv_timezone_names;
 
 -- Create a cached timezone table to avoid expensive pg_timezone_names queries
