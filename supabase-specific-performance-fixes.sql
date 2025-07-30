@@ -8,15 +8,12 @@
 -- Create a cached timezone table to avoid expensive pg_timezone_names queries
 CREATE TABLE IF NOT EXISTS mv_timezone_names (
     name text PRIMARY KEY,
-    abbrev text,
-    utc_offset interval,
-    is_dst boolean,
     created_at timestamp DEFAULT now()
 );
 
--- Populate the timezone cache
-INSERT INTO mv_timezone_names (name, abbrev, utc_offset, is_dst)
-SELECT name, abbrev, utc_offset, is_dst 
+-- Populate the timezone cache with just the names
+INSERT INTO mv_timezone_names (name)
+SELECT DISTINCT name 
 FROM pg_timezone_names
 ON CONFLICT (name) DO NOTHING;
 
