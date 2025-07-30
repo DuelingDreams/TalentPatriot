@@ -1,3 +1,4 @@
+import React from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 
@@ -84,7 +85,7 @@ export default function Dashboard() {
   ]
 
   // Generate smart alerts based on real data
-  const generateSmartAlerts = () => {
+  const smartAlerts = React.useMemo(() => {
     const alerts: any[] = []
     
     if (!currentOrgId) {
@@ -146,7 +147,7 @@ export default function Dashboard() {
     }
 
     return alerts
-  }
+  }, [currentOrgId, jobCandidates])
 
   // Show demo dashboard for demo viewers (after all hooks are called)
   if (userRole === 'demo_viewer') {
@@ -186,7 +187,7 @@ export default function Dashboard() {
         </div>
 
         {/* Smart Alerts */}
-        <SmartAlerts alerts={generateSmartAlerts()} />
+        <SmartAlerts alerts={smartAlerts} />
 
         {/* Quick Actions */}
         <QuickActions />
