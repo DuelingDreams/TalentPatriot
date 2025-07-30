@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS applications (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     job_id uuid REFERENCES jobs(id) ON DELETE CASCADE,
     candidate_id uuid REFERENCES candidates(id) ON DELETE CASCADE,
-    status text DEFAULT 'applied',
+    status record_status DEFAULT 'active',
     applied_at timestamptz DEFAULT now(),
     UNIQUE(job_id, candidate_id)
 );
@@ -352,7 +352,7 @@ CREATE POLICY "Users can manage jobs in their organizations" ON jobs
 
 DROP POLICY IF EXISTS "Public can view open jobs" ON jobs;
 CREATE POLICY "Public can view open jobs" ON jobs
-    FOR SELECT USING (status = 'open' AND record_status::TEXT = 'active');
+    FOR SELECT USING (status::TEXT = 'open' AND record_status::TEXT = 'active');
 
 -- Candidates policies
 DROP POLICY IF EXISTS "Users can view candidates in their organizations" ON candidates;
@@ -440,9 +440,7 @@ DROP POLICY IF EXISTS "Users can view messages in their organizations" ON messag
 CREATE POLICY "Users can view messages in their organizations" ON messages
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND org_id = (
-            SELECT id FROM organizations WHERE name = 'TalentPatriot Demo'
-        ))
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND org_id = '00000000-0000-0000-0000-000000000000'::uuid)
     );
 
 DROP POLICY IF EXISTS "Users can create messages in their organizations" ON messages;
