@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { TPButton } from '@/components/TPButton'
+import { TPCard } from '@/components/TPCard'
 import { Input } from '@/components/ui/input'
 import { 
   Users, 
@@ -40,14 +40,14 @@ export default function Landing() {
             </div>
             <div className="flex items-center gap-2 md:gap-3">
               <Link href="/login">
-                <Button className="bg-accent text-primary hover:bg-accent hover:brightness-110 font-medium text-sm md:text-base px-3 md:px-4 py-2 transition-all shadow-[0_0_15px_rgba(0,255,255,0.3)]">
+                <TPButton variant="secondary" className="font-medium text-sm md:text-base shadow-[0_0_15px_rgba(0,255,255,0.3)]">
                   Sign In
-                </Button>
+                </TPButton>
               </Link>
               <Link href="/onboarding/step1">
-                <Button className="bg-white text-primary hover:bg-gray-100 font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-all">
+                <TPButton variant="outline" className="font-medium text-sm md:text-base whitespace-nowrap">
                   Start Free
-                </Button>
+                </TPButton>
               </Link>
             </div>
           </div>
@@ -67,15 +67,17 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link href="/onboarding/step1">
-              <Button className="bg-primary hover:brightness-110 text-white px-8 py-4 rounded-md font-medium text-base transition-all w-full sm:w-auto shadow-lg">
+              <TPButton variant="primary" size="lg" className="font-medium shadow-lg">
                 Start Free
-              </Button>
+              </TPButton>
             </Link>
-            <Button 
-              className="bg-accent text-primary hover:brightness-110 px-8 py-4 font-medium text-base w-full sm:w-auto transition-all shadow-[0_0_20px_rgba(0,255,255,0.4)]"
+            <TPButton 
+              variant="secondary" 
+              size="lg" 
+              className="font-medium shadow-[0_0_20px_rgba(0,255,255,0.4)]"
             >
               Book a Demo
-            </Button>
+            </TPButton>
           </div>
           
           {/* Responsive Placeholder Image/Video Section */}
@@ -98,41 +100,35 @@ export default function Landing() {
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <Card className="border-2 border-transparent hover:border-accent shadow-sm hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                  <UserCheck className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Recruiters</h3>
-                <p className="text-base text-primary/80 font-[Inter,sans-serif]">
-                  Track candidates and communication in one place.
-                </p>
-              </CardContent>
-            </Card>
+            <TPCard variant="light" className="text-center">
+              <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                <UserCheck className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Recruiters</h3>
+              <p className="text-base text-primary/80 font-[Inter,sans-serif]">
+                Track candidates and communication in one place.
+              </p>
+            </TPCard>
             
-            <Card className="border-2 border-transparent hover:border-accent shadow-sm hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Rocket className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Founders</h3>
-                <p className="text-base text-primary/80 font-[Inter,sans-serif]">
-                  Stay in the loop — even if you don't have a hiring team.
-                </p>
-              </CardContent>
-            </Card>
+            <TPCard variant="light" className="text-center">
+              <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                <Rocket className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Founders</h3>
+              <p className="text-base text-primary/80 font-[Inter,sans-serif]">
+                Stay in the loop — even if you don't have a hiring team.
+              </p>
+            </TPCard>
             
-            <Card className="border-2 border-transparent hover:border-accent shadow-sm hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Target className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Hiring Managers</h3>
-                <p className="text-base text-primary/80 font-[Inter,sans-serif]">
-                  Ditch the spreadsheet. See the pipeline at a glance.
-                </p>
-              </CardContent>
-            </Card>
+            <TPCard variant="light" className="text-center">
+              <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center mx-auto mb-6">
+                <Target className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold text-primary mb-4 font-[Inter,sans-serif]">Hiring Managers</h3>
+              <p className="text-base text-primary/80 font-[Inter,sans-serif]">
+                Ditch the spreadsheet. See the pipeline at a glance.
+              </p>
+            </TPCard>
           </div>
         </div>
       </section>
@@ -145,53 +141,45 @@ export default function Landing() {
           </h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-white border-2 border-transparent hover:border-accent shadow-sm hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
-                  <Sparkles className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Drag-and-drop pipelines</h3>
-                <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
-                  Move candidates through stages with simple drag and drop
-                </p>
-              </CardContent>
-            </Card>
+            <TPCard variant="light" className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Drag-and-drop pipelines</h3>
+              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+                Move candidates through stages with simple drag and drop
+              </p>
+            </TPCard>
             
-            <Card className="bg-white border-2 border-transparent hover:border-accent shadow-sm hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
-                  <Users className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Candidate profiles</h3>
-                <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
-                  All candidate information in one searchable place
-                </p>
-              </CardContent>
-            </Card>
+            <TPCard variant="light" className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
+                <Users className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Candidate profiles</h3>
+              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+                All candidate information in one searchable place
+              </p>
+            </TPCard>
             
-            <Card className="bg-white border-2 border-transparent hover:border-accent shadow-sm hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
-                  <FileText className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Notes and reminders</h3>
-                <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
-                  Track every interaction and never miss follow-ups
-                </p>
-              </CardContent>
-            </Card>
+            <TPCard variant="light" className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
+                <FileText className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">Notes and reminders</h3>
+              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+                Track every interaction and never miss follow-ups
+              </p>
+            </TPCard>
             
-            <Card className="bg-white border-2 border-transparent hover:border-accent shadow-sm hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
-                  <Building2 className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">CRM-lite for contacts</h3>
-                <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
-                  Build talent pools for future opportunities
-                </p>
-              </CardContent>
-            </Card>
+            <TPCard variant="light" className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/40 rounded-lg flex items-center justify-center mx-auto mb-6">
+                <Building2 className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-primary mb-3 font-[Inter,sans-serif]">CRM-lite for contacts</h3>
+              <p className="text-sm text-primary/80 font-[Inter,sans-serif]">
+                Build talent pools for future opportunities
+              </p>
+            </TPCard>
           </div>
         </div>
       </section>
@@ -226,15 +214,17 @@ export default function Landing() {
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/onboarding/step1">
-              <Button className="bg-white text-primary hover:bg-gray-100 px-8 py-4 rounded-md font-medium text-base transition-all w-full sm:w-auto shadow-lg">
+              <TPButton variant="outline" size="lg" className="font-medium shadow-lg">
                 Start Free
-              </Button>
+              </TPButton>
             </Link>
-            <Button 
-              className="bg-accent text-primary hover:brightness-110 px-8 py-4 font-medium text-base w-full sm:w-auto transition-all shadow-[0_0_20px_rgba(0,255,255,0.4)]"
+            <TPButton 
+              variant="secondary" 
+              size="lg" 
+              className="font-medium shadow-[0_0_20px_rgba(0,255,255,0.4)]"
             >
               Book a Demo
-            </Button>
+            </TPButton>
           </div>
         </div>
       </section>
