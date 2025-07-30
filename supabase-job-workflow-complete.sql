@@ -235,7 +235,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_org_id ON messages(org_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expire ON sessions(expire);
 
 -- Enable Row Level Security on all tables
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+-- Note: user_profiles table doesn't exist in this script, skipping
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
@@ -266,22 +266,37 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Drop existing function if it exists to handle return type conflicts
 DROP FUNCTION IF EXISTS get_user_role(uuid);
 
--- Helper function to get user role
+-- Helper function to get user role from auth.users raw_user_meta_data
 CREATE OR REPLACE FUNCTION get_user_role(user_uuid uuid)
-RETURNS user_role AS $$
-    SELECT role FROM user_profiles WHERE id = user_uuid;
-$$ LANGUAGE sql SECURITY DEFINER;
+RETURNS TEXT AS $$
+DECLARE
+    user_role TEXT;
+BEGIN
+    -- Special case for demo user
+    SELECT email INTO user_role FROM auth.users WHERE id = user_uuid;
+    IF user_role = 'demo@yourapp.com' THEN
+        RETURN 'demo_viewer';
+    END IF;
+    
+    -- Get role from raw_user_meta_data
+    SELECT COALESCE(
+        (raw_user_meta_data->>'role')::TEXT, 
+        'recruiter'
+    ) INTO user_role 
+    FROM auth.users 
+    WHERE id = user_uuid;
+    
+    RETURN COALESCE(user_role, 'recruiter');
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN 'recruiter';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- RLS Policies
 
--- User Profiles policies
-DROP POLICY IF EXISTS "Users can view own profile" ON user_profiles;
-CREATE POLICY "Users can view own profile" ON user_profiles
-    FOR SELECT USING (auth.uid() = id);
-
-DROP POLICY IF EXISTS "Users can update own profile" ON user_profiles;
-CREATE POLICY "Users can update own profile" ON user_profiles
-    FOR UPDATE USING (auth.uid() = id);
+-- Auth Users policies - Note: user_profiles table doesn't exist in this script
+-- Skipping user_profiles policies since the table is not created here
 
 -- Organizations policies
 DROP POLICY IF EXISTS "Users can view organizations they belong to" ON organizations;
@@ -307,14 +322,14 @@ DROP POLICY IF EXISTS "Users can view clients in their organizations" ON clients
 CREATE POLICY "Users can view clients in their organizations" ON clients
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND status::TEXT = 'demo')
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage clients in their organizations" ON clients;
 CREATE POLICY "Users can manage clients in their organizations" ON clients
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid()) != 'demo_viewer'
+        get_user_role(auth.uid())::TEXT != 'demo_viewer'
     );
 
 -- Jobs policies
@@ -322,14 +337,14 @@ DROP POLICY IF EXISTS "Users can view jobs in their organizations" ON jobs;
 CREATE POLICY "Users can view jobs in their organizations" ON jobs
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND record_status::TEXT = 'demo')
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND record_status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage jobs in their organizations" ON jobs;
 CREATE POLICY "Users can manage jobs in their organizations" ON jobs
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid()) != 'demo_viewer'
+        get_user_role(auth.uid())::TEXT != 'demo_viewer'
     );
 
 DROP POLICY IF EXISTS "Public can view open jobs" ON jobs;
@@ -341,14 +356,14 @@ DROP POLICY IF EXISTS "Users can view candidates in their organizations" ON cand
 CREATE POLICY "Users can view candidates in their organizations" ON candidates
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND status::TEXT = 'demo')
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND status::TEXT = 'demo')
     );
 
 DROP POLICY IF EXISTS "Users can manage candidates in their organizations" ON candidates;
 CREATE POLICY "Users can manage candidates in their organizations" ON candidates
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid()) != 'demo_viewer'
+        get_user_role(auth.uid())::TEXT != 'demo_viewer'
     );
 
 -- Applications policies
@@ -370,7 +385,7 @@ DROP POLICY IF EXISTS "Users can view pipeline in their organizations" ON job_ca
 CREATE POLICY "Users can view pipeline in their organizations" ON job_candidate
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND 
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND 
          status::TEXT = 'demo')
     );
 
@@ -378,7 +393,7 @@ DROP POLICY IF EXISTS "Users can manage pipeline in their organizations" ON job_
 CREATE POLICY "Users can manage pipeline in their organizations" ON job_candidate
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid()) != 'demo_viewer'
+        get_user_role(auth.uid())::TEXT != 'demo_viewer'
     );
 
 -- Candidate Notes policies
@@ -386,7 +401,7 @@ DROP POLICY IF EXISTS "Users can view notes in their organizations" ON candidate
 CREATE POLICY "Users can view notes in their organizations" ON candidate_notes
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND
          job_candidate_id IN (
              SELECT id FROM job_candidate jc
              WHERE jc.status::TEXT = 'demo'
@@ -397,7 +412,7 @@ DROP POLICY IF EXISTS "Users can create notes in their organizations" ON candida
 CREATE POLICY "Users can create notes in their organizations" ON candidate_notes
     FOR INSERT WITH CHECK (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid()) != 'demo_viewer' AND
+        get_user_role(auth.uid())::TEXT != 'demo_viewer' AND
         author_id = auth.uid()
     );
 
@@ -406,7 +421,7 @@ DROP POLICY IF EXISTS "Users can view interviews in their organizations" ON inte
 CREATE POLICY "Users can view interviews in their organizations" ON interviews
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND
          record_status::TEXT = 'demo')
     );
 
@@ -414,7 +429,7 @@ DROP POLICY IF EXISTS "Users can manage interviews in their organizations" ON in
 CREATE POLICY "Users can manage interviews in their organizations" ON interviews
     FOR ALL USING (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid()) != 'demo_viewer'
+        get_user_role(auth.uid())::TEXT != 'demo_viewer'
     );
 
 -- Messages policies
@@ -422,7 +437,7 @@ DROP POLICY IF EXISTS "Users can view messages in their organizations" ON messag
 CREATE POLICY "Users can view messages in their organizations" ON messages
     FOR SELECT USING (
         org_id = ANY(get_user_org_ids(auth.uid())) OR
-        (get_user_role(auth.uid()) = 'demo_viewer' AND org_id = (
+        (get_user_role(auth.uid())::TEXT = 'demo_viewer' AND org_id = (
             SELECT id FROM organizations WHERE name = 'TalentPatriot Demo'
         ))
     );
@@ -431,18 +446,18 @@ DROP POLICY IF EXISTS "Users can create messages in their organizations" ON mess
 CREATE POLICY "Users can create messages in their organizations" ON messages
     FOR INSERT WITH CHECK (
         org_id = ANY(get_user_org_ids(auth.uid())) AND
-        get_user_role(auth.uid()) != 'demo_viewer' AND
-        author_id = auth.uid()
+        get_user_role(auth.uid())::TEXT != 'demo_viewer' AND
+        sender_id = auth.uid()
     );
 
 -- Message Recipients policies
 DROP POLICY IF EXISTS "Users can view their message receipts" ON message_recipients;
 CREATE POLICY "Users can view their message receipts" ON message_recipients
-    FOR SELECT USING (user_id = auth.uid());
+    FOR SELECT USING (recipient_id = auth.uid());
 
 DROP POLICY IF EXISTS "Users can update their message receipts" ON message_recipients;
 CREATE POLICY "Users can update their message receipts" ON message_recipients
-    FOR UPDATE USING (user_id = auth.uid());
+    FOR UPDATE USING (recipient_id = auth.uid());
 
 -- Create demo organization and data if not exists
 INSERT INTO organizations (id, name, slug, owner_id) 
