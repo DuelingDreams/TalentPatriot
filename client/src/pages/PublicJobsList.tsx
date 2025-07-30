@@ -13,7 +13,8 @@ interface PublicJobsListProps {
   className?: string;
 }
 
-export default function PublicJobsList(_props?: any) {
+export default function PublicJobsList(props?: PublicJobsListProps) {
+  const { className = '' } = props || {};
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -189,7 +190,7 @@ export default function PublicJobsList(_props?: any) {
                       <Clock className="h-4 w-4" />
                       Apply by: Open
                     </div>
-                    <Link href={`/jobs/${job.id}`}>
+                    <Link href={`/careers/${job.id}`}>
                       <Button>
                         View Details & Apply
                       </Button>
