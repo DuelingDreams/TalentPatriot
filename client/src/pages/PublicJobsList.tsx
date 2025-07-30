@@ -9,12 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Job } from '@shared/schema';
 
-interface PublicJobsListProps {
-  className?: string;
-}
-
-export default function PublicJobsList(props?: PublicJobsListProps) {
-  const { className = '' } = props || {};
+export default function PublicJobsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -58,7 +53,7 @@ export default function PublicJobsList(props?: PublicJobsListProps) {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${className}`}>
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4 py-8">
