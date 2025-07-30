@@ -266,30 +266,33 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Drop existing function if it exists to handle return type conflicts
 DROP FUNCTION IF EXISTS get_user_role(uuid);
 
--- Helper function to get user role from auth.users raw_user_meta_data
+-- Helper function to get user role
 CREATE OR REPLACE FUNCTION get_user_role(user_uuid uuid)
 RETURNS TEXT AS $$
 DECLARE
+    user_email TEXT;
     user_role TEXT;
 BEGIN
+    -- Get user email and check for demo user
+    SELECT email INTO user_email FROM auth.users WHERE id = user_uuid;
+    
     -- Special case for demo user
-    SELECT email INTO user_role FROM auth.users WHERE id = user_uuid;
-    IF user_role = 'demo@yourapp.com' THEN
+    IF user_email = 'demo@yourapp.com' THEN
         RETURN 'demo_viewer';
     END IF;
     
     -- Get role from raw_user_meta_data
     SELECT COALESCE(
         (raw_user_meta_data->>'role')::TEXT, 
-        'recruiter'
+        'hiring_manager'
     ) INTO user_role 
     FROM auth.users 
     WHERE id = user_uuid;
     
-    RETURN COALESCE(user_role, 'recruiter');
+    RETURN COALESCE(user_role, 'hiring_manager');
 EXCEPTION
     WHEN OTHERS THEN
-        RETURN 'recruiter';
+        RETURN 'hiring_manager';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -462,7 +465,7 @@ CREATE POLICY "Users can update their message receipts" ON message_recipients
 -- Create demo organization and data if not exists
 INSERT INTO organizations (id, name, slug, owner_id) 
 VALUES (
-    '00000000-0000-0000-0000-000000000000',
+    '00000000-0000-0000-0000-000000000000'::uuid,
     'TalentPatriot Demo', 
     'demo-org-fixed',
     null
