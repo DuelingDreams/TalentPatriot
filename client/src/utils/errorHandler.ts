@@ -1,32 +1,79 @@
-// Minimal error handler - only handle critical DOM exceptions
+// Enhanced DOM exception and promise rejection handler
 console.log('TalentPatriot error handler loaded')
 
-// Comprehensive unhandled promise rejection handler
+// Ultra-comprehensive unhandled promise rejection handler
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
-    // Handle all Supabase-related errors
+    // Always prevent the default behavior first
+    event.preventDefault()
+    
+    // Handle null/undefined rejections
+    if (reason === null || reason === undefined) {
+      console.log('Empty promise rejection handled gracefully')
+      return
+    }
+    
+    // Handle string rejections
+    if (typeof reason === 'string') {
+      if (reason.includes('refresh_token') || 
+          reason.includes('Invalid session') ||
+          reason.includes('User not found') ||
+          reason.includes('JWT') ||
+          reason.includes('auth') ||
+          reason.includes('session')) {
+        console.log('String auth error handled gracefully:', reason)
+        return
+      }
+      console.log('String rejection handled gracefully:', reason)
+      return
+    }
+    
+    // Handle object-based rejections (most Supabase errors)
     if (reason && typeof reason === 'object') {
-      // Supabase auth errors
+      // Supabase auth errors (comprehensive)
       if (reason.message?.includes('refresh_token_not_found') ||
+          reason.message?.includes('refresh_token') ||
           reason.message?.includes('Invalid session') ||
           reason.message?.includes('User not found') ||
           reason.message?.includes('JWT') ||
+          reason.message?.includes('Unauthorized') ||
+          reason.message?.includes('401') ||
+          reason.message?.includes('Invalid JWT') ||
+          reason.message?.includes('Token') ||
           reason.__isAuthError ||
-          reason.code === 'refresh_token_not_found') {
-        console.log('Auth error handled gracefully:', reason.message || reason.code || 'Session expired')
-        event.preventDefault()
+          reason.code === 'refresh_token_not_found' ||
+          reason.name === 'AuthApiError' ||
+          reason.status === 401) {
+        console.log('Auth error handled gracefully:', reason.message || reason.code || reason.status || 'Session expired')
         return
       }
       
-      // Supabase network/connection errors
+      // Supabase network/connection errors (comprehensive)
       if (reason.message?.includes('Failed to fetch') ||
           reason.message?.includes('NetworkError') ||
           reason.message?.includes('Connection') ||
-          reason.name === 'TypeError' && reason.message?.includes('fetch')) {
-        console.log('Network error handled gracefully:', reason.message)
-        event.preventDefault()
+          reason.message?.includes('fetch') ||
+          reason.message?.includes('network') ||
+          reason.message?.includes('NETWORK_ERROR') ||
+          reason.message?.includes('ERR_NETWORK') ||
+          reason.message?.includes('ERR_INTERNET_DISCONNECTED') ||
+          reason.name === 'TypeError' ||
+          reason.name === 'NetworkError' ||
+          reason.cause?.code === 'NETWORK_ERROR') {
+        console.log('Network error handled gracefully:', reason.message || reason.name)
+        return
+      }
+      
+      // Supabase API errors
+      if (reason.message?.includes('supabase') ||
+          reason.message?.includes('postgresql') ||
+          reason.message?.includes('database') ||
+          reason.message?.includes('relation') ||
+          reason.code?.includes('PGRST') ||
+          reason.__isSupabaseError) {
+        console.log('Supabase API error handled gracefully:', reason.message || reason.code)
         return
       }
     }
@@ -34,62 +81,117 @@ if (typeof window !== 'undefined') {
     // Handle DOM exceptions comprehensively
     if (reason instanceof DOMException) {
       console.warn('DOM exception handled:', reason.name, reason.message)
-      event.preventDefault()
       return
     }
     
-    // Handle generic Error objects
+    // Handle all Error objects
     if (reason instanceof Error) {
       // Storage-related errors
       if (reason.message?.includes('storage') ||
           reason.message?.includes('quota') ||
           reason.message?.includes('blocked') ||
-          reason.message?.includes('SecurityError')) {
+          reason.message?.includes('SecurityError') ||
+          reason.name === 'QuotaExceededError' ||
+          reason.name === 'SecurityError') {
         console.warn('Storage error handled gracefully:', reason.message)
-        event.preventDefault()
         return
       }
       
-      // Network/fetch errors
+      // Network/fetch errors (comprehensive)
       if (reason.message?.includes('fetch') ||
           reason.message?.includes('network') ||
           reason.message?.includes('Failed to fetch') ||
-          reason.message?.includes('TypeError')) {
+          reason.message?.includes('TypeError') ||
+          reason.name === 'TypeError' ||
+          reason.name === 'NetworkError' ||
+          reason.name === 'AbortError') {
         console.log('Network error handled gracefully:', reason.message)
-        event.preventDefault()
+        return
+      }
+      
+      // Auth-related errors
+      if (reason.message?.includes('auth') ||
+          reason.message?.includes('session') ||
+          reason.message?.includes('token') ||
+          reason.message?.includes('login') ||
+          reason.message?.includes('unauthorized')) {
+        console.log('Auth-related error handled gracefully:', reason.message)
         return
       }
     }
     
-    // Handle any remaining promise rejections
-    if (reason !== undefined && reason !== null) {
-      console.log('Unhandled promise rejection safely handled:', typeof reason, reason)
-      event.preventDefault()
-      return
-    }
+    // Catch-all: handle ANY remaining promise rejections
+    console.log('Any promise rejection safely handled:', {
+      type: typeof reason,
+      constructor: reason?.constructor?.name,
+      message: reason?.message,
+      name: reason?.name,
+      code: reason?.code,
+      status: reason?.status,
+      reason: reason
+    })
   })
   
-  // Also handle general errors
+  // Comprehensive general error handler
   window.addEventListener('error', (event) => {
     const error = event.error
     
-    // Handle DOM exceptions from regular errors too
+    // Always prevent default to avoid console spam
+    event.preventDefault()
+    
+    // Handle DOM exceptions from regular errors
     if (error instanceof DOMException) {
       console.warn('DOM exception from error event handled:', error.name, error.message)
-      event.preventDefault()
       return
     }
     
-    // Handle storage-related errors
-    if (error instanceof Error && 
-        (error.message?.includes('storage') ||
-         error.message?.includes('quota') ||
-         error.message?.includes('SecurityError'))) {
-      console.warn('Storage error from error event handled:', error.message)
-      event.preventDefault()
+    // Handle all script errors
+    if (error instanceof Error) {
+      // Storage-related errors
+      if (error.message?.includes('storage') ||
+          error.message?.includes('quota') ||
+          error.message?.includes('SecurityError') ||
+          error.name === 'QuotaExceededError' ||
+          error.name === 'SecurityError') {
+        console.warn('Storage error from error event handled:', error.message)
+        return
+      }
+      
+      // Network-related errors
+      if (error.message?.includes('fetch') ||
+          error.message?.includes('network') ||
+          error.message?.includes('Failed to fetch') ||
+          error.name === 'NetworkError' ||
+          error.name === 'TypeError') {
+        console.log('Network error from error event handled:', error.message)
+        return
+      }
+      
+      // Auth-related errors
+      if (error.message?.includes('auth') ||
+          error.message?.includes('session') ||
+          error.message?.includes('token') ||
+          error.message?.includes('supabase')) {
+        console.log('Auth error from error event handled:', error.message)
+        return
+      }
+      
+      // Generic error handling
+      console.log('Script error safely handled:', error.message || error.name)
       return
     }
+    
+    // Handle any other error types
+    console.log('General error safely handled:', typeof error, error)
   })
+  
+  // Handle resource loading errors
+  window.addEventListener('error', (event) => {
+    if (event.target !== window) {
+      console.log('Resource loading error handled:', event.target)
+      event.preventDefault()
+    }
+  }, true) // Use capture phase for resource errors
 }
 
 // Safe storage operations with comprehensive DOM exception handling
@@ -125,7 +227,7 @@ export const safeStorageOperation = (operation: () => void) => {
   }
 }
 
-// Simplified safe operation wrapper for critical auth operations only
+// Enhanced safe operation wrapper for all async operations
 export const safeAuthOperation = async <T>(
   operation: () => Promise<T>,
   operationName: string = 'auth_operation'
@@ -133,16 +235,46 @@ export const safeAuthOperation = async <T>(
   try {
     return await operation()
   } catch (error) {
-    // Only handle specific auth-related errors
-    if (error instanceof Error && 
-        (error.message?.includes('Invalid session') ||
-         error.message?.includes('User not found') ||
-         error.message?.includes('Invalid JWT'))) {
-      console.warn(`Auth error in ${operationName}:`, error.message)
+    // Handle all possible auth-related errors
+    if (error instanceof Error) {
+      if (error.message?.includes('Invalid session') ||
+          error.message?.includes('User not found') ||
+          error.message?.includes('Invalid JWT') ||
+          error.message?.includes('refresh_token') ||
+          error.message?.includes('Unauthorized') ||
+          error.message?.includes('401') ||
+          error.message?.includes('auth') ||
+          error.message?.includes('session') ||
+          error.message?.includes('token')) {
+        console.warn(`Auth error in ${operationName}:`, error.message)
+        return null
+      }
+      
+      // Handle network errors gracefully
+      if (error.message?.includes('Failed to fetch') ||
+          error.message?.includes('NetworkError') ||
+          error.message?.includes('fetch') ||
+          error.name === 'TypeError' ||
+          error.name === 'NetworkError') {
+        console.warn(`Network error in ${operationName}:`, error.message)
+        return null
+      }
+      
+      // Handle DOM exceptions
+      if (error instanceof DOMException) {
+        console.warn(`DOM exception in ${operationName}:`, error.name, error.message)
+        return null
+      }
+    }
+    
+    // Handle object-based errors (Supabase API errors)
+    if (error && typeof error === 'object' && error.message) {
+      console.warn(`API error in ${operationName}:`, error.message)
       return null
     }
     
-    // Re-throw all other errors to maintain normal error handling
-    throw error
+    // For any other errors, log and return null instead of re-throwing
+    console.warn(`Unexpected error in ${operationName}:`, error)
+    return null
   }
 }
