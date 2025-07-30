@@ -248,31 +248,28 @@ export default function Dashboard() {
           <JobsChart data={jobStatusData} loading={jobsLoading} />
         </div>
 
-        {/* Performance Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {jobCandidates && jobCandidates.length > 0 
-                    ? Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)
-                    : 25}%
-                </span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                  style={{ 
-                    width: `${jobCandidates && jobCandidates.length > 0 
-                      ? Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)
-                      : 25}%` 
-                  }}
-                ></div>
-              </div>
+        {/* Performance Overview - Only show if there's data */}
+        {jobCandidates && jobCandidates.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                    style={{ 
+                      width: `${Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)}%` 
+                    }}
+                  ></div>
+                </div>
             </div>
 
             <div className="space-y-4">
@@ -296,12 +293,14 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+        )}
 
-        {/* Activity and Actions Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <RecentActivity loading={false} />
-          </div>
+        {/* Activity and Actions Grid - Only show if there's data */}
+        {(jobCandidates && jobCandidates.length > 0) || (jobs && jobs.length > 0) ? (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <RecentActivity loading={false} />
+            </div>
 
           <div className="space-y-6">
             {/* Quick Actions */}
@@ -370,6 +369,7 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+        ) : null}
       </div>
     </DashboardLayout>
   )

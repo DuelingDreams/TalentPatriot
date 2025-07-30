@@ -39,43 +39,8 @@ const activityColors = {
 }
 
 export function RecentActivity({ activities = [], loading }: RecentActivityProps) {
-  // Generate demo activities if none provided
-  const demoActivities: Activity[] = activities.length > 0 ? activities : [
-    {
-      id: '1',
-      type: 'candidate_added',
-      title: 'New Candidate Applied',
-      description: 'Sarah Chen applied for Senior Frontend Developer',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 mins ago
-      user: { name: 'Sarah Chen', avatar: 'https://i.pravatar.cc/150?img=1' }
-    },
-    {
-      id: '2',
-      type: 'interview_scheduled',
-      title: 'Interview Scheduled',
-      description: 'Technical interview with Michael Brown',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-      user: { name: 'John Doe', avatar: 'https://i.pravatar.cc/150?img=2' }
-    },
-    {
-      id: '3',
-      type: 'job_posted',
-      title: 'New Job Posted',
-      description: 'Product Manager position at TechCorp Inc.',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-      user: { name: 'Emily Watson', avatar: 'https://i.pravatar.cc/150?img=3' }
-    },
-    {
-      id: '4',
-      type: 'offer_made',
-      title: 'Offer Extended',
-      description: 'Offer sent to Alex Johnson for Backend Developer',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-      user: { name: 'HR Team', avatar: 'https://i.pravatar.cc/150?img=4' }
-    },
-  ]
-
-  const displayActivities = activities.length > 0 ? activities : demoActivities
+  // Don't show demo activities for authenticated users - only show actual activities
+  const displayActivities = activities
 
   return (
     <Card className="h-full">
@@ -97,7 +62,7 @@ export function RecentActivity({ activities = [], loading }: RecentActivityProps
                 </div>
               ))}
             </div>
-          ) : (
+          ) : displayActivities.length > 0 ? (
             <div className="space-y-4">
               {displayActivities.map((activity) => {
                 const Icon = activityIcons[activity.type]
@@ -124,6 +89,12 @@ export function RecentActivity({ activities = [], loading }: RecentActivityProps
                   </div>
                 )
               })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Clock className="w-12 h-12 text-slate-300 mb-3" />
+              <p className="text-sm font-medium text-slate-900">No recent activity</p>
+              <p className="text-sm text-slate-500 mt-1">Activity will appear here as your team works</p>
             </div>
           )}
         </ScrollArea>
