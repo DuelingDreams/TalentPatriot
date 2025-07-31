@@ -151,34 +151,6 @@ export default function Jobs() {
     }
   }
 
-  const handlePublishJob = async (jobId: string) => {
-    try {
-      const response = await fetch(`/api/jobs/${jobId}/publish`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      if (!response.ok) throw new Error('Failed to publish job')
-      
-      const publishedJob = await response.json()
-
-      toast({
-        title: "Job Published!",
-        description: `Your job is now live at /careers/${publishedJob.publicSlug}`,
-      })
-
-      // Reload to refresh job status
-      window.location.reload()
-    } catch (error) {
-      console.error('Error publishing job:', error)
-      toast({
-        title: "Error",
-        description: "Failed to publish job. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
-
   // Check if user has organization
   if (!currentOrgId && userRole !== 'demo_viewer') {
     return (
