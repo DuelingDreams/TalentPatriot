@@ -1026,7 +1026,7 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
-  // Submit job application (public)
+  // Submit job application (public) - NEW PIPELINE SYSTEM
   app.post("/api/public/jobs/:jobId/apply", writeLimiter, async (req, res) => {
     try {
       const { jobId } = req.params;
@@ -1039,7 +1039,14 @@ Expires: 2025-12-31T23:59:59.000Z
       }
 
       console.log('Job org_id:', job.orgId);
-      console.log('Job object:', job);
+
+      // Ensure default pipeline columns exist for this org
+      const { ensureDefaultPipeline, getFirstPipelineColumn } = require('./lib/pipelineService');
+      await ensureDefaultPipeline(job.orgId);
+
+      // Get the first pipeline column for auto-assignment
+      const firstColumn = await getFirstPipelineColumn(job.orgId);
+      console.log('First pipeline column:', firstColumn);
 
       // Check if candidate already exists by email for this org
       let candidate = await storage.getCandidateByEmail(email, job.orgId);
@@ -1063,10 +1070,11 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: "You have already applied to this job" });
       }
 
-      // Create application
+      // Create application with auto-assignment to first pipeline column
       const application = await storage.createApplication({
         jobId,
-        candidateId: candidate.id
+        candidateId: candidate.id,
+        columnId: firstColumn.id  // AUTO-ASSIGN TO FIRST COLUMN
       });
 
       // IMPORTANT: Also create pipeline entry so candidate appears in kanban board
@@ -1121,11 +1129,69 @@ Expires: 2025-12-31T23:59:59.000Z
       res.status(201).json({ 
         message: "Application submitted successfully",
         application,
-        candidate
+        candidate,
+        pipelineColumn: firstColumn.title
       });
     } catch (error) {
       console.error("Error submitting application:", error);
       res.status(500).json({ error: "Failed to submit application" });
+    }
+  });
+
+  // PIPELINE ENDPOINTS - New Kanban system
+
+  // Get pipeline for organization (all columns with applications)
+  app.get("/api/pipeline/:orgId", async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      const { getPipelineForOrg } = require('./lib/pipelineService');
+      
+      const pipeline = await getPipelineForOrg(orgId);
+      res.json(pipeline);
+    } catch (error) {
+      console.error("Error fetching pipeline:", error);
+      res.status(500).json({ error: "Failed to fetch pipeline" });
+    }
+  });
+
+  // Move application to different pipeline column (drag and drop)
+  app.patch("/api/applications/:applicationId/move", writeLimiter, async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+      const { columnId } = req.body;
+      
+      const { moveApplication } = require('./lib/pipelineService');
+      await moveApplication(applicationId, columnId);
+      
+      res.json({ message: "Application moved successfully" });
+    } catch (error) {
+      console.error("Error moving application:", error);
+      res.status(500).json({ error: "Failed to move application" });
+    }
+  });
+
+  // Get pipeline columns for organization
+  app.get("/api/pipeline-columns/:orgId", async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      const { ensureDefaultPipeline } = require('./lib/pipelineService');
+      
+      // Ensure columns exist first
+      await ensureDefaultPipeline(orgId);
+      
+      // For now, return a basic response while we integrate with storage
+      const basicColumns = [
+        { id: '1', title: 'New', position: '0' },
+        { id: '2', title: 'Screening', position: '1' },
+        { id: '3', title: 'Interview', position: '2' },
+        { id: '4', title: 'Offer', position: '3' },
+        { id: '5', title: 'Hired', position: '4' },
+        { id: '6', title: 'Rejected', position: '5' }
+      ];
+      res.json(basicColumns);
+    } catch (error) {
+      console.error("Error fetching pipeline columns:", error);
+      res.status(500).json({ error: "Failed to fetch pipeline columns" });
     }
   });
 

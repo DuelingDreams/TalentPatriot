@@ -150,6 +150,7 @@ export class MemStorage implements IStorage {
   private clients: Map<string, Client>;
   private jobs: Map<string, Job>;
   private candidates: Map<string, Candidate>;
+  private applications: Map<string, Application>;
   private jobCandidates: Map<string, JobCandidate>;
   private candidateNotes: Map<string, CandidateNotes>;
   private interviews: Map<string, Interview>;
@@ -162,6 +163,7 @@ export class MemStorage implements IStorage {
     this.clients = new Map();
     this.jobs = new Map();
     this.candidates = new Map();
+    this.applications = new Map();
     this.jobCandidates = new Map();
     this.candidateNotes = new Map();
     this.interviews = new Map();
@@ -425,6 +427,7 @@ export class MemStorage implements IStorage {
       contactName: insertClient.contactName ?? null,
       contactEmail: insertClient.contactEmail ?? null,
       notes: insertClient.notes ?? null,
+      status: insertClient.status ?? 'active',
       id, 
       createdAt: now,
       updatedAt: now
@@ -489,6 +492,7 @@ export class MemStorage implements IStorage {
       recordStatus: insertJob.recordStatus ?? 'active',
       assignedTo: insertJob.assignedTo ?? null,
       createdBy: insertJob.createdBy ?? null,
+      publicSlug: insertJob.publicSlug ?? null,
       id, 
       createdAt: now,
       updatedAt: now
@@ -579,6 +583,73 @@ export class MemStorage implements IStorage {
     
     this.candidates.set(id, updatedCandidate);
     return updatedCandidate;
+  }
+
+  async getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined> {
+    return Array.from(this.candidates.values()).find(candidate => 
+      candidate.email === email && candidate.orgId === orgId
+    );
+  }
+
+  async deleteCandidate(id: string): Promise<void> {
+    if (!this.candidates.has(id)) {
+      throw new Error(`Candidate with id ${id} not found`);
+    }
+    this.candidates.delete(id);
+  }
+
+  // Applications
+  async getApplication(id: string): Promise<Application | undefined> {
+    return this.applications.get(id);
+  }
+
+  async getApplications(): Promise<Application[]> {
+    return Array.from(this.applications.values());
+  }
+
+  async getApplicationsByJob(jobId: string): Promise<Application[]> {
+    return Array.from(this.applications.values()).filter(app => app.jobId === jobId);
+  }
+
+  async getApplicationsByCandidate(candidateId: string): Promise<Application[]> {
+    return Array.from(this.applications.values()).filter(app => app.candidateId === candidateId);
+  }
+
+  async createApplication(insertApplication: InsertApplication & { columnId?: string }): Promise<Application> {
+    const id = crypto.randomUUID();
+    const now = new Date();
+    const application: Application = { 
+      ...insertApplication,
+      columnId: insertApplication.columnId ?? null,
+      status: insertApplication.status ?? 'applied',
+      id, 
+      appliedAt: now
+    };
+    this.applications.set(id, application);
+    return application;
+  }
+
+  async updateApplication(id: string, updateData: Partial<InsertApplication & { columnId?: string }>): Promise<Application> {
+    const existing = this.applications.get(id);
+    if (!existing) {
+      throw new Error(`Application with id ${id} not found`);
+    }
+
+    const updated: Application = {
+      ...existing,
+      ...updateData,
+      id
+    };
+    
+    this.applications.set(id, updated);
+    return updated;
+  }
+
+  async deleteApplication(id: string): Promise<void> {
+    if (!this.applications.has(id)) {
+      throw new Error(`Application with id ${id} not found`);
+    }
+    this.applications.delete(id);
   }
 
   // Job-Candidate relationships

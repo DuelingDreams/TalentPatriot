@@ -95,10 +95,20 @@ export const candidates = pgTable("candidates", {
 });
 
 // Applications table - job-candidate relationships
+// Pipeline columns for Kanban board
+export const pipelineColumns = pgTable("pipeline_columns", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  title: text("title").notNull(),
+  position: text("position").notNull(), // 0, 1, 2, etc. for sort order
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const applications = pgTable("applications", {
   id: uuid("id").primaryKey().defaultRandom(),
   jobId: uuid("job_id").references(() => jobs.id).notNull(),
   candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  columnId: uuid("column_id").references(() => pipelineColumns.id), // Auto-assigned to first column
   status: applicationStatusEnum("status").default('applied').notNull(),
   appliedAt: timestamp("applied_at").defaultNow().notNull(),
 }, (table) => ({
@@ -214,6 +224,14 @@ export const candidatesRelations = relations(candidates, ({ many }) => ({
   jobCandidates: many(jobCandidate),
 }));
 
+export const pipelineColumnsRelations = relations(pipelineColumns, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [pipelineColumns.orgId],
+    references: [organizations.id],
+  }),
+  applications: many(applications),
+}));
+
 export const applicationsRelations = relations(applications, ({ one }) => ({
   job: one(jobs, {
     fields: [applications.jobId],
@@ -222,6 +240,10 @@ export const applicationsRelations = relations(applications, ({ one }) => ({
   candidate: one(candidates, {
     fields: [applications.candidateId],
     references: [candidates.id],
+  }),
+  column: one(pipelineColumns, {
+    fields: [applications.columnId],
+    references: [pipelineColumns.id],
   }),
 }));
 
@@ -317,9 +339,15 @@ export const insertJobCandidateSchema = createInsertSchema(jobCandidate).omit({
   updatedAt: true,
 });
 
+export const insertPipelineColumnSchema = createInsertSchema(pipelineColumns).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertApplicationSchema = createInsertSchema(applications).omit({
   id: true,
   appliedAt: true,
+  columnId: true, // Auto-assigned
 });
 
 export const insertCandidateNotesSchema = createInsertSchema(candidateNotes).omit({
@@ -364,6 +392,9 @@ export type Candidate = typeof candidates.$inferSelect;
 export type InsertCandidate = z.infer<typeof insertCandidateSchema>;
 
 export type Application = typeof applications.$inferSelect;
+export type PipelineColumn = typeof pipelineColumns.$inferSelect;
+export type InsertPipelineColumn = z.infer<typeof insertPipelineColumnSchema>;
+
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 
 export type JobCandidate = typeof jobCandidate.$inferSelect;
