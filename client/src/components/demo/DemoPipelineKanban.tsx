@@ -290,7 +290,7 @@ export function DemoPipelineKanban() {
     // Find the candidate across all stages
     let foundCandidate = null
     for (const stageData of pipelineData) {
-      const candidate = stageData.candidates.find(c => c.id === candidateId)
+      const candidate = stageData.candidates.find((c: any) => c && c.id === candidateId)
       if (candidate) {
         foundCandidate = candidate
         break
@@ -313,7 +313,7 @@ export function DemoPipelineKanban() {
     let candidateToMove = null
     
     for (const stageData of pipelineData) {
-      const candidateIndex = stageData.candidates.findIndex(c => c.id === candidateId)
+      const candidateIndex = stageData.candidates.findIndex((c: any) => c && c.id === candidateId)
       if (candidateIndex !== -1) {
         currentStage = stageData.id
         candidateToMove = stageData.candidates[candidateIndex]
@@ -330,7 +330,7 @@ export function DemoPipelineKanban() {
           // Remove from current stage
           return {
             ...stageData,
-            candidates: stageData.candidates.filter(c => c.id !== candidateId)
+            candidates: stageData.candidates.filter((c: any) => c && c.id !== candidateId)
           }
         } else if (stageData.id === newStage) {
           // Add to new stage

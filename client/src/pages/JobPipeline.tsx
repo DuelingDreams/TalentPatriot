@@ -374,7 +374,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
               )}
               <div className="mt-3 space-y-2">
                 <ResumeUpload
-                  candidateId={candidate.candidates?.id || candidate.candidateId}
+                  candidateId={candidate.candidates?.id || ''}
                   candidateName={candidate.candidates?.name || 'Unknown'}
                   currentResumeUrl={candidate.candidates?.resume_url || null}
                   onResumeUploaded={() => {}} // Pipeline view is read-only for resumes
@@ -508,7 +508,7 @@ function PipelineColumn({ stage, candidates }: PipelineColumnProps) {
             : 'bg-opacity-20'
         }`}
       >
-        <SortableContext items={candidates.map(c => c.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={candidates.map((c: any) => c.id)} strategy={verticalListSortingStrategy}>
           {candidates.map((candidate) => (
             <CandidateCard key={candidate.id} candidate={candidate} />
           ))}
@@ -596,7 +596,7 @@ export default function JobPipeline() {
   
   // Fetch data - must be called before any conditional returns
   const { data: jobs } = useJobs()
-  const { data: jobCandidates, isLoading: candidatesLoading } = useCandidatesForJob(jobId || null)
+  const { data: jobCandidates, isLoading: candidatesLoading } = useCandidatesForJob(jobId || undefined)
   const updateCandidateStage = useUpdateCandidateStage()
 
   // Show demo kanban board for demo viewers
@@ -615,7 +615,7 @@ export default function JobPipeline() {
   }
 
   // Find the current job
-  const currentJob = jobs?.find(job => job.id === jobId)
+  const currentJob = jobs?.find((job: any) => job.id === jobId)
 
   // NEW PIPELINE SYSTEM: Get pipeline data for the current organization
   const { user } = useAuth()
@@ -638,7 +638,7 @@ export default function JobPipeline() {
   const candidatesByStage = useMemo(() => {
     if (!jobCandidates) return {}
     
-    return jobCandidates.reduce((acc, candidate) => {
+    return jobCandidates.reduce((acc: any, candidate: any) => {
       const stage = candidate.stage
       if (!acc[stage]) {
         acc[stage] = []
@@ -664,7 +664,7 @@ export default function JobPipeline() {
   )
 
   const handleDragStart = (event: DragStartEvent) => {
-    const candidate = jobCandidates?.find(c => c.id === event.active.id)
+    const candidate = jobCandidates?.find((c: any) => c.id === event.active.id)
     setActiveCandidate(candidate || null)
   }
 
