@@ -539,11 +539,30 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Publish job (change status from draft to open)
+  // Publish job (change status from draft to open and generate public slug)
   app.patch("/api/jobs/:id/publish", writeLimiter, async (req, res) => {
     try {
       const jobId = req.params.id;
-      const job = await storage.updateJob(jobId, { status: 'open' });
+      
+      // Get the current job to access title
+      const currentJob = await storage.getJob(jobId);
+      if (!currentJob) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      
+      // Generate unique public slug
+      const slugBase = currentJob.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '');
+      const publicSlug = `${slugBase}-${jobId.slice(0, 8)}`;
+      
+      // Update job with open status and public slug
+      const job = await storage.updateJob(jobId, { 
+        status: 'open', 
+        publicSlug: publicSlug 
+      });
+      
       res.json(job);
     } catch (error) {
       console.error('Error publishing job:', error);
@@ -555,13 +574,31 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   // Public endpoints for careers page
   app.get("/api/public/jobs", async (req, res) => {
     try {
-      // Get all open jobs
+      // Get all open jobs with public slugs
       const allJobs = await storage.getJobs();
-      const openJobs = allJobs.filter(job => job.status === 'open');
+      const openJobs = allJobs.filter(job => job.status === 'open' && job.publicSlug);
       res.json(openJobs);
     } catch (error) {
       console.error('Error fetching public jobs:', error);
       res.status(500).json({ error: "Failed to fetch job listings" });
+    }
+  });
+
+  // Get public job by slug
+  app.get("/api/public/jobs/slug/:slug", async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const allJobs = await storage.getJobs();
+      const job = allJobs.find(job => job.publicSlug === slug && job.status === 'open');
+      
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      
+      res.json(job);
+    } catch (error) {
+      console.error('Error fetching job by slug:', error);
+      res.status(500).json({ error: "Failed to fetch job" });
     }
   });
 

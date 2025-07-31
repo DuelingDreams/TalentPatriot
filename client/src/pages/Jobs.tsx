@@ -1,7 +1,7 @@
 import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
@@ -9,7 +9,7 @@ import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
-import { Plus, Briefcase, Building2, Calendar, Loader2, Users } from 'lucide-react'
+import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
 import GuidedJobCreation from '@/components/GuidedJobCreation'
 
@@ -81,7 +81,7 @@ export default function Jobs() {
                   <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
                       <h3 className="font-semibold">{job.title}</h3>
-                      <p className="text-sm text-[#5C667B]">{job.location} • {job.type}</p>
+                      <p className="text-sm text-[#5C667B]">{job.client?.name || 'No client'} • {job.status}</p>
                     </div>
                     <Badge className="bg-green-100 text-green-800">{job.status}</Badge>
                   </div>
@@ -131,10 +131,12 @@ export default function Jobs() {
       })
 
       if (!response.ok) throw new Error('Failed to publish job')
+      
+      const publishedJob = await response.json()
 
       toast({
         title: "Job Published!",
-        description: "Your job is now live and accepting applications.",
+        description: `Your job is now live at /careers/${publishedJob.publicSlug}`,
       })
 
       // Reload to refresh job status
@@ -223,94 +225,96 @@ export default function Jobs() {
         )}
 
         {/* Jobs Grid */}
-        {displayJobs && displayJobs.length > 0 ? (
-          <div className="grid gap-6">
-            {displayJobs.map((job: any) => (
-              <Card key={job.id} className="bg-white shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Briefcase className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-slate-900">{job.title}</h3>
-                          <div className="flex items-center gap-2 text-sm text-slate-600">
-                            <Building2 className="w-4 h-4" />
-                            <span>{job.client?.name}</span>
-                            {job.client?.industry && (
-                              <>
-                                <span>•</span>
-                                <span>{job.client.industry}</span>
-                              </>
+        {!jobsLoading && !jobsError && (
+          <div className="space-y-6">
+            {displayJobs.length === 0 ? (
+              <div className="text-center py-12">
+                <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs yet</h3>
+                <p className="text-gray-500 mb-6">Get started by posting your first job opening.</p>
+                <PostJobDialog 
+                  triggerButton={
+                    <Button className="btn-primary">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Post Your First Job
+                    </Button>
+                  }
+                  onJobCreated={() => {
+                    window.location.reload()
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="grid gap-6">
+                {displayJobs.map((job) => (
+                  <Card key={job.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
+                            <Badge className={getStatusColor(job.status)}>
+                              {job.status}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                            <div className="flex items-center gap-1">
+                              <Building2 className="w-4 h-4" />
+                              {job.client?.name || 'No client assigned'}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              Created {new Date(job.createdAt).toLocaleDateString()}
+                            </div>
+                            {job.publicSlug && (
+                              <div className="flex items-center gap-1">
+                                <Globe className="w-4 h-4" />
+                                <a 
+                                  href={`/careers/${job.publicSlug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                >
+                                  Public URL
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
                             )}
                           </div>
+                          
+                          {job.description && (
+                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                              {job.description}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2 ml-6">
+                          {job.status === 'draft' && !isDemoMode && (
+                            <Button
+                              onClick={() => handlePublishJob(job.id)}
+                              variant="outline"
+                              size="sm"
+                              className="flex items-center gap-1"
+                            >
+                              <Globe className="w-4 h-4" />
+                              Publish
+                            </Button>
+                          )}
+                          <Link href={`/pipeline/${job.id}`}>
+                            <Button variant="outline" size="sm">
+                              View Pipeline
+                            </Button>
+                          </Link>
                         </div>
                       </div>
-
-                      {job.description && (
-                        <p className="text-slate-600 mb-4 line-clamp-2">{job.description}</p>
-                      )}
-
-                      <div className="flex items-center gap-4 text-sm text-slate-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>Created {new Date(job.createdAt).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-2">
-                      <Link href={`/jobs/${job.id}`}>
-                        <Button size="sm" variant="outline" className="text-xs">
-                          <Users className="w-3 h-3 mr-1" />
-                          View Pipeline
-                        </Button>
-                      </Link>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getStatusColor(job.status)}>
-                          {job.status.replace('_', ' ')}
-                        </Badge>
-                        {job.status === 'draft' && !isDemoMode && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePublishJob(job.id)}
-                            className="text-xs"
-                          >
-                            Publish
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          !jobsLoading && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 mx-auto bg-slate-100 rounded-lg flex items-center justify-center mb-4">
-                <Briefcase className="w-8 h-8 text-slate-400" />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No jobs yet</h3>
-              <p className="text-slate-600 mb-6">Get started by creating your first job posting.</p>
-              <PostJobDialog 
-                triggerButton={
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Job
-                  </Button>
-                }
-                onJobCreated={() => {
-                  // Refresh jobs list after creation
-                  window.location.reload()
-                }}
-              />
-            </div>
-          )
+            )}
+          </div>
         )}
         {/* Guided Job Creation Modal */}
         <GuidedJobCreation

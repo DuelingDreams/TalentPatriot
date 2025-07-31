@@ -46,6 +46,7 @@ const OrganizationSetup = lazy(() => import("@/pages/OrganizationSetup"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const Careers = lazy(() => import("@/pages/Careers"));
+const CareersBySlug = lazy(() => import("@/pages/CareersBySlug"));
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -86,10 +87,7 @@ function Router() {
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={TermsOfService} />
         <Route path="/careers" component={Careers} />
-        
-        {/* Public job posting routes */}
-        <Route path="/careers" component={PublicJobsList} />
-        <Route path="/careers/:id" component={PublicJobDetail} />
+        <Route path="/careers/:slug" component={CareersBySlug} />
         
         {/* Protected routes */}
         <Route path="/settings/organization">

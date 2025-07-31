@@ -68,14 +68,18 @@ export const jobs = pgTable("jobs", {
   location: varchar("location", { length: 255 }),
   jobType: jobTypeEnum("job_type").default('full-time').notNull(),
   department: varchar("department", { length: 100 }),
+  salaryRange: varchar("salary_range", { length: 100 }),
   clientId: uuid("client_id").references(() => clients.id),
   status: jobStatusEnum("status").default('draft').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
+  publicSlug: varchar("public_slug", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdBy: uuid("created_by"),
   assignedTo: uuid("assigned_to"),
-});
+}, (table) => ({
+  uniquePublicSlug: uniqueIndex("unique_public_slug").on(table.publicSlug),
+}));
 
 export const candidates = pgTable("candidates", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -299,6 +303,7 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 
 export const insertJobSchema = createInsertSchema(jobs).omit({
   id: true,
+  publicSlug: true,
   createdAt: true,
 });
 
