@@ -336,8 +336,24 @@ ANALYZE jobs;
 SELECT 'Pipeline columns created:' as status, count(*) as count FROM pipeline_columns;
 SELECT 'Organizations with pipeline columns:' as status, count(DISTINCT org_id) as count FROM pipeline_columns;
 
--- Show the new table structures
-\d pipeline_columns;
-\d applications;
+-- Show pipeline columns structure
+SELECT 
+    'pipeline_columns' as table_name,
+    column_name, 
+    data_type, 
+    is_nullable,
+    column_default
+FROM information_schema.columns 
+WHERE table_name = 'pipeline_columns' 
+ORDER BY ordinal_position;
 
-COMMIT;
+-- Show applications structure  
+SELECT 
+    'applications' as table_name,
+    column_name, 
+    data_type, 
+    is_nullable,
+    column_default
+FROM information_schema.columns 
+WHERE table_name = 'applications' 
+ORDER BY ordinal_position;
