@@ -86,13 +86,35 @@ CREATE TABLE IF NOT EXISTS pipeline_columns (
 -- Applications Table (Job-Candidate relationships with pipeline assignment)
 CREATE TABLE IF NOT EXISTS applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-    candidate_id UUID NOT NULL REFERENCES candidates(id) ON DELETE CASCADE,
-    column_id UUID REFERENCES pipeline_columns(id) ON DELETE SET NULL, -- Auto-assigned to first column
+    job_id UUID NOT NULL,
+    candidate_id UUID NOT NULL,
+    column_id UUID, -- Auto-assigned to first column
     status application_status DEFAULT 'applied' NOT NULL,
     applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     CONSTRAINT unique_job_application UNIQUE (job_id, candidate_id)
 );
+
+-- Add foreign key constraints after table creation
+DO $$ BEGIN
+    ALTER TABLE applications ADD CONSTRAINT fk_applications_job_id 
+        FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE applications ADD CONSTRAINT fk_applications_candidate_id 
+        FOREIGN KEY (candidate_id) REFERENCES candidates(id) ON DELETE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE applications ADD CONSTRAINT fk_applications_column_id 
+        FOREIGN KEY (column_id) REFERENCES pipeline_columns(id) ON DELETE SET NULL;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- =============================================
 -- UPDATE EXISTING TABLES
