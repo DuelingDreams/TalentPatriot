@@ -40,10 +40,17 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
-DO $$ BEGIN
-    CREATE TYPE org_role AS ENUM ('owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer');
+-- Handle org_role enum - check if it exists and has correct values
+DO $$ 
+BEGIN
+    -- Try to create the enum type
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'org_role') THEN
+        CREATE TYPE org_role AS ENUM ('owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer');
+    END IF;
 EXCEPTION
-    WHEN duplicate_object THEN null;
+    WHEN duplicate_object THEN 
+        -- Enum already exists, continue
+        NULL;
 END $$;
 
 DO $$ BEGIN
