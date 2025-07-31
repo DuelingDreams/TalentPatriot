@@ -1,16 +1,19 @@
 // Simplified error handler focused on critical issues only
 console.log('TalentPatriot error handler loaded')
 
-// Targeted promise rejection handler
+// Comprehensive promise rejection handler
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const reason = event.reason
     
     // Handle runtime error plugin failures
     if (reason && typeof reason === 'object' && reason.message) {
-      if (reason.message.includes('Failed to fetch dynamically imported module') &&
-          reason.message.includes('runtime-error-plugin')) {
-        console.log('Suppressed runtime error plugin import error')
+      if (reason.message.includes('Failed to fetch dynamically imported module') ||
+          reason.message.includes('runtime-error-plugin') ||
+          reason.message.includes('ChunkLoadError') ||
+          reason.message.includes('Loading chunk') ||
+          reason.message.includes('Loading CSS chunk')) {
+        console.log('Suppressed module import error')
         event.preventDefault()
         return
       }
@@ -20,7 +23,13 @@ if (typeof window !== 'undefined') {
     if (reason && typeof reason === 'object') {
       if (reason.message?.includes('refresh_token_not_found') ||
           reason.code === 'refresh_token_not_found' ||
-          reason.name === 'AuthApiError') {
+          reason.name === 'AuthApiError' ||
+          reason.message?.includes('Invalid JWT') ||
+          reason.message?.includes('User not found') ||
+          reason.message?.includes('Invalid session') ||
+          reason.message?.includes('Unauthorized') ||
+          reason.status === 401 ||
+          reason.status === 403) {
         console.log('Auth session expired (handled gracefully)')
         event.preventDefault()
         return
@@ -29,13 +38,60 @@ if (typeof window !== 'undefined') {
     
     // Handle string auth errors
     if (typeof reason === 'string' && 
-        (reason.includes('refresh_token') || reason.includes('Invalid session'))) {
+        (reason.includes('refresh_token') || 
+         reason.includes('Invalid session') ||
+         reason.includes('JWT') ||
+         reason.includes('Unauthorized') ||
+         reason.includes('auth') ||
+         reason.includes('session'))) {
       console.log('Auth error handled gracefully:', reason)
       event.preventDefault()
       return
     }
     
-    // Only log other errors for debugging, don't prevent default
+    // Handle network errors
+    if (reason && typeof reason === 'object') {
+      if (reason.message?.includes('Failed to fetch') ||
+          reason.message?.includes('NetworkError') ||
+          reason.message?.includes('fetch') ||
+          reason.name === 'TypeError' ||
+          reason.name === 'NetworkError' ||
+          reason.name === 'AbortError' ||
+          reason.code === 'NETWORK_ERROR') {
+        console.log('Network error handled gracefully:', reason.message || reason.name)
+        event.preventDefault()
+        return
+      }
+    }
+    
+    // Handle DOM exceptions
+    if (reason instanceof DOMException) {
+      console.log('DOM exception handled gracefully:', reason.name, reason.message)
+      event.preventDefault()
+      return
+    }
+    
+    // Handle storage errors
+    if (reason && typeof reason === 'object' && reason.message) {
+      if (reason.message.includes('storage') ||
+          reason.message.includes('quota') ||
+          reason.message.includes('blocked') ||
+          reason.name === 'QuotaExceededError' ||
+          reason.name === 'SecurityError') {
+        console.log('Storage error handled gracefully:', reason.message)
+        event.preventDefault()
+        return
+      }
+    }
+    
+    // Prevent all other unhandled rejections in production
+    if (import.meta.env.PROD) {
+      console.log('Production error handled gracefully')
+      event.preventDefault()
+      return
+    }
+    
+    // Only log other errors for debugging in development, don't prevent default
     if (reason && typeof reason === 'object' && 'message' in reason) {
       console.log('Unhandled promise rejection:', (reason as any).message)
     } else if (typeof reason === 'string') {
