@@ -88,13 +88,19 @@ CREATE TABLE IF NOT EXISTS applications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     job_id UUID NOT NULL,
     candidate_id UUID NOT NULL,
-    column_id UUID, -- Auto-assigned to first column
     status application_status DEFAULT 'applied' NOT NULL,
     applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     CONSTRAINT unique_job_application UNIQUE (job_id, candidate_id)
 );
 
--- Add foreign key constraints after table creation
+-- Add column_id column if it doesn't exist
+DO $$ BEGIN
+    ALTER TABLE applications ADD COLUMN column_id UUID;
+EXCEPTION
+    WHEN duplicate_column THEN null;
+END $$;
+
+-- Add foreign key constraints after table and column creation
 DO $$ BEGIN
     ALTER TABLE applications ADD CONSTRAINT fk_applications_job_id 
         FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE;
