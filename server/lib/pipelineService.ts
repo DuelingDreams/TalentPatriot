@@ -94,15 +94,15 @@ export const getPipelineForOrg = async (orgId: string) => {
       throw columnsError
     }
 
-    // Get applications for each column
+    // Get job candidates for each column using the correct table
     const pipeline = await Promise.all(
       columns.map(async (col) => {
-        const { data: apps, error: appsError } = await supabase
-          .from('applications')
+        const { data: jobCandidates, error: jobCandidatesError } = await supabase
+          .from('job_candidate')
           .select(`
             id,
-            status,
-            applied_at,
+            stage,
+            created_at,
             candidate:candidates (
               id,
               name,
@@ -115,17 +115,17 @@ export const getPipelineForOrg = async (orgId: string) => {
               title
             )
           `)
-          .eq('column_id', col.id)
-          .order('applied_at', { ascending: true })
+          .eq('org_id', orgId)
+          .order('created_at', { ascending: true })
 
-        if (appsError) {
-          console.error('Error fetching applications for column:', appsError)
-          throw appsError
+        if (jobCandidatesError) {
+          console.error('Error fetching job candidates for column:', jobCandidatesError)
+          throw jobCandidatesError
         }
 
         return {
           ...col,
-          applications: apps || []
+          jobCandidates: jobCandidates || []
         }
       })
     )
@@ -137,21 +137,24 @@ export const getPipelineForOrg = async (orgId: string) => {
   }
 }
 
-export const moveApplication = async (applicationId: string, newColumnId: string) => {
+export const moveJobCandidate = async (jobCandidateId: string, newStage: string) => {
   try {
     const { error } = await supabase
-      .from('applications')
-      .update({ column_id: newColumnId })
-      .eq('id', applicationId)
+      .from('job_candidate')
+      .update({ 
+        stage: newStage,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', jobCandidateId)
 
     if (error) {
-      console.error('Error moving application:', error)
+      console.error('Error moving job candidate:', error)
       throw error
     }
 
     return true
   } catch (error) {
-    console.error('Error moving application:', error)
+    console.error('Error moving job candidate:', error)
     throw error
   }
 }

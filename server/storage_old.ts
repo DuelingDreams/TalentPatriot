@@ -1,7 +1,7 @@
 import { 
+  userProfiles,
   organizations,
   userOrganizations,
-  userProfiles,
   clients, 
   jobs, 
   candidates,
@@ -94,6 +94,15 @@ export interface IStorage {
   updateCandidate(id: string, candidate: Partial<InsertCandidate>): Promise<Candidate>;
   deleteCandidate(id: string): Promise<void>;
 
+  // Applications - DEPRECATED: Use job_candidate table instead
+  // getApplication(id: string): Promise<Application | undefined>;
+  // getApplications(): Promise<Application[]>;
+  // getApplicationsByJob(jobId: string): Promise<Application[]>;
+  // getApplicationsByCandidate(candidateId: string): Promise<Application[]>;
+  // createApplication(application: InsertApplication): Promise<Application>;
+  // updateApplication(id: string, application: Partial<InsertApplication>): Promise<Application>;
+  // deleteApplication(id: string): Promise<void>;
+
   // Public job access (no authentication required)
   getPublicJobs(): Promise<Job[]>;
   getPublicJob(id: string): Promise<Job | undefined>;
@@ -135,10 +144,13 @@ export interface IStorage {
   getUnreadMessageCount(userId: string): Promise<number>;
 }
 
-// Database storage implementation using Supabase only - no more in-memory Maps
-const supabaseUrl = process.env.VITE_SUPABASE_URL!
+// REMOVED: All MemStorage in-memory Map methods - using only DatabaseStorage with Supabase
+
+
+  // User Profiles
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
+// Enhanced Supabase client with connection pooling and rate limiting
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     persistSession: false,
@@ -152,6 +164,7 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       'x-client-info': 'ats-backend@1.0.0',
     },
   },
+  // Connection pool configuration
   realtime: {
     params: {
       eventsPerSecond: 10,
@@ -199,7 +212,7 @@ export class DatabaseStorage implements IStorage {
     return data as UserProfile;
   }
 
-  // Performance methods
+  // Performance methods (placeholder implementations)
   async getDashboardStats(orgId: string): Promise<any> {
     return {};
   }
@@ -250,7 +263,7 @@ export class DatabaseStorage implements IStorage {
       .single()
     
     if (error) {
-      if (error.code === 'PGRST116') return undefined
+      if (error.code === 'PGRST116') return undefined // Not found
       throw new Error(error.message)
     }
     
@@ -282,7 +295,6 @@ export class DatabaseStorage implements IStorage {
         name: insertOrganization.name,
         owner_id: insertOrganization.ownerId,
         slug: insertOrganization.slug,
-        id: insertOrganization.id,
       }
       
       const { data, error } = await supabase
@@ -435,6 +447,8 @@ export class DatabaseStorage implements IStorage {
   async updateUserOrganization(id: string, updateData: Partial<InsertUserOrganization>): Promise<UserOrganization> {
     try {
       const dbUpdate: any = {}
+      if (updateData.userId !== undefined) dbUpdate.user_id = updateData.userId
+      if (updateData.orgId !== undefined) dbUpdate.org_id = updateData.orgId
       if (updateData.role !== undefined) dbUpdate.role = updateData.role
       
       const { data, error } = await supabase
@@ -479,7 +493,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Clients
   async getClient(id: string): Promise<Client | undefined> {
     const { data, error } = await supabase
       .from('clients')
@@ -488,7 +501,7 @@ export class DatabaseStorage implements IStorage {
       .single()
     
     if (error) {
-      if (error.code === 'PGRST116') return undefined
+      if (error.code === 'PGRST116') return undefined // Not found
       throw new Error(error.message)
     }
     
@@ -532,6 +545,7 @@ export class DatabaseStorage implements IStorage {
 
   async createClient(insertClient: InsertClient): Promise<Client> {
     try {
+      // Map the camelCase fields to snake_case for database with full column support
       const dbClient = {
         name: insertClient.name,
         org_id: insertClient.orgId,
@@ -565,6 +579,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
     try {
+      // Map the camelCase fields to snake_case for database with full column support
       const dbUpdate: any = {}
       if (updateData.name !== undefined) dbUpdate.name = updateData.name
       if (updateData.industry !== undefined) dbUpdate.industry = updateData.industry
@@ -572,6 +587,7 @@ export class DatabaseStorage implements IStorage {
       if (updateData.website !== undefined) dbUpdate.website = updateData.website
       if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
       if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
+
       if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
       if (updateData.status !== undefined) dbUpdate.status = updateData.status
       
@@ -605,7 +621,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Jobs  
   async getJob(id: string): Promise<Job | undefined> {
     const { data, error } = await supabase
       .from('jobs')
@@ -632,38 +647,6 @@ export class DatabaseStorage implements IStorage {
     }
     
     return data as Job[]
-  }
-
-  async getPublicJobs(): Promise<Job[]> {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('record_status', 'active')
-      .eq('status', 'open')
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      throw new Error(error.message)
-    }
-    
-    return data as Job[]
-  }
-
-  async getPublicJob(id: string): Promise<Job | undefined> {
-    const { data, error } = await supabase
-      .from('jobs')
-      .select('*')
-      .eq('id', id)
-      .eq('record_status', 'active')
-      .eq('status', 'open')
-      .single()
-    
-    if (error) {
-      if (error.code === 'PGRST116') return undefined
-      throw new Error(error.message)
-    }
-    
-    return data as Job
   }
 
   async getJobsByOrg(orgId: string): Promise<Job[]> {
@@ -704,39 +687,42 @@ export class DatabaseStorage implements IStorage {
 
   async createJob(insertJob: InsertJob): Promise<Job> {
     try {
-      console.log('Creating job with data:', insertJob);
+      // Map the camelCase fields to snake_case for database with full column support
+      const dbJob = {
+        title: insertJob.title,
+        org_id: insertJob.orgId,
+        client_id: insertJob.clientId || null, // Make client_id optional
+        description: insertJob.description || null,
+        location: insertJob.location || null,
+        job_type: insertJob.jobType || 'full-time',
+        // salary_range: insertJob.salaryRange || null, // Remove until schema is synced
+        status: insertJob.status || 'draft',
+        record_status: insertJob.recordStatus || 'active',
+        assigned_to: insertJob.assignedTo || null,
+        created_by: insertJob.createdBy || null,
+      }
       
       const { data, error } = await supabase
         .from('jobs')
-        .insert({
-          title: insertJob.title,
-          description: insertJob.description ?? null,
-          location: insertJob.location ?? null,
-          job_type: insertJob.jobType ?? 'full-time',
-          status: insertJob.status ?? 'draft',
-          record_status: insertJob.recordStatus ?? 'active',
-          client_id: insertJob.clientId,
-          org_id: insertJob.orgId,
-          assigned_to: insertJob.assignedTo ?? null,
-          created_by: insertJob.createdBy ?? null
-        })
+        .insert(dbJob)
         .select()
-        .single();
+        .single()
       
       if (error) {
-        console.error('Database job creation error:', error);
-        throw new Error(`Failed to create job: ${error.message}`);
+        console.error('Database job creation error:', error)
+        throw new Error(`Failed to create job: ${error.message}`)
       }
       
-      return data as Job;
+      return data as Job
     } catch (err) {
-      console.error('Job creation exception:', err);
-      throw err;
+      console.error('Job creation exception:', err)
+      throw err
     }
   }
 
   async updateJob(id: string, updateData: Partial<InsertJob>): Promise<Job> {
     try {
+      // Map the camelCase fields to snake_case for database with full column support
       const dbUpdate: any = {}
       if (updateData.title !== undefined) dbUpdate.title = updateData.title
       if (updateData.description !== undefined) dbUpdate.description = updateData.description
@@ -764,7 +750,6 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Candidates
   async getCandidate(id: string): Promise<Candidate | undefined> {
     const { data, error } = await supabase
       .from('candidates')
@@ -784,7 +769,7 @@ export class DatabaseStorage implements IStorage {
     const { data, error } = await supabase
       .from('candidates')
       .select('*')
-      .order('name', { ascending: true })
+      .order('created_at', { ascending: false })
     
     if (error) {
       throw new Error(error.message)
@@ -795,19 +780,16 @@ export class DatabaseStorage implements IStorage {
 
   async getCandidatesByOrg(orgId: string): Promise<Candidate[]> {
     try {
-      console.log(`Fetching candidates for orgId: ${orgId}`)
       const { data, error } = await supabase
         .from('candidates')
         .select('*')
         .eq('org_id', orgId)
-        .order('name', { ascending: true })
+        .order('created_at', { ascending: false })
       
       if (error) {
-        console.error('Supabase error:', error)
         throw new Error(`Failed to fetch candidates: ${error.message}`)
       }
       
-      console.log(`Found ${data?.length || 0} candidates for orgId: ${orgId}`)
       return data as Candidate[]
     } catch (err) {
       console.error('Exception in getCandidatesByOrg:', err)
@@ -816,29 +798,40 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined> {
-    const { data, error } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('email', email)
-      .eq('org_id', orgId)
-      .single()
-    
-    if (error) {
-      if (error.code === 'PGRST116') return undefined
-      throw new Error(error.message)
+    try {
+      if (!orgId) {
+        console.error('getCandidateByEmail called with undefined orgId')
+        return undefined
+      }
+      
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('email', email)
+        .eq('org_id', orgId)
+        .single()
+      
+      if (error) {
+        if (error.code === 'PGRST116') return undefined
+        throw new Error(error.message)
+      }
+      
+      return data as Candidate
+    } catch (err) {
+      console.error('Exception in getCandidateByEmail:', err)
+      throw err
     }
-    
-    return data as Candidate
   }
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
     try {
+      // Map the camelCase fields to snake_case for database
       const dbCandidate = {
         name: insertCandidate.name,
         email: insertCandidate.email,
+        org_id: insertCandidate.orgId,
         phone: insertCandidate.phone || null,
         resume_url: insertCandidate.resumeUrl || null,
-        org_id: insertCandidate.orgId,
         status: insertCandidate.status || 'active',
         created_by: insertCandidate.createdBy || null,
       }
@@ -868,7 +861,13 @@ export class DatabaseStorage implements IStorage {
       if (updateData.email !== undefined) dbUpdate.email = updateData.email
       if (updateData.phone !== undefined) dbUpdate.phone = updateData.phone
       if (updateData.resumeUrl !== undefined) dbUpdate.resume_url = updateData.resumeUrl
-      if (updateData.status !== undefined) dbUpdate.status = updateData.status
+      if (updateData.linkedinUrl !== undefined) dbUpdate.linkedin_url = updateData.linkedinUrl
+      if (updateData.githubUrl !== undefined) dbUpdate.github_url = updateData.githubUrl
+      if (updateData.portfolioUrl !== undefined) dbUpdate.portfolio_url = updateData.portfolioUrl
+      if (updateData.skills !== undefined) dbUpdate.skills = updateData.skills
+      if (updateData.experienceYears !== undefined) dbUpdate.experience_years = updateData.experienceYears
+      if (updateData.location !== undefined) dbUpdate.location = updateData.location
+      if (updateData.recordStatus !== undefined) dbUpdate.record_status = updateData.recordStatus
       
       const { data, error } = await supabase
         .from('candidates')
@@ -878,7 +877,6 @@ export class DatabaseStorage implements IStorage {
         .single()
       
       if (error) {
-        console.error('Database candidate update error:', error)
         throw new Error(`Failed to update candidate: ${error.message}`)
       }
       
@@ -892,7 +890,7 @@ export class DatabaseStorage implements IStorage {
   async deleteCandidate(id: string): Promise<void> {
     const { error } = await supabase
       .from('candidates')
-      .update({ status: 'deleted' })
+      .delete()
       .eq('id', id)
     
     if (error) {
@@ -900,7 +898,147 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  // Job-Candidate relationships using job_candidate table (not old applications)
+  // Applications
+  async getApplication(id: string): Promise<Application | undefined> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as Application
+  }
+
+  async getApplications(): Promise<Application[]> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .order('applied_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Application[]
+  }
+
+  async getApplicationsByJob(jobId: string): Promise<Application[]> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('job_id', jobId)
+      .order('applied_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Application[]
+  }
+
+  async getApplicationsByCandidate(candidateId: string): Promise<Application[]> {
+    const { data, error } = await supabase
+      .from('applications')
+      .select('*')
+      .eq('candidate_id', candidateId)
+      .order('applied_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Application[]
+  }
+
+  async createApplication(insertApplication: InsertApplication): Promise<Application> {
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .insert({
+          job_id: insertApplication.jobId,
+          candidate_id: insertApplication.candidateId
+          // Omit status for now - database might have different schema
+        })
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database application creation error:', error)
+        throw new Error(`Failed to create application: ${error.message}`)
+      }
+      
+      return data as Application
+    } catch (err) {
+      console.error('Application creation exception:', err)
+      throw err
+    }
+  }
+
+  async updateApplication(id: string, updateData: Partial<InsertApplication>): Promise<Application> {
+    const dbUpdate: any = {}
+    if (updateData.status !== undefined) dbUpdate.status = updateData.status
+    
+    const { data, error } = await supabase
+      .from('applications')
+      .update(dbUpdate)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(`Failed to update application: ${error.message}`)
+    }
+    
+    return data as Application
+  }
+
+  async deleteApplication(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
+  // Public job access (no authentication required)
+  async getPublicJobs(): Promise<Job[]> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'open')
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+    
+    return data as Job[]
+  }
+
+  async getPublicJob(id: string): Promise<Job | undefined> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('id', id)
+      .eq('status', 'open')
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined
+      throw new Error(error.message)
+    }
+    
+    return data as Job
+  }
+
   async getJobCandidate(id: string): Promise<JobCandidate | undefined> {
     const { data, error } = await supabase
       .from('job_candidate')
@@ -917,17 +1055,83 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getJobCandidatesByJob(jobId: string): Promise<JobCandidate[]> {
-    const { data, error } = await supabase
-      .from('job_candidate')
-      .select('*')
-      .eq('job_id', jobId)
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      throw new Error(error.message)
+    try {
+      console.log('Fetching job candidates for job:', jobId);
+      
+      // For demo jobs, return demo candidates
+      if (jobId.startsWith('demo-job-')) {
+        console.log('Returning demo candidates for demo job');
+        return [
+          {
+            id: 'demo-job-candidate-1',
+            orgId: 'demo-org-fixed',
+            jobId: jobId,
+            candidateId: 'demo-candidate-1',
+            stage: 'applied',
+            notes: 'Initial application review pending',
+            assignedTo: null,
+            status: 'demo',
+            createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+            updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+            candidates: {
+              id: 'demo-candidate-1',
+              name: 'David Brown',
+              email: 'david.brown@email.com',
+              phone: '+1-555-0123',
+              resume_url: 'https://example.com/david-resume.pdf',
+              created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            }
+          },
+          {
+            id: 'demo-job-candidate-2',
+            orgId: 'demo-org-fixed',
+            jobId: jobId,
+            candidateId: 'demo-candidate-2',
+            stage: 'phone_screen',
+            notes: 'Passed initial screening',
+            assignedTo: null,
+            status: 'demo',
+            createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+            candidates: {
+              id: 'demo-candidate-2',
+              name: 'Sarah Wilson',
+              email: 'sarah.wilson@email.com',
+              phone: '+1-555-0124',
+              resume_url: 'https://example.com/sarah-resume.pdf',
+              created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+            }
+          }
+        ] as JobCandidate[]
+      }
+      
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .select(`
+          *,
+          pipeline_column_id,
+          candidates (
+            id,
+            name,
+            email,
+            phone,
+            resume_url,
+            created_at
+          )
+        `)
+        .eq('job_id', jobId)
+        .order('updated_at', { ascending: false })
+      
+      if (error) {
+        console.error('Supabase error fetching job candidates:', error);
+        return []
+      }
+      
+      return data as JobCandidate[]
+    } catch (err) {
+      console.error('Exception in getJobCandidatesByJob:', err);
+      return []
     }
-    
-    return data as JobCandidate[]
   }
 
   async getJobCandidatesByCandidate(candidateId: string): Promise<JobCandidate[]> {
@@ -935,7 +1139,7 @@ export class DatabaseStorage implements IStorage {
       .from('job_candidate')
       .select('*')
       .eq('candidate_id', candidateId)
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false })
     
     if (error) {
       throw new Error(error.message)
@@ -946,19 +1150,27 @@ export class DatabaseStorage implements IStorage {
 
   async getJobCandidatesByOrg(orgId: string): Promise<JobCandidate[]> {
     try {
-      console.log(`Fetching job candidates for orgId: ${orgId}`)
       const { data, error } = await supabase
         .from('job_candidate')
-        .select('*')
+        .select(`
+          *,
+          candidates (
+            id,
+            name,
+            email,
+            phone,
+            resume_url,
+            created_at
+          )
+        `)
         .eq('org_id', orgId)
-        .order('created_at', { ascending: false })
+        .order('updated_at', { ascending: false })
       
       if (error) {
-        console.error('Supabase error:', error)
+        console.error('Database error fetching job candidates by org:', error)
         throw new Error(`Failed to fetch job candidates: ${error.message}`)
       }
       
-      console.log(`Found ${data?.length || 0} job candidates for orgId: ${orgId}`)
       return data as JobCandidate[]
     } catch (err) {
       console.error('Exception in getJobCandidatesByOrg:', err)
@@ -968,15 +1180,19 @@ export class DatabaseStorage implements IStorage {
 
   async createJobCandidate(insertJobCandidate: InsertJobCandidate & { pipelineColumnId?: string }): Promise<JobCandidate> {
     try {
+      // Map the camelCase fields to snake_case for database with optimized structure
       const dbJobCandidate = {
-        org_id: insertJobCandidate.orgId,
         job_id: insertJobCandidate.jobId,
         candidate_id: insertJobCandidate.candidateId,
+        org_id: insertJobCandidate.orgId,
         stage: insertJobCandidate.stage || 'applied',
-        notes: insertJobCandidate.notes || null,
-        assigned_to: insertJobCandidate.assignedTo || null,
         status: insertJobCandidate.status || 'active',
+        notes: insertJobCandidate.notes,
+        assigned_to: insertJobCandidate.assignedTo || null,
+        pipeline_column_id: insertJobCandidate.pipelineColumnId || null,
       }
+
+      console.info('Creating job candidate with column ID:', insertJobCandidate.pipelineColumnId)
       
       const { data, error } = await supabase
         .from('job_candidate')
@@ -998,11 +1214,14 @@ export class DatabaseStorage implements IStorage {
 
   async updateJobCandidate(id: string, updateData: Partial<InsertJobCandidate>): Promise<JobCandidate> {
     try {
+      // Map the camelCase fields to snake_case for database
       const dbUpdate: any = {}
       if (updateData.stage !== undefined) dbUpdate.stage = updateData.stage
       if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
       if (updateData.assignedTo !== undefined) dbUpdate.assigned_to = updateData.assignedTo
-      if (updateData.status !== undefined) dbUpdate.status = updateData.status
+      
+      // Always update the timestamp
+      dbUpdate.updated_at = new Date().toISOString()
       
       const { data, error } = await supabase
         .from('job_candidate')
@@ -1023,87 +1242,340 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async moveJobCandidate(jobCandidateId: string, newStage: string): Promise<JobCandidate> {
-    return this.updateJobCandidate(jobCandidateId, { stage: newStage as any })
+  async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    try {
+      console.info('Moving job candidate', jobCandidateId, 'to column', newColumnId)
+      
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .update({ 
+          pipeline_column_id: newColumnId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', jobCandidateId)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database job candidate move error:', error)
+        throw new Error(`Failed to move job candidate: ${error.message}`)
+      }
+      
+      return data as JobCandidate
+    } catch (err) {
+      console.error('Job candidate update exception:', err)
+      throw err
+    }
   }
 
-  // Stub implementations for other methods
   async getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]> {
-    return []
+    try {
+      console.log('Querying candidate_notes for job_candidate_id:', jobCandidateId);
+      
+      // For demo job candidates, return demo notes
+      if (jobCandidateId.startsWith('demo-')) {
+        console.log('Returning demo notes for demo candidate');
+        return [
+          {
+            id: `demo-note-1-${jobCandidateId}`,
+            orgId: 'demo-org-fixed',
+            jobCandidateId,
+            authorId: 'demo-user',
+            content: 'Initial screening call went well. Candidate has strong technical background.',
+            isPrivate: 'false',
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+            updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          },
+          {
+            id: `demo-note-2-${jobCandidateId}`,
+            orgId: 'demo-org-fixed',
+            jobCandidateId,
+            authorId: 'demo-user-2',
+            content: 'Follow-up interview scheduled for next week.',
+            isPrivate: 'false',
+            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+            updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+          }
+        ] as CandidateNotes[]
+      }
+      
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .select('*')
+        .eq('job_candidate_id', jobCandidateId)
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('Supabase error fetching candidate notes:', error);
+        // Return empty array instead of throwing error for better UX
+        return []
+      }
+      
+      console.log('Raw candidate notes data:', data);
+      return data as CandidateNotes[] || []
+    } catch (err) {
+      console.error('Exception in getCandidateNotes:', err);
+      // Return empty array instead of throwing error
+      return []
+    }
   }
 
-  async createCandidateNote(note: InsertCandidateNotes): Promise<CandidateNotes> {
-    throw new Error('Not implemented')
+  async createCandidateNote(insertNote: InsertCandidateNotes): Promise<CandidateNotes> {
+    try {
+      console.log('Creating candidate note:', insertNote);
+      
+      // For demo candidates, return a mock created note
+      if (insertNote.jobCandidateId.startsWith('demo-')) {
+        console.log('Creating demo note for demo candidate');
+        const mockNote: CandidateNotes = {
+          id: `demo-note-${Date.now()}`,
+          orgId: insertNote.orgId || 'demo-org-fixed',
+          jobCandidateId: insertNote.jobCandidateId,
+          authorId: insertNote.authorId,
+          content: insertNote.content,
+          isPrivate: 'false',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+        return mockNote
+      }
+      
+      // Map the camelCase fields to snake_case for database with optimized structure
+      const dbNote = {
+        org_id: insertNote.orgId || 'demo-org-fixed',
+        job_candidate_id: insertNote.jobCandidateId,
+        author_id: insertNote.authorId,
+        content: insertNote.content,
+        is_private: 'false',
+      }
+      
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .insert(dbNote)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database candidate note creation error:', error)
+        throw new Error(`Failed to create candidate note: ${error.message}`)
+      }
+      
+      return data as CandidateNotes
+    } catch (err) {
+      console.error('Candidate note creation exception:', err)
+      throw err
+    }
   }
 
+  // Interviews implementation - using in-memory storage for now since table doesn't exist yet
   async getInterview(id: string): Promise<Interview | undefined> {
+    // For now, return undefined as interviews table doesn't exist yet
     return undefined
   }
 
   async getInterviews(): Promise<Interview[]> {
+    // For now, return empty array as interviews table doesn't exist yet
     return []
   }
 
   async getInterviewsByJobCandidate(jobCandidateId: string): Promise<Interview[]> {
+    // For now, return empty array as interviews table doesn't exist yet
     return []
   }
 
   async getInterviewsByDateRange(startDate: Date, endDate: Date): Promise<Interview[]> {
+    // For now, return empty array as interviews table doesn't exist yet
     return []
   }
 
-  async createInterview(interview: InsertInterview): Promise<Interview> {
-    throw new Error('Not implemented')
+  async createInterview(insertInterview: InsertInterview): Promise<Interview> {
+    // For now, create a mock interview since table doesn't exist yet
+    const id = crypto.randomUUID()
+    const now = new Date()
+    const interview: Interview = {
+      ...insertInterview,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      recordStatus: insertInterview.recordStatus || 'active',
+      duration: insertInterview.duration || null,
+      location: insertInterview.location || null,
+      interviewerId: insertInterview.interviewerId || null,
+      notes: insertInterview.notes || null,
+      feedback: insertInterview.feedback || null,
+      rating: insertInterview.rating || null,
+      status: insertInterview.status || 'scheduled'
+    }
+    return interview
   }
 
-  async updateInterview(id: string, interview: Partial<InsertInterview>): Promise<Interview> {
-    throw new Error('Not implemented')
+  async updateInterview(id: string, updateData: Partial<InsertInterview>): Promise<Interview> {
+    // For now, return a mock updated interview since table doesn't exist yet
+    const now = new Date()
+    const interview: Interview = {
+      id,
+      jobCandidateId: updateData.jobCandidateId || '',
+      title: updateData.title || '',
+      type: updateData.type || 'video',
+      status: updateData.status || 'scheduled',
+      scheduledAt: updateData.scheduledAt || now,
+      duration: updateData.duration || '60',
+      location: updateData.location || null,
+      interviewerId: updateData.interviewerId || null,
+      notes: updateData.notes || null,
+      feedback: updateData.feedback || null,
+      rating: updateData.rating || null,
+      recordStatus: updateData.recordStatus || 'active',
+      orgId: updateData.orgId || 'demo-org-fixed',
+      createdAt: now,
+      updatedAt: now,
+    }
+    return interview
   }
 
   async deleteInterview(id: string): Promise<void> {
-    // Not implemented
+    // For now, do nothing since table doesn't exist yet
+    return
   }
 
+  // Messages implementation - using in-memory storage for now since table doesn't exist yet
   async getMessage(id: string): Promise<Message | undefined> {
+    // For now, return undefined as messages table doesn't exist yet
     return undefined
   }
 
   async getMessages(userId?: string): Promise<Message[]> {
+    // For now, return empty array as messages table doesn't exist yet
     return []
   }
 
   async getMessagesByThread(threadId: string): Promise<Message[]> {
+    // For now, return empty array as messages table doesn't exist yet
     return []
   }
 
   async getMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string }): Promise<Message[]> {
+    // For now, return empty array as messages table doesn't exist yet
     return []
   }
 
-  async createMessage(message: InsertMessage): Promise<Message> {
-    throw new Error('Not implemented')
+  async createMessage(insertMessage: InsertMessage): Promise<Message> {
+    // For now, create a mock message since table doesn't exist yet
+    const id = crypto.randomUUID()
+    const now = new Date()
+    const message: Message = {
+      ...insertMessage,
+      id,
+      isRead: false,
+      readAt: null,
+      isArchived: false,
+      createdAt: now,
+      updatedAt: now,
+      recordStatus: insertMessage.recordStatus || 'active',
+      clientId: insertMessage.clientId || null,
+      jobId: insertMessage.jobId || null,
+      candidateId: insertMessage.candidateId || null,
+      jobCandidateId: insertMessage.jobCandidateId || null,
+      recipientId: insertMessage.recipientId || null,
+      threadId: insertMessage.threadId || null,
+      replyToId: insertMessage.replyToId || null,
+      attachments: insertMessage.attachments || null,
+      tags: insertMessage.tags || null,
+      priority: insertMessage.priority || 'normal'
+    }
+    return message
   }
 
-  async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message> {
-    throw new Error('Not implemented')
+  async updateMessage(id: string, updateData: Partial<InsertMessage>): Promise<Message> {
+    // For now, return a mock updated message since table doesn't exist yet
+    const now = new Date()
+    const message: Message = {
+      id,
+      type: updateData.type || 'internal',
+      priority: updateData.priority || 'normal',
+      subject: updateData.subject || '',
+      content: updateData.content || '',
+      senderId: updateData.senderId || '',
+      recipientId: updateData.recipientId || null,
+      clientId: updateData.clientId || null,
+      jobId: updateData.jobId || null,
+      candidateId: updateData.candidateId || null,
+      jobCandidateId: updateData.jobCandidateId || null,
+      isRead: updateData.isRead || false,
+      readAt: updateData.readAt || null,
+      isArchived: updateData.isArchived || false,
+      threadId: updateData.threadId || null,
+      replyToId: updateData.replyToId || null,
+      orgId: updateData.orgId || 'demo-org-fixed',
+      attachments: updateData.attachments || null,
+      tags: updateData.tags || null,
+      recordStatus: updateData.recordStatus || 'active',
+      createdAt: now,
+      updatedAt: now,
+    }
+    return message
   }
 
   async markMessageAsRead(messageId: string, userId: string): Promise<void> {
-    // Not implemented
+    // For now, do nothing since table doesn't exist yet
+    return
   }
 
   async archiveMessage(messageId: string): Promise<void> {
-    // Not implemented
+    // For now, do nothing since table doesn't exist yet
+    return
   }
 
   async addMessageRecipients(messageId: string, recipientIds: string[]): Promise<MessageRecipient[]> {
+    // For now, return empty array as table doesn't exist yet
     return []
   }
 
   async getUnreadMessageCount(userId: string): Promise<number> {
+    // For now, return 0 as table doesn't exist yet
     return 0
+  }
+
+  // Pipeline Columns methods
+  async getPipelineColumns(orgId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('pipeline_columns')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('position', { ascending: true })
+      
+      if (error) {
+        console.error('Database pipeline columns fetch error:', error)
+        throw new Error(`Failed to fetch pipeline columns: ${error.message}`)
+      }
+      
+      return data || []
+    } catch (err) {
+      console.error('Pipeline columns fetch exception:', err)
+      throw err
+    }
+  }
+
+  async createPipelineColumn(data: any): Promise<any> {
+    try {
+      const { data: result, error } = await supabase
+        .from('pipeline_columns')
+        .insert(data)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database pipeline column creation error:', error)
+        throw new Error(`Failed to create pipeline column: ${error.message}`)
+      }
+      
+      return result
+    } catch (err) {
+      console.error('Pipeline column creation exception:', err)
+      throw err
+    }
   }
 }
 
-// Export the clean DatabaseStorage instance - no more MemStorage
-export const storage: IStorage = new DatabaseStorage();
+export const storage = new DatabaseStorage();
