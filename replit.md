@@ -22,11 +22,13 @@ Preferred communication style: Simple, everyday language.
 - **API Structure**: Clean RESTful endpoints with comprehensive Zod validation
 - **Request Handling**: JSON and URL-encoded body parsing with strict input validation
 - **Error Handling**: Centralized error middleware with detailed Zod validation errors, comprehensive DOM exception prevention, and refined error handling for stability.
-- **API Endpoints**: Rewritten with clean implementation:
-  - `POST /api/jobs` - Job creation with validation
-  - `POST /api/jobs/:jobId/publish` - Job publishing
+- **API Endpoints**: Complete recruitment flow implementation:
+  - `POST /api/jobs` - Job creation with validation (default draft status)
+  - `POST /api/jobs/:jobId/publish` - Job publishing endpoint
+  - `GET /api/public/jobs` - Public job listings for careers page
+  - `POST /api/jobs/:jobId/apply` - Job application with file upload
   - `POST /api/candidates` - Candidate creation with duplicate checking
-  - `POST /api/jobs/:jobId/apply` - Complete job application flow
+  - Pipeline integration with automatic column assignment
 - **Validation**: Comprehensive Zod schemas for all inputs with detailed error messages
 
 ### Data Storage
@@ -44,6 +46,8 @@ Preferred communication style: Simple, everyday language.
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.
 - **Recruitment Pipeline**: Kanban-style pipeline dashboard with dynamic columns, drag-and-drop functionality, and candidate progression tracking.
+- **Complete Recruitment Workflow**: End-to-end job posting flow from draft creation → publishing → public careers listing → candidate application → pipeline management.
+- **Public Careers Portal**: Dedicated public-facing job listings at `/public/careers` with professional application forms and file upload support.
 - **Interview Scheduling**: Advanced calendar interface with improved popover handling - fixed clipping issues on mobile and desktop with proper z-index stacking, collision detection, and responsive design.
 - **Onboarding Workflow**: 5-step user onboarding including account creation, company setup, goal-based personalization, guided job creation/candidate import, and success celebration.
 - **Job Board Integration**: UI for various job boards (LinkedIn, Indeed, etc.) with cost estimates and multi-platform distribution.

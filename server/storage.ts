@@ -815,40 +815,9 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
-    const { data, error } = await supabase
-      .from('candidates')
-      .insert({
-        name: insertCandidate.name,
-        email: insertCandidate.email,
-        phone: insertCandidate.phone,
-        org_id: insertCandidate.orgId,
-        status: insertCandidate.status || 'active'
-      })
-      .select()
-      .single();
-    
-    if (error) throw new Error(`Failed to create candidate: ${error.message}`);
-    return data as Candidate;
-  }
 
-  async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
-    const { data, error } = await supabase
-      .from('job_candidate')
-      .insert({
-        job_id: insertJobCandidate.jobId,
-        candidate_id: insertJobCandidate.candidateId,
-        org_id: insertJobCandidate.orgId,
-        stage: insertJobCandidate.stage || 'applied',
-        status: insertJobCandidate.status || 'active',
-        pipeline_column_id: insertJobCandidate.pipelineColumnId
-      })
-      .select()
-      .single();
-    
-    if (error) throw new Error(`Failed to create job candidate: ${error.message}`);
-    return data as JobCandidate;
-  }
+
+
 
   async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
     const { data, error } = await supabase
@@ -1025,6 +994,7 @@ export class DatabaseStorage implements IStorage {
         notes: insertJobCandidate.notes || null,
         assigned_to: insertJobCandidate.assignedTo || null,
         status: insertJobCandidate.status || 'active',
+        pipeline_column_id: insertJobCandidate.pipelineColumnId || null,
       }
       
       const { data, error } = await supabase
@@ -1072,9 +1042,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async moveJobCandidate(jobCandidateId: string, newStage: string): Promise<JobCandidate> {
-    return this.updateJobCandidate(jobCandidateId, { stage: newStage as any })
-  }
+
 
   // Stub implementations for other methods
   async getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]> {
