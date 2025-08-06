@@ -12,7 +12,7 @@ import type { Job } from '@shared/schema';
 export default function PublicJobsList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('__all_types');
 
   const { data: jobs = [], isLoading } = useQuery<Job[]>({
     queryKey: ['/api/public/jobs'],
@@ -22,7 +22,7 @@ export default function PublicJobsList() {
     const matchesSearch = job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          job.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLocation = !locationFilter || job.location?.toLowerCase().includes(locationFilter.toLowerCase());
-    const matchesType = !typeFilter || job.jobType === typeFilter;
+    const matchesType = typeFilter === '__all_types' || job.jobType === typeFilter;
     
     return matchesSearch && matchesLocation && matchesType;
   });
@@ -93,8 +93,8 @@ export default function PublicJobsList() {
                   <SelectTrigger>
                     <SelectValue placeholder="Job Type" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                  <SelectContent className="z-[100]">
+                    <SelectItem value="__all_types">All Types</SelectItem>
                     <SelectItem value="full-time">Full-time</SelectItem>
                     <SelectItem value="part-time">Part-time</SelectItem>
                     <SelectItem value="contract">Contract</SelectItem>

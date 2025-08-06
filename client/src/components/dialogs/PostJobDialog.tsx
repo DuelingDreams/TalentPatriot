@@ -96,7 +96,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
     defaultValues: {
       title: '',
       description: '',
-      client_id: '',
+      client_id: undefined, // Fix: change from '' to undefined
       status: 'draft',
       location: '',
       remote_option: 'onsite',
@@ -132,7 +132,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       const jobData = {
         title: data.title,
         description: data.description,
-        clientId: data.client_id, // Map client_id to clientId
+        clientId: data.client_id === "__no_client" ? undefined : data.client_id, // Handle placeholder value
         orgId: currentOrgId, // Add required orgId (now guaranteed to be non-null)
         status: data.status as 'draft' | 'open' | 'closed' | 'on_hold' | 'filled',
         location: data.location,
@@ -231,14 +231,14 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client (Optional)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value || "__no_client"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select a client (optional)" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="z-50 bg-white border border-slate-200 shadow-lg rounded-md max-h-48 overflow-y-auto">
-                      <SelectItem value="" className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3">
+                    <SelectContent className="z-[100] bg-white border border-slate-200 shadow-lg rounded-md max-h-48 overflow-y-auto">
+                      <SelectItem value="__no_client" className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3">
                         No client assigned
                       </SelectItem>
                       {clientsLoading ? (
@@ -300,7 +300,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="z-[100]">
                         <SelectItem value="onsite">On-site</SelectItem>
                         <SelectItem value="remote">Remote</SelectItem>
                         <SelectItem value="hybrid">Hybrid</SelectItem>
@@ -325,7 +325,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="z-[100]">
                         <SelectItem value="entry">Entry Level</SelectItem>
                         <SelectItem value="mid">Mid Level</SelectItem>
                         <SelectItem value="senior">Senior Level</SelectItem>
@@ -349,7 +349,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="z-[100]">
                         <SelectItem value="full-time">Full Time</SelectItem>
                         <SelectItem value="part-time">Part Time</SelectItem>
                         <SelectItem value="contract">Contract</SelectItem>
@@ -388,7 +388,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                         <SelectValue placeholder="Select job status" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="z-[100]">
                       <SelectItem value="open">Open</SelectItem>
                       <SelectItem value="closed">Closed</SelectItem>
                       <SelectItem value="on_hold">On Hold</SelectItem>
