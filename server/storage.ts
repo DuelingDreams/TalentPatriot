@@ -112,8 +112,9 @@ export interface IStorage {
   getJobCandidatesByJob(jobId: string): Promise<JobCandidate[]>;
   getJobCandidatesByCandidate(candidateId: string): Promise<JobCandidate[]>;
   getJobCandidatesByOrg(orgId: string): Promise<JobCandidate[]>;
-  createJobCandidate(jobCandidate: InsertJobCandidate): Promise<JobCandidate>;
+  createJobCandidate(jobCandidate: InsertJobCandidate & { pipelineColumnId?: string }): Promise<JobCandidate>;
   updateJobCandidate(id: string, jobCandidate: Partial<InsertJobCandidate>): Promise<JobCandidate>;
+  moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate>;
   
   // Candidate Notes
   getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]>;
@@ -474,6 +475,17 @@ export class MemStorage implements IStorage {
     return Array.from(this.jobs.values());
   }
 
+  async getPublicJobs(): Promise<Job[]> {
+    return Array.from(this.jobs.values()).filter(job => 
+      job.recordStatus === 'active' && job.status === 'open'
+    );
+  }
+
+  async getPublicJob(id: string): Promise<Job | undefined> {
+    const job = this.jobs.get(id);
+    return job && job.recordStatus === 'active' && job.status === 'open' ? job : undefined;
+  }
+
   async getJobsByOrg(orgId: string): Promise<Job[]> {
     return Array.from(this.jobs.values()).filter(job => job.orgId === orgId);
   }
@@ -669,7 +681,7 @@ export class MemStorage implements IStorage {
     return Array.from(this.jobCandidates.values()).filter(jc => jc.orgId === orgId);
   }
 
-  async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
+  async createJobCandidate(insertJobCandidate: InsertJobCandidate & { pipelineColumnId?: string }): Promise<JobCandidate> {
     const id = crypto.randomUUID();
     const now = new Date();
     const jobCandidate: JobCandidate = { 
@@ -700,6 +712,22 @@ export class MemStorage implements IStorage {
     };
     
     this.jobCandidates.set(id, updated);
+    return updated;
+  }
+
+  async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    const existing = this.jobCandidates.get(jobCandidateId);
+    if (!existing) {
+      throw new Error(`Job candidate with id ${jobCandidateId} not found`);
+    }
+
+    const updated: JobCandidate = {
+      ...existing,
+      updatedAt: new Date()
+      // Note: MemStorage doesn't track pipeline column IDs, but we satisfy the interface
+    };
+    
+    this.jobCandidates.set(jobCandidateId, updated);
     return updated;
   }
 
@@ -1873,6 +1901,7 @@ class DatabaseStorage implements IStorage {
         .from('job_candidate')
         .select(`
           *,
+          pipeline_column_id,
           candidates (
             id,
             name,
@@ -1941,17 +1970,21 @@ class DatabaseStorage implements IStorage {
     }
   }
 
-  async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
+  async createJobCandidate(insertJobCandidate: InsertJobCandidate & { pipelineColumnId?: string }): Promise<JobCandidate> {
     try {
       // Map the camelCase fields to snake_case for database with optimized structure
       const dbJobCandidate = {
         job_id: insertJobCandidate.jobId,
         candidate_id: insertJobCandidate.candidateId,
+        org_id: insertJobCandidate.orgId,
         stage: insertJobCandidate.stage || 'applied',
+        status: insertJobCandidate.status || 'active',
         notes: insertJobCandidate.notes,
         assigned_to: insertJobCandidate.assignedTo || null,
-        // Note: status field will be added after schema migration
+        pipeline_column_id: insertJobCandidate.pipelineColumnId || null,
       }
+
+      console.info('Creating job candidate with column ID:', insertJobCandidate.pipelineColumnId)
       
       const { data, error } = await supabase
         .from('job_candidate')
@@ -1992,6 +2025,32 @@ class DatabaseStorage implements IStorage {
       if (error) {
         console.error('Database job candidate update error:', error)
         throw new Error(`Failed to update job candidate: ${error.message}`)
+      }
+      
+      return data as JobCandidate
+    } catch (err) {
+      console.error('Job candidate update exception:', err)
+      throw err
+    }
+  }
+
+  async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    try {
+      console.info('Moving job candidate', jobCandidateId, 'to column', newColumnId)
+      
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .update({ 
+          pipeline_column_id: newColumnId,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', jobCandidateId)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database job candidate move error:', error)
+        throw new Error(`Failed to move job candidate: ${error.message}`)
       }
       
       return data as JobCandidate

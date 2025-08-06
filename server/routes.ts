@@ -7,6 +7,7 @@ import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
 import { uploadRouter } from "./routes/upload";
+import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineService";
 
 
 // Write operation rate limiter
@@ -1041,7 +1042,6 @@ Expires: 2025-12-31T23:59:59.000Z
       console.log('Job org_id:', job.orgId);
 
       // Ensure default pipeline columns exist for this org
-      const { ensureDefaultPipeline, getFirstPipelineColumn } = require('./lib/pipelineService');
       await ensureDefaultPipeline(job.orgId);
 
       // Get the first pipeline column for auto-assignment
@@ -1083,45 +1083,12 @@ Expires: 2025-12-31T23:59:59.000Z
           orgId: job.orgId,
           jobId,
           candidateId: candidate.id,
-          applicationId: application.id,
           stage: 'applied',
-          status: 'active'
+          status: 'active',
+          pipelineColumnId: firstColumn.id  // Pass the first column ID for Kanban persistence
         });
-        console.log('Created pipeline entry:', pipelineEntry.id);
+        console.log('Created pipeline entry:', pipelineEntry.id, 'in column:', firstColumn.id);
       } catch (pipelineError) {
-
-
-  // ZoneAlarm and security software whitelist request endpoint
-  app.get("/api/zonealarm-whitelist", (req, res) => {
-    res.json({
-      application_name: "TalentPatriot ATS",
-      business_type: "Human Resources Software",
-      legitimacy_status: "Verified Business Application",
-      purpose: "Applicant Tracking System for recruitment management",
-      target_users: "HR professionals, recruiters, hiring managers",
-      security_contact: "security@talentpatriot.com",
-      false_positive_report: "This application has been incorrectly flagged as suspicious",
-      whitelist_request: {
-        status: "requested",
-        reason: "Legitimate business software providing HR services",
-        evidence: [
-          "Professional security.txt file",
-          "Business contact information provided",
-          "Clear application purpose stated",
-          "No malicious functionality present",
-          "Secure business data handling practices"
-        ]
-      },
-      verification: {
-        business_registration: true,
-        security_compliance: true,
-        data_protection: true,
-        legitimate_purpose: true
-      }
-    });
-  });
-
-
         console.error('Error creating pipeline entry:', pipelineError);
         // Continue even if pipeline creation fails
       }
@@ -1167,6 +1134,31 @@ Expires: 2025-12-31T23:59:59.000Z
     } catch (error) {
       console.error("Error moving application:", error);
       res.status(500).json({ error: "Failed to move application" });
+    }
+  });
+
+  // Move job candidate to different pipeline column (Kanban drag and drop)
+  app.patch("/api/jobs/:jobId/candidates/:candidateId/move", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId } = req.params;
+      const { columnId } = req.body;
+      
+      if (!columnId) {
+        return res.status(400).json({ error: "Column ID is required" });
+      }
+
+      console.info('Moving job candidate', candidateId, 'to column', columnId);
+      
+      // Use the storage method to move the job candidate
+      const updatedJobCandidate = await storage.moveJobCandidate(candidateId, columnId);
+      
+      res.json({ 
+        message: "Job candidate moved successfully",
+        jobCandidate: updatedJobCandidate
+      });
+    } catch (error) {
+      console.error("Error moving job candidate:", error);
+      res.status(500).json({ error: "Failed to move job candidate" });
     }
   });
 
