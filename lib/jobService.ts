@@ -8,15 +8,34 @@ const supabase = createClient(
 // Clean Supabase service layer for job/candidate/application operations
 // Replaces old mixed in-memory storage and broken applications table references
 
-export async function createJob(data: {
+export interface CreateJobData {
   title: string;
   description: string;
-  clientId: string;
+  clientId?: string;
   orgId: string;
   location?: string;
   jobType?: string;
   status?: string;
-}) {
+}
+
+export interface CreateCandidateData {
+  name: string;
+  email: string;
+  phone?: string;
+  orgId: string;
+  resumeUrl?: string;
+}
+
+export interface JobApplicationData {
+  jobId: string;
+  candidateEmail: string;
+  candidateName: string;
+  candidatePhone?: string;
+  resumeUrl?: string;
+  orgId: string;
+}
+
+export async function createJob(data: CreateJobData) {
   const { data: result, error } = await supabase
     .from('jobs')
     .insert([{ 
@@ -59,13 +78,7 @@ export async function publishJob(jobId: string) {
   return data;
 }
 
-export async function createCandidate(data: {
-  name: string;
-  email: string;
-  phone?: string;
-  orgId: string;
-  resumeUrl?: string;
-}) {
+export async function createCandidate(data: CreateCandidateData) {
   const { data: result, error } = await supabase
     .from('candidates')
     .insert([{ 
@@ -209,4 +222,96 @@ export async function deleteCandidate(candidateId: string) {
     console.error('Candidate deletion error:', error);
     throw new Error(`Failed to delete candidate: ${error.message}`);
   }
+}
+
+// Get candidate by email or create if not exists (upsert logic)
+export async function findOrCreateCandidate(data: CreateCandidateData) {
+  // First, try to find existing candidate by email in the org
+  const { data: existingCandidate, error: findError } = await supabase
+    .from('candidates')
+    .select('*')
+    .eq('email', data.email)
+    .eq('org_id', data.orgId)
+    .eq('status', 'active')
+    .single();
+    
+  if (findError && findError.code !== 'PGRST116') {
+    console.error('Candidate search error:', findError);
+    throw new Error(`Failed to search for candidate: ${findError.message}`);
+  }
+  
+  if (existingCandidate) {
+    return existingCandidate;
+  }
+  
+  // Create new candidate if not found
+  return await createCandidate(data);
+}
+
+// Complete job application flow
+export async function applyToJob(data: JobApplicationData) {
+  try {
+    // 1. Find or create candidate
+    const candidate = await findOrCreateCandidate({
+      name: data.candidateName,
+      email: data.candidateEmail,
+      phone: data.candidatePhone,
+      orgId: data.orgId,
+      resumeUrl: data.resumeUrl
+    });
+
+    // 2. Check if already applied to this job
+    const { data: existingJobCandidate, error: checkError } = await supabase
+      .from('job_candidate')
+      .select('*')
+      .eq('job_id', data.jobId)
+      .eq('candidate_id', candidate.id)
+      .eq('status', 'active')
+      .single();
+      
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Job candidate check error:', checkError);
+      throw new Error(`Failed to check existing application: ${checkError.message}`);
+    }
+    
+    if (existingJobCandidate) {
+      throw new Error('You have already applied to this job');
+    }
+
+    // 3. Create job candidate relationship
+    const jobCandidate = await createJobCandidate({
+      jobId: data.jobId,
+      candidateId: candidate.id,
+      orgId: data.orgId,
+      stage: 'applied',
+      notes: 'Applied via public careers page'
+    });
+
+    return {
+      candidate,
+      jobCandidate,
+      message: 'Application submitted successfully'
+    };
+  } catch (error) {
+    console.error('Job application error:', error);
+    throw error;
+  }
+}
+
+// Get the first pipeline column for new applications
+export async function getFirstPipelineColumn(orgId: string) {
+  const { data, error } = await supabase
+    .from('pipeline_columns')
+    .select('*')
+    .eq('org_id', orgId)
+    .order('position')
+    .limit(1)
+    .single();
+    
+  if (error) {
+    console.error('First pipeline column error:', error);
+    throw new Error(`Failed to get first pipeline column: ${error.message}`);
+  }
+  
+  return data;
 }

@@ -166,9 +166,10 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       onJobCreated?.() // Call success callback
     } catch (error) {
       console.error('Job posting error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to post job'
       toast({
         title: "Error",
-        description: "Failed to post job. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       })
     }

@@ -56,6 +56,10 @@ export default function PublicJobDetail() {
       }).then(async (response) => {
         if (!response.ok) {
           const error = await response.json();
+          // Handle validation errors from new Zod validation
+          if (error.details && Array.isArray(error.details)) {
+            throw new Error(`${error.error}: ${error.details.join(', ')}`);
+          }
           throw new Error(error.error || 'Failed to submit application');
         }
         return response.json();

@@ -19,9 +19,15 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
-- **API Structure**: RESTful endpoints with `/api` prefix
-- **Request Handling**: JSON and URL-encoded body parsing
-- **Error Handling**: Centralized error middleware, comprehensive DOM exception prevention, and refined error handling for stability.
+- **API Structure**: Clean RESTful endpoints with comprehensive Zod validation
+- **Request Handling**: JSON and URL-encoded body parsing with strict input validation
+- **Error Handling**: Centralized error middleware with detailed Zod validation errors, comprehensive DOM exception prevention, and refined error handling for stability.
+- **API Endpoints**: Rewritten with clean implementation:
+  - `POST /api/jobs` - Job creation with validation
+  - `POST /api/jobs/:jobId/publish` - Job publishing
+  - `POST /api/candidates` - Candidate creation with duplicate checking
+  - `POST /api/jobs/:jobId/apply` - Complete job application flow
+- **Validation**: Comprehensive Zod schemas for all inputs with detailed error messages
 
 ### Data Storage
 - **ORM**: Drizzle ORM

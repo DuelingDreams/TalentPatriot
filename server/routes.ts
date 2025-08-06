@@ -6,6 +6,8 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
+import * as jobService from "../lib/jobService";
+import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
 import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineService";
 import { insertCandidateSchema, insertJobSchema, insertJobCandidateSchema } from "../shared/schema";
@@ -29,6 +31,17 @@ const authLimiter = rateLimit({
   max: 20, // Limit each IP to 20 auth attempts per windowMs
   message: {
     error: "Too many authentication attempts from this IP, please try again later."
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Public job application rate limiter
+const publicJobLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // Limit each IP to 50 job applications per windowMs
+  message: {
+    error: "Too many job applications from this IP, please try again later."
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -531,42 +544,63 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // REWRITTEN JOB ROUTES - Clean implementation with Zod validation
+  
+  const createJobSchema = z.object({
+    title: z.string().min(1, "Job title is required"),
+    description: z.string().min(1, "Job description is required"),
+    clientId: z.string().optional(),
+    orgId: z.string().min(1, "Organization ID is required"),
+    location: z.string().optional(),
+    jobType: z.enum(['full-time', 'part-time', 'contract', 'temporary', 'internship']).optional(),
+    status: z.enum(['draft', 'open', 'closed', 'filled']).optional()
+  });
+
   app.post("/api/jobs", writeLimiter, async (req, res) => {
     try {
-      const job = await storage.createJob(req.body);
+      const validatedData = createJobSchema.parse(req.body);
+      // Use authenticated storage method instead of service for RLS compliance
+      const job = await storage.createJob(validatedData);
       res.status(201).json(job);
     } catch (error) {
       console.error('Job creation error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(400).json({ error: "Failed to create job", details: errorMessage });
     }
   });
 
-  // Publish job (change status from draft to open and generate public slug)
-  app.patch("/api/jobs/:id/publish", writeLimiter, async (req, res) => {
+  // Publish job - Clean implementation using jobService
+  app.post("/api/jobs/:jobId/publish", writeLimiter, async (req, res) => {
     try {
-      const jobId = req.params.id;
+      const { jobId } = req.params;
       
-      // Get the current job to access title
+      if (!jobId) {
+        return res.status(400).json({ error: "Job ID is required" });
+      }
+      
+      // Get current job and generate slug
       const currentJob = await storage.getJob(jobId);
       if (!currentJob) {
         return res.status(404).json({ error: "Job not found" });
       }
       
-      // Generate unique public slug
       const slugBase = currentJob.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
       const publicSlug = `${slugBase}-${jobId.slice(0, 8)}`;
       
-      // Update job with open status and public slug
-      const job = await storage.updateJob(jobId, { 
+      const publishedJob = await storage.updateJob(jobId, { 
         status: 'open', 
         publicSlug: publicSlug 
       });
-      
-      res.json(job);
+      res.json(publishedJob);
     } catch (error) {
       console.error('Error publishing job:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -688,12 +722,39 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // REWRITTEN CANDIDATE ROUTES - Clean implementation
+  
+  const createCandidateSchema = z.object({
+    name: z.string().min(1, "Candidate name is required"),
+    email: z.string().email("Valid email is required"),
+    phone: z.string().optional(),
+    orgId: z.string().min(1, "Organization ID is required"),
+    resumeUrl: z.string().optional()
+  });
+
   app.post("/api/candidates", writeLimiter, async (req, res) => {
     try {
-      const candidate = await storage.createCandidate(req.body);
+      const validatedData = createCandidateSchema.parse(req.body);
+      // Check for existing candidate first
+      const existingCandidate = await storage.getCandidateByEmail(validatedData.email, validatedData.orgId);
+      if (existingCandidate) {
+        return res.status(409).json({ 
+          error: "Candidate with this email already exists in your organization" 
+        });
+      }
+      // Use authenticated storage method for RLS compliance
+      const candidate = await storage.createCandidate(validatedData);
       res.status(201).json(candidate);
     } catch (error) {
-      res.status(400).json({ error: "Failed to create candidate" });
+      console.error('Candidate creation error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to create candidate", details: errorMessage });
     }
   });
 
@@ -1029,81 +1090,75 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
-  // Submit job application (public) - NEW PIPELINE SYSTEM
-  app.post("/api/public/jobs/:jobId/apply", writeLimiter, async (req, res) => {
+  // REWRITTEN JOB APPLICATION - Clean implementation
+  
+  const jobApplicationSchema = z.object({
+    name: z.string().min(1, "Candidate name is required"),
+    email: z.string().email("Valid email is required"),
+    phone: z.string().optional(),
+    resumeUrl: z.string().optional()
+  });
+
+  app.post("/api/jobs/:jobId/apply", publicJobLimiter, async (req, res) => {
     try {
       const { jobId } = req.params;
-      const { name, email, phone, resumeUrl } = req.body;
-
-      // Get the job to verify it exists and get orgId
-      const job = await storage.getPublicJob(jobId);
-      if (!job) {
-        return res.status(404).json({ error: "Job not found" });
+      const validatedData = jobApplicationSchema.parse(req.body);
+      
+      // Get the job to find its organization
+      const job = await storage.getJob(jobId);
+      if (!job || job.status !== 'open') {
+        return res.status(404).json({ error: "Job not available for applications" });
       }
-
-      console.log('Job org_id:', job.orgId);
-
-      // Ensure default pipeline columns exist for this org
-      await ensureDefaultPipeline(job.orgId);
-
-      // Get the first pipeline column for auto-assignment
-      const firstColumn = await getFirstPipelineColumn(job.orgId);
-      console.log('First pipeline column:', firstColumn);
-
-      // Check if candidate already exists by email for this org
-      let candidate = await storage.getCandidateByEmail(email, job.orgId);
-
+      
+      // Find or create candidate with RLS-compliant storage
+      let candidate = await storage.getCandidateByEmail(validatedData.email, job.orgId);
       if (!candidate) {
-        // Create new candidate
         candidate = await storage.createCandidate({
-          name,
-          email,
-          phone: phone || null,
-          resumeUrl: resumeUrl || null,
+          name: validatedData.name,
+          email: validatedData.email,
+          phone: validatedData.phone || null,
+          resumeUrl: validatedData.resumeUrl || null,
           orgId: job.orgId
         });
       }
-
-      // Check if application already exists
-      const existingApplications = await storage.getApplicationsByJob(jobId);
-      const existingApplication = existingApplications.find(app => app.candidateId === candidate.id);
-
+      
+      // Check if already applied
+      const existingJobCandidates = await storage.getJobCandidatesByJob(job.id);
+      const existingApplication = existingJobCandidates.find(jc => jc.candidateId === candidate.id);
       if (existingApplication) {
-        return res.status(400).json({ error: "You have already applied to this job" });
+        return res.status(409).json({ error: "You have already applied to this job" });
       }
-
-      // Create application with auto-assignment to first pipeline column
-      const application = await storage.createApplication({
-        jobId,
+      
+      // Create job candidate relationship
+      const jobCandidate = await storage.createJobCandidate({
+        orgId: job.orgId,
+        jobId: job.id,
         candidateId: candidate.id,
-        status: 'applied'
+        stage: 'applied',
+        status: 'active',
+        notes: 'Applied via public careers page'
       });
-
-      // IMPORTANT: Also create pipeline entry so candidate appears in kanban board
-      try {
-        const pipelineEntry = await storage.createJobCandidate({
-          orgId: job.orgId,
-          jobId,
-          candidateId: candidate.id,
-          stage: 'applied',
-          status: 'active',
-          pipelineColumnId: firstColumn.id  // Pass the first column ID for Kanban persistence
-        });
-        console.log('Created pipeline entry:', pipelineEntry.id, 'in column:', firstColumn.id);
-      } catch (pipelineError) {
-        console.error('Error creating pipeline entry:', pipelineError);
-        // Continue even if pipeline creation fails
-      }
-
-      res.status(201).json({ 
-        message: "Application submitted successfully",
-        application,
+      
+      const applicationResult = {
         candidate,
-        pipelineColumn: firstColumn.title
-      });
+        jobCandidate,
+        message: 'Application submitted successfully'
+      };
+      
+      res.status(201).json(applicationResult);
     } catch (error) {
       console.error("Error submitting application:", error);
-      res.status(500).json({ error: "Failed to submit application" });
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('already applied')) {
+        return res.status(409).json({ error: errorMessage });
+      }
+      res.status(500).json({ error: "Failed to submit application", details: errorMessage });
     }
   });
 

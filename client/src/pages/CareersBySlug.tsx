@@ -101,7 +101,7 @@ export default function CareersBySlug() {
 
     setIsApplying(true)
     try {
-      const response = await fetch(`/api/public/jobs/${job.id}/apply`, {
+      const response = await fetch(`/api/jobs/${job.id}/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(applicationData)
@@ -109,6 +109,10 @@ export default function CareersBySlug() {
 
       if (!response.ok) {
         const error = await response.json()
+        // Handle validation errors from new Zod validation
+        if (error.details && Array.isArray(error.details)) {
+          throw new Error(`${error.error}: ${error.details.join(', ')}`)
+        }
         throw new Error(error.error || 'Failed to submit application')
       }
 
