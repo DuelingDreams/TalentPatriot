@@ -217,14 +217,24 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
                   {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Pick a date"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                  initialFocus
-                />
+              <PopoverContent 
+                className="w-auto p-0 z-[100] max-h-[400px] overflow-auto" 
+                align="start"
+                side="bottom"
+                sideOffset={8}
+                avoidCollisions={true}
+                collisionPadding={16}
+              >
+                <div className="lg:w-auto w-screen lg:max-w-none max-w-[calc(100vw-2rem)]">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                    initialFocus
+                    className="lg:p-3 p-4"
+                  />
+                </div>
               </PopoverContent>
             </Popover>
           </div>
