@@ -87,6 +87,11 @@ function Router() {
         <Route path="/unauthorized" component={Unauthorized} />
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={TermsOfService} />
+        {/* Public careers pages */}
+        <Route path="/careers" component={Careers} />
+        <Route path="/careers/:jobId/apply" component={JobApplicationPage} />
+        
+        {/* Legacy redirect support */}
         <Route path="/public/careers" component={Careers} />
         <Route path="/public/careers/:jobId/apply" component={JobApplicationPage} />
         
