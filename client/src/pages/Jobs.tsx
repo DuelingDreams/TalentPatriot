@@ -11,7 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
-import GuidedJobCreation from '@/components/GuidedJobCreation'
+import GuidedJobCreation from '@/components/jobs/GuidedJobCreation'
 
 export default function Jobs() {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false)

@@ -2327,6 +2327,47 @@ class DatabaseStorage implements IStorage {
     // For now, return 0 as table doesn't exist yet
     return 0
   }
+
+  // Pipeline Columns methods
+  async getPipelineColumns(orgId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('pipeline_columns')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('position', { ascending: true })
+      
+      if (error) {
+        console.error('Database pipeline columns fetch error:', error)
+        throw new Error(`Failed to fetch pipeline columns: ${error.message}`)
+      }
+      
+      return data || []
+    } catch (err) {
+      console.error('Pipeline columns fetch exception:', err)
+      throw err
+    }
+  }
+
+  async createPipelineColumn(data: any): Promise<any> {
+    try {
+      const { data: result, error } = await supabase
+        .from('pipeline_columns')
+        .insert(data)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database pipeline column creation error:', error)
+        throw new Error(`Failed to create pipeline column: ${error.message}`)
+      }
+      
+      return result
+    } catch (err) {
+      console.error('Pipeline column creation exception:', err)
+      throw err
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

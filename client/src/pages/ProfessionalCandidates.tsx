@@ -35,7 +35,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { Link } from 'wouter'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
-import GuidedCandidateImport from '@/components/GuidedCandidateImport'
+import GuidedCandidateImport from '@/components/candidates/GuidedCandidateImport'
 import { useToast } from '@/hooks/use-toast'
 
 interface Candidate {

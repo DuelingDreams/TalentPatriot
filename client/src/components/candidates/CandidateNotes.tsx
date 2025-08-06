@@ -1,186 +1,154 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { useToast } from '@/hooks/use-toast'
-import { useCandidateNotes, useCreateCandidateNote } from '@/hooks/useCandidateNotes'
-import { useIsMobile } from '@/hooks/use-mobile'
-import { useAuth } from '@/contexts/AuthContext'
-import { MessageSquare, Send, Loader2, Plus, Calendar } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { MessageSquare, Plus, User } from 'lucide-react'
 
-interface CandidateNotesProps {
-  jobCandidateId: string
-  candidateName: string
-  children?: React.ReactNode
+interface CandidateNote {
+  id: string
+  content: string
+  authorId: string
+  authorName?: string
+  isPrivate: boolean
+  createdAt: string
+  updatedAt: string
 }
 
-export function CandidateNotes({ jobCandidateId, candidateName, children }: CandidateNotesProps) {
-  const [isOpen, setIsOpen] = useState(false)
+interface CandidateNotesProps {
+  candidateId: string
+  jobCandidateId: string
+  notes?: CandidateNote[]
+  onAddNote?: (content: string, isPrivate: boolean) => void
+  className?: string
+}
+
+export function CandidateNotes({ 
+  candidateId, 
+  jobCandidateId, 
+  notes = [], 
+  onAddNote,
+  className = "" 
+}: CandidateNotesProps) {
   const [newNote, setNewNote] = useState('')
-  const isMobile = useIsMobile()
-  const { toast } = useToast()
-  const { user } = useAuth()
-  
-  const { data: notes, isLoading } = useCandidateNotes(jobCandidateId)
-  const createNoteMutation = useCreateCandidateNote()
+  const [isPrivate, setIsPrivate] = useState(false)
+  const [isAddingNote, setIsAddingNote] = useState(false)
 
   const handleAddNote = async () => {
-    if (!newNote.trim()) return
+    if (!newNote.trim() || !onAddNote) return
     
     try {
-      await createNoteMutation.mutateAsync({
-        jobCandidateId,
-        content: newNote.trim(),
-        authorId: user?.id || 'unknown-user', // Use actual user ID from auth
-        orgId: user?.user_metadata?.currentOrgId || 'demo-org-fixed'
-      })
-      
+      await onAddNote(newNote.trim(), isPrivate)
       setNewNote('')
-      toast({
-        title: "Note Added",
-        description: "Your note has been saved successfully.",
-      })
+      setIsPrivate(false)
+      setIsAddingNote(false)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add note. Please try again.",
-        variant: "destructive",
-      })
+      console.error('Failed to add note:', error)
     }
-  }
-
-  const formatAuthorId = (authorId: string) => {
-    // Show user-friendly names based on the author ID
-    // This matches the user IDs from the auth system
-    if (authorId === user?.id) {
-      return 'You'
-    }
-    if (authorId.includes('@')) {
-      // If it's an email, show the name part
-      return authorId.split('@')[0]
-    }
-    // For UUIDs, show first 8 characters
-    return authorId.slice(0, 8) + '...'
-  }
-
-  const NotesContent = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-hidden">
-        <ScrollArea className="h-full">
-          <div className="space-y-4 p-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin" />
-              </div>
-            ) : notes && notes.length > 0 ? (
-              notes.map((note: any) => (
-                <Card key={note.id} className="border-slate-200">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
-                          {formatAuthorId(note.author_id).slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline" className="text-xs">
-                            {formatAuthorId(note.author_id)}
-                          </Badge>
-                          <div className="flex items-center gap-1 text-xs text-slate-500">
-                            <Calendar className="w-3 h-3" />
-                            {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
-                          </div>
-                        </div>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.content}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-8 text-slate-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No notes yet for this candidate.</p>
-                <p className="text-sm mt-1">Add the first note below.</p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </div>
-      
-      <div className="border-t border-slate-200 p-4">
-        <div className="space-y-3">
-          <Textarea
-            placeholder="Add a note about this candidate..."
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-            className="min-h-[80px] resize-none"
-          />
-          <div className="flex justify-end">
-            <Button
-              onClick={handleAddNote}
-              disabled={!newNote.trim() || createNoteMutation.isPending}
-              size="sm"
-            >
-              {createNoteMutation.isPending ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
-              Add Note
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-
-  if (isMobile) {
-    return (
-      <Drawer open={isOpen} onOpenChange={setIsOpen}>
-        <DrawerTrigger asChild>
-          {children || (
-            <Button size="sm" variant="outline">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Notes
-            </Button>
-          )}
-        </DrawerTrigger>
-        <DrawerContent className="h-[85vh]">
-          <DrawerHeader>
-            <DrawerTitle>Notes for {candidateName}</DrawerTitle>
-          </DrawerHeader>
-          <NotesContent />
-        </DrawerContent>
-      </Drawer>
-    )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {children || (
-          <Button size="sm" variant="outline">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Notes
+    <Card className={className}>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5" />
+            Notes ({notes.length})
+          </CardTitle>
+          <Button
+            size="sm"
+            onClick={() => setIsAddingNote(!isAddingNote)}
+            variant="outline"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add Note
           </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Notes for {candidateName}</DialogTitle>
-        </DialogHeader>
-        <div className="flex-1 overflow-hidden">
-          <NotesContent />
         </div>
-      </DialogContent>
-    </Dialog>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {isAddingNote && (
+          <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+            <Textarea
+              placeholder="Add a note about this candidate..."
+              value={newNote}
+              onChange={(e) => setNewNote(e.target.value)}
+              className="min-h-[100px]"
+            />
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={isPrivate}
+                  onChange={(e) => setIsPrivate(e.target.checked)}
+                  className="rounded"
+                />
+                Private note (only visible to you)
+              </label>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setIsAddingNote(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  size="sm" 
+                  onClick={handleAddNote}
+                  disabled={!newNote.trim()}
+                >
+                  Add Note
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {notes.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>No notes yet</p>
+            <p className="text-sm">Add the first note to track candidate progress</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {notes.map((note) => (
+              <div 
+                key={note.id} 
+                className="border rounded-lg p-4 space-y-3 bg-card hover:bg-muted/30 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        <User className="w-4 h-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium text-sm">
+                        {note.authorName || 'Unknown User'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })}
+                      </p>
+                    </div>
+                  </div>
+                  {note.isPrivate && (
+                    <Badge variant="secondary" className="text-xs">
+                      Private
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm text-foreground whitespace-pre-wrap pl-11">
+                  {note.content}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

@@ -1074,7 +1074,7 @@ Expires: 2025-12-31T23:59:59.000Z
       const application = await storage.createApplication({
         jobId,
         candidateId: candidate.id,
-        columnId: firstColumn.id  // AUTO-ASSIGN TO FIRST COLUMN
+        status: 'applied'
       });
 
       // IMPORTANT: Also create pipeline entry so candidate appears in kanban board
@@ -1166,21 +1166,13 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get("/api/pipeline-columns/:orgId", async (req, res) => {
     try {
       const { orgId } = req.params;
-      const { ensureDefaultPipeline } = require('./lib/pipelineService');
       
-      // Ensure columns exist first
+      // Ensure default pipeline exists first
       await ensureDefaultPipeline(orgId);
       
-      // For now, return a basic response while we integrate with storage
-      const basicColumns = [
-        { id: '1', title: 'New', position: '0' },
-        { id: '2', title: 'Screening', position: '1' },
-        { id: '3', title: 'Interview', position: '2' },
-        { id: '4', title: 'Offer', position: '3' },
-        { id: '5', title: 'Hired', position: '4' },
-        { id: '6', title: 'Rejected', position: '5' }
-      ];
-      res.json(basicColumns);
+      // Get columns from storage
+      const columns = await storage.getPipelineColumns(orgId);
+      res.json(columns);
     } catch (error) {
       console.error("Error fetching pipeline columns:", error);
       res.status(500).json({ error: "Failed to fetch pipeline columns" });
