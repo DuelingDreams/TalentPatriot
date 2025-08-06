@@ -15,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 - **Component Library**: Shadcn/ui
 - **State Management**: TanStack React Query for server state
 - **Build Tool**: Vite
-- **Design Principles**: Light mode with soft gray backgrounds, rounded cards, and a consistent TalentPatriot brand styling system (Navy, Soft Blue, Light Gray, Inter font family). Professional UI/UX overhaul with modern analytics and professional appearance.
+- **Design Principles**: Light mode with soft gray backgrounds, rounded cards, and a consistent TalentPatriot brand styling system (Navy, Soft Blue, Light Gray, Inter font family). Professional UI/UX overhaul with modern analytics and professional appearance. Enhanced popover/modal UX with proper z-index stacking (z-[100]) and collision detection.
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
@@ -38,6 +38,7 @@ Preferred communication style: Simple, everyday language.
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.
 - **Recruitment Pipeline**: Kanban-style pipeline dashboard with dynamic columns, drag-and-drop functionality, and candidate progression tracking.
+- **Interview Scheduling**: Advanced calendar interface with improved popover handling - fixed clipping issues on mobile and desktop with proper z-index stacking, collision detection, and responsive design.
 - **Onboarding Workflow**: 5-step user onboarding including account creation, company setup, goal-based personalization, guided job creation/candidate import, and success celebration.
 - **Job Board Integration**: UI for various job boards (LinkedIn, Indeed, etc.) with cost estimates and multi-platform distribution.
 - **Internal Communication**: Team messaging system.
