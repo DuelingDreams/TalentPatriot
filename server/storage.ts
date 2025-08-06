@@ -504,12 +504,11 @@ export class MemStorage implements IStorage {
           title: insertJob.title,
           description: insertJob.description ?? null,
           status: insertJob.status ?? 'draft',
-          type: insertJob.type ?? 'full-time',
+          job_type: insertJob.jobType ?? 'full-time',
           client_id: insertJob.clientId,
           org_id: insertJob.orgId,
           assigned_to: insertJob.assignedTo ?? null,
-          created_by: insertJob.createdBy ?? null,
-          record_status: insertJob.recordStatus ?? 'active'
+          created_by: insertJob.createdBy ?? null
         })
         .select()
         .single();
@@ -586,8 +585,7 @@ export class MemStorage implements IStorage {
           resume_url: insertCandidate.resumeUrl ?? null,
           status: insertCandidate.status ?? 'active',
           org_id: insertCandidate.orgId,
-          created_by: insertCandidate.createdBy ?? null,
-          record_status: insertCandidate.recordStatus ?? 'active'
+          created_by: insertCandidate.createdBy ?? null
         })
         .select()
         .single();
@@ -2443,4 +2441,4 @@ class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
