@@ -8,6 +8,8 @@ import fs from "fs";
 import { storage } from "./storage";
 import { uploadRouter } from "./routes/upload";
 import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineService";
+import { insertCandidateSchema, insertJobSchema, insertJobCandidateSchema } from "../shared/schema";
+import { z } from 'zod';
 
 
 // Write operation rate limiter
@@ -1220,6 +1222,156 @@ Expires: 2025-12-31T23:59:59.000Z
     } catch (error) {
       console.error("Error deleting application:", error);
       res.status(500).json({ error: "Failed to delete application" });
+    }
+  });
+
+  // CRUD API Endpoints with Zod validation
+
+  // POST /api/candidates - Create a new candidate
+  app.post("/api/candidates", writeLimiter, async (req, res) => {
+    try {
+      // Validate request body with Zod
+      const createCandidateSchema = insertCandidateSchema.extend({
+        orgId: z.string().min(1, "Organization ID is required")
+      });
+      
+      const validatedData = createCandidateSchema.parse(req.body);
+      
+      // Check if candidate already exists
+      const existingCandidate = await storage.getCandidateByEmail(validatedData.email, validatedData.orgId);
+      if (existingCandidate) {
+        return res.status(409).json({ 
+          error: "Candidate with this email already exists in your organization" 
+        });
+      }
+      
+      const candidate = await storage.createCandidate(validatedData);
+      res.status(201).json(candidate);
+    } catch (error: any) {
+      console.error("Error creating candidate:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to create candidate" });
+    }
+  });
+
+  // POST /api/jobs - Create a new job
+  app.post("/api/jobs", writeLimiter, async (req, res) => {
+    try {
+      // Validate request body with Zod
+      const createJobSchema = insertJobSchema.extend({
+        orgId: z.string().min(1, "Organization ID is required"),
+        clientId: z.string().min(1, "Client ID is required")
+      });
+      
+      const validatedData = createJobSchema.parse(req.body);
+      
+      const job = await storage.createJob(validatedData);
+      
+      // Create default pipeline columns for this job's organization if they don't exist
+      await ensureDefaultPipeline(validatedData.orgId);
+      
+      res.status(201).json(job);
+    } catch (error: any) {
+      console.error("Error creating job:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to create job" });
+    }
+  });
+
+  // POST /api/jobs/:jobId/apply - Apply to a job
+  app.post("/api/jobs/:jobId/apply", writeLimiter, async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      
+      // Validate job exists
+      const job = await storage.getJobById(jobId);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      
+      // Validate request body
+      const applySchema = z.object({
+        candidateId: z.string().optional(),
+        name: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+      }).refine(data => data.candidateId || (data.name && data.email), {
+        message: "Either candidateId or both name and email are required"
+      });
+      
+      const validatedData = applySchema.parse(req.body);
+      
+      let candidateId = validatedData.candidateId;
+      
+      // If no candidateId provided, find or create candidate
+      if (!candidateId) {
+        let candidate = await storage.getCandidateByEmail(validatedData.email!, job.orgId);
+        
+        if (!candidate) {
+          // Create new candidate
+          candidate = await storage.createCandidate({
+            name: validatedData.name!,
+            email: validatedData.email!,
+            phone: validatedData.phone || null,
+            orgId: job.orgId,
+            status: 'active'
+          });
+        }
+        candidateId = candidate.id;
+      }
+      
+      // Check if candidate already applied to this job
+      const existingApplications = await storage.getJobCandidatesByJob(jobId);
+      const alreadyApplied = existingApplications.some(app => app.candidateId === candidateId);
+      
+      if (alreadyApplied) {
+        return res.status(409).json({ 
+          error: "Candidate has already applied to this job" 
+        });
+      }
+      
+      // Get first pipeline column for this organization
+      const firstColumn = await getFirstPipelineColumn(job.orgId);
+      if (!firstColumn) {
+        await ensureDefaultPipeline(job.orgId);
+        const newFirstColumn = await getFirstPipelineColumn(job.orgId);
+        if (!newFirstColumn) {
+          return res.status(500).json({ error: "Unable to create pipeline for job applications" });
+        }
+      }
+      
+      // Create job candidate record
+      const jobCandidate = await storage.createJobCandidate({
+        jobId: jobId,
+        candidateId: candidateId,
+        orgId: job.orgId,
+        stage: 'applied',
+        status: 'active',
+        pipelineColumnId: firstColumn?.id || null,
+        notes: null,
+        assignedTo: null
+      });
+      
+      res.status(201).json(jobCandidate);
+    } catch (error: any) {
+      console.error("Error processing job application:", error);
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ error: "Failed to process job application" });
     }
   });
 

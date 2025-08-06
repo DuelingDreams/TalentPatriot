@@ -495,22 +495,35 @@ export class MemStorage implements IStorage {
   }
 
   async createJob(insertJob: InsertJob): Promise<Job> {
-    const id = crypto.randomUUID();
-    const now = new Date();
-    const job: Job = { 
-      ...insertJob,
-      status: insertJob.status ?? 'draft',
-      description: insertJob.description ?? null,
-      recordStatus: insertJob.recordStatus ?? 'active',
-      assignedTo: insertJob.assignedTo ?? null,
-      createdBy: insertJob.createdBy ?? null,
-      publicSlug: insertJob.publicSlug ?? null,
-      id, 
-      createdAt: now,
-      updatedAt: now
-    };
-    this.jobs.set(id, job);
-    return job;
+    try {
+      console.log('Creating job with data:', insertJob);
+      
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert({
+          title: insertJob.title,
+          description: insertJob.description ?? null,
+          status: insertJob.status ?? 'draft',
+          type: insertJob.type ?? 'full-time',
+          client_id: insertJob.clientId,
+          org_id: insertJob.orgId,
+          assigned_to: insertJob.assignedTo ?? null,
+          created_by: insertJob.createdBy ?? null,
+          record_status: insertJob.recordStatus ?? 'active'
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database job creation error:', error);
+        throw new Error(`Failed to create job: ${error.message}`);
+      }
+      
+      return data as Job;
+    } catch (err) {
+      console.error('Job creation exception:', err);
+      throw err;
+    }
   }
 
   async updateJob(id: string, updateData: Partial<InsertJob>): Promise<Job> {
@@ -561,20 +574,34 @@ export class MemStorage implements IStorage {
   }
 
   async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
-    const id = crypto.randomUUID();
-    const now = new Date();
-    const candidate: Candidate = { 
-      ...insertCandidate,
-      phone: insertCandidate.phone ?? null,
-      resumeUrl: insertCandidate.resumeUrl ?? null,
-      status: insertCandidate.status ?? 'active',
-      createdBy: insertCandidate.createdBy ?? null,
-      id, 
-      createdAt: now,
-      updatedAt: now
-    };
-    this.candidates.set(id, candidate);
-    return candidate;
+    try {
+      console.log('Creating candidate with data:', insertCandidate);
+      
+      const { data, error } = await supabase
+        .from('candidates')
+        .insert({
+          name: insertCandidate.name,
+          email: insertCandidate.email,
+          phone: insertCandidate.phone ?? null,
+          resume_url: insertCandidate.resumeUrl ?? null,
+          status: insertCandidate.status ?? 'active',
+          org_id: insertCandidate.orgId,
+          created_by: insertCandidate.createdBy ?? null,
+          record_status: insertCandidate.recordStatus ?? 'active'
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database candidate creation error:', error);
+        throw new Error(`Failed to create candidate: ${error.message}`);
+      }
+      
+      return data as Candidate;
+    } catch (err) {
+      console.error('Candidate creation exception:', err);
+      throw err;
+    }
   }
 
   async updateCandidate(id: string, updateData: Partial<InsertCandidate>): Promise<Candidate> {
@@ -598,10 +625,56 @@ export class MemStorage implements IStorage {
   }
 
   async getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined> {
-    return Array.from(this.candidates.values()).find(candidate => 
-      candidate.email === email && candidate.orgId === orgId
-    );
+    try {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('email', email)
+        .eq('org_id', orgId)
+        .eq('record_status', 'active')
+        .single();
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No rows found
+          return undefined;
+        }
+        console.error('Database candidate fetch error:', error);
+        throw new Error(`Failed to fetch candidate: ${error.message}`);
+      }
+      
+      return data as Candidate;
+    } catch (err) {
+      console.error('Candidate fetch exception:', err);
+      return undefined;
+    }
   }
+
+  async getJobById(jobId: string): Promise<Job | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', jobId)
+        .eq('record_status', 'active')
+        .single();
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return undefined;
+        }
+        console.error('Database job fetch error:', error);
+        throw new Error(`Failed to fetch job: ${error.message}`);
+      }
+      
+      return data as Job;
+    } catch (err) {
+      console.error('Job fetch exception:', err);
+      return undefined;
+    }
+  }
+
+  // This method is implemented later in the file with demo data support
 
   async deleteCandidate(id: string): Promise<void> {
     if (!this.candidates.has(id)) {

@@ -3,6 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { DemoCandidates } from '@/components/demo/DemoCandidates'
 import { useCandidates } from '@/hooks/useCandidates'
+import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,12 +64,12 @@ export default function Candidates() {
               </p>
             </CardHeader>
             <CardContent className="text-center">
-              <Button 
-                onClick={() => setLocation('/settings/organization')}
-                className="btn-primary"
-              >
-                Set Up Organization
-              </Button>
+              <AddCandidateDialog>
+                <Button className="btn-primary">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Candidate
+                </Button>
+              </AddCandidateDialog>
             </CardContent>
           </Card>
         </div>
@@ -109,10 +110,7 @@ export default function Candidates() {
             <h1 className="tp-h1">Candidate Database</h1>
             <p className="tp-body text-[#5C667B]">Manage and track candidate profiles</p>
           </div>
-          <Button className="btn-primary">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Candidate
-          </Button>
+          <AddCandidateDialog />
         </div>
 
         {/* Stats Cards */}
@@ -269,10 +267,7 @@ export default function Candidates() {
               <p className="tp-body text-[#5C667B] mb-4">
                 {searchQuery ? 'Try adjusting your search terms.' : 'Get started by adding your first candidate.'}
               </p>
-              <Button className="btn-primary">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Candidate
-              </Button>
+              <AddCandidateDialog />
             </CardContent>
           </Card>
         )}

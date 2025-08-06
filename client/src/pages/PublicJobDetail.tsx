@@ -43,9 +43,22 @@ export default function PublicJobDetail() {
 
   const applicationMutation = useMutation({
     mutationFn: async (data: Omit<ApplicationForm, 'coverLetter'>) => {
-      return await apiRequest(`/api/public/jobs/${id}/apply`, {
+      return await fetch(`/api/jobs/${id}/apply`, {
         method: 'POST',
-        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+        }),
+      }).then(async (response) => {
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to submit application');
+        }
+        return response.json();
       });
     },
     onSuccess: () => {

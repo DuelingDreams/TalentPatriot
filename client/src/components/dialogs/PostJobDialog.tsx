@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCreateJob } from '@/hooks/useJobs'
+import { useCreateJob } from '@/hooks/useJobMutation'
 import { useClients } from '@/hooks/useClients'
 import { Plus, Loader2, Globe, Building2, Users, Briefcase } from 'lucide-react'
 
