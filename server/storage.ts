@@ -134,6 +134,10 @@ export interface IStorage {
   // Message Recipients
   addMessageRecipients(messageId: string, recipientIds: string[]): Promise<MessageRecipient[]>;
   getUnreadMessageCount(userId: string): Promise<number>;
+  
+  // Pipeline Columns
+  getPipelineColumns(orgId: string): Promise<PipelineColumn[]>;
+  createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -1119,6 +1123,56 @@ export class DatabaseStorage implements IStorage {
 
   async getUnreadMessageCount(userId: string): Promise<number> {
     return 0
+  }
+
+  // Pipeline Columns
+  async getPipelineColumns(orgId: string): Promise<PipelineColumn[]> {
+    try {
+      const { data, error } = await supabase
+        .from('pipeline_columns')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('position', { ascending: true })
+      
+      if (error) {
+        console.error('Database pipeline columns fetch error:', error)
+        throw new Error(`Failed to fetch pipeline columns: ${error.message}`)
+      }
+      
+      return data as PipelineColumn[] || []
+    } catch (err) {
+      console.error('Pipeline columns fetch exception:', err)
+      throw err
+    }
+  }
+
+  async createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn> {
+    try {
+      const dbColumn = {
+        name: column.name,
+        position: column.position,
+        org_id: column.orgId,
+        color: column.color || null,
+        description: column.description || null,
+        status: column.status || 'active'
+      }
+      
+      const { data, error } = await supabase
+        .from('pipeline_columns')
+        .insert(dbColumn)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database pipeline column creation error:', error)
+        throw new Error(`Failed to create pipeline column: ${error.message}`)
+      }
+      
+      return data as PipelineColumn
+    } catch (err) {
+      console.error('Pipeline column creation exception:', err)
+      throw err
+    }
   }
 }
 

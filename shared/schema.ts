@@ -15,6 +15,8 @@ export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'on
 export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
 export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'candidate', 'system']);
 export const messagePriorityEnum = pgEnum('message_priority', ['low', 'normal', 'high', 'urgent']);
+export const experienceLevelEnum = pgEnum('experience_level', ['entry', 'mid', 'senior', 'executive']);
+export const remoteOptionEnum = pgEnum('remote_option', ['onsite', 'remote', 'hybrid']);
 
 // Tables
 export const organizations = pgTable("organizations", {
@@ -69,6 +71,8 @@ export const jobs = pgTable("jobs", {
   jobType: jobTypeEnum("job_type").default('full-time').notNull(),
   department: varchar("department", { length: 100 }),
   salaryRange: varchar("salary_range", { length: 100 }),
+  experienceLevel: experienceLevelEnum("experience_level").default('mid'),
+  remoteOption: remoteOptionEnum("remote_option").default('onsite'),
   clientId: uuid("client_id").references(() => clients.id),
   status: jobStatusEnum("status").default('draft').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),

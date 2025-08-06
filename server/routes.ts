@@ -552,7 +552,12 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     orgId: z.string().min(1, "Organization ID is required"),
     location: z.string().optional(),
     jobType: z.enum(['full-time', 'part-time', 'contract', 'internship']).optional(),
-    status: z.enum(['draft', 'open', 'closed', 'filled']).optional()
+    status: z.enum(['draft', 'open', 'closed', 'filled']).optional(),
+    remoteOption: z.enum(['onsite', 'remote', 'hybrid']).optional(),
+    salaryRange: z.string().optional(),
+    experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
+    postingTargets: z.array(z.string()).optional(),
+    autoPost: z.boolean().optional()
   });
 
   app.post("/api/jobs", writeLimiter, async (req, res) => {
@@ -636,8 +641,21 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: "Job ID is required" });
       }
 
+      // Get the job first to get its organization ID
+      const job = await storage.getJob(jobId);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      
+      console.log('Job object:', JSON.stringify(job, null, 2));
+      
       // Get first pipeline column for the org
-      const firstColumn = await jobService.getFirstPipelineColumn('b8da7fb3-2d49-4963-a25f-0f2c2b1cbad2'); // TODO: Get orgId from job
+      const jobOrgId = job.orgId || job.org_id;
+      if (!jobOrgId) {
+        return res.status(400).json({ error: "Job organization ID not found" });
+      }
+      
+      const firstColumn = await jobService.getFirstPipelineColumn(jobOrgId);
       
       const applicationResult = await jobService.applyToJob({
         jobId,
@@ -645,7 +663,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         candidateName: validatedData.name,
         candidatePhone: validatedData.phone,
         resumeUrl: validatedData.resumeUrl,
-        orgId: 'b8da7fb3-2d49-4963-a25f-0f2c2b1cbad2' // TODO: Get orgId from job
+        orgId: jobOrgId
       });
 
       res.status(201).json(applicationResult);
@@ -665,9 +683,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   // Public endpoints for careers page
   app.get("/api/public/jobs", async (req, res) => {
     try {
-      // Get all open jobs with public slugs
-      const allJobs = await storage.getJobs();
-      const openJobs = allJobs.filter(job => job.status === 'open' && job.publicSlug);
+      // Get all open jobs with public slugs using jobService
+      const openJobs = await jobService.getPublicJobs();
       res.json(openJobs);
     } catch (error) {
       console.error('Error fetching public jobs:', error);

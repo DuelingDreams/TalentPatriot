@@ -127,7 +127,7 @@ export default function Jobs() {
   const handlePublishJob = async (jobId: string) => {
     try {
       const response = await fetch(`/api/jobs/${jobId}/publish`, {
-        method: 'PATCH',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       })
 

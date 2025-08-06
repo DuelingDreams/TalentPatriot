@@ -1,9 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Create Supabase client for server-side operations  
+// Create Supabase client for server-side operations with service role key
 const supabase = createClient(
   process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+    db: {
+      schema: 'public',
+    },
+    global: {
+      headers: {
+        'x-client-info': 'ats-backend@1.0.0',
+      },
+    },
+  }
 );
 
 // Clean Supabase service layer for job/candidate/application operations
@@ -17,6 +31,11 @@ export interface CreateJobData {
   location?: string;
   jobType?: string;
   status?: string;
+  remoteOption?: string;
+  salaryRange?: string;
+  experienceLevel?: string;
+  postingTargets?: string[];
+  autoPost?: boolean;
 }
 
 export interface CreateCandidateData {
@@ -44,7 +63,7 @@ export async function createJob(data: CreateJobData) {
       description: data.description,
       location: data.location || null,
       job_type: data.jobType || 'full-time',
-      client_id: data.clientId,
+      client_id: data.clientId || null,
       org_id: data.orgId,
       status: data.status || 'draft',
       record_status: 'active'
@@ -61,10 +80,30 @@ export async function createJob(data: CreateJobData) {
 }
 
 export async function publishJob(jobId: string) {
+  // Generate a public slug based on job title and id
+  const { data: jobData, error: fetchError } = await supabase
+    .from('jobs')
+    .select('title')
+    .eq('id', jobId)
+    .single();
+    
+  if (fetchError) {
+    console.error('Error fetching job for slug generation:', fetchError);
+    throw new Error(`Failed to fetch job: ${fetchError.message}`);
+  }
+  
+  const slug = jobData.title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .slice(0, 50) + '-' + jobId.slice(0, 8);
+
   const { data, error } = await supabase
     .from('jobs')
     .update({ 
       status: 'open', 
+      published_at: new Date().toISOString(),
+      public_slug: slug,
       updated_at: new Date().toISOString() 
     })
     .eq('id', jobId)
@@ -180,6 +219,23 @@ export async function getJobCandidatesByOrg(orgId: string) {
   }
   
   return data;
+}
+
+export async function getPublicJobs() {
+  const { data, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('status', 'open')
+    .neq('public_slug', null)
+    .eq('record_status', 'active')
+    .order('published_at', { ascending: false });
+    
+  if (error) {
+    console.error('Public jobs fetch error:', error);
+    throw new Error(`Failed to fetch public jobs: ${error.message}`);
+  }
+  
+  return data || [];
 }
 
 export async function updateJobCandidateStage(jobCandidateId: string, newStage: string) {
@@ -305,14 +361,17 @@ export async function getFirstPipelineColumn(orgId: string) {
     .from('pipeline_columns')
     .select('*')
     .eq('org_id', orgId)
-    .order('position')
-    .limit(1)
-    .single();
+    .order('position', { ascending: true })
+    .limit(1);
     
   if (error) {
     console.error('First pipeline column error:', error);
     throw new Error(`Failed to get first pipeline column: ${error.message}`);
   }
   
-  return data;
+  if (!data || data.length === 0) {
+    throw new Error('No pipeline columns found for organization');
+  }
+  
+  return data[0];
 }

@@ -13,15 +13,9 @@ export function useCreateJob() {
         throw new Error('Organization ID is required')
       }
 
-      // Filter out fields that don't exist in the database schema
+      // Send all job data fields to API
       const validJobData = {
-        title: jobData.title,
-        description: jobData.description,
-        location: jobData.location,
-        jobType: jobData.jobType,
-        salaryRange: jobData.salaryRange,
-        clientId: jobData.clientId,
-        status: jobData.status,
+        ...jobData,
         orgId: currentOrgId,
       }
 
