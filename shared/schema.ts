@@ -1,4 +1,4 @@
-import { pgTable, text, uuid, timestamp, varchar, pgEnum, uniqueIndex, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, varchar, pgEnum, uniqueIndex, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -73,6 +73,7 @@ export const jobs = pgTable("jobs", {
   status: jobStatusEnum("status").default('draft').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
   publicSlug: varchar("public_slug", { length: 255 }),
+  publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdBy: uuid("created_by"),
@@ -99,8 +100,9 @@ export const pipelineColumns = pgTable("pipeline_columns", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").references(() => organizations.id).notNull(),
   title: text("title").notNull(),
-  position: text("position").notNull(), // 0, 1, 2, etc. for sort order
+  position: integer("position").notNull(), // 0, 1, 2, etc. for sort order
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Main job-candidate relationships table (replaces old applications table)
@@ -109,6 +111,7 @@ export const jobCandidate = pgTable("job_candidate", {
   orgId: uuid("org_id").references(() => organizations.id).notNull(),
   jobId: uuid("job_id").references(() => jobs.id).notNull(),
   candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  pipelineColumnId: uuid("pipeline_column_id").references(() => pipelineColumns.id),
   stage: candidateStageEnum("stage").default('applied').notNull(),
   notes: text("notes"),
   assignedTo: uuid("assigned_to"),

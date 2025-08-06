@@ -1285,6 +1285,87 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // POST /api/jobs/:jobId/publish - Publish a job
+  app.post("/api/jobs/:jobId/publish", writeLimiter, async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const job = await storage.publishJob(jobId);
+      res.json(job);
+    } catch (error: any) {
+      console.error('Error publishing job:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/public/jobs - Get published jobs for careers page
+  app.get('/api/public/jobs', async (req, res) => {
+    try {
+      const jobs = await storage.getPublicJobs();
+      res.json(jobs);
+    } catch (error: any) {
+      console.error('Error fetching public jobs:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /api/jobs/:jobId/apply - Apply to a job
+  app.post('/api/jobs/:jobId/apply', publicJobLimiter, upload.single('resume'), async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const { name, email, phone, candidateId } = req.body;
+      
+      // Get job to get org_id
+      const job = await storage.getJob(jobId);
+      if (!job || job.status !== 'open') {
+        return res.status(404).json({ error: 'Job not found or not accepting applications' });
+      }
+
+      let candidate;
+      
+      // If candidateId provided, use existing candidate
+      if (candidateId) {
+        candidate = await storage.getCandidate(candidateId);
+        if (!candidate) {
+          return res.status(404).json({ error: 'Candidate not found' });
+        }
+      } else {
+        // Create new candidate or find existing by email
+        const existingCandidate = await storage.getCandidateByEmail ? 
+          await storage.getCandidateByEmail(email, job.orgId) : null;
+        if (existingCandidate) {
+          candidate = existingCandidate;
+        } else {
+          candidate = await storage.createCandidate({
+            name,
+            email,
+            phone,
+            orgId: job.orgId,
+            status: 'active',
+            resumeUrl: req.file ? `/uploads/${job.orgId}/${req.file.filename}` : null
+          });
+        }
+      }
+
+      // Get first pipeline column
+      const firstColumn = await getFirstPipelineColumn(job.orgId);
+      
+      // Create job-candidate relationship
+      const jobCandidate = await storage.createJobCandidate({
+        jobId,
+        candidateId: candidate.id,
+        orgId: job.orgId,
+        stage: 'applied',
+        status: 'active',
+        pipelineColumnId: firstColumn.id
+      });
+
+      res.json({ success: true, jobCandidate, candidate });
+    } catch (error: any) {
+      console.error('Error processing job application:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // POST /api/jobs/:jobId/apply - Apply to a job
   app.post("/api/jobs/:jobId/apply", writeLimiter, async (req, res) => {
     try {

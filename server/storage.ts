@@ -5,9 +5,9 @@ import {
   clients, 
   jobs, 
   candidates,
-  applications,
   jobCandidate, 
   candidateNotes,
+  pipelineColumns,
   interviews,
   messages,
   messageRecipients,
@@ -17,9 +17,9 @@ import {
   type Client, 
   type Job, 
   type Candidate,
-  type Application,
   type JobCandidate, 
   type CandidateNotes,
+  type PipelineColumn,
   type Interview,
   type Message,
   type MessageRecipient,
@@ -29,9 +29,9 @@ import {
   type InsertClient,
   type InsertJob,
   type InsertCandidate,
-  type InsertApplication,
   type InsertJobCandidate,
   type InsertCandidateNotes,
+  type InsertPipelineColumn,
   type InsertInterview,
   type InsertMessage,
   type InsertMessageRecipient
@@ -83,6 +83,7 @@ export interface IStorage {
   getJobsByOrg(orgId: string): Promise<Job[]>;
   getJobsByClient(clientId: string): Promise<Job[]>;
   createJob(job: InsertJob): Promise<Job>;
+  publishJob(jobId: string): Promise<Job>;
   updateJob(id: string, data: Partial<InsertJob>): Promise<Job>;
   
   // Candidates
@@ -282,7 +283,6 @@ export class DatabaseStorage implements IStorage {
         name: insertOrganization.name,
         owner_id: insertOrganization.ownerId,
         slug: insertOrganization.slug,
-        id: insertOrganization.id,
       }
       
       const { data, error } = await supabase
@@ -713,7 +713,7 @@ export class DatabaseStorage implements IStorage {
           description: insertJob.description ?? null,
           location: insertJob.location ?? null,
           job_type: insertJob.jobType ?? 'full-time',
-          status: insertJob.status ?? 'draft',
+          status: insertJob.status ?? 'draft', // Default to draft as requested
           record_status: insertJob.recordStatus ?? 'active',
           client_id: insertJob.clientId,
           org_id: insertJob.orgId,
@@ -813,6 +813,55 @@ export class DatabaseStorage implements IStorage {
       console.error('Exception in getCandidatesByOrg:', err)
       throw err
     }
+  }
+
+  async createCandidate(insertCandidate: InsertCandidate): Promise<Candidate> {
+    const { data, error } = await supabase
+      .from('candidates')
+      .insert({
+        name: insertCandidate.name,
+        email: insertCandidate.email,
+        phone: insertCandidate.phone,
+        org_id: insertCandidate.orgId,
+        status: insertCandidate.status || 'active'
+      })
+      .select()
+      .single();
+    
+    if (error) throw new Error(`Failed to create candidate: ${error.message}`);
+    return data as Candidate;
+  }
+
+  async createJobCandidate(insertJobCandidate: InsertJobCandidate): Promise<JobCandidate> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .insert({
+        job_id: insertJobCandidate.jobId,
+        candidate_id: insertJobCandidate.candidateId,
+        org_id: insertJobCandidate.orgId,
+        stage: insertJobCandidate.stage || 'applied',
+        status: insertJobCandidate.status || 'active',
+        pipeline_column_id: insertJobCandidate.pipelineColumnId
+      })
+      .select()
+      .single();
+    
+    if (error) throw new Error(`Failed to create job candidate: ${error.message}`);
+    return data as JobCandidate;
+  }
+
+  async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .update({
+        pipeline_column_id: newColumnId
+      })
+      .eq('id', jobCandidateId)
+      .select()
+      .single();
+    
+    if (error) throw new Error(`Failed to move job candidate: ${error.message}`);
+    return data as JobCandidate;
   }
 
   async getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined> {

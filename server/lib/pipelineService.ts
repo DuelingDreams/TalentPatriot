@@ -29,7 +29,7 @@ export const ensureDefaultPipeline = async (orgId: string) => {
       const defaultCols = DEFAULT_PIPELINE_COLUMNS.map((title, index) => ({
         org_id: orgId,
         title,
-        position: index.toString()
+        position: index // Use integer instead of string
       }))
 
       const { error: insertError } = await supabase
@@ -53,24 +53,24 @@ export const ensureDefaultPipeline = async (orgId: string) => {
 
 export const getFirstPipelineColumn = async (orgId: string) => {
   try {
-    // Ensure default pipeline exists
+    // Ensure default pipeline exists first
     await ensureDefaultPipeline(orgId)
-
-    // Get the first column (position 0)
-    const { data: firstColumn, error } = await supabase
+    
+    // Get the first column by position
+    const { data, error } = await supabase
       .from('pipeline_columns')
       .select('*')
       .eq('org_id', orgId)
-      .order('position')
+      .order('position', { ascending: true })
       .limit(1)
       .single()
-
+    
     if (error) {
       console.error('Error fetching first pipeline column:', error)
       throw error
     }
-
-    return firstColumn
+    
+    return data
   } catch (error) {
     console.error('Error getting first pipeline column:', error)
     throw error
