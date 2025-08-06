@@ -1149,7 +1149,7 @@ export class DatabaseStorage implements IStorage {
   async createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn> {
     try {
       const dbColumn = {
-        name: column.name,
+        title: column.name || column.title,
         position: column.position,
         org_id: column.orgId,
         color: column.color || null,

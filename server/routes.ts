@@ -1153,15 +1153,50 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // PIPELINE COLUMNS ENDPOINTS
+  app.get("/api/pipeline-columns", async (req, res) => {
+    try {
+      const orgId = req.query.orgId as string;
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+      const columns = await storage.getPipelineColumns(orgId);
+      res.json(columns);
+    } catch (error) {
+      console.error("Error fetching pipeline columns:", error);
+      res.status(500).json({ error: "Failed to fetch pipeline columns" });
+    }
+  });
+
+  app.post("/api/pipeline-columns", writeLimiter, async (req, res) => {
+    try {
+      const column = await storage.createPipelineColumn(req.body);
+      res.status(201).json(column);
+    } catch (error) {
+      console.error("Error creating pipeline column:", error);
+      res.status(400).json({ error: "Failed to create pipeline column" });
+    }
+  });
+
   // PIPELINE ENDPOINTS - New Kanban system
 
   // Get pipeline for organization (all columns with applications)
   app.get("/api/pipeline/:orgId", async (req, res) => {
     try {
       const { orgId } = req.params;
-      const { getPipelineForOrg } = require('./lib/pipelineService');
       
-      const pipeline = await getPipelineForOrg(orgId);
+      // Get pipeline columns
+      const columns = await storage.getPipelineColumns(orgId);
+      
+      // Get job candidates for the organization
+      const jobCandidates = await storage.getJobCandidatesByOrg(orgId);
+      
+      // Organize the pipeline data
+      const pipeline = {
+        columns,
+        applications: jobCandidates
+      };
+      
       res.json(pipeline);
     } catch (error) {
       console.error("Error fetching pipeline:", error);
