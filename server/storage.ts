@@ -503,8 +503,11 @@ export class MemStorage implements IStorage {
         .insert({
           title: insertJob.title,
           description: insertJob.description ?? null,
-          status: insertJob.status ?? 'draft',
+          location: insertJob.location ?? null,
           job_type: insertJob.jobType ?? 'full-time',
+          // salary_range: insertJob.salaryRange ?? null, // Remove until schema is synced
+          status: insertJob.status ?? 'draft',
+          record_status: insertJob.recordStatus ?? 'active',
           client_id: insertJob.clientId,
           org_id: insertJob.orgId,
           assigned_to: insertJob.assignedTo ?? null,
@@ -1559,6 +1562,9 @@ class DatabaseStorage implements IStorage {
         org_id: insertJob.orgId,
         client_id: insertJob.clientId || null, // Make client_id optional
         description: insertJob.description || null,
+        location: insertJob.location || null,
+        job_type: insertJob.jobType || 'full-time',
+        // salary_range: insertJob.salaryRange || null, // Remove until schema is synced
         status: insertJob.status || 'draft',
         record_status: insertJob.recordStatus || 'active',
         assigned_to: insertJob.assignedTo || null,

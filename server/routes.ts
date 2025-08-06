@@ -1265,7 +1265,7 @@ Expires: 2025-12-31T23:59:59.000Z
       // Validate request body with Zod
       const createJobSchema = insertJobSchema.extend({
         orgId: z.string().min(1, "Organization ID is required"),
-        clientId: z.string().min(1, "Client ID is required")
+        clientId: z.string().optional() // Make clientId optional since clients are optional
       });
       
       const validatedData = createJobSchema.parse(req.body);
@@ -1294,7 +1294,7 @@ Expires: 2025-12-31T23:59:59.000Z
       const { jobId } = req.params;
       
       // Validate job exists
-      const job = await storage.getJobById(jobId);
+      const job = await storage.getJob(jobId);
       if (!job) {
         return res.status(404).json({ error: "Job not found" });
       }

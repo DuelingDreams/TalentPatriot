@@ -13,15 +13,24 @@ export function useCreateJob() {
         throw new Error('Organization ID is required')
       }
 
+      // Filter out fields that don't exist in the database schema
+      const validJobData = {
+        title: jobData.title,
+        description: jobData.description,
+        location: jobData.location,
+        jobType: jobData.jobType,
+        salaryRange: jobData.salaryRange,
+        clientId: jobData.clientId,
+        status: jobData.status,
+        orgId: currentOrgId,
+      }
+
       const response = await fetch('/api/jobs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...jobData,
-          orgId: currentOrgId,
-        }),
+        body: JSON.stringify(validJobData),
       })
 
       if (!response.ok) {
