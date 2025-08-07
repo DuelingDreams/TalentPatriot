@@ -20,7 +20,7 @@ const jobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
   description: z.string().min(1, 'Job description is required'),
   client_id: z.string().optional(),
-  status: z.enum(['draft', 'open', 'closed', 'on_hold', 'filled']).default('draft'),
+  status: z.enum(['draft', 'open']).default('draft'),
   location: z.string().min(1, 'Job location is required'),
   remote_option: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
   salary_range: z.string().optional(),
@@ -187,11 +187,11 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       <DialogTrigger asChild>
         {trigger || triggerButton || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-hidden flex flex-col z-[100]">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Post New Job</DialogTitle>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto pr-2">
+        <div className="flex-1 overflow-y-auto pr-2 max-h-[calc(95vh-120px)]">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
             <FormField
@@ -382,20 +382,21 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel>Action</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select job status" />
+                        <SelectValue placeholder="Choose what to do with this job" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="z-[100]">
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                      <SelectItem value="on_hold">On Hold</SelectItem>
-                      <SelectItem value="filled">Filled</SelectItem>
+                      <SelectItem value="draft">Save as Draft (review later)</SelectItem>
+                      <SelectItem value="open">Publish Job (go live now)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    Drafts can be edited and published later. Published jobs appear on your careers page immediately.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -496,14 +497,15 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
               <Button
                 type="submit"
                 disabled={createJobMutation.isPending}
+                className={form.watch('status') === 'open' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}
               >
                 {createJobMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Posting...
+                    {form.watch('status') === 'open' ? 'Publishing...' : 'Saving...'}
                   </>
                 ) : (
-                  'Post Job'
+                  form.watch('status') === 'open' ? 'Publish Job' : 'Save as Draft'
                 )}
               </Button>
             </div>
