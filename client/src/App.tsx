@@ -47,7 +47,7 @@ const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const Careers = lazy(() => import("@/pages/Careers"));
 const CareersBySlug = lazy(() => import("@/pages/CareersBySlug"));
-const JobApplicationPage = lazy(() => import("@/pages/careers/[jobId]/apply"));
+// Removed conflicting careers directory - using CareersBySlug for job applications
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -89,11 +89,11 @@ function Router() {
         <Route path="/terms" component={TermsOfService} />
         {/* Public careers pages */}
         <Route path="/careers" component={Careers} />
-        <Route path="/careers/:jobId/apply" component={JobApplicationPage} />
+        <Route path="/careers/:slug" component={CareersBySlug} />
         
         {/* Legacy redirect support */}
         <Route path="/public/careers" component={Careers} />
-        <Route path="/public/careers/:jobId/apply" component={JobApplicationPage} />
+        <Route path="/public/careers/:slug" component={CareersBySlug} />
         
         {/* Protected routes */}
         <Route path="/settings/organization">

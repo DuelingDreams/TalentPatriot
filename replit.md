@@ -6,6 +6,14 @@ This is a full-stack Applicant Tracking System (ATS) web application, designed f
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+**August 6, 2025 - Crash Fix & Deployment Preparation**
+- Resolved TypeScript case-sensitivity conflict between careers directory and Careers.tsx file
+- Cleaned up broken import references and routes  
+- Fixed job form dialog visibility and improved button labeling (Draft vs Publish)
+- Application fully stabilized and ready for redeployment
+
 ## System Architecture
 
 ### Frontend Architecture
