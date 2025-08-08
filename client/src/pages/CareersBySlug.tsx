@@ -25,7 +25,7 @@ interface ApplicationFormData {
   name: string
   email: string
   phone: string
-  resumeUrl?: string
+  resume?: File | null
 }
 
 export default function CareersBySlug() {
@@ -39,7 +39,7 @@ export default function CareersBySlug() {
     name: '',
     email: '',
     phone: '',
-    resumeUrl: ''
+    resume: null
   })
   const { toast } = useToast()
 
@@ -79,7 +79,7 @@ export default function CareersBySlug() {
     fetchJob()
   }, [slug, toast, setLocation])
 
-  const handleInputChange = (field: keyof ApplicationFormData, value: string) => {
+  const handleInputChange = (field: keyof ApplicationFormData, value: string | File) => {
     setApplicationData(prev => ({
       ...prev,
       [field]: value
@@ -99,12 +99,27 @@ export default function CareersBySlug() {
       return
     }
 
+    if (!applicationData.resume) {
+      toast({
+        title: "Resume Required",
+        description: "Please upload your resume.",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsApplying(true)
     try {
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append('name', applicationData.name)
+      formData.append('email', applicationData.email)
+      formData.append('phone', applicationData.phone)
+      formData.append('resume', applicationData.resume)
+
       const response = await fetch(`/api/jobs/${job.id}/apply`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(applicationData)
+        body: formData  // No Content-Type header for FormData
       })
 
       if (!response.ok) {
@@ -260,13 +275,20 @@ export default function CareersBySlug() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="resumeUrl">Resume URL</Label>
+                    <Label htmlFor="resume">Resume Upload *</Label>
                     <Input
-                      id="resumeUrl"
-                      value={applicationData.resumeUrl}
-                      onChange={(e) => handleInputChange('resumeUrl', e.target.value)}
-                      placeholder="Link to your resume"
+                      id="resume"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null
+                        handleInputChange('resume', file)
+                      }}
+                      className="cursor-pointer"
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Accepted formats: PDF, DOC, DOCX (max 10MB)
+                    </p>
                   </div>
                   <Button 
                     className="w-full"
