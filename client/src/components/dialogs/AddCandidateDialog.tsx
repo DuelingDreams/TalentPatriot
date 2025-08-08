@@ -73,7 +73,7 @@ export function AddCandidateDialog({ children, onSuccess }: AddCandidateDialogPr
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] z-[200]">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Candidate</DialogTitle>
         </DialogHeader>

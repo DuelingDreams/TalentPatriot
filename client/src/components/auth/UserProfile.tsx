@@ -91,14 +91,10 @@ export function UserProfile() {
           </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent 
-        align="end" 
-        className="w-64 z-[100] bg-white border border-slate-200 shadow-lg rounded-md"
-        sideOffset={8}
-      >
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none text-slate-900">{user.email}</p>
+            <p className="text-sm font-medium leading-none">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <Shield className="w-3 h-3 text-slate-500" />
               <Badge variant="secondary" className={`text-xs ${getRoleColor(userRole)}`}>
@@ -108,19 +104,19 @@ export function UserProfile() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem disabled className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3 text-slate-900">
-          <User className="w-4 h-4 mr-2 text-slate-500" />
+        <DropdownMenuItem disabled>
+          <User className="w-4 h-4 mr-2" />
           Profile Settings
         </DropdownMenuItem>
-        <DropdownMenuItem disabled className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3 text-slate-900">
-          <Settings className="w-4 h-4 mr-2 text-slate-500" />
+        <DropdownMenuItem disabled>
+          <Settings className="w-4 h-4 mr-2" />
           Account Settings
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="text-red-600 hover:bg-red-50 focus:bg-red-50 focus:text-red-600 cursor-pointer py-2 px-3"
+          className="text-red-600 focus:text-red-600"
         >
           <LogOut className="w-4 h-4 mr-2" />
           {isSigningOut ? 'Signing out...' : 'Sign out'}

@@ -182,7 +182,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       <DialogTrigger asChild>
         {trigger || triggerButton || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-hidden flex flex-col z-[200]">
+      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-hidden flex flex-col z-[100]">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Create New Job Draft</DialogTitle>
         </DialogHeader>
