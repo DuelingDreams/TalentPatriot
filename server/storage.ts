@@ -1048,13 +1048,81 @@ export class DatabaseStorage implements IStorage {
 
 
 
-  // Stub implementations for other methods
+  // Candidate notes implementations
   async getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]> {
-    return []
+    try {
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .select(`
+          id,
+          org_id,
+          job_candidate_id,
+          author_id,
+          content,
+          is_private,
+          created_at,
+          updated_at
+        `)
+        .eq('job_candidate_id', jobCandidateId)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Database candidate notes fetch error:', error)
+        throw new Error(`Failed to fetch candidate notes: ${error.message}`)
+      }
+
+      return (data || []).map(note => ({
+        id: note.id,
+        orgId: note.org_id,
+        jobCandidateId: note.job_candidate_id,
+        authorId: note.author_id,
+        content: note.content,
+        isPrivate: note.is_private,
+        createdAt: note.created_at,
+        updatedAt: note.updated_at
+      })) as CandidateNotes[]
+    } catch (err) {
+      console.error('Candidate notes fetch exception:', err)
+      throw err
+    }
   }
 
   async createCandidateNote(note: InsertCandidateNotes): Promise<CandidateNotes> {
-    throw new Error('Not implemented')
+    try {
+      const dbNote = {
+        org_id: note.orgId,
+        job_candidate_id: note.jobCandidateId,
+        author_id: note.authorId,
+        content: note.content,
+        is_private: note.isPrivate || 'false',
+        updated_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .insert(dbNote)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Database candidate note creation error:', error)
+        throw new Error(`Failed to create candidate note: ${error.message}`)
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        jobCandidateId: data.job_candidate_id,
+        authorId: data.author_id,
+        content: data.content,
+        isPrivate: data.is_private,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as CandidateNotes
+    } catch (err) {
+      console.error('Candidate note creation exception:', err)
+      throw err
+    }
   }
 
   async getInterview(id: string): Promise<Interview | undefined> {

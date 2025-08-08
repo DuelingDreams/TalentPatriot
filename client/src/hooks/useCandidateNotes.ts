@@ -1,5 +1,5 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { apiRequest } from '@/lib/queryClient'
+import { apiRequest, queryClient } from '@/lib/queryClient'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 
@@ -7,7 +7,7 @@ export function useCandidateNotes(candidateId?: string) {
   const { currentOrgId, userRole } = useAuth()
   
   return useQuery({
-    queryKey: ['/api/candidates', candidateId, 'notes', { orgId: currentOrgId }],
+    queryKey: ['/api/job-candidates', candidateId, 'notes', { orgId: currentOrgId }],
     queryFn: () => {
       if (userRole === 'demo_viewer') {
         // Return demo notes
@@ -65,7 +65,7 @@ export function useCandidateNotes(candidateId?: string) {
       if (!candidateId || !currentOrgId) {
         return []
       }
-      return apiRequest(`/api/candidates/${candidateId}/notes?orgId=${currentOrgId}`)
+      return apiRequest(`/api/job-candidates/${candidateId}/notes?orgId=${currentOrgId}`)
     },
     enabled: !!candidateId,
   })
@@ -73,6 +73,7 @@ export function useCandidateNotes(candidateId?: string) {
 
 export function useCreateCandidateNote() {
   const { toast } = useToast()
+  const { currentOrgId } = useAuth()
   
   return useMutation({
     mutationFn: async (noteData: any) => {
@@ -88,7 +89,12 @@ export function useCreateCandidateNote() {
       
       return response.json()
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch notes for this candidate
+      queryClient.invalidateQueries({
+        queryKey: ['/api/job-candidates', variables.jobCandidateId, 'notes', { orgId: currentOrgId }]
+      })
+      
       toast({
         title: "Note created",
         description: "Your note has been saved successfully."

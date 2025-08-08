@@ -20,6 +20,7 @@ import { CandidateNotes } from '@/components/candidates/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical } from 'lucide-react'
+import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
 import { Link } from 'wouter'
 
 // Define the pipeline stages
@@ -65,6 +66,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
 
   const isCurrentlyDragging = isDragging || isSortableDragging
   const { toast } = useToast()
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false)
   
   // Fetch job and client data
   const { data: jobs } = useJobs()
@@ -227,10 +229,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
                   className="text-xs h-7"
                   onClick={(e) => {
                     e.stopPropagation()
-                    toast({
-                      title: "Notes",
-                      description: `Opening notes for ${application.candidate?.name}`,
-                    })
+                    setNotesDialogOpen(true)
                   }}
                 >
                   <MessageSquare className="w-3 h-3 mr-1" />
@@ -247,6 +246,14 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
           </div>
         </CardContent>
       </Card>
+      
+      <CandidateNotesDialog
+        open={notesDialogOpen}
+        onClose={() => setNotesDialogOpen(false)}
+        candidateId={application.candidateId}
+        jobCandidateId={application.id}
+        candidateName={application.candidate?.name}
+      />
     </div>
   )
 }
