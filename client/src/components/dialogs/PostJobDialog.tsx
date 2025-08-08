@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { AppModal } from '@/components/ui/AppModal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -178,15 +178,24 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
   )
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        {trigger || triggerButton || defaultTrigger}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-hidden flex flex-col z-[100]">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Create New Job Draft</DialogTitle>
-        </DialogHeader>
-        <div className="flex-1 overflow-y-auto pr-2 max-h-[calc(95vh-120px)]">
+    <>
+      {/* Trigger Button */}
+      {trigger ? (
+        <div onClick={() => setIsOpen(true)}>{trigger}</div>
+      ) : triggerButton ? (
+        <div onClick={() => setIsOpen(true)}>{triggerButton}</div>
+      ) : (
+        <div onClick={() => setIsOpen(true)}>{defaultTrigger}</div>
+      )}
+
+      {/* Modal */}
+      <AppModal
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Create New Job Draft"
+        className="lg:max-w-4xl"
+      >
+        <div className="max-h-[70vh] overflow-y-auto pr-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
             <FormField
@@ -503,7 +512,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
             </form>
           </Form>
         </div>
-      </DialogContent>
-    </Dialog>
+      </AppModal>
+    </>
   )
 }
