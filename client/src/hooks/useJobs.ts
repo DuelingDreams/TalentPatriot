@@ -5,13 +5,15 @@ import { apiRequest } from '@/lib/queryClient'
 import type { Job, InsertJob } from '@/../../shared/schema'
 
 export function useJobs(options: { refetchInterval?: number } = {}) {
-  return useGenericList<Job>({
+  const result = useGenericList<Job>({
     endpoint: '/api/jobs',
     queryKey: '/api/jobs',
     getDemoData: () => demoJobs,
     refetchInterval: options.refetchInterval || 30000, // Default 30 second refresh
     staleTime: 1 * 60 * 1000, // 1 minute for jobs (reduced for more responsiveness)
   })
+  console.info('[RQ] useJobs', 'loading=', result.isLoading, 'error=', result.error)
+  return result
 }
 
 export function useJob(id?: string) {
@@ -19,11 +21,13 @@ export function useJob(id?: string) {
 }
 
 export function useJobsByClient(clientId?: string) {
-  return useQuery({
+  const result = useQuery({
     queryKey: ['/api/jobs', 'client', clientId],
     queryFn: () => apiRequest(`/api/clients/${clientId}/jobs`),
     enabled: !!clientId,
   })
+  console.info('[RQ] useJobsByClient', 'loading=', result.isLoading, 'error=', result.error)
+  return result
 }
 
 export function useCreateJob() {

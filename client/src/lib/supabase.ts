@@ -63,6 +63,21 @@ export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnon
   }
 })
 
+// Sanity check: Test basic database connection
+if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey) {
+  supabase.from('jobs').select('id').limit(1)
+    .then(({ data, error }) => {
+      console.info('[SUPABASE] Connection test →', { 
+        success: !error, 
+        data: data?.length, 
+        error: error?.message || 'none' 
+      })
+    })
+    .catch((err: any) => {
+      console.info('[SUPABASE] Connection test failed →', err.message)
+    })
+}
+
 // Handle global auth errors to prevent refresh token errors from appearing in console
 if (typeof window !== 'undefined') {
   // Override console.error to filter out Supabase refresh token errors

@@ -524,6 +524,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   // Jobs routes
   app.get("/api/jobs", async (req, res) => {
+    console.info('[API]', req.method, req.url, '| orgId:', req.query.orgId);
     try {
       const orgId = req.query.orgId as string;
       if (!orgId) {
@@ -531,6 +532,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return;
       }
       const jobs = await storage.getJobsByOrg(orgId);
+      console.info('[API] GET /api/jobs →', { success: true, count: jobs?.length || 0 });
       res.json(jobs);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch jobs" });
@@ -572,9 +574,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   app.post("/api/jobs", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
     try {
       const validatedData = createJobSchema.parse(req.body);
       const job = await jobService.createJob(validatedData);
+      console.info('[API] POST /api/jobs →', { success: true, jobId: job.id });
       res.status(201).json(job);
     } catch (error) {
       console.error('Job creation error:', error);
@@ -595,6 +599,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   app.post("/api/jobs/:jobId/publish", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
     try {
       const paramsParse = publishJobSchema.safeParse({ jobId: req.params.jobId });
       if (!paramsParse.success) {
@@ -606,6 +611,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       const { jobId } = paramsParse.data;
       const publishedJob = await jobService.publishJob(jobId);
+      console.info('[API] POST /api/jobs/:jobId/publish →', { success: true, jobId, status: publishedJob.status });
       res.json(publishedJob);
     } catch (error) {
       console.error('Error publishing job:', error);
@@ -627,9 +633,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   app.post("/api/candidates", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
     try {
       const validatedData = createCandidateSchema.parse(req.body);
       const candidate = await jobService.createCandidate(validatedData);
+      console.info('[API] POST /api/candidates →', { success: true, candidateId: candidate.id, email: candidate.email });
       res.status(201).json(candidate);
     } catch (error) {
       console.error('Candidate creation error:', error);
@@ -1426,8 +1434,10 @@ Expires: 2025-12-31T23:59:59.000Z
 
   // GET /api/public/jobs - Get published jobs for careers page
   app.get('/api/public/jobs', async (req, res) => {
+    console.info('[API]', req.method, req.url);
     try {
       const jobs = await storage.getPublicJobs();
+      console.info('[API] GET /api/public/jobs →', { success: true, count: jobs?.length || 0 });
       res.json(jobs);
     } catch (error: any) {
       console.error('Error fetching public jobs:', error);
