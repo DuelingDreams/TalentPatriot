@@ -56,7 +56,12 @@ export default function Careers() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Careers at TalentPatriot</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {/* Dynamic organization name from subdomain or fallback */}
+                Careers at {window.location.hostname.includes('.') && !window.location.hostname.startsWith('localhost') 
+                  ? window.location.hostname.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+                  : 'TalentPatriot'}
+              </h1>
               <p className="mt-2 text-gray-600">Find your next opportunity</p>
             </div>
             <img 

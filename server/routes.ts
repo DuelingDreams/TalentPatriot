@@ -12,6 +12,7 @@ import { uploadRouter } from "./routes/upload";
 import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineService";
 import { insertCandidateSchema, insertJobSchema, insertJobCandidateSchema } from "../shared/schema";
 import { createClient } from '@supabase/supabase-js';
+import { subdomainResolver } from './middleware/subdomainResolver';
 
 
 // Write operation rate limiter
@@ -1432,13 +1433,30 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
-  // GET /api/public/jobs - Get published jobs for careers page
+  // Add subdomain middleware for public routes
+  app.use(subdomainResolver);
+
+  // GET /api/public/jobs - Get published jobs for careers page (organization-specific via subdomain)
   app.get('/api/public/jobs', async (req, res) => {
     console.info('[API]', req.method, req.url);
     try {
-      const orgId = req.query.orgId as string;
-      const jobs = await storage.getPublicJobs(orgId);
-      console.info('[API] GET /api/public/jobs →', { success: true, count: jobs?.length || 0, orgId: orgId || 'all' });
+      let jobs;
+      
+      // If we have organization context from subdomain, filter by org
+      if (req.organization) {
+        jobs = await storage.getPublicJobsByOrg(req.organization.id);
+        console.info('[API] GET /api/public/jobs →', { 
+          success: true, 
+          count: jobs?.length || 0, 
+          org: req.organization.name,
+          subdomain: req.organization.slug 
+        });
+      } else {
+        // Fallback to all jobs (for development or when no subdomain)
+        jobs = await storage.getPublicJobs();
+        console.info('[API] GET /api/public/jobs →', { success: true, count: jobs?.length || 0, context: 'all-orgs' });
+      }
+      
       res.json(jobs);
     } catch (error: any) {
       console.error('Error fetching public jobs:', error);

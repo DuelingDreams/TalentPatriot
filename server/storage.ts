@@ -638,20 +638,29 @@ export class DatabaseStorage implements IStorage {
     return data as Job[]
   }
 
-  async getPublicJobs(orgId?: string): Promise<Job[]> {
-    let query = supabase
+  async getPublicJobs(): Promise<Job[]> {
+    const { data, error } = await supabase
       .from('jobs')
       .select('*')
       .eq('record_status', 'active')
       .eq('status', 'open')
       .order('created_at', { ascending: false })
     
-    // Filter by organization if provided (for organization-specific careers pages)
-    if (orgId) {
-      query = query.eq('org_id', orgId)
+    if (error) {
+      throw new Error(error.message)
     }
     
-    const { data, error } = await query
+    return data as Job[]
+  }
+
+  async getPublicJobsByOrg(orgId: string): Promise<Job[]> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('record_status', 'active')
+      .eq('status', 'open')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: false })
     
     if (error) {
       throw new Error(error.message)
