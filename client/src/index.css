@@ -3,6 +3,7 @@
 
 /* Import dropdown fixes for better visibility */
 @import './styles/dropdown-fixes.css';
+@import './styles/debug-radix.css';
 
 @tailwind base;
 @tailwind components;

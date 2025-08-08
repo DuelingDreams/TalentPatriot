@@ -1,0 +1,55 @@
+/* DEBUG RADIX VISIBILITY - Nuclear option with maximum visibility */
+
+/* Make ALL Radix elements super visible */
+[data-radix-select-content] {
+  z-index: 999999 !important;
+  background: #ff0000 !important;
+  border: 5px solid #00ff00 !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 300px !important;
+  height: 200px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+[data-radix-dropdown-menu-content] {
+  z-index: 999998 !important;
+  background: #ffff00 !important;
+  border: 5px solid #0000ff !important;
+  position: fixed !important;
+  top: 20% !important;
+  right: 20% !important;
+  width: 250px !important;
+  height: 150px !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 999997 !important;
+  background: #ffffff !important;
+  border: 5px solid #ff00ff !important;
+  position: fixed !important;
+  top: 10% !important;
+  left: 10% !important;
+  right: 10% !important;
+  bottom: 10% !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+[data-radix-dialog-overlay] {
+  z-index: 999996 !important;
+  background: rgba(255, 0, 0, 0.2) !important;
+  position: fixed !important;
+  inset: 0 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
