@@ -8,11 +8,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-**August 6, 2025 - Crash Fix & Deployment Preparation**
-- Resolved TypeScript case-sensitivity conflict between careers directory and Careers.tsx file
-- Cleaned up broken import references and routes  
-- Fixed job form dialog visibility and improved button labeling (Draft vs Publish)
-- Application fully stabilized and ready for redeployment
+**August 8, 2025 - Candidate Notes System Implementation**
+- Enhanced pipeline candidate cards to match demo design with fully functional Notes buttons
+- Implemented comprehensive candidate notes system with create/view/privacy functionality
+- Added CandidateNotesDialog component with professional UI and user authentication
+- Created complete backend storage methods for candidate notes with Supabase integration
+- Set up candidate_notes database table with RLS policies and performance indexes
+- Fixed API endpoints to use correct jobCandidateId parameter structure
+- Application fully tested and ready for redeployment with candidate notes functionality
 
 ## System Architecture
 
@@ -56,6 +59,7 @@ Preferred communication style: Simple, everyday language.
 - **Recruitment Pipeline**: Kanban-style pipeline dashboard with dynamic columns, drag-and-drop functionality, and candidate progression tracking.
 - **Complete Recruitment Workflow**: End-to-end job posting flow from draft creation → publishing → public careers listing → candidate application → pipeline management.
 - **Public Careers Portal**: Dedicated public-facing job listings at `/public/careers` with professional application forms and file upload support.
+- **Candidate Notes System**: Comprehensive notes management for pipeline candidates with privacy controls, user authentication, and team collaboration features.
 - **Interview Scheduling**: Advanced calendar interface with improved popover handling - fixed clipping issues on mobile and desktop with proper z-index stacking, collision detection, and responsive design.
 - **Onboarding Workflow**: 5-step user onboarding including account creation, company setup, goal-based personalization, guided job creation/candidate import, and success celebration.
 - **Job Board Integration**: UI for various job boards (LinkedIn, Indeed, etc.) with cost estimates and multi-platform distribution.
