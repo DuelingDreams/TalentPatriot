@@ -579,19 +579,29 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   // Publish job - Clean implementation using jobService
+  const publishJobSchema = z.object({
+    jobId: z.string().uuid("Invalid job ID format")
+  });
+
   app.post("/api/jobs/:jobId/publish", writeLimiter, async (req, res) => {
     try {
-      const { jobId } = req.params;
-      
-      if (!jobId) {
-        return res.status(400).json({ error: "Job ID is required" });
+      const paramsParse = publishJobSchema.safeParse({ jobId: req.params.jobId });
+      if (!paramsParse.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: paramsParse.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
       }
       
+      const { jobId } = paramsParse.data;
       const publishedJob = await jobService.publishJob(jobId);
       res.json(publishedJob);
     } catch (error) {
       console.error('Error publishing job:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('not found') || errorMessage.includes('Not found')) {
+        return res.status(404).json({ error: "Job not found", details: errorMessage });
+      }
       res.status(500).json({ error: "Failed to publish job", details: errorMessage });
     }
   });
@@ -624,27 +634,49 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   // JOB APPLICATION ROUTE - Complete flow using jobService
+  const jobApplicationParamsSchema = z.object({
+    jobId: z.string().uuid("Invalid job ID format")
+  });
+
   const jobApplicationSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.string().email("Valid email is required"),
-    phone: z.string().optional(),
-    resumeUrl: z.string().optional(),
-    coverLetter: z.string().optional()
+    name: z.string().min(1, "Name is required").max(100, "Name too long"),
+    email: z.string().email("Valid email is required").max(255, "Email too long"),
+    phone: z.string().optional().refine(val => !val || val.length <= 20, "Phone number too long"),
+    resumeUrl: z.string().url("Invalid resume URL").optional(),
+    coverLetter: z.string().max(2000, "Cover letter too long").optional()
   });
 
   app.post("/api/jobs/:jobId/apply", publicJobLimiter, async (req, res) => {
     try {
-      const { jobId } = req.params;
-      const validatedData = jobApplicationSchema.parse(req.body);
-      
-      if (!jobId) {
-        return res.status(400).json({ error: "Job ID is required" });
+      // Validate path parameters
+      const paramsParse = jobApplicationParamsSchema.safeParse({ jobId: req.params.jobId });
+      if (!paramsParse.success) {
+        return res.status(400).json({ 
+          error: "Invalid job ID", 
+          details: paramsParse.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
       }
+
+      // Validate request body
+      const bodyParse = jobApplicationSchema.safeParse(req.body);
+      if (!bodyParse.success) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: bodyParse.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      
+      const { jobId } = paramsParse.data;
+      const validatedData = bodyParse.data;
 
       // Get the job first to get its organization ID
       const job = await storage.getJob(jobId);
       if (!job) {
         return res.status(404).json({ error: "Job not found" });
+      }
+      
+      if (job.status !== 'open') {
+        return res.status(400).json({ error: "Job is not accepting applications" });
       }
       
       console.log('Job object:', JSON.stringify(job, null, 2));
@@ -669,33 +701,64 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       res.status(201).json(applicationResult);
     } catch (error) {
       console.error('Job application error:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
-        });
-      }
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ error: "Failed to submit application", details: errorMessage });
+      
+      // Handle specific error types
+      if (errorMessage.includes('duplicate') || errorMessage.includes('already applied')) {
+        return res.status(409).json({ error: "You have already applied to this job", details: errorMessage });
+      }
+      if (errorMessage.includes('not found') || errorMessage.includes('Not found')) {
+        return res.status(404).json({ error: "Job not found", details: errorMessage });
+      }
+      
+      res.status(500).json({ error: "Failed to submit application", details: errorMessage });
     }
   });
 
   // Public endpoints for careers page
+  const publicJobsQuerySchema = z.object({
+    limit: z.string().optional().refine(val => !val || !isNaN(Number(val)), "Limit must be a number"),
+    offset: z.string().optional().refine(val => !val || !isNaN(Number(val)), "Offset must be a number"),
+    location: z.string().optional(),
+    search: z.string().optional()
+  });
+
   app.get("/api/public/jobs", async (req, res) => {
     try {
+      const queryParse = publicJobsQuerySchema.safeParse(req.query);
+      if (!queryParse.success) {
+        return res.status(400).json({ 
+          error: "Invalid query parameters", 
+          details: queryParse.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      
       // Get all open jobs with public slugs using jobService
       const openJobs = await jobService.getPublicJobs();
       res.json(openJobs);
     } catch (error) {
       console.error('Error fetching public jobs:', error);
-      res.status(500).json({ error: "Failed to fetch job listings" });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch job listings", details: errorMessage });
     }
   });
 
   // Get public job by slug
+  const jobSlugSchema = z.object({
+    slug: z.string().min(1, "Job slug is required").max(100, "Job slug too long")
+  });
+
   app.get("/api/public/jobs/slug/:slug", async (req, res) => {
     try {
-      const { slug } = req.params;
+      const paramsParse = jobSlugSchema.safeParse({ slug: req.params.slug });
+      if (!paramsParse.success) {
+        return res.status(400).json({ 
+          error: "Invalid slug parameter", 
+          details: paramsParse.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      
+      const { slug } = paramsParse.data;
       const allJobs = await storage.getJobs();
       const job = allJobs.find(job => job.publicSlug === slug && job.status === 'open');
       
@@ -706,7 +769,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       res.json(job);
     } catch (error) {
       console.error('Error fetching job by slug:', error);
-      res.status(500).json({ error: "Failed to fetch job" });
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch job", details: errorMessage });
     }
   });
 
