@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
 import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineService";
 import { insertCandidateSchema, insertJobSchema, insertJobCandidateSchema } from "../shared/schema";
+import { createClient } from '@supabase/supabase-js';
 
 
 // Write operation rate limiter
@@ -24,7 +25,17 @@ const writeLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Authentication rate limiter (if we add auth endpoints)
+// Supabase client for server-side operations
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Create service role client for server-side auth operations
+let supabaseAdmin: any = null;
+if (supabaseUrl && supabaseServiceKey) {
+  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+}
+
+// Authentication rate limiter
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 20, // Limit each IP to 20 auth attempts per windowMs
@@ -682,7 +693,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.log('Job object:', JSON.stringify(job, null, 2));
       
       // Get first pipeline column for the org
-      const jobOrgId = job.orgId || job.org_id;
+      const jobOrgId = job.orgId;
       if (!jobOrgId) {
         return res.status(400).json({ error: "Job organization ID not found" });
       }
@@ -1566,6 +1577,50 @@ Expires: 2025-12-31T23:59:59.000Z
         });
       }
       res.status(500).json({ error: "Failed to process job application" });
+    }
+  });
+
+  // Auth endpoints - Forgot Password
+  app.post('/api/auth/forgot-password', authLimiter, async (req: express.Request, res: express.Response) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ error: 'Please enter a valid email address' });
+      }
+
+      if (!supabaseAdmin) {
+        console.error('Supabase admin client not available - missing environment variables');
+        return res.status(500).json({ error: 'Password reset service unavailable' });
+      }
+
+      // Get the current domain for the redirect URL
+      const protocol = req.get('X-Forwarded-Proto') || (req.secure ? 'https' : 'http');
+      const host = req.get('Host');
+      const redirectUrl = `${protocol}://${host}/reset-password`;
+
+      const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl,
+      });
+
+      if (error) {
+        console.error('Supabase reset password error:', error);
+        return res.status(500).json({ error: 'Failed to send reset email' });
+      }
+
+      // Always return success for security (don't reveal if email exists)
+      res.status(200).json({ 
+        message: 'If that email is registered, you\'ll receive a password reset link shortly.' 
+      });
+
+    } catch (error: any) {
+      console.error('Forgot password error:', error);
+      res.status(500).json({ error: 'Failed to send reset email' });
     }
   });
 

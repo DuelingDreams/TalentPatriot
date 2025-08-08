@@ -30,6 +30,8 @@ const Calendar = lazy(() => import("@/pages/Calendar"));
 const Messages = lazy(() => import("@/pages/Messages"));
 const Login = lazy(() => import("@/pages/Login"));
 const Signup = lazy(() => import("@/pages/Signup"));
+const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const OnboardingStep1 = lazy(() => import("@/pages/OnboardingStep1"));
 const OnboardingStep2 = lazy(() => import("@/pages/OnboardingStep2"));
 const OnboardingStep3 = lazy(() => import("@/pages/OnboardingStep3"));
@@ -77,6 +79,8 @@ function Router() {
         <Route path="/" component={Landing} />
         <Route path="/login" component={Login} />
         <Route path="/signup" component={Signup} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
         <Route path="/auth/callback" component={AuthCallback} />
         <Route path="/onboarding/step1" component={OnboardingStep1} />
         <Route path="/onboarding/step2" component={OnboardingStep2} />
