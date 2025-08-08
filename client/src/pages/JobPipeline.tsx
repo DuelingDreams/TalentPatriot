@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs } from '@/hooks/useJobs'
+import { useClients } from '@/hooks/useClients'
 import { useCandidatesForJob, useUpdateCandidateStage } from '@/hooks/useJobCandidates'
 import { usePipeline, usePipelineColumns, useMoveApplication, organizeApplicationsByColumn } from '@/hooks/usePipeline'
 import { ResumeUpload } from '@/components/candidates/ResumeUpload'
@@ -64,6 +65,14 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
 
   const isCurrentlyDragging = isDragging || isSortableDragging
   const { toast } = useToast()
+  
+  // Fetch job and client data
+  const { data: jobs } = useJobs()
+  const { data: clients } = useClients()
+  
+  // Find job and client info
+  const jobInfo = jobs?.find((job: any) => job.id === application.jobId)
+  const clientInfo = clients?.find((client: any) => client.id === jobInfo?.clientId)
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -180,6 +189,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
               <h4 className="font-medium text-slate-900 truncate">
                 {application.candidate?.name || 'Unknown Candidate'}
               </h4>
+              <p className="text-xs text-slate-600 mt-1">{jobInfo?.title || 'Position Title'}</p>
               <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
                 <Mail className="w-3 h-3" />
                 <span className="truncate">{application.candidate?.email || 'No email'}</span>
@@ -190,15 +200,47 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
                   <span>{application.candidate.phone}</span>
                 </div>
               )}
-              <div className="mt-3 space-y-2">
-                <ResumeUpload
-                  candidateId={application.candidateId}
-                  candidateName={application.candidate?.name || 'Unknown'}
-                  currentResumeUrl={application.candidate?.resumeUrl || null}
-                  onResumeUploaded={() => {}} // Pipeline view is read-only for resumes
-                />
+              <div className="mt-3 flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (application.candidate?.resumeUrl) {
+                      window.open(application.candidate.resumeUrl, '_blank')
+                    } else {
+                      toast({
+                        title: "No Resume",
+                        description: "This candidate hasn't uploaded a resume yet",
+                        variant: "destructive"
+                      })
+                    }
+                  }}
+                >
+                  <FileText className="w-3 h-3 mr-1" />
+                  View Resume
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toast({
+                      title: "Notes",
+                      description: `Opening notes for ${application.candidate?.name}`,
+                    })
+                  }}
+                >
+                  <MessageSquare className="w-3 h-3 mr-1" />
+                  Notes
+                </Button>
               </div>
-              <div className="mt-2 text-xs text-slate-500">
+              <Badge variant="outline" className="mt-2 text-xs">
+                {clientInfo?.name || 'TechCorp Solutions'}
+              </Badge>
+              <div className="mt-1 text-xs text-slate-500">
                 Applied {new Date(application.appliedAt).toLocaleDateString()}
               </div>
             </div>
@@ -372,17 +414,42 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                   {candidate.notes}
                 </p>
               )}
-              <div className="mt-3 space-y-2">
-                <ResumeUpload
-                  candidateId={candidate.candidates?.id || ''}
-                  candidateName={candidate.candidates?.name || 'Unknown'}
-                  currentResumeUrl={candidate.candidates?.resume_url || null}
-                  onResumeUploaded={() => {}} // Pipeline view is read-only for resumes
-                />
-                <CandidateNotes
-                  jobCandidateId={candidate.id}
-                  candidateId={candidate.candidates?.id || ''}
-                />
+              <div className="mt-3 flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (candidate.candidates?.resume_url) {
+                      window.open(candidate.candidates.resume_url, '_blank')
+                    } else {
+                      toast({
+                        title: "No Resume",
+                        description: "This candidate hasn't uploaded a resume yet",
+                        variant: "destructive"
+                      })
+                    }
+                  }}
+                >
+                  <FileText className="w-3 h-3 mr-1" />
+                  View Resume
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toast({
+                      title: "Notes",
+                      description: `Opening notes for ${candidate.candidates?.name}`,
+                    })
+                  }}
+                >
+                  <MessageSquare className="w-3 h-3 mr-1" />
+                  Notes
+                </Button>
               </div>
               {candidate.assigned_to && (
                 <div className="mt-2">
