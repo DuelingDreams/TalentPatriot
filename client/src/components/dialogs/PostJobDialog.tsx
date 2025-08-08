@@ -13,7 +13,8 @@ import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCreateJob } from '@/hooks/useJobMutation'
 import { useClients } from '@/hooks/useClients'
-import { Plus, Loader2, Globe, Building2, Users, Briefcase } from 'lucide-react'
+import { Plus, Loader2, Globe, Building2, Users, Briefcase, HelpCircle } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 // Form validation schema - always creates drafts
 const jobSchema = z.object({
@@ -288,7 +289,17 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                 name="remote_option"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Work Type</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      Work Type
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>On-site: Work from office only<br/>Remote: Work from anywhere<br/>Hybrid: Mix of office and remote work</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -313,7 +324,17 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                 name="experience_level"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Experience Level</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      Experience Level
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-slate-400 hover:text-slate-600" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Entry: 0-2 years experience<br/>Mid: 2-5 years experience<br/>Senior: 5+ years experience<br/>Executive: Leadership roles</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
