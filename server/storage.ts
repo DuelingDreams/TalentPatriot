@@ -1234,12 +1234,10 @@ export class DatabaseStorage implements IStorage {
   async createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn> {
     try {
       const dbColumn = {
-        title: column.name || column.title,
+        title: column.title,
         position: column.position,
         org_id: column.orgId,
-        color: column.color || null,
-        description: column.description || null,
-        status: column.status || 'active'
+        updated_at: new Date()
       }
       
       const { data, error } = await supabase
@@ -1258,6 +1256,24 @@ export class DatabaseStorage implements IStorage {
       console.error('Pipeline column creation exception:', err)
       throw err
     }
+  }
+
+  async publishJob(jobId: string): Promise<Job> {
+    const { data, error } = await supabase
+      .from('jobs')
+      .update({ 
+        status: 'open',
+        published_at: new Date().toISOString()
+      })
+      .eq('id', jobId)
+      .select()
+      .single()
+    
+    if (error) {
+      throw new Error(`Failed to publish job: ${error.message}`)
+    }
+    
+    return data as Job
   }
 }
 
