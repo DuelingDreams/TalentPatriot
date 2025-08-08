@@ -8,6 +8,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**August 8, 2025 - Subdomain-Based Organization Routing Implementation**
+- Implemented professional subdomain-based careers pages for multi-tenant organization isolation
+- Created subdomain middleware that automatically detects organization from hostname
+- Updated careers API to serve organization-specific job listings with complete data isolation
+- Added SQL migration system to generate unique URL-safe slugs for all organizations
+- Enhanced careers page header to dynamically display company name from subdomain
+- Established secure multi-tenant routing: company-name.talentpatriot.app/careers
+- Complete security implementation preventing cross-organization data leakage
+- Professional branded experience for job seekers with organization-specific contexts
+- Application ready for redeployment with subdomain routing functionality
+
 **August 8, 2025 - Candidate Notes System Implementation**
 - Enhanced pipeline candidate cards to match demo design with fully functional Notes buttons
 - Implemented comprehensive candidate notes system with create/view/privacy functionality
@@ -15,7 +26,6 @@ Preferred communication style: Simple, everyday language.
 - Created complete backend storage methods for candidate notes with Supabase integration
 - Set up candidate_notes database table with RLS policies and performance indexes
 - Fixed API endpoints to use correct jobCandidateId parameter structure
-- Application fully tested and ready for redeployment with candidate notes functionality
 
 ## System Architecture
 

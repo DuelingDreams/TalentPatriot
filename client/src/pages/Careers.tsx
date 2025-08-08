@@ -58,9 +58,14 @@ export default function Careers() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
                 {/* Dynamic organization name from subdomain or fallback */}
-                Careers at {window.location.hostname.includes('.') && !window.location.hostname.startsWith('localhost') 
-                  ? window.location.hostname.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                  : 'TalentPatriot'}
+                Careers at {(() => {
+                  const hostname = window.location.hostname;
+                  if (hostname.includes('.') && !hostname.startsWith('localhost')) {
+                    const subdomain = hostname.split('.')[0];
+                    return subdomain.replace(/[-_]/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
+                  }
+                  return 'TalentPatriot';
+                })()}
               </h1>
               <p className="mt-2 text-gray-600">Find your next opportunity</p>
             </div>

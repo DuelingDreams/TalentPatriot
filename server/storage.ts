@@ -97,6 +97,7 @@ export interface IStorage {
 
   // Public job access (no authentication required)
   getPublicJobs(): Promise<Job[]>;
+  getPublicJobsByOrg(orgId: string): Promise<Job[]>;
   getPublicJob(id: string): Promise<Job | undefined>;
   
   // Job-Candidate relationships
