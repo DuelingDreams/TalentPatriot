@@ -381,13 +381,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                 />
                 <CandidateNotes
                   jobCandidateId={candidate.id}
-                  candidateName={candidate.candidates?.name || 'Unknown'}
-                >
-                  <Button size="sm" variant="outline" className="text-xs w-full">
-                    <MessageSquare className="w-3 h-3 mr-1" />
-                    Notes
-                  </Button>
-                </CandidateNotes>
+                />
               </div>
               {candidate.assigned_to && (
                 <div className="mt-2">
@@ -717,7 +711,7 @@ export default function JobPipeline() {
     const candidateId = active.id as string
     const newStage = over.id as string
 
-    const candidate = jobCandidates?.find(c => c.id === candidateId)
+    const candidate = jobCandidates?.find((c: any) => c.id === candidateId)
     if (!candidate || candidate.stage === newStage) return
 
     try {
@@ -756,7 +750,7 @@ export default function JobPipeline() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs?.map(job => {
+            {jobs?.map((job: any) => {
               return (
                 <JobPipelineCard key={job.id} job={job} />
               );

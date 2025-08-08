@@ -10,7 +10,7 @@ import {
   MapPin, Info, Download, Eye
 } from 'lucide-react'
 import { Link } from 'wouter'
-import { demoCandidates } from '@/lib/demo-data'
+import { demoCandidates } from '@/lib/demo-data-consolidated'
 
 const candidateSkills: Record<string, string[]> = {
   '44444444-4444-4444-4444-444444444444': ['React', 'TypeScript', 'Node.js', 'AWS'],
@@ -173,7 +173,7 @@ export function DemoCandidates() {
                     variant="default" 
                     className="bg-[#264C99]/10 text-[#264C99] border-[#264C99]/20"
                   >
-                    {candidate.stage?.charAt(0).toUpperCase() + candidate.stage?.slice(1) || 'New'}
+                    New
                   </Badge>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" className="btn-secondary text-xs">
