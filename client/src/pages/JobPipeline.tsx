@@ -381,6 +381,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                 />
                 <CandidateNotes
                   jobCandidateId={candidate.id}
+                  candidateId={candidate.candidates?.id || ''}
                 />
               </div>
               {candidate.assigned_to && (
