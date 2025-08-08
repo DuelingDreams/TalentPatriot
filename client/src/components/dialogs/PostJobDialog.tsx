@@ -15,12 +15,11 @@ import { useCreateJob } from '@/hooks/useJobMutation'
 import { useClients } from '@/hooks/useClients'
 import { Plus, Loader2, Globe, Building2, Users, Briefcase } from 'lucide-react'
 
-// Form validation schema with location targeting
+// Form validation schema - always creates drafts
 const jobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
   description: z.string().min(1, 'Job description is required'),
   client_id: z.string().optional(),
-  status: z.enum(['draft', 'open']).default('draft'),
   location: z.string().min(1, 'Job location is required'),
   remote_option: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
   salary_range: z.string().optional(),
@@ -96,8 +95,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
     defaultValues: {
       title: '',
       description: '',
-      client_id: undefined, // Fix: change from '' to undefined
-      status: 'draft',
+      client_id: undefined,
       location: '',
       remote_option: 'onsite',
       salary_range: '',
@@ -132,9 +130,9 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       const jobData = {
         title: data.title,
         description: data.description,
-        clientId: data.client_id === "__no_client" ? undefined : data.client_id, // Handle placeholder value
-        orgId: currentOrgId, // Add required orgId (now guaranteed to be non-null)
-        status: data.status as 'draft' | 'open' | 'closed' | 'on_hold' | 'filled',
+        clientId: data.client_id === "__no_client" ? undefined : data.client_id,
+        orgId: currentOrgId,
+        status: 'draft', // Always create as draft
         location: data.location,
         remoteOption: data.remote_option,
         salaryRange: data.salary_range || null,
@@ -146,19 +144,15 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       
       await createJobMutation.mutateAsync(jobData)
       
-      // Show success message based on job status
-      const successMessage = data.status === 'draft' 
-        ? "Job saved as draft! You can publish it when ready to make it live."
-        : "Job posted successfully and is now active for applications!"
-      
+      // Show success message for draft creation
       const boardCount = data.posting_targets.length
       const additionalInfo = boardCount > 0 
-        ? ` Will be distributed to ${boardCount} job board${boardCount > 1 ? 's' : ''}.`
+        ? ` Distribution settings saved for ${boardCount} job board${boardCount > 1 ? 's' : ''}.`
         : ""
       
       toast({
-        title: data.status === 'draft' ? "Job Saved as Draft!" : "Job Posted Successfully!",
-        description: successMessage + additionalInfo,
+        title: "Job Saved as Draft!",
+        description: "Job saved as draft! You can publish it when ready to make it live." + additionalInfo,
       })
       
       setIsOpen(false)
@@ -189,7 +183,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[95vh] overflow-hidden flex flex-col z-[100]">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>Post New Job</DialogTitle>
+          <DialogTitle>Create New Job Draft</DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto pr-2 max-h-[calc(95vh-120px)]">
           <Form {...form}>
@@ -377,30 +371,6 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Action</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose what to do with this job" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="z-[100]">
-                      <SelectItem value="draft">Save as Draft (review later)</SelectItem>
-                      <SelectItem value="open">Publish Job (go live now)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Drafts can be edited and published later. Published jobs appear on your careers page immediately.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             {/* Job Board Selection Section */}
             <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
@@ -497,15 +467,15 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
               <Button
                 type="submit"
                 disabled={createJobMutation.isPending}
-                className={form.watch('status') === 'open' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 {createJobMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {form.watch('status') === 'open' ? 'Publishing...' : 'Saving...'}
+                    Saving Draft...
                   </>
                 ) : (
-                  form.watch('status') === 'open' ? 'Publish Job' : 'Save as Draft'
+                  'Save as Draft'
                 )}
               </Button>
             </div>
