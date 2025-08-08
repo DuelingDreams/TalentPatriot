@@ -1436,8 +1436,9 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get('/api/public/jobs', async (req, res) => {
     console.info('[API]', req.method, req.url);
     try {
-      const jobs = await storage.getPublicJobs();
-      console.info('[API] GET /api/public/jobs →', { success: true, count: jobs?.length || 0 });
+      const orgId = req.query.orgId as string;
+      const jobs = await storage.getPublicJobs(orgId);
+      console.info('[API] GET /api/public/jobs →', { success: true, count: jobs?.length || 0, orgId: orgId || 'all' });
       res.json(jobs);
     } catch (error: any) {
       console.error('Error fetching public jobs:', error);
