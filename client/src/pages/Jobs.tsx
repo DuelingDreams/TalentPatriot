@@ -10,9 +10,10 @@ import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCreateJob, usePublishJob } from '@/hooks/useJobMutation'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
-import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink } from 'lucide-react'
+import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink, FileX } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
 import GuidedJobCreation from '@/components/jobs/GuidedJobCreation'
+import { EmptyState } from '@/components/ui/empty-state'
 
 export default function Jobs() {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false)
@@ -25,11 +26,11 @@ export default function Jobs() {
   if (userRole === 'demo_viewer') {
     return (
       <DashboardLayout pageTitle="Jobs">
-        <div className="p-6">
+        <div className="p-6 space-y-6">
           {/* Demo jobs content */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Jobs</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Jobs</h1>
+            <p className="text-base text-gray-700 mt-2">
               Explore demo job postings and recruitment positions.
             </p>
           </div>
@@ -148,7 +149,7 @@ export default function Jobs() {
   if (!currentOrgId && userRole !== 'demo_viewer') {
     return (
       <DashboardLayout pageTitle="Jobs">
-        <div className="p-6">
+        <div className="p-6 space-y-6">
           <Card className="max-w-2xl mx-auto">
             <CardHeader className="text-center">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -177,16 +178,16 @@ export default function Jobs() {
     <DashboardLayout pageTitle="Jobs">
       <div className="p-6">
         {/* Page Header */}
-        <div className="mb-8">
+        <div>
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">Jobs</h2>
-              <p className="mt-1 text-sm text-slate-600">Manage your job postings and recruitment positions.</p>
+              <h2 className="text-2xl font-bold text-gray-900">Jobs</h2>
+              <p className="mt-2 text-base text-gray-700">Manage your job postings and recruitment positions.</p>
             </div>
             <div className="mt-4 sm:mt-0">
               <PostJobDialog 
                 triggerButton={
-                  <Button className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                  <Button className="bg-primary text-white py-2 px-4 rounded-2xl shadow-sm hover:shadow-lg">
                     <Plus className="w-4 h-4 mr-2" />
                     New Job
                   </Button>
@@ -220,37 +221,30 @@ export default function Jobs() {
         {!jobsLoading && !jobsError && (
           <div className="space-y-6">
             {displayJobs.length === 0 ? (
-              <div className="text-center py-12">
-                <Briefcase className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No jobs yet</h3>
-                <p className="text-gray-500 mb-6">Get started by posting your first job opening.</p>
-                <PostJobDialog 
-                  triggerButton={
-                    <Button className="btn-primary">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Post Your First Job
-                    </Button>
-                  }
-                  onJobCreated={() => {
-                    // Jobs list will refresh automatically via React Query
-                  }}
-                />
-              </div>
+              <EmptyState
+                icon={Briefcase}
+                title="No jobs yet"
+                description="Get started by posting your first job opening to begin recruiting candidates."
+                action={{
+                  label: "Post Your First Job",
+                  onClick: () => setIsGuidedModalOpen(true)
+                }}
+              />
             ) : (
               <div className="grid gap-6">
                 {displayJobs.map((job: any) => (
-                  <Card key={job.id} className="hover:shadow-md transition-shadow">
+                  <Card key={job.id} className="rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{job.title}</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
                             <Badge className={getStatusColor(job.status)}>
                               {job.status}
                             </Badge>
                           </div>
                           
-                          <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
+                          <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                             <div className="flex items-center gap-1">
                               <Building2 className="w-4 h-4" />
                               {job.client?.name || 'No client assigned'}

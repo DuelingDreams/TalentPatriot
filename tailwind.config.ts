@@ -13,7 +13,14 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      fontSize: {
+        'h1': '2rem',
+        'h2': '1.5rem', 
+        'body': '1rem',
+        'small': '0.875rem',
+      },
       colors: {
+        'contrast': '#F4F6F8',
         'tp-primary': '#1F3A5F',
         'tp-accent': '#264C99',
         'tp-page-bg': '#F7F9FC',
@@ -31,7 +38,7 @@ export default {
           foreground: "var(--popover-foreground)",
         },
         primary: {
-          DEFAULT: "var(--primary)",
+          DEFAULT: "#1F3A5F",
           foreground: "var(--primary-foreground)",
         },
         secondary: {
@@ -43,7 +50,7 @@ export default {
           foreground: "var(--muted-foreground)",
         },
         accent: {
-          DEFAULT: "var(--accent)",
+          DEFAULT: "#3F88C5",
           foreground: "var(--accent-foreground)",
         },
         destructive: {

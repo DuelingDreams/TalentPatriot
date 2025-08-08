@@ -45,6 +45,37 @@
   --info: 199 89% 48%;
 }
 
+/* Typography utilities */
+@layer components {
+  .text-h1 {
+    @apply text-2xl font-bold;
+  }
+  
+  .text-h2 {
+    @apply text-xl font-semibold;
+  }
+  
+  .text-body {
+    @apply text-base text-gray-700;
+  }
+  
+  .text-small {
+    @apply text-sm text-gray-500;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white py-2 px-4 rounded-2xl shadow-sm hover:shadow-lg transition-shadow;
+  }
+  
+  .btn-secondary {
+    @apply border border-primary text-primary py-2 px-4 rounded-2xl bg-white hover:bg-primary/5 transition-colors;
+  }
+  
+  .card-modern {
+    @apply rounded-2xl shadow-sm;
+  }
+}
+
 /* Base styles */
 @layer base {
   body {

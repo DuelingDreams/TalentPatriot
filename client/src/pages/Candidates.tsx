@@ -22,8 +22,10 @@ import {
   Briefcase,
   Clock,
   Plus,
-  Building2
+  Building2,
+  FileX
 } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 import { formatDistanceToNow } from 'date-fns'
 import { Link, useLocation } from 'wouter'
 
@@ -39,8 +41,8 @@ export default function Candidates() {
       <DashboardLayout pageTitle="Demo Candidates">
         <div className="p-6">
           <div className="mb-6">
-            <h1 className="heading-1 text-[#1A1A1A]">Candidate Database</h1>
-            <p className="body-text text-[#5C667B] mt-1">Explore our demo candidate profiles</p>
+            <h1 className="text-2xl font-bold text-gray-900">Candidate Database</h1>
+            <p className="text-base text-gray-700 mt-2">Explore our demo candidate profiles</p>
           </div>
           <DemoCandidates />
         </div>
@@ -53,19 +55,19 @@ export default function Candidates() {
     return (
       <DashboardLayout pageTitle="Candidates">
         <div className="p-6">
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader className="text-center">
+          <Card className="max-w-2xl mx-auto rounded-2xl shadow-sm">
+            <CardHeader className="text-center p-6">
               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Building2 className="w-8 h-8 text-blue-600" />
               </div>
-              <CardTitle className="text-2xl">Organization Setup Required</CardTitle>
-              <p className="text-[#5C667B] mt-2">
+              <CardTitle className="text-xl font-semibold">Organization Setup Required</CardTitle>
+              <p className="text-base text-gray-700 mt-2">
                 You need to set up your organization before you can manage candidates.
               </p>
             </CardHeader>
             <CardContent className="text-center">
               <AddCandidateDialog>
-                <Button className="btn-primary">
+                <Button className="bg-primary text-white py-2 px-4 rounded-2xl shadow-sm hover:shadow-lg">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Candidate
                 </Button>

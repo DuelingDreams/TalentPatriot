@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2 } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX } from 'lucide-react'
+import { EmptyState } from '@/components/ui/empty-state'
 
 interface PublicJob {
   id: string
