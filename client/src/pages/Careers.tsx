@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,36 +21,26 @@ interface PublicJob {
 }
 
 export default function Careers() {
-  const [jobs, setJobs] = useState<PublicJob[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [, setLocation] = useLocation()
   const { toast } = useToast()
 
-  // Fetch public jobs (status = 'open')
-  useEffect(() => {
-    fetchPublicJobs()
-  }, [])
+  // Fetch public jobs using React Query
+  const { data: jobs = [], isLoading: loading, error } = useQuery({
+    queryKey: ['/api/public/jobs'],
+    queryFn: () => fetch('/api/public/jobs').then(r => r.json())
+  })
 
-  const fetchPublicJobs = async () => {
-    try {
-      const response = await fetch('/api/public/jobs')
-      if (!response.ok) throw new Error('Failed to fetch jobs')
-      const data = await response.json()
-      setJobs(data)
-    } catch (error) {
-      console.error('Error fetching jobs:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load job listings",
-        variant: "destructive"
-      })
-    } finally {
-      setLoading(false)
-    }
+  // Handle errors
+  if (error) {
+    toast({
+      title: "Error",
+      description: "Failed to load job listings",
+      variant: "destructive"
+    })
   }
 
-  const filteredJobs = jobs.filter(job =>
+  const filteredJobs = jobs.filter((job: PublicJob) =>
     job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -100,7 +91,7 @@ export default function Careers() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredJobs.map((job) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => setLocation(`/careers/${job.publicSlug}`)}>
+                onClick={() => setLocation(`/careers/${job.publicSlug}/apply`)}>
                 <CardHeader>
                   <CardTitle className="text-xl">{job.title}</CardTitle>
                   {job.client && (
