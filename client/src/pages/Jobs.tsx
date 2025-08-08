@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCreateJob } from '@/hooks/useJobMutation'
+import { useCreateJob, usePublishJob } from '@/hooks/useJobMutation'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
@@ -19,6 +19,7 @@ export default function Jobs() {
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
+  const publishJobMutation = usePublishJob()
   
   // Show demo jobs for demo viewers - check this FIRST
   if (userRole === 'demo_viewer') {
@@ -126,22 +127,13 @@ export default function Jobs() {
 
   const handlePublishJob = async (jobId: string) => {
     try {
-      const response = await fetch(`/api/jobs/${jobId}/publish`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
-
-      if (!response.ok) throw new Error('Failed to publish job')
-      
-      const publishedJob = await response.json()
+      const publishedJob = await publishJobMutation.mutateAsync(jobId)
 
       toast({
         title: "Job Published!",
         description: `Your job is now live at /careers/${publishedJob.publicSlug}`,
       })
-
-      // Reload to refresh job status
-      window.location.reload()
+      // Jobs list will refresh automatically via React Query
     } catch (error) {
       console.error('Error publishing job:', error)
       toast({
@@ -200,8 +192,7 @@ export default function Jobs() {
                   </Button>
                 }
                 onJobCreated={() => {
-                  // Refresh jobs list after creation
-                  window.location.reload()
+                  // Jobs list will refresh automatically via React Query
                 }}
               />
             </div>
@@ -241,7 +232,7 @@ export default function Jobs() {
                     </Button>
                   }
                   onJobCreated={() => {
-                    window.location.reload()
+                    // Jobs list will refresh automatically via React Query
                   }}
                 />
               </div>
@@ -295,12 +286,17 @@ export default function Jobs() {
                           {job.status === 'draft' && !isDemoMode && (
                             <Button
                               onClick={() => handlePublishJob(job.id)}
+                              disabled={publishJobMutation.isPending}
                               variant="outline"
                               size="sm"
                               className="flex items-center gap-1"
                             >
-                              <Globe className="w-4 h-4" />
-                              Publish
+                              {publishJobMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Globe className="w-4 h-4" />
+                              )}
+                              {publishJobMutation.isPending ? 'Publishing...' : 'Publish'}
                             </Button>
                           )}
                           <Link href={`/pipeline/${job.id}`}>

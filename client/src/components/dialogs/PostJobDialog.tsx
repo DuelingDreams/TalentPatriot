@@ -132,7 +132,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
         description: data.description,
         clientId: data.client_id === "__no_client" ? undefined : data.client_id,
         orgId: currentOrgId,
-        status: 'draft', // Always create as draft
+        status: 'draft' as const, // Always create as draft
         location: data.location,
         remoteOption: data.remote_option,
         salaryRange: data.salary_range || null,
