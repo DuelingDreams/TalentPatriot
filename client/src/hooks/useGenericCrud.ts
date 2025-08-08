@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 interface GenericCrudOptions<T, InsertT> {
   endpoint: string
   getDemoData?: (userRole: string) => T[]
+  getDemoItem?: (id: string) => T | null
   queryKey: string
   refetchInterval?: number
   staleTime?: number
@@ -33,21 +34,26 @@ export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
   })
 }
 
-export function useGenericItem<T>(endpoint: string, id?: string) {
+export function useGenericItem<T>(endpoint: string, id?: string, getDemoItem?: (id: string) => T | null) {
   const { currentOrgId, userRole } = useAuth()
   
   return useQuery({
     queryKey: [endpoint, id, { orgId: currentOrgId }],
     queryFn: () => {
-      // Demo users should not make API calls for individual items either
+      // Demo users get demo data for individual items
       if (userRole === 'demo_viewer') {
-        // For demo users, we'll need to handle individual items differently
-        // This ensures no API calls leak demo user info
-        throw new Error('Demo users should use demo data handlers')
+        if (getDemoItem && id) {
+          const demoItem = getDemoItem(id)
+          if (demoItem) {
+            return demoItem
+          }
+        }
+        // Return null if no demo item found rather than throwing error
+        return null
       }
       return apiRequest(`${endpoint}/${id}?orgId=${currentOrgId}`)
     },
-    enabled: !!id && !!currentOrgId && userRole !== 'demo_viewer',
+    enabled: !!id && (userRole === 'demo_viewer' || !!currentOrgId),
   })
 }
 

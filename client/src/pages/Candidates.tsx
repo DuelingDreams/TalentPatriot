@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { DemoCandidates } from '@/components/demo/DemoCandidates'
@@ -28,12 +28,35 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { formatDistanceToNow } from 'date-fns'
 import { Link, useLocation } from 'wouter'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Candidates() {
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('all')
+  const { toast } = useToast()
+
+  // Handle onboarding actions for demo users
+  useEffect(() => {
+    if (userRole === 'demo_viewer') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const action = urlParams.get('action')
+      const isOnboarding = urlParams.get('onboarding') === 'true'
+      
+      if (action === 'import-guided' && isOnboarding) {
+        toast({
+          title: "Candidate Import (Demo)",
+          description: "Demo candidates are already loaded! Explore their profiles and see how candidate management works.",
+        })
+        // Clear parameters
+        const url = new URL(window.location.href)
+        url.searchParams.delete('action')
+        url.searchParams.delete('onboarding')
+        window.history.replaceState({}, document.title, url.pathname)
+      }
+    }
+  }, [userRole, toast])
   
   // Show demo candidates for demo viewers
   if (userRole === 'demo_viewer') {

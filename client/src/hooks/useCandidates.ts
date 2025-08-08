@@ -3,10 +3,15 @@ import { demoCandidates } from '@/lib/demo-data-consolidated'
 import type { Candidate, InsertCandidate } from '@/../../shared/schema'
 
 export function useCandidates(options: { refetchInterval?: number } = {}) {
+  const getDemoCandidate = (candidateId: string) => {
+    return demoCandidates.find(candidate => candidate.id === candidateId) || null
+  }
+
   const result = useGenericList<Candidate>({
     endpoint: '/api/candidates',
     queryKey: '/api/candidates',
     getDemoData: () => demoCandidates,
+    getDemoItem: getDemoCandidate,
     refetchInterval: options.refetchInterval,
     staleTime: 3 * 60 * 1000, // 3 minutes for candidates
   })
@@ -15,7 +20,11 @@ export function useCandidates(options: { refetchInterval?: number } = {}) {
 }
 
 export function useCandidate(id?: string) {
-  return useGenericItem<Candidate>('/api/candidates', id)
+  const getDemoCandidate = (candidateId: string) => {
+    return demoCandidates.find(candidate => candidate.id === candidateId) || null
+  }
+  
+  return useGenericItem<Candidate>('/api/candidates', id, getDemoCandidate)
 }
 
 export function useCreateCandidate() {

@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLocation } from 'wouter'
+import { useToast } from '@/hooks/use-toast'
 
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
@@ -37,6 +38,33 @@ import { Button } from '@/components/ui/button'
 export default function Dashboard() {
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
+  const { toast } = useToast()
+
+  // Handle URL actions (like load-demo)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const action = urlParams.get('action')
+    
+    if (action === 'load-demo' && userRole === 'demo_viewer') {
+      toast({
+        title: "Demo Data Loaded!",
+        description: "Your dashboard now shows sample data to explore TalentPatriot's features.",
+      })
+      // Clear the action parameter from URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('action')
+      window.history.replaceState({}, document.title, url.pathname)
+    } else if (action === 'invite-guided' && userRole === 'demo_viewer') {
+      toast({
+        title: "Team Invitation (Demo)",
+        description: "In the full version, you can invite team members to collaborate on hiring.",
+      })
+      // Clear the action parameter from URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('action')
+      window.history.replaceState({}, document.title, url.pathname)
+    }
+  }, [userRole, toast])
 
   // Show demo dashboard for demo viewers - check this FIRST
   if (userRole === 'demo_viewer') {

@@ -21,6 +21,37 @@ export default function Jobs() {
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
   const publishJobMutation = usePublishJob()
+
+  // Handle onboarding actions for demo users
+  useEffect(() => {
+    if (userRole === 'demo_viewer') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const action = urlParams.get('action')
+      const isOnboarding = urlParams.get('onboarding') === 'true'
+      
+      if (action === 'create-guided' && isOnboarding) {
+        toast({
+          title: "Job Creation (Demo)",
+          description: "Explore job creation features - all demo jobs are already set up for you!",
+        })
+        // Clear parameters
+        const url = new URL(window.location.href)
+        url.searchParams.delete('action')
+        url.searchParams.delete('onboarding')
+        window.history.replaceState({}, document.title, url.pathname)
+      } else if (action === 'templates' && isOnboarding) {
+        toast({
+          title: "Job Templates (Demo)",
+          description: "Check out the pre-filled demo jobs to see different template styles!",
+        })
+        // Clear parameters
+        const url = new URL(window.location.href)
+        url.searchParams.delete('action')
+        url.searchParams.delete('onboarding')
+        window.history.replaceState({}, document.title, url.pathname)
+      }
+    }
+  }, [userRole, toast])
   
   // Show demo jobs for demo viewers - check this FIRST
   if (userRole === 'demo_viewer') {

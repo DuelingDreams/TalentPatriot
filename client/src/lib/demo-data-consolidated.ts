@@ -90,7 +90,7 @@ export const demoCandidates = [
     phone: '+1-555-0789',
     resumeUrl: null,
     status: 'demo' as const,
-    orgId: DEMO_ORG_FIXED,
+    orgId: DEMO_ORG_ID,
     createdAt: new Date('2024-07-05'),
     updatedAt: new Date('2024-07-05'),
     createdBy: 'demo-user'
@@ -102,7 +102,7 @@ export const demoCandidates = [
     phone: '+1-555-0321',
     resumeUrl: null,
     status: 'demo' as const,
-    orgId: DEMO_ORG_FIXED,
+    orgId: DEMO_ORG_ID,
     createdAt: new Date('2024-07-12'),
     updatedAt: new Date('2024-07-12'),
     createdBy: 'demo-user'
