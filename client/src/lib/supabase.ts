@@ -72,9 +72,9 @@ if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey) {
         data: data?.length, 
         error: error?.message || 'none' 
       })
-    })
-    .catch((err: any) => {
-      console.info('[SUPABASE] Connection test failed →', err.message)
+      if (error) {
+        console.info('[SUPABASE] Connection test failed →', error.message)
+      }
     })
 }
 

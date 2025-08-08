@@ -67,7 +67,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-white/20 backdrop-blur rounded-lg flex items-center justify-center p-1">
                 <img 
-                  src="/tp-logo.png" 
+                  src="/talentpatriot-logo.png" 
                   alt="TalentPatriot Logo" 
                   className="w-8 h-8 object-contain filter brightness-0 invert"
                 />

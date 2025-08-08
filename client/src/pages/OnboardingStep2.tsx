@@ -161,7 +161,7 @@ export default function OnboardingStep2() {
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
             <img 
-              src="/tp-logo.png" 
+              src="/talentpatriot-logo.png" 
               alt="TalentPatriot Logo" 
               className="w-16 h-16 object-contain"
             />

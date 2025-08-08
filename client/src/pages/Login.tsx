@@ -158,8 +158,12 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#1F3A5F] rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Building2 className="w-8 h-8 text-white" />
+          <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <img 
+              src="/talentpatriot-logo.png" 
+              alt="TalentPatriot Logo" 
+              className="w-16 h-16 object-contain"
+            />
           </div>
           <h1 className="heading-1 text-[#1A1A1A]">Welcome back</h1>
           <p className="body-text mt-2">Sign in to your ATS account</p>

@@ -60,9 +60,9 @@ export default function Careers() {
               <p className="mt-2 text-gray-600">Find your next opportunity</p>
             </div>
             <img 
-              src="/api/placeholder/150/50"
+              src="/talentpatriot-logo.png"
               alt="TalentPatriot" 
-              className="h-12"
+              className="h-12 object-contain"
             />
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function Careers() {
           </div>
         ) : filteredJobs.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredJobs.map((job) => (
+            {filteredJobs.map((job: PublicJob) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => setLocation(`/careers/${job.publicSlug}/apply`)}>
                 <CardHeader>

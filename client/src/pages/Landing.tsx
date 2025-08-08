@@ -33,7 +33,7 @@ export default function Landing() {
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center">
                 <img 
-                  src="/tp-logo.png" 
+                  src="/talentpatriot-logo.png" 
                   alt="TalentPatriot Logo" 
                   className="w-8 h-8 md:w-10 md:h-10 object-contain"
                 />
@@ -250,7 +250,7 @@ export default function Landing() {
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
                 <img 
-                  src="/tp-logo.png" 
+                  src="/talentpatriot-logo.png" 
                   alt="TalentPatriot Logo" 
                   className="w-8 h-8 object-contain"
                 />

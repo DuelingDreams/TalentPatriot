@@ -176,7 +176,7 @@ export default function OnboardingChecklist() {
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 flex items-center justify-center">
                   <img 
-                    src="/tp-logo.png" 
+                    src="/talentpatriot-logo.png" 
                     alt="TalentPatriot Logo" 
                     className="w-10 h-10 object-contain"
                   />
