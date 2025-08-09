@@ -952,12 +952,12 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       // Transform data to match frontend interface
       const pipelineData = {
-        columns: columns?.map(col => ({
+        columns: columns?.map((col: any) => ({
           id: col.id,
           title: col.title,
           position: col.position.toString()
         })) || [],
-        applications: applications?.map(app => ({
+        applications: applications?.map((app: any) => ({
           id: app.id,
           jobId: app.job_id,
           candidateId: app.candidate_id,
@@ -1019,7 +1019,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Transform data to match frontend interface
-      const pipelineColumns = columns?.map(col => ({
+      const pipelineColumns = columns?.map((col: any) => ({
         id: col.id,
         title: col.title,
         position: col.position.toString()
@@ -1218,11 +1218,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const jobCandidateId = req.query.jobCandidateId as string;
       
       if (jobCandidateId) {
-        const notes = await storage.getCandidateNotesByJobCandidate(jobCandidateId);
+        const notes = await storage.getCandidateNotes(jobCandidateId);
         res.json(notes);
       } else if (candidateId) {
         // Fallback for candidate-based lookup
-        const notes = await storage.getCandidateNotesByJobCandidate(candidateId);
+        const notes = await storage.getCandidateNotes(candidateId);
         res.json(notes);
       } else {
         res.status(400).json({ error: "candidateId or jobCandidateId is required" });
@@ -1437,7 +1437,7 @@ Expires: 2025-12-31T23:59:59.000Z
       let candidate = await storage.getCandidateByEmail(validatedData.email, job.orgId);
       if (!candidate) {
         candidate = await storage.createCandidate({
-          name: validatedData.name,
+          name: `${validatedData.firstName} ${validatedData.lastName}`,
           email: validatedData.email,
           phone: validatedData.phone || null,
           resumeUrl: validatedData.resumeUrl || null,
