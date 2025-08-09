@@ -195,7 +195,7 @@ export async function createJob(data: CreateJobData, userContext: UserContext) {
       job_type: data.jobType || 'full-time',
       remote_option: data.remoteOption || 'onsite',
       salary_range: data.salaryRange?.trim() || null,
-      experience_level: data.experienceLevel || 'mid',
+
       client_id: data.clientId || null,
       org_id: data.orgId,
       status: 'draft', // Always create as draft

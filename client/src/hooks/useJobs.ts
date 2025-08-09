@@ -4,6 +4,7 @@ import { demoJobs } from '@/lib/demo-data-consolidated'
 import { apiRequest } from '@/lib/queryClient'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
+import { useAuth } from '@/contexts/AuthContext'
 import type { Job, InsertJob } from '@/../../shared/schema'
 
 export function useJobs(options: { refetchInterval?: number } = {}) {
@@ -47,11 +48,40 @@ export function useJobsByClient(clientId?: string) {
 
 export function useCreateJob() {
   const { isDemoUser } = useDemoFlag()
+  const { currentOrgId } = useAuth()
   
   if (isDemoUser) {
     return useGenericCreate<Job, InsertJob>('/api/jobs', '/api/jobs', {
-      mutationFn: (jobData: InsertJob) => dataAdapter.createJob(jobData, 'demo_viewer')
+      mutationFn: (jobData: InsertJob) => demoAdapter.createJob(jobData)
     })
   }
-  return useGenericCreate<Job, InsertJob>('/api/jobs', '/api/jobs')
+  
+  return useGenericCreate<Job, InsertJob>('/api/jobs', '/api/jobs', {
+    mutationFn: async (jobData: Omit<InsertJob, 'orgId'>) => {
+      if (!currentOrgId) {
+        throw new Error('Organization ID is required')
+      }
+      
+      const response = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...jobData,
+          orgId: currentOrgId,
+        }),
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        if (error.details && Array.isArray(error.details)) {
+          throw new Error(`${error.error}: ${error.details.join(', ')}`)
+        }
+        throw new Error(error.error || 'Failed to create job')
+      }
+      
+      return response.json() as Promise<Job>
+    }
+  })
 }
