@@ -673,7 +673,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   const jobApplicationSchema = z.object({
-    name: z.string().min(1, "Name is required").max(100, "Name too long"),
+    firstName: z.string().min(1, "First name is required").max(50, "First name too long"),
+    lastName: z.string().min(1, "Last name is required").max(50, "Last name too long"),
     email: z.string().email("Valid email is required").max(255, "Email too long"),
     phone: z.string().optional().refine(val => !val || val.length <= 20, "Phone number too long"),
     resumeUrl: z.string().url("Invalid resume URL").optional(),
@@ -681,6 +682,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   app.post("/api/jobs/:jobId/apply", publicJobLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
     try {
       // Validate path parameters
       const paramsParse = jobApplicationParamsSchema.safeParse({ jobId: req.params.jobId });
@@ -701,38 +703,33 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       const { jobId } = paramsParse.data;
-      const validatedData = bodyParse.data;
+      const applicantData = bodyParse.data;
 
-      // Get the job first to get its organization ID
-      const job = await storage.getJob(jobId);
-      if (!job) {
-        return res.status(404).json({ error: "Job not found" });
-      }
-      
-      if (job.status !== 'open') {
-        return res.status(400).json({ error: "Job is not accepting applications" });
-      }
-      
-      console.log('Job object:', JSON.stringify(job, null, 2));
-      
-      // Get first pipeline column for the org
-      const jobOrgId = job.orgId;
-      if (!jobOrgId) {
-        return res.status(400).json({ error: "Job organization ID not found" });
-      }
-      
-      const firstColumn = await jobService.getFirstPipelineColumn(jobOrgId);
-      
-      const applicationResult = await jobService.applyToJob({
+      // Use jobService applyToJob function with service role key for RLS bypass
+      const result = await jobService.applyToJob({
         jobId,
-        candidateEmail: validatedData.email,
-        candidateName: validatedData.name,
-        candidatePhone: validatedData.phone,
-        resumeUrl: validatedData.resumeUrl,
-        orgId: jobOrgId
+        applicant: {
+          firstName: applicantData.firstName,
+          lastName: applicantData.lastName,
+          email: applicantData.email,
+          phone: applicantData.phone,
+          coverLetter: applicantData.coverLetter,
+          resumeUrl: applicantData.resumeUrl
+        }
       });
 
-      res.status(201).json(applicationResult);
+      console.info('[API] POST /api/jobs/:jobId/apply →', { 
+        success: true, 
+        candidateId: result.candidateId,
+        applicationId: result.applicationId
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Application submitted successfully",
+        candidateId: result.candidateId,
+        applicationId: result.applicationId
+      });
     } catch (error) {
       console.error('Job application error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

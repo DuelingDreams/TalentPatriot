@@ -21,9 +21,11 @@ interface PublicJob {
 }
 
 interface ApplicationFormData {
-  name: string
+  firstName: string
+  lastName: string
   email: string
   phone: string
+  coverLetter: string
   resume: File | null
 }
 
@@ -35,9 +37,11 @@ export default function JobApplicationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [formData, setFormData] = useState<ApplicationFormData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
+    coverLetter: '',
     resume: null
   })
   const { toast } = useToast()
@@ -91,19 +95,10 @@ export default function JobApplicationForm() {
     if (!job) return
 
     // Validation
-    if (!formData.name || !formData.email) {
+    if (!formData.firstName || !formData.lastName || !formData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your name and email address.",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (!formData.resume) {
-      toast({
-        title: "Resume Required", 
-        description: "Please upload your resume.",
+        description: "Please fill in your first name, last name, and email address.",
         variant: "destructive"
       })
       return
@@ -111,23 +106,41 @@ export default function JobApplicationForm() {
 
     setIsSubmitting(true)
     try {
-      // Create FormData for file upload
-      const submitData = new FormData()
-      submitData.append('name', formData.name)
-      submitData.append('email', formData.email)
-      submitData.append('phone', formData.phone)
-      submitData.append('resume', formData.resume)
+      // Prepare application data (JSON format, not FormData for now)
+      const applicationData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        coverLetter: formData.coverLetter || undefined,
+        // TODO: Handle resume upload later
+      }
 
       const response = await fetch(`/api/jobs/${job.id}/apply`, {
         method: 'POST',
-        body: submitData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(applicationData)
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to submit application')
+        const errorData = await response.json()
+        if (response.status === 409) {
+          toast({
+            title: "Already Applied",
+            description: "You have already applied to this job position.",
+            variant: "destructive"
+          })
+        } else {
+          throw new Error(errorData.error || 'Failed to submit application')
+        }
+        return
       }
 
+      const result = await response.json()
+      console.log('Application submitted:', result)
+      
       setSubmitted(true)
       toast({
         title: "Application Submitted!",
@@ -259,16 +272,29 @@ export default function JobApplicationForm() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  required
-                  placeholder="Your full name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    required
+                    placeholder="John"
+                    value={formData.firstName}
+                    onChange={(e) => handleInputChange('firstName', e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    required
+                    placeholder="Doe"
+                    value={formData.lastName}
+                    onChange={(e) => handleInputChange('lastName', e.target.value)}
+                  />
+                </div>
               </div>
 
               <div>
@@ -296,12 +322,28 @@ export default function JobApplicationForm() {
               </div>
 
               <div>
-                <Label htmlFor="resume">Resume Upload *</Label>
+                <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                <textarea
+                  id="coverLetter"
+                  name="coverLetter"
+                  rows={4}
+                  className="w-full p-3 border border-gray-300 rounded-md resize-vertical"
+                  placeholder="Tell us why you're interested in this position and what makes you a great fit..."
+                  value={formData.coverLetter}
+                  onChange={(e) => handleInputChange('coverLetter', e.target.value)}
+                  maxLength={2000}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional. Maximum 2000 characters.
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="resume">Resume Upload (Optional)</Label>
                 <Input
                   id="resume"
                   name="resume"
                   type="file"
-                  required
                   accept=".pdf,.doc,.docx"
                   onChange={(e) => {
                     const file = e.target.files?.[0] || null
@@ -310,7 +352,7 @@ export default function JobApplicationForm() {
                   className="cursor-pointer"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Accepted formats: PDF, DOC, DOCX (max 10MB)
+                  Optional. Accepted formats: PDF, DOC, DOCX (max 10MB)
                 </p>
               </div>
 

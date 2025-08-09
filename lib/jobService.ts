@@ -53,10 +53,22 @@ export interface CreateCandidateData {
 export interface JobApplicationData {
   jobId: string;
   candidateEmail: string;
-  candidateName: string;
-  candidatePhone?: string;
+}
+
+// Enhanced interfaces for job application system
+export interface ApplicantData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  coverLetter?: string;
   resumeUrl?: string;
-  orgId: string;
+}
+
+export interface ApplicationResult {
+  candidateId: string;
+  applicationId: string; // This will be the job_candidate record ID
+  success: boolean;
 }
 
 // Generate unique slug for job
@@ -253,6 +265,191 @@ export async function publishJob(jobId: string, userContext: UserContext) {
 
 
 
+// New comprehensive job application function
+export async function applyToJob(
+  { jobId, applicant }: { jobId: string; applicant: ApplicantData }, 
+  requestContext?: { orgId?: string }
+): Promise<ApplicationResult> {
+  console.log('[JobService] Starting job application process', { jobId, email: applicant.email });
+  
+  // Start a transaction using RPC function or manual transaction handling
+  const { data: jobData, error: jobError } = await supabase
+    .from('jobs')
+    .select(`
+      id,
+      org_id,
+      title,
+      status,
+      published_at,
+      organization:organizations(id, name)
+    `)
+    .eq('id', jobId)
+    .eq('status', 'open')
+    .not('published_at', 'is', null)
+    .single();
+
+  if (jobError || !jobData) {
+    console.error('[JobService] Job validation failed:', jobError);
+    throw new Error('Job not found or not available for applications');
+  }
+
+  const orgId = jobData.org_id;
+  console.log('[JobService] Job validated for org:', orgId);
+
+  try {
+    // Step 1: Check if candidate already exists for this organization
+    let candidateId: string;
+    const fullName = `${applicant.firstName} ${applicant.lastName}`.trim();
+
+    const { data: existingCandidate, error: candidateCheckError } = await supabase
+      .from('candidates')
+      .select('id, name, email')
+      .eq('org_id', orgId)
+      .eq('email', applicant.email.toLowerCase())
+      .single();
+
+    if (candidateCheckError && candidateCheckError.code !== 'PGRST116') {
+      console.error('[JobService] Error checking existing candidate:', candidateCheckError);
+      throw new Error('Database error during candidate lookup');
+    }
+
+    if (existingCandidate) {
+      // Candidate exists, reuse
+      candidateId = existingCandidate.id;
+      console.log('[JobService] Reusing existing candidate:', candidateId);
+      
+      // Optionally update candidate info if provided
+      if (applicant.resumeUrl || applicant.phone) {
+        const updates: any = { updated_at: new Date().toISOString() };
+        if (applicant.resumeUrl) updates.resume_url = applicant.resumeUrl;
+        if (applicant.phone) updates.phone = applicant.phone;
+        
+        await supabase
+          .from('candidates')
+          .update(updates)
+          .eq('id', candidateId);
+      }
+    } else {
+      // Create new candidate
+      const { data: newCandidate, error: createCandidateError } = await supabase
+        .from('candidates')
+        .insert({
+          org_id: orgId,
+          name: fullName,
+          email: applicant.email.toLowerCase(),
+          phone: applicant.phone,
+          resume_url: applicant.resumeUrl,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+
+      if (createCandidateError) {
+        console.error('[JobService] Error creating candidate:', createCandidateError);
+        throw new Error('Failed to create candidate profile');
+      }
+
+      candidateId = newCandidate.id;
+      console.log('[JobService] Created new candidate:', candidateId);
+    }
+
+    // Step 2: Check if application already exists
+    const { data: existingApplication, error: applicationCheckError } = await supabase
+      .from('job_candidate')
+      .select('id')
+      .eq('job_id', jobId)
+      .eq('candidate_id', candidateId)
+      .single();
+
+    if (applicationCheckError && applicationCheckError.code !== 'PGRST116') {
+      console.error('[JobService] Error checking existing application:', applicationCheckError);
+      throw new Error('Database error during application lookup');
+    }
+
+    if (existingApplication) {
+      console.log('[JobService] Application already exists:', existingApplication.id);
+      return {
+        candidateId,
+        applicationId: existingApplication.id,
+        success: true
+      };
+    }
+
+    // Step 3: Get first pipeline column for this organization
+    const { data: firstColumn, error: columnError } = await supabase
+      .from('pipeline_columns')
+      .select('id, title')
+      .eq('org_id', orgId)
+      .order('position', { ascending: true })
+      .limit(1)
+      .single();
+
+    let firstColumnData = null;
+    if (columnError) {
+      console.error('[JobService] Error getting first pipeline column:', columnError);
+      // Create default pipeline if it doesn't exist
+      const { data: defaultColumn, error: createColumnError } = await supabase
+        .from('pipeline_columns')
+        .insert({
+          org_id: orgId,
+          title: 'Applied',
+          position: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('id, title')
+        .single();
+
+      if (createColumnError) {
+        console.error('[JobService] Error creating default pipeline column:', createColumnError);
+        throw new Error('Failed to initialize pipeline');
+      }
+
+      firstColumnData = { id: defaultColumn.id, title: defaultColumn.title };
+    }
+
+    // Step 4: Create job_candidate application record
+    const { data: application, error: applicationError } = await supabase
+      .from('job_candidate')
+      .insert({
+        org_id: orgId,
+        job_id: jobId,
+        candidate_id: candidateId,
+        pipeline_column_id: firstColumnData?.id || firstColumn?.id,
+        stage: 'applied',
+        notes: applicant.coverLetter || null,
+        status: 'active',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select('id')
+      .single();
+
+    if (applicationError) {
+      console.error('[JobService] Error creating application:', applicationError);
+      throw new Error('Failed to submit job application');
+    }
+
+    console.log('[JobService] Job application completed successfully', {
+      candidateId,
+      applicationId: application.id,
+      pipelineColumn: firstColumnData?.title || firstColumn?.title
+    });
+
+    return {
+      candidateId,
+      applicationId: application.id,
+      success: true
+    };
+
+  } catch (error) {
+    console.error('[JobService] Job application transaction failed:', error);
+    throw error;
+  }
+}
+
 export async function createCandidate(data: CreateCandidateData) {
   const { data: result, error } = await supabase
     .from('candidates')
@@ -440,55 +637,7 @@ export async function findOrCreateCandidate(data: CreateCandidateData) {
   return await createCandidate(data);
 }
 
-// Complete job application flow
-export async function applyToJob(data: JobApplicationData) {
-  try {
-    // 1. Find or create candidate
-    const candidate = await findOrCreateCandidate({
-      name: data.candidateName,
-      email: data.candidateEmail,
-      phone: data.candidatePhone,
-      orgId: data.orgId,
-      resumeUrl: data.resumeUrl
-    });
-
-    // 2. Check if already applied to this job
-    const { data: existingJobCandidate, error: checkError } = await supabase
-      .from('job_candidate')
-      .select('*')
-      .eq('job_id', data.jobId)
-      .eq('candidate_id', candidate.id)
-      .eq('status', 'active')
-      .single();
-      
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Job candidate check error:', checkError);
-      throw new Error(`Failed to check existing application: ${checkError.message}`);
-    }
-    
-    if (existingJobCandidate) {
-      throw new Error('You have already applied to this job');
-    }
-
-    // 3. Create job candidate relationship
-    const jobCandidate = await createJobCandidate({
-      jobId: data.jobId,
-      candidateId: candidate.id,
-      orgId: data.orgId,
-      stage: 'applied',
-      notes: 'Applied via public careers page'
-    });
-
-    return {
-      candidate,
-      jobCandidate,
-      message: 'Application submitted successfully'
-    };
-  } catch (error) {
-    console.error('Job application error:', error);
-    throw error;
-  }
-}
+// This duplicate function is removed - using the enhanced version above
 
 // Get the first pipeline column for new applications
 export async function getFirstPipelineColumn(orgId: string) {
