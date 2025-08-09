@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
 import { useAuth } from '@/contexts/AuthContext'
 import { useDemoFlag } from '@/lib/demoFlag'
-import { dataAdapter } from '@/lib/dataAdapter'
+import { demoAdapter } from '@/lib/dataAdapter'
 import type { JobCandidate, InsertJobCandidate } from '@/../../shared/schema'
 
 export function useJobCandidates(options: { refetchInterval?: number } = {}) {
@@ -16,7 +16,7 @@ export function useJobCandidates(options: { refetchInterval?: number } = {}) {
     gcTime: 10 * 60 * 1000,
     queryFn: () => {
       if (isDemoUser) {
-        return dataAdapter.getJobCandidates('demo_viewer')
+        return [] // For now, return empty as we'll use per-job candidates
       }
       if (!currentOrgId) {
         return []

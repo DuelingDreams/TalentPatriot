@@ -3,7 +3,7 @@ import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCr
 import { demoJobs } from '@/lib/demo-data-consolidated'
 import { apiRequest } from '@/lib/queryClient'
 import { useDemoFlag } from '@/lib/demoFlag'
-import { dataAdapter } from '@/lib/dataAdapter'
+import { demoAdapter } from '@/lib/dataAdapter'
 import type { Job, InsertJob } from '@/../../shared/schema'
 
 export function useJobs(options: { refetchInterval?: number } = {}) {
@@ -11,7 +11,7 @@ export function useJobs(options: { refetchInterval?: number } = {}) {
   
   return useQuery({
     queryKey: ['/api/jobs'],
-    queryFn: () => dataAdapter.getJobs(isDemoUser ? 'demo_viewer' : undefined),
+    queryFn: () => isDemoUser ? demoAdapter.getJobs() : apiRequest('/api/jobs'),
     refetchInterval: isDemoUser ? false : (options.refetchInterval || 30000),
     staleTime: isDemoUser ? 60000 : (1 * 60 * 1000),
     refetchOnWindowFocus: !isDemoUser,
@@ -25,7 +25,7 @@ export function useJob(id?: string) {
     queryKey: ['/api/jobs', id],
     queryFn: async () => {
       if (isDemoUser) {
-        const jobs = await dataAdapter.getJobs('demo_viewer')
+        const jobs = await demoAdapter.getJobs()
         return jobs.find(job => job.id === id) || null
       }
       return apiRequest(`/api/jobs/${id}`)
