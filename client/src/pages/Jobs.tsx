@@ -159,13 +159,14 @@ export default function Jobs() {
 
   const handlePublishJob = async (jobId: string) => {
     try {
-      const publishedJob = await publishJobMutation.mutateAsync(jobId)
+      const result = await publishJobMutation.mutateAsync(jobId)
 
       toast({
         title: "Job Published!",
-        description: `Your job is now live at /careers/${publishedJob.publicSlug}`,
+        description: `Your job is now live at ${result.publicUrl}`,
       })
       // Jobs list will refresh automatically via React Query
+      return result
     } catch (error) {
       console.error('Error publishing job:', error)
       toast({
@@ -173,6 +174,7 @@ export default function Jobs() {
         description: "Failed to publish job. Please try again.",
         variant: "destructive",
       })
+      throw error
     }
   }
 

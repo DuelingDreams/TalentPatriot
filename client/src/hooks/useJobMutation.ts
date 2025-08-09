@@ -46,13 +46,14 @@ export function useCreateJob() {
       // Snapshot the previous value
       const previousJobs = queryClient.getQueryData(['/api/jobs'])
       
-      // Optimistically update to the new value
+      // Optimistically update to the new value with placeholder slug
       queryClient.setQueryData(['/api/jobs'], (old: any) => {
         const optimisticJob = {
           id: `temp-${Date.now()}`,
           ...newJob,
           orgId: currentOrgId,
           status: 'draft',
+          publicSlug: `temp-slug-${Date.now()}`, // Placeholder slug
           createdAt: new Date().toISOString(),
         }
         return old ? [...old, optimisticJob] : [optimisticJob]
@@ -67,9 +68,11 @@ export function useCreateJob() {
     },
     onSuccess: (data) => {
       toast.success('Job created successfully!')
+      // Immediately refetch to get server-generated slug
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] })
     },
     onSettled: () => {
+      // Always refetch to sync with server state
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] })
     },
   })
@@ -139,7 +142,15 @@ export function usePublishJob() {
         throw new Error(error.error || 'Failed to publish job')
       }
 
-      return response.json()
+      return response.json() as Promise<{
+        publicUrl: string;
+        job: {
+          id: string;
+          slug: string;
+          status: string;
+          published_at: string;
+        };
+      }>
     },
     onMutate: async (jobId) => {
       // Cancel any outgoing refetches
@@ -152,7 +163,7 @@ export function usePublishJob() {
       queryClient.setQueryData(['/api/jobs'], (old: any) => {
         if (!old) return old
         return old.map((job: any) => 
-          job.id === jobId ? { ...job, status: 'published' } : job
+          job.id === jobId ? { ...job, status: 'open' } : job
         )
       })
       
@@ -163,10 +174,12 @@ export function usePublishJob() {
       queryClient.setQueryData(['/api/jobs'], context?.previousJobs)
       toast.error(err.message || 'Failed to publish job')
     },
-    onSuccess: () => {
-      toast.success('Job published successfully!')
+    onSuccess: (result) => {
+      toast.success(`Job published successfully! View at: ${result.publicUrl}`)
+      // Invalidate queries to sync state
       queryClient.invalidateQueries({ queryKey: ['/api/jobs'] })
       queryClient.invalidateQueries({ queryKey: ['/api/public/jobs'] })
+      return result
     },
   })
 }

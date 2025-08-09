@@ -16,18 +16,18 @@ import { useClients } from '@/hooks/useClients'
 import { Plus, Loader2, Globe, Building2, Users, Briefcase, HelpCircle } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
-// Form validation schema - always creates drafts
+// Form validation schema - always creates drafts, slug is generated server-side
 const jobSchema = z.object({
   title: z.string().min(1, 'Job title is required'),
-  description: z.string().min(1, 'Job description is required'),
-  client_id: z.string().optional(),
-  location: z.string().min(1, 'Job location is required'),
-  remote_option: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
-  salary_range: z.string().optional(),
-  experience_level: z.enum(['entry', 'mid', 'senior', 'executive']).default('mid'),
-  job_type: z.enum(['full-time', 'part-time', 'contract', 'internship']).default('full-time'),
-  posting_targets: z.array(z.string()).default([]),
-  auto_post: z.boolean().default(false)
+  description: z.string().optional(), // Optional for draft creation
+  clientId: z.string().optional(),
+  location: z.string().optional(), // Optional for draft creation  
+  remoteOption: z.enum(['onsite', 'remote', 'hybrid']).default('onsite'),
+  salaryRange: z.string().optional(),
+  experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).default('mid'),
+  jobType: z.enum(['full-time', 'part-time', 'contract', 'internship']).default('full-time'),
+  postingTargets: z.array(z.string()).default([]),
+  autoPost: z.boolean().default(false)
 })
 
 type JobFormData = z.infer<typeof jobSchema>
@@ -96,14 +96,14 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
     defaultValues: {
       title: '',
       description: '',
-      client_id: undefined,
+      clientId: undefined,
       location: '',
-      remote_option: 'onsite',
-      salary_range: '',
-      experience_level: 'mid',
-      job_type: 'full-time',
-      posting_targets: [],
-      auto_post: false
+      remoteOption: 'onsite',
+      salaryRange: '',
+      experienceLevel: 'mid',
+      jobType: 'full-time',
+      postingTargets: [],
+      autoPost: false
     }
   })
 
@@ -127,26 +127,24 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
     }
     
     try {
-      // Map form data to job creation payload
+      // Map form data to job creation payload - slug is generated server-side
       const jobData = {
         title: data.title,
         description: data.description,
-        clientId: data.client_id === "__no_client" ? undefined : data.client_id,
-        orgId: currentOrgId,
-        status: 'draft' as const, // Always create as draft
+        clientId: data.clientId === "__no_client" ? undefined : data.clientId,
         location: data.location,
-        remoteOption: data.remote_option,
-        salaryRange: data.salary_range || null,
-        experienceLevel: data.experience_level,
-        jobType: data.job_type as 'full-time' | 'part-time' | 'contract' | 'internship',
-        postingTargets: data.posting_targets,
-        autoPost: data.auto_post
+        remoteOption: data.remoteOption,
+        salaryRange: data.salaryRange || undefined,
+        experienceLevel: data.experienceLevel,
+        jobType: data.jobType,
+        postingTargets: data.postingTargets,
+        autoPost: data.autoPost
       }
       
       await createJobMutation.mutateAsync(jobData)
       
       // Show success message for draft creation
-      const boardCount = data.posting_targets.length
+      const boardCount = data.postingTargets.length
       const additionalInfo = boardCount > 0 
         ? ` Distribution settings saved for ${boardCount} job board${boardCount > 1 ? 's' : ''}.`
         : ""
@@ -232,7 +230,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
 
             <FormField
               control={form.control}
-              name="client_id"
+              name="clientId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Client (Optional)</FormLabel>
@@ -295,7 +293,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
 
               <FormField
                 control={form.control}
-                name="remote_option"
+                name="remoteOption"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
@@ -330,7 +328,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="experience_level"
+                name="experienceLevel"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-2">
@@ -364,7 +362,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
 
               <FormField
                 control={form.control}
-                name="job_type"
+                name="jobType"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Job Type</FormLabel>
@@ -389,7 +387,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
 
             <FormField
               control={form.control}
-              name="salary_range"
+              name="salaryRange"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Salary Range (Optional)</FormLabel>
@@ -415,7 +413,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                 </div>
                 <FormField
                   control={form.control}
-                  name="auto_post"
+                  name="autoPost"
                   render={({ field }) => (
                     <FormItem className="flex items-center space-x-2">
                       <FormControl>
@@ -432,7 +430,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
 
               <FormField
                 control={form.control}
-                name="posting_targets"
+                name="postingTargets"
                 render={() => (
                   <FormItem>
                     <div className="grid grid-cols-1 gap-3">
@@ -442,7 +440,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
                           <FormField
                             key={board.id}
                             control={form.control}
-                            name="posting_targets"
+                            name="postingTargets"
                             render={({ field }) => {
                               return (
                                 <FormItem

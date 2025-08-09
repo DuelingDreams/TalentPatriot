@@ -558,15 +558,15 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   // REWRITTEN JOB ROUTES - Clean implementation with Zod validation using jobService
+  const { createJob: createJobService, publishJob: publishJobService } = await import('../lib/jobService.js');
   
   const createJobSchema = z.object({
     title: z.string().min(1, "Job title is required"),
-    description: z.string().min(1, "Job description is required"),
+    description: z.string().optional(),
     clientId: z.string().optional(),
     orgId: z.string().min(1, "Organization ID is required"),
     location: z.string().optional(),
     jobType: z.enum(['full-time', 'part-time', 'contract', 'internship']).optional(),
-    status: z.enum(['draft', 'open', 'closed', 'filled']).optional(),
     remoteOption: z.enum(['onsite', 'remote', 'hybrid']).optional(),
     salaryRange: z.string().optional(),
     experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
@@ -578,7 +578,14 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     console.info('[API]', req.method, req.url);
     try {
       const validatedData = createJobSchema.parse(req.body);
-      const job = await jobService.createJob(validatedData);
+      
+      // Extract user context from request (you'll need to set this up with auth middleware)
+      const userContext = { 
+        userId: req.headers['x-user-id'] as string || 'system',
+        orgId: validatedData.orgId
+      };
+      
+      const job = await createJobService(validatedData, userContext);
       console.info('[API] POST /api/jobs →', { success: true, jobId: job.id });
       res.status(201).json(job);
     } catch (error) {
@@ -611,9 +618,16 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       const { jobId } = paramsParse.data;
-      const publishedJob = await jobService.publishJob(jobId);
-      console.info('[API] POST /api/jobs/:jobId/publish →', { success: true, jobId, status: publishedJob.status });
-      res.json(publishedJob);
+      
+      // Extract user context from request (you'll need to set this up with auth middleware) 
+      const userContext = { 
+        userId: req.headers['x-user-id'] as string || 'system',
+        orgId: req.headers['x-org-id'] as string || ''
+      };
+      
+      const result = await publishJobService(jobId, userContext);
+      console.info('[API] POST /api/jobs/:jobId/publish →', { success: true, jobId, status: result.job.status });
+      res.json(result);
     } catch (error) {
       console.error('Error publishing job:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

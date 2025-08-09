@@ -1,80 +1,116 @@
-# Subdomain-Based Organization Routing
+# Subdomain-Based Organization Routing System
 
 ## Overview
-TalentPatriot now supports subdomain-based organization isolation for careers pages. Each organization gets their own branded careers page accessible via their unique subdomain.
 
-## How It Works
+The TalentPatriot ATS now supports subdomain-based organization routing, providing each organization with their own branded careers page URL: `{company-slug}.talentpatriot.app/careers`
 
-### Production URLs
-- **Company A**: `https://techcorp-solutions.talentpatriot.app/careers`
-- **Company B**: `https://startup-inc.talentpatriot.app/careers`
-- **Company C**: `https://enterprise-corp.talentpatriot.app/careers`
+## System Architecture
 
-### Development URLs
-- **Company A**: `http://techcorp-solutions.localhost:5000/careers`
-- **Company B**: `http://startup-inc.localhost:5000/careers`
+### Job Slug Generation and Publishing Workflow
 
-## Features
+1. **Job Creation**: Jobs are always created as drafts with server-generated unique slugs
+2. **Job Publishing**: Publishing validates required fields and makes jobs publicly available
+3. **Public Access**: Published jobs are accessible via subdomain careers pages
 
-✅ **Automatic Organization Detection**: Subdomain automatically determines which organization's jobs to display
-✅ **Data Isolation**: Each organization only sees their own published jobs
-✅ **Professional Branding**: Company name appears in careers page header
-✅ **SEO Optimization**: Each organization gets their own indexed careers page
-✅ **Security**: No cross-organization data leakage
+### Key Components
 
-## Implementation Details
+#### Backend Services (`lib/jobService.ts`)
+- `createJob(data, userContext)`: Creates draft jobs with auto-generated unique slugs
+- `publishJob(jobId, userContext)`: Validates and publishes jobs with backend validation
+- `generateUniqueSlug(title, jobId)`: Creates URL-safe slugs from job titles
 
-### Backend Components
-- **Subdomain Middleware** (`server/middleware/subdomainResolver.ts`): Extracts organization from hostname
-- **Organization-Specific API**: `GET /api/public/jobs` now filters by organization
-- **Database Schema**: Organizations table includes unique `slug` field for subdomains
+#### API Routes (`server/routes.ts`)
+- `POST /api/jobs`: Creates draft jobs (always draft status)
+- `POST /api/jobs/:jobId/publish`: Publishes jobs with validation
+- User context validation for organization access control
 
-### Database Setup
-1. Run the SQL migration: `subdomain_organization_migration.sql`
-2. This adds slug field and auto-generates slugs for existing organizations
-3. Sets up triggers for automatic slug generation
+#### Frontend Components
+- `PostJobDialog`: Updated to remove slug field, all validation optional for drafts
+- `usePublishJob`: Hook with proper error handling and public URL display
+- `Jobs` page: Integrated publish workflow with canonical URL display
 
-### Frontend Updates
-- Careers page header dynamically shows organization name from subdomain
-- Jobs API automatically fetches organization-specific positions
-- Fallback to "TalentPatriot" when no subdomain detected
+### Database Schema
 
-## Setting Up Organization Subdomains
+Jobs table includes:
+- `public_slug`: Unique slug for public URLs (generated at creation)
+- `status`: Job status ('draft', 'open', 'closed', 'filled') 
+- `published_at`: Publication timestamp (set on publish)
+- Unique constraints and performance indexes for careers page queries
 
-### For Development
-1. Add entries to your `/etc/hosts` file:
+### Validation Rules
+
+#### Draft Creation (Minimal Requirements)
+- Job title (required)
+- Organization access validation
+- All other fields optional for draft state
+
+#### Publishing Requirements (Backend Validation)
+- Job title (required)
+- Job description (required)  
+- Job location (required)
+- Job type (required)
+- User organization access validation
+
+### Security Features
+
+- User context validation for all job operations
+- Organization-scoped access control
+- Idempotent publishing (safe to call multiple times)
+- SQL injection protection with parameterized queries
+
+## Implementation Status
+
+✅ **Completed Features**
+- Server-side slug generation with uniqueness guarantees
+- Backend job creation and publishing services
+- API validation using Zod schemas
+- Frontend form updates with proper field mapping
+- Publish workflow with canonical URL display
+- Database constraints and performance indexes
+- User context validation for organization access
+
+⚠️ **Current Limitations**
+- Database migration needs manual execution (connection issues)
+- User authentication headers need middleware integration
+- Subdomain middleware integration pending
+
+## Usage Examples
+
+### Creating a Draft Job
+```javascript
+// Frontend (automatically gets unique slug)
+const jobData = {
+  title: "Senior Software Engineer",
+  description: "...", // optional for draft
+  location: "San Francisco, CA", // optional for draft
+  // ... other fields
+}
 ```
-127.0.0.1 company-name.localhost
-127.0.0.1 another-company.localhost
+
+### Publishing a Job
+```javascript
+// Validates all required fields before publishing
+const result = await publishJob(jobId, userContext)
+// Returns: { publicUrl: "/careers/senior-software-engineer-abc123", job: {...} }
 ```
 
-2. Access careers pages:
-- `http://company-name.localhost:5000/careers`
-- `http://another-company.localhost:5000/careers`
+### Public Career Page URL
+```
+https://acme-corp.talentpatriot.app/careers/senior-software-engineer-abc123
+```
 
-### For Production
-1. Configure DNS with wildcard subdomain: `*.talentpatriot.app`
-2. Each organization automatically gets: `https://org-slug.talentpatriot.app/careers`
+## Database Migration
 
-## Benefits
+To apply the job slug system constraints and indexes:
 
-### For Organizations
-- **Professional Appearance**: Branded careers page with company name
-- **Data Privacy**: Complete isolation from other organizations
-- **SEO Benefits**: Dedicated URL for search engine optimization
-- **Easy Sharing**: Clean, memorable URLs for job postings
-
-### For Job Seekers
-- **Clear Company Context**: Always know which company they're applying to
-- **Focused Experience**: See only relevant positions from that company
-- **Professional Trust**: Legitimate-looking company careers page
-
-## Technical Security
-- **Row-Level Security**: Database policies ensure data isolation
-- **Subdomain Validation**: Prevents access to non-existent organizations
-- **Automatic Fallback**: Graceful handling when subdomain isn't recognized
+```sql
+-- See job_slug_migration.sql for complete migration
+-- Includes unique constraints, performance indexes, and triggers
+```
 
 ## Next Steps
-1. Run the SQL migration to enable subdomain routing
-2. Test with your organization's subdomain
-3. Share your unique careers URL: `https://your-company-slug.talentpatriot.app/careers`
+
+1. Execute database migration for production deployment
+2. Integrate user authentication middleware for proper context
+3. Deploy with subdomain routing enabled
+4. Test end-to-end job creation and publishing workflow

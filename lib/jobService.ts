@@ -25,17 +25,21 @@ const supabase = createClient(
 
 export interface CreateJobData {
   title: string;
-  description: string;
+  description?: string;
   clientId?: string;
   orgId: string;
   location?: string;
   jobType?: string;
-  status?: string;
   remoteOption?: string;
   salaryRange?: string;
   experienceLevel?: string;
   postingTargets?: string[];
   autoPost?: boolean;
+}
+
+export interface UserContext {
+  userId: string;
+  orgId: string;
 }
 
 export interface CreateCandidateData {
@@ -55,18 +59,92 @@ export interface JobApplicationData {
   orgId: string;
 }
 
-export async function createJob(data: CreateJobData) {
+// Generate unique slug for job
+async function generateUniqueSlug(title: string, jobId?: string): Promise<string> {
+  // Create base slug from title
+  const baseSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 50);
+  
+  if (!baseSlug) {
+    throw new Error('Invalid title - cannot generate slug');
+  }
+  
+  // If we have a jobId, use it for uniqueness
+  if (jobId) {
+    const slugWithId = `${baseSlug}-${jobId.slice(0, 8)}`;
+    return slugWithId;
+  }
+  
+  // For new jobs, find next available slug
+  let counter = 0;
+  let slugCandidate = baseSlug;
+  
+  while (true) {
+    const { data } = await supabase
+      .from('jobs')
+      .select('id')
+      .eq('public_slug', slugCandidate)
+      .limit(1);
+    
+    if (!data || data.length === 0) {
+      return slugCandidate;
+    }
+    
+    counter++;
+    slugCandidate = `${baseSlug}-${counter}`;
+    
+    if (counter > 100) {
+      throw new Error('Unable to generate unique slug');
+    }
+  }
+}
+
+export async function createJob(data: CreateJobData, userContext: UserContext) {
+  // Validate required fields for creation
+  if (!data.title?.trim()) {
+    throw new Error('Job title is required');
+  }
+  
+  if (!data.orgId) {
+    throw new Error('Organization ID is required');
+  }
+  
+  // Verify user has access to organization
+  const { data: userOrg } = await supabase
+    .from('user_organizations')
+    .select('id')
+    .eq('user_id', userContext.userId)
+    .eq('org_id', data.orgId)
+    .single();
+  
+  if (!userOrg) {
+    throw new Error('Access denied: User not authorized for this organization');
+  }
+  
+  // Generate unique slug
+  const slug = await generateUniqueSlug(data.title);
+  
   const { data: result, error } = await supabase
     .from('jobs')
     .insert([{ 
-      title: data.title,
-      description: data.description,
-      location: data.location || null,
+      title: data.title.trim(),
+      description: data.description?.trim() || null,
+      location: data.location?.trim() || null,
       job_type: data.jobType || 'full-time',
+      remote_option: data.remoteOption || 'onsite',
+      salary_range: data.salaryRange?.trim() || null,
+      experience_level: data.experienceLevel || 'mid',
       client_id: data.clientId || null,
       org_id: data.orgId,
-      status: data.status || 'draft',
-      record_status: 'active'
+      status: 'draft', // Always create as draft
+      record_status: 'active',
+      public_slug: slug,
+      created_by: userContext.userId
     }])
     .select()
     .single();
@@ -79,44 +157,101 @@ export async function createJob(data: CreateJobData) {
   return result;
 }
 
-export async function publishJob(jobId: string) {
-  // Generate a public slug based on job title and id
-  const { data: jobData, error: fetchError } = await supabase
+export async function publishJob(jobId: string, userContext: UserContext) {
+  // First, get the job and verify access
+  const { data: job, error: fetchError } = await supabase
     .from('jobs')
-    .select('title')
+    .select('*')
     .eq('id', jobId)
     .single();
-    
-  if (fetchError) {
-    console.error('Error fetching job for slug generation:', fetchError);
-    throw new Error(`Failed to fetch job: ${fetchError.message}`);
+  
+  if (fetchError || !job) {
+    throw new Error('Job not found');
   }
   
-  const slug = jobData.title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .slice(0, 50) + '-' + jobId.slice(0, 8);
-
-  const { data, error } = await supabase
+  // Verify user has access to this job's organization
+  const { data: userOrg } = await supabase
+    .from('user_organizations')
+    .select('id')
+    .eq('user_id', userContext.userId)
+    .eq('org_id', job.org_id)
+    .single();
+  
+  if (!userOrg) {
+    throw new Error('Access denied: User not authorized for this organization');
+  }
+  
+  // Validate required fields for publishing
+  const validationErrors: string[] = [];
+  
+  if (!job.title?.trim()) {
+    validationErrors.push('Job title is required');
+  }
+  if (!job.description?.trim()) {
+    validationErrors.push('Job description is required');
+  }
+  if (!job.location?.trim()) {
+    validationErrors.push('Job location is required');
+  }
+  if (!job.job_type) {
+    validationErrors.push('Job type is required');
+  }
+  
+  if (validationErrors.length > 0) {
+    const error = new Error('Validation failed');
+    (error as any).validationErrors = validationErrors;
+    throw error;
+  }
+  
+  // Check if job is already published (idempotent)
+  if (job.status === 'open' && job.published_at) {
+    return {
+      publicUrl: `/careers/${job.public_slug}`,
+      job: {
+        id: job.id,
+        slug: job.public_slug,
+        status: job.status,
+        published_at: job.published_at
+      }
+    };
+  }
+  
+  // Ensure slug exists (re-generate if needed)
+  let slug = job.public_slug;
+  if (!slug) {
+    slug = await generateUniqueSlug(job.title, job.id);
+  }
+  
+  // Update job to published state
+  const { data: updatedJob, error: updateError } = await supabase
     .from('jobs')
     .update({ 
-      status: 'open', 
+      status: 'open',
       published_at: new Date().toISOString(),
       public_slug: slug,
-      updated_at: new Date().toISOString() 
+      updated_at: new Date().toISOString()
     })
     .eq('id', jobId)
     .select()
     .single();
-    
-  if (error) {
-    console.error('Job publish error:', error);
-    throw new Error(`Failed to publish job: ${error.message}`);
+  
+  if (updateError) {
+    console.error('Job publish error:', updateError);
+    throw new Error(`Failed to publish job: ${updateError.message}`);
   }
   
-  return data;
+  return {
+    publicUrl: `/careers/${updatedJob.public_slug}`,
+    job: {
+      id: updatedJob.id,
+      slug: updatedJob.public_slug,
+      status: updatedJob.status,
+      published_at: updatedJob.published_at
+    }
+  };
 }
+
+
 
 export async function createCandidate(data: CreateCandidateData) {
   const { data: result, error } = await supabase
