@@ -108,7 +108,7 @@ const InterviewCard = ({ interview }: { interview: any }) => (
 export function InterviewCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const { user, currentOrgId } = useAuth()
-  const { data: interviews = [], isLoading, error } = useInterviews(currentOrgId)
+  const { data: interviews = [], isLoading, error } = useInterviews(currentOrgId || undefined)
 
   // Get interviews for selected date
   const selectedDateInterviews = interviews.filter((interview: any) =>

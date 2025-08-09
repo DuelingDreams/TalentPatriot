@@ -10,7 +10,7 @@ export function useCandidates(options: { refetchInterval?: number } = {}) {
   const result = useGenericList<Candidate>({
     endpoint: '/api/candidates',
     queryKey: '/api/candidates',
-    getDemoData: () => demoCandidates,
+    getDemoData: () => demoCandidates as Candidate[],
     getDemoItem: getDemoCandidate,
     refetchInterval: options.refetchInterval,
     staleTime: 3 * 60 * 1000, // 3 minutes for candidates

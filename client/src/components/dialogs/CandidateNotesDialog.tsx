@@ -31,7 +31,8 @@ export function CandidateNotesDialog({
   const [isPrivate, setIsPrivate] = useState(false)
   const [isAddingNote, setIsAddingNote] = useState(false)
 
-  const { currentUserId, currentOrgId } = useAuth()
+  const { user, currentOrgId } = useAuth()
+  const currentUserId = user?.id
   const { data: notes = [], isLoading } = useCandidateNotes(candidateId)
   const createNoteMutation = useCreateCandidateNote()
 
@@ -147,7 +148,7 @@ export function CandidateNotesDialog({
             </div>
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {notes.map((note) => (
+              {notes.map((note: any) => (
                 <div 
                   key={note.id} 
                   className="bg-white border border-slate-200 rounded-lg p-4 space-y-3"
