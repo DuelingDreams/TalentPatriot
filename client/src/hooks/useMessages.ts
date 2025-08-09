@@ -18,6 +18,23 @@ export function useMessages(userId?: string) {
   })
 }
 
+export function useUnreadMessageCount(userId?: string) {
+  return useQuery({
+    queryKey: ['/api/messages/unread-count', userId],
+    queryFn: async () => {
+      const params = new URLSearchParams()
+      if (userId) params.append('userId', userId)
+      
+      const response = await fetch(`/api/messages/unread-count?${params}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch unread message count')
+      }
+      return response.json() as Promise<{ count: number }>
+    },
+    enabled: !!userId,
+  })
+}
+
 export function useCreateMessage() {
   const queryClient = useQueryClient()
   

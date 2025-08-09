@@ -30,7 +30,7 @@ export default function Messages() {
   const { data: unreadData } = useUnreadMessageCount(user?.id)
   const unreadCount = unreadData?.count || 0
 
-  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
+  const [selectedMessage, setSelectedMessage] = useState<Message | undefined>(undefined)
   const [activeTab, setActiveTab] = useState('all')
   const [showComposer, setShowComposer] = useState(false)
 
