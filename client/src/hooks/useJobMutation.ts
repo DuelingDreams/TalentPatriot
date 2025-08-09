@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
-import { useDemoFlag } from '@/contexts/AuthContext'
-import { dataAdapter } from '@/lib/dataAdapter'
+import { useDemoFlag } from '@/lib/demoFlag'
+import { demoAdapter } from '@/lib/dataAdapter'
 import { InsertJob, Job } from '../../../shared/schema'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
@@ -9,9 +9,17 @@ import toast from 'react-hot-toast'
 export function useCreateJob() {
   const queryClient = useQueryClient()
   const { currentOrgId } = useAuth()
+  const { isDemoUser } = useDemoFlag()
 
   return useMutation({
     mutationFn: async (jobData: Omit<InsertJob, 'orgId'>) => {
+      if (isDemoUser) {
+        return demoAdapter.createJob({
+          ...jobData,
+          organization_id: 'DEMO_ORG_ID'
+        })
+      }
+
       if (!currentOrgId) {
         throw new Error('Organization ID is required')
       }

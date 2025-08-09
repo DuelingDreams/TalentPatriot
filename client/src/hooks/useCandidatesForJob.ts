@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { apiRequest } from '@/lib/queryClient'
 import { useToast } from '@/hooks/use-toast'
+import { useDemoFlag } from '@/lib/demoFlag'
+import { demoAdapter } from '@/lib/dataAdapter'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 interface JobCandidate {
@@ -43,6 +45,7 @@ export function useCandidatesForJob(
   const { currentOrgId, userRole } = useAuth()
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const { isDemoUser } = useDemoFlag()
   
   // Realtime state management
   const [realtimeStatus, setRealtimeStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'disabled'>('disabled')
@@ -58,8 +61,25 @@ export function useCandidatesForJob(
     queryKey,
     queryFn: async (): Promise<JobCandidate[]> => {
       // Demo data for demo viewer
-      if (userRole === 'demo_viewer') {
-        return getDemoJobCandidates(jobId)
+      if (isDemoUser) {
+        if (!jobId) return []
+        return demoAdapter.getCandidatesForJob(jobId).then(candidates => 
+          candidates.map(c => ({
+            id: c.id,
+            jobId: jobId,
+            candidateId: c.id,
+            columnId: null,
+            status: c.stage,
+            appliedAt: c.applied_at,
+            candidate: {
+              id: c.id,
+              name: c.name,
+              email: c.email,
+              phone: c.phone,
+              resumeUrl: c.resume_url
+            }
+          }))
+        )
       }
       
       if (!jobId || !currentOrgId) {
@@ -77,7 +97,7 @@ export function useCandidatesForJob(
 
   // Setup Supabase Realtime subscriptions
   useEffect(() => {
-    if (!enableRealtime || !jobId || !currentOrgId || userRole === 'demo_viewer') {
+    if (!enableRealtime || !jobId || !currentOrgId || isDemoUser) {
       setRealtimeStatus('disabled')
       return
     }

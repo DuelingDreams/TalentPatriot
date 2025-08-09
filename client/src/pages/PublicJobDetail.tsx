@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug';
+import { useDemoFlag } from '@/lib/demoFlag';
+import { demoAdapter } from '@/lib/dataAdapter';
 import type { Job } from '@shared/schema';
 
 interface ApplicationForm {

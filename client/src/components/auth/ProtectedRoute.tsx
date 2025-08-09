@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext'
 import { useLocation } from 'wouter'
 import { useEffect, useState } from 'react'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { Loader2 } from 'lucide-react'
 
 interface ProtectedRouteProps {
@@ -15,11 +16,18 @@ export function ProtectedRoute({
   redirectTo = '/login' 
 }: ProtectedRouteProps) {
   const { user, userRole, loading } = useAuth()
+  const { isDemoUser } = useDemoFlag()
   const [, setLocation] = useLocation()
   const [shouldRender, setShouldRender] = useState(false)
 
   useEffect(() => {
     if (!loading) {
+      // Allow demo users to access protected routes
+      if (isDemoUser) {
+        setShouldRender(true)
+        return
+      }
+
       if (!user) {
         setLocation(redirectTo)
         setShouldRender(false)
@@ -34,7 +42,7 @@ export function ProtectedRoute({
 
       setShouldRender(true)
     }
-  }, [user, userRole, loading, requiredRole, redirectTo, setLocation])
+  }, [user, userRole, loading, requiredRole, redirectTo, setLocation, isDemoUser])
 
   if (loading) {
     return (

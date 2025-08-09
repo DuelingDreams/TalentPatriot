@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
+import { useDemoFlag } from '@/lib/demoFlag'
+import { demoAdapter } from '@/lib/dataAdapter'
 
 export interface PipelineColumn {
   id: string
@@ -44,14 +46,47 @@ export function usePipeline(orgId: string | undefined) {
 
 // Get pipeline data for a specific job
 export function useJobPipeline(jobId: string | undefined) {
+  const { isDemoUser } = useDemoFlag()
+
   return useQuery({
     queryKey: ['job-pipeline', jobId],
     queryFn: async (): Promise<PipelineData> => {
       if (!jobId) throw new Error('Job ID is required')
+      
+      if (isDemoUser) {
+        // Return demo pipeline data
+        return {
+          columns: [
+            { id: 'applied', title: 'Applied', position: '1' },
+            { id: 'screen', title: 'Screen', position: '2' },
+            { id: 'interview', title: 'Interview', position: '3' },
+            { id: 'offer', title: 'Offer', position: '4' },
+            { id: 'hired', title: 'Hired', position: '5' },
+          ],
+          applications: await demoAdapter.getCandidatesForJob(jobId).then(candidates =>
+            candidates.map(c => ({
+              id: c.id,
+              jobId: jobId,
+              candidateId: c.id,
+              columnId: c.stage.toLowerCase(),
+              status: c.stage,
+              appliedAt: c.applied_at,
+              candidate: {
+                id: c.id,
+                name: c.name,
+                email: c.email,
+                phone: c.phone,
+                resumeUrl: c.resume_url
+              }
+            }))
+          )
+        }
+      }
+      
       return apiRequest(`/api/jobs/${jobId}/pipeline`)
     },
     enabled: !!jobId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: isDemoUser ? 60000 : 2 * 60 * 1000, // 1 minute for demo, 2 minutes for live
     gcTime: 5 * 60 * 1000  // 5 minutes
   })
 }

@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug'
+import { useDemoFlag } from '@/lib/demoFlag'
+import { demoAdapter } from '@/lib/dataAdapter'
 import { MapPin, Clock, DollarSign, Briefcase, Building2, Send, Loader2, ArrowLeft } from 'lucide-react'
 import type { Job } from '@shared/schema'
 

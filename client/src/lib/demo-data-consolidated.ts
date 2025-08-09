@@ -235,17 +235,17 @@ const stages = ['Applied', 'Screen', 'Interview', 'Offer', 'Hired'];
 export const demoCandidates = Array.from({ length: 40 }).map((_, i) => {
   const fn = pick(firstNames);
   const ln = pick(lastNames);
-  const stage = pick(stages);
   const job = pick(demoJobs);
   return {
     id: uuidv4(),
-    organization_id: DEMO_ORG_ID,
-    job_id: job.id,
+    orgId: DEMO_ORG_ID,
     name: `${fn} ${ln}`,
     email: `${fn.toLowerCase()}.${ln.toLowerCase()}@example.com`,
     phone: `555-01${(i % 10).toString().padStart(2, '0')}`,
-    resume_url: 'https://example.com/resume.pdf',
-    stage,
-    applied_at: daysAgo(Math.floor(Math.random() * 60)),
+    resumeUrl: 'https://example.com/resume.pdf',
+    status: 'demo' as const,
+    createdAt: daysAgo(Math.floor(Math.random() * 60)),
+    updatedAt: daysAgo(Math.floor(Math.random() * 60)),
+    createdBy: null,
   };
 });

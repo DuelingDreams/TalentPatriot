@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDebounce } from '@/hooks/useDebounce';
 import { usePublicJobs } from '@/hooks/usePublicJobs';
+import { useDemoFlag } from '@/lib/demoFlag';
+import { demoAdapter } from '@/lib/dataAdapter';
 import type { Job } from '@shared/schema';
 
 export default function PublicJobsList() {
