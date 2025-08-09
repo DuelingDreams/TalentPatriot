@@ -98,3 +98,29 @@ export function useMarkMessageAsRead() {
     },
   })
 }
+
+export function useArchiveMessage() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (messageId: string) => {
+      const response = await fetch(`/api/messages/${messageId}/archive`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to archive message')
+      }
+      
+      return response.json()
+    },
+    onSuccess: () => {
+      // Invalidate and refetch messages
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] })
+    },
+  })
+}
