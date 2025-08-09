@@ -2,31 +2,37 @@ import { useQuery } from '@tanstack/react-query'
 import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
 import { demoJobs } from '@/lib/demo-data-consolidated'
 import { apiRequest } from '@/lib/queryClient'
+import { useDemoFlag } from '@/contexts/AuthContext'
+import { dataAdapter } from '@/lib/dataAdapter'
 import type { Job, InsertJob } from '@/../../shared/schema'
 
 export function useJobs(options: { refetchInterval?: number } = {}) {
-  const getDemoJob = (jobId: string) => {
-    return demoJobs.find(job => job.id === jobId) || null
-  }
-
-  const result = useGenericList<Job>({
-    endpoint: '/api/jobs',
-    queryKey: '/api/jobs',
-    getDemoData: () => demoJobs,
-    getDemoItem: getDemoJob,
-    refetchInterval: options.refetchInterval || 30000, // Default 30 second refresh
-    staleTime: 1 * 60 * 1000, // 1 minute for jobs (reduced for more responsiveness)
+  const { isDemoUser } = useDemoFlag()
+  
+  return useQuery({
+    queryKey: ['/api/jobs'],
+    queryFn: () => dataAdapter.getJobs(isDemoUser ? 'demo_viewer' : undefined),
+    refetchInterval: isDemoUser ? false : (options.refetchInterval || 30000),
+    staleTime: isDemoUser ? 60000 : (1 * 60 * 1000),
+    refetchOnWindowFocus: !isDemoUser,
   })
-  console.info('[RQ] useJobs', 'loading=', result.isLoading, 'error=', result.error)
-  return result
 }
 
 export function useJob(id?: string) {
-  const getDemoJob = (jobId: string) => {
-    return demoJobs.find(job => job.id === jobId) || null
-  }
+  const { isDemoUser } = useDemoFlag()
   
-  return useGenericItem<Job>('/api/jobs', id, getDemoJob)
+  return useQuery({
+    queryKey: ['/api/jobs', id],
+    queryFn: async () => {
+      if (isDemoUser) {
+        const jobs = await dataAdapter.getJobs('demo_viewer')
+        return jobs.find(job => job.id === id) || null
+      }
+      return apiRequest(`/api/jobs/${id}`)
+    },
+    enabled: !!id,
+    staleTime: isDemoUser ? 60000 : (1 * 60 * 1000),
+  })
 }
 
 export function useJobsByClient(clientId?: string) {
@@ -40,5 +46,12 @@ export function useJobsByClient(clientId?: string) {
 }
 
 export function useCreateJob() {
+  const { isDemoUser } = useDemoFlag()
+  
+  if (isDemoUser) {
+    return useGenericCreate<Job, InsertJob>('/api/jobs', '/api/jobs', {
+      mutationFn: (jobData: InsertJob) => dataAdapter.createJob(jobData, 'demo_viewer')
+    })
+  }
   return useGenericCreate<Job, InsertJob>('/api/jobs', '/api/jobs')
 }

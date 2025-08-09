@@ -1,39 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth, useDemoFlag } from '@/contexts/AuthContext'
+import { dataAdapter } from '@/lib/dataAdapter'
 import type { JobCandidate, InsertJobCandidate } from '@/../../shared/schema'
 
 export function useJobCandidates(options: { refetchInterval?: number } = {}) {
   const { currentOrgId, userRole } = useAuth()
+  const { isDemoUser } = useDemoFlag()
   
   return useQuery({
     queryKey: ['/api/job-candidates', { orgId: currentOrgId }],
-    refetchInterval: options.refetchInterval || false,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: isDemoUser ? false : (options.refetchInterval || false),
+    staleTime: isDemoUser ? 60000 : (2 * 60 * 1000),
     gcTime: 10 * 60 * 1000,
     queryFn: () => {
-      if (userRole === 'demo_viewer') {
-        // Return demo job-candidate relationships
-        return [
-          {
-            id: 'demo-job-candidate-1',
-            jobId: 'demo-job-1',
-            candidateId: 'demo-candidate-1',
-            stage: 'interview',
-            notes: 'Strong technical skills, moving to final round',
-            appliedAt: new Date('2024-07-05').toISOString(),
-            orgId: 'demo-org-fixed'
-          },
-          {
-            id: 'demo-job-candidate-2',
-            jobId: 'demo-job-2',
-            candidateId: 'demo-candidate-2',
-            stage: 'phone_screen',
-            notes: 'Great product experience, scheduling technical interview',
-            appliedAt: new Date('2024-07-12').toISOString(),
-            orgId: 'demo-org-fixed'
-          }
-        ]
+      if (isDemoUser) {
+        return dataAdapter.getJobCandidates('demo_viewer')
       }
       if (!currentOrgId) {
         return []
@@ -41,6 +23,7 @@ export function useJobCandidates(options: { refetchInterval?: number } = {}) {
       return apiRequest(`/api/job-candidates?orgId=${currentOrgId}`)
     },
     enabled: true,
+    refetchOnWindowFocus: !isDemoUser,
   })
 }
 

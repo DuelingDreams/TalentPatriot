@@ -1,16 +1,20 @@
 import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
 import { demoClients } from '@/lib/demo-data-consolidated'
+import { useDemoFlag } from '@/contexts/AuthContext'
+import { dataAdapter } from '@/lib/dataAdapter'
 import type { Client, InsertClient } from '@/../../shared/schema'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
 
 export function useClients(options: { refetchInterval?: number } = {}) {
-  return useGenericList<Client>({
-    endpoint: '/api/clients',
-    queryKey: '/api/clients',
-    getDemoData: () => demoClients,
-    refetchInterval: options.refetchInterval,
-    staleTime: 5 * 60 * 1000, // 5 minutes for clients
+  const { isDemoUser } = useDemoFlag()
+  
+  return useQuery({
+    queryKey: ['/api/clients'],
+    queryFn: () => dataAdapter.getClients(isDemoUser ? 'demo_viewer' : undefined),
+    refetchInterval: isDemoUser ? false : options.refetchInterval,
+    staleTime: isDemoUser ? 60000 : (5 * 60 * 1000),
+    refetchOnWindowFocus: !isDemoUser,
   })
 }
 

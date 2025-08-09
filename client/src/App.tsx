@@ -8,6 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppErrorBoundary } from "@/utils/appErrorBoundary";
+import { DemoToggleFooter } from "@/components/DemoToggleFooter";
 import { supabase } from "@/lib/supabase";
 
 // Loading component for suspense fallback
@@ -191,6 +192,7 @@ function App() {
             <Toaster />
             <ToastProvider />
             <Router />
+            <DemoToggleFooter />
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>

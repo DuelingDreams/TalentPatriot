@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
+import { useDemoFlag } from '@/contexts/AuthContext'
+import { dataAdapter } from '@/lib/dataAdapter'
 import { InsertJob, Job } from '../../../shared/schema'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'

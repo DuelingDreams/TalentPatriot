@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { safeStorageOperation } from '@/utils/errorHandler'
+import { DEMO_ORG_ID } from '@/lib/demo-data-consolidated'
+import { isDemoEnabled } from '@/lib/demoToggle'
 
 interface AuthContextType {
   user: User | null
@@ -40,31 +42,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
 
+        // Determine if user is in demo mode
+        const isDemoUser = session?.user?.email === 'demo@yourapp.com' || isDemoEnabled()
+
         if (session?.user) {
-          // Special handling for demo user
-          if (session.user.email === 'demo@yourapp.com') {
+          if (isDemoUser) {
+            // Demo mode: set demo role and org
             setUserRole('demo_viewer')
-            const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
-            setCurrentOrgIdState(demoOrgId)
+            setCurrentOrgIdState(DEMO_ORG_ID)
             safeStorageOperation(() => {
-              sessionStorage.setItem('currentOrgId', demoOrgId)
+              sessionStorage.setItem('currentOrgId', DEMO_ORG_ID)
             })
+            console.log('Auth: Demo mode enabled')
           } else {
-            // For regular users, get role from user metadata
+            // Regular user: get role from user metadata
             const role = session.user.user_metadata?.role || 'hiring_manager'
             const orgId = session.user.user_metadata?.currentOrgId
             console.log('Auth: Regular user role:', role, 'orgId:', orgId)
             setUserRole(role)
 
-            // Temporary fix: use the demo org ID if none is set
+            // Use demo org as fallback for development
             if (!orgId) {
               console.warn('No orgId found for regular user, using demo organization')
-              const demoOrgId = '550e8400-e29b-41d4-a716-446655440000' // Use demo org with existing clients
-              setCurrentOrgIdState(demoOrgId)
+              setCurrentOrgIdState(DEMO_ORG_ID)
             } else {
               setCurrentOrgIdState(orgId)
             }
           }
+        } else if (isDemoUser) {
+          // Demo mode without authentication
+          setUserRole('demo_viewer')
+          setCurrentOrgIdState(DEMO_ORG_ID)
+          safeStorageOperation(() => {
+            sessionStorage.setItem('currentOrgId', DEMO_ORG_ID)
+          })
+          console.log('Auth: Demo mode enabled without authentication')
         } else {
           setUserRole(null)
           setCurrentOrgIdState(null)
@@ -313,3 +325,8 @@ export const useAuth = () => {
   }
   return context
 }
+
+// Helper hook for demo mode detection
+export const useDemoFlag = () => ({
+  isDemoUser: useContext(AuthContext)?.userRole === 'demo_viewer'
+})

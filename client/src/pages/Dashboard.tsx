@@ -66,16 +66,7 @@ export default function Dashboard() {
     }
   }, [userRole, toast])
 
-  // Show demo dashboard for demo viewers - check this FIRST
-  if (userRole === 'demo_viewer') {
-    return (
-      <DashboardLayout pageTitle="Demo Dashboard">
-        <div className="p-6">
-          <DemoDashboard />
-        </div>
-      </DashboardLayout>
-    )
-  }
+  // Demo viewers now use the same dashboard components with demo data
 
   // Set up real-time refresh for dashboard data
   const realTimeRefresh = useRealTimeRefresh({
