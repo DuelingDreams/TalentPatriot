@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle, XCircle, Clock } from 'lucide-react'
@@ -13,6 +14,7 @@ interface HealthCheck {
 }
 
 export default function HealthPage() {
+  const { isDemoUser } = useDemoFlag()
   const [healthChecks, setHealthChecks] = useState<HealthCheck[]>([
     { name: 'API Health Check', status: 'loading' },
     { name: 'Database Connection', status: 'loading' }
@@ -23,15 +25,25 @@ export default function HealthPage() {
       // 1. API Health Check
       const apiStart = performance.now()
       try {
-        const apiResponse = await fetch('/api/health')
-        const apiData = await apiResponse.json()
-        const apiDuration = Math.round(performance.now() - apiStart)
-        
-        setHealthChecks(prev => prev.map(check => 
-          check.name === 'API Health Check' 
-            ? { ...check, status: 'success', data: apiData, duration: apiDuration }
-            : check
-        ))
+        // Demo protection: show demo results in demo mode
+        if (isDemoUser) {
+          const apiDuration = Math.round(Math.random() * 50 + 50) // 50-100ms
+          setHealthChecks(prev => prev.map(check => 
+            check.name === 'API Health Check' 
+              ? { ...check, status: 'success', data: { status: 'OK', environment: 'demo' }, duration: apiDuration }
+              : check
+          ))
+        } else {
+          const apiResponse = await fetch('/api/health')
+          const apiData = await apiResponse.json()
+          const apiDuration = Math.round(performance.now() - apiStart)
+          
+          setHealthChecks(prev => prev.map(check => 
+            check.name === 'API Health Check' 
+              ? { ...check, status: 'success', data: apiData, duration: apiDuration }
+              : check
+          ))
+        }
       } catch (error) {
         const apiDuration = Math.round(performance.now() - apiStart)
         setHealthChecks(prev => prev.map(check => 
@@ -44,26 +56,36 @@ export default function HealthPage() {
       // 2. Database Connection Check
       const dbStart = performance.now()
       try {
-        const { data, error } = await supabase.from('jobs').select('id').limit(1)
-        const dbDuration = Math.round(performance.now() - dbStart)
-        
-        if (error) {
+        // Demo protection: show demo results in demo mode
+        if (isDemoUser) {
+          const dbDuration = Math.round(Math.random() * 30 + 20) // 20-50ms
           setHealthChecks(prev => prev.map(check => 
             check.name === 'Database Connection' 
-              ? { ...check, status: 'error', error: error.message, duration: dbDuration }
+              ? { ...check, status: 'success', data: { connected: true, environment: 'demo' }, duration: dbDuration }
               : check
           ))
         } else {
-          setHealthChecks(prev => prev.map(check => 
-            check.name === 'Database Connection' 
-              ? { 
-                  ...check, 
-                  status: 'success', 
-                  data: { querySuccess: true, resultCount: data?.length || 0 },
-                  duration: dbDuration 
-                }
-              : check
-          ))
+          const { data, error } = await supabase.from('jobs').select('id').limit(1)
+          const dbDuration = Math.round(performance.now() - dbStart)
+          
+          if (error) {
+            setHealthChecks(prev => prev.map(check => 
+              check.name === 'Database Connection' 
+                ? { ...check, status: 'error', error: error.message, duration: dbDuration }
+                : check
+            ))
+          } else {
+            setHealthChecks(prev => prev.map(check => 
+              check.name === 'Database Connection' 
+                ? { 
+                    ...check, 
+                    status: 'success', 
+                    data: { querySuccess: true, resultCount: data?.length || 0 },
+                    duration: dbDuration 
+                  }
+                : check
+            ))
+          }
         }
       } catch (error) {
         const dbDuration = Math.round(performance.now() - dbStart)

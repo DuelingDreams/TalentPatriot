@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Building2, Users, ArrowRight } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { supabase } from '@/lib/supabase'
 
 export default function OrganizationSetup() {
@@ -16,6 +17,7 @@ export default function OrganizationSetup() {
   const [, setLocation] = useLocation()
   const { toast } = useToast()
   const createOrganization = useCreateOrganization()
+  const { isDemoUser } = useDemoFlag()
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -37,6 +39,16 @@ export default function OrganizationSetup() {
 
     setLoading(true)
     setError('')
+
+    // Demo protection: prevent server writes in demo mode
+    if (isDemoUser) {
+      toast({
+        title: "Demo Mode",
+        description: "Organization creation is disabled in demo mode. Explore the existing features to see how TalentPatriot works.",
+      })
+      setLoading(false)
+      return
+    }
 
     try {
       // Create organization

@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { Loader2, Building2, ArrowLeft, CheckCircle } from 'lucide-react'
 
 export default function ForgotPassword() {
@@ -15,6 +16,7 @@ export default function ForgotPassword() {
   const [emailError, setEmailError] = useState('')
   const [success, setSuccess] = useState(false)
   const { toast } = useToast()
+  const { isDemoUser } = useDemoFlag()
 
   const validateForm = () => {
     let isValid = true
@@ -43,6 +45,16 @@ export default function ForgotPassword() {
 
     setLoading(true)
     setError('')
+
+    // Demo protection: prevent server writes in demo mode
+    if (isDemoUser) {
+      toast({
+        title: "Demo Mode",
+        description: "Password reset is disabled in demo mode. In the real app, users would receive reset instructions via email.",
+      })
+      setLoading(false)
+      return
+    }
 
     try {
       const response = await fetch('/api/auth/forgot-password', {

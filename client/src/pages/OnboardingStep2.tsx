@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { Loader2, Building2, Users, Briefcase } from 'lucide-react'
 
 const companySizeOptions = [
@@ -37,6 +38,7 @@ export default function OnboardingStep2() {
   const { user } = useAuth()
   const [, setLocation] = useLocation()
   const { toast } = useToast()
+  const { isDemoUser } = useDemoFlag()
 
   // Redirect to login if not authenticated
   if (!user) {
@@ -82,6 +84,16 @@ export default function OnboardingStep2() {
 
     setLoading(true)
     setError('')
+
+    // Demo protection: prevent server writes in demo mode
+    if (isDemoUser) {
+      toast({
+        title: "Demo Mode",
+        description: "Organization creation is disabled in demo mode. Explore the existing features to see how TalentPatriot works.",
+      })
+      setLoading(false)
+      return
+    }
 
     try {
       // Create organization with the provided company details

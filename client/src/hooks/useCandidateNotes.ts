@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { apiRequest, queryClient } from '@/lib/queryClient'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
+import { useDemoFlag } from '@/lib/demoFlag'
 
 export function useCandidateNotes(candidateId?: string) {
   const { currentOrgId, userRole } = useAuth()
@@ -74,9 +75,15 @@ export function useCandidateNotes(candidateId?: string) {
 export function useCreateCandidateNote() {
   const { toast } = useToast()
   const { currentOrgId } = useAuth()
+  const { isDemoUser } = useDemoFlag()
   
   return useMutation({
     mutationFn: async (noteData: any) => {
+      // Demo protection: prevent server writes in demo mode
+      if (isDemoUser) {
+        throw new Error('Note creation is disabled in demo mode')
+      }
+
       const response = await fetch('/api/candidate-notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

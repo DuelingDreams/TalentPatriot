@@ -1,12 +1,14 @@
 import { useEffect } from 'react'
 import { useLocation } from 'wouter'
 import { useAuth } from '@/contexts/AuthContext'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
 export default function AuthCallback() {
   const [, setLocation] = useLocation()
   const { user, loading } = useAuth()
+  const { isDemoUser } = useDemoFlag()
 
   useEffect(() => {
     async function handleAuthCallback() {
@@ -19,6 +21,13 @@ export default function AuthCallback() {
       }
 
       try {
+        // Demo protection: skip database checks in demo mode
+        if (isDemoUser) {
+          // In demo mode, go directly to dashboard
+          setLocation('/dashboard')
+          return
+        }
+
         // Check if user has completed onboarding by checking if they have an organization
         const { data: userOrgs } = await supabase
           .from('user_organizations')

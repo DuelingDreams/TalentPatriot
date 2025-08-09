@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Upload, X, FileText, CheckCircle, AlertCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { apiRequest } from '@/lib/queryClient'
 
 interface ResumeUploadProps {
@@ -19,6 +20,7 @@ export function ResumeUpload({ candidateId, onUploadSuccess, currentResumeUrl }:
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const { toast } = useToast()
+  const { isDemoUser } = useDemoFlag()
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0]
@@ -45,6 +47,17 @@ export function ResumeUpload({ candidateId, onUploadSuccess, currentResumeUrl }:
     setError(null)
     setUploading(true)
     setUploadProgress(0)
+
+    // Demo protection: prevent server writes in demo mode
+    if (isDemoUser) {
+      toast({
+        title: "Demo Mode",
+        description: "Resume upload is disabled in demo mode. In the real app, candidates can upload PDF, DOC, and DOCX files.",
+      })
+      setUploading(false)
+      setUploadProgress(0)
+      return
+    }
 
     try {
       const formData = new FormData()
