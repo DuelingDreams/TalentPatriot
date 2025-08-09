@@ -1,6 +1,6 @@
 import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
 import { demoClients } from '@/lib/demo-data-consolidated'
-import { useDemoFlag } from '@/contexts/AuthContext'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { dataAdapter } from '@/lib/dataAdapter'
 import type { Client, InsertClient } from '@/../../shared/schema'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'

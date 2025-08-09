@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
 import { demoJobs } from '@/lib/demo-data-consolidated'
 import { apiRequest } from '@/lib/queryClient'
-import { useDemoFlag } from '@/contexts/AuthContext'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { dataAdapter } from '@/lib/dataAdapter'
 import type { Job, InsertJob } from '@/../../shared/schema'
 

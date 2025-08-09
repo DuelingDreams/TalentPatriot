@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
-import { useAuth, useDemoFlag } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { useDemoFlag } from '@/lib/demoFlag'
 import { dataAdapter } from '@/lib/dataAdapter'
 import type { JobCandidate, InsertJobCandidate } from '@/../../shared/schema'
 
