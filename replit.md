@@ -8,6 +8,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**August 9, 2025 - Job-Specific Pipeline System Implementation**
+- Implemented complete job-specific pipeline system with individual pipelines per job posting
+- Added job_id field to pipeline_columns table with proper database migration and indexing
+- Created ensureDefaultPipelineForJob service with automatic 5-column creation (Applied → Screen → Interview → Offer → Hired)
+- Built job-specific API endpoints: GET /api/jobs/:jobId/pipeline and GET /api/jobs/:jobId/pipeline-columns
+- Integrated pipeline creation with job publishing workflow for seamless recruitment flow
+- Implemented idempotent pipeline operations preventing duplicate column creation
+- Fixed database field mapping issues between snake_case (database) and camelCase (TypeScript)
+- Added comprehensive error handling and validation throughout pipeline services
+- Established complete end-to-end testing verification with successful job application placement
+- All job applications now automatically place candidates in the "Applied" column
+
 **August 8, 2025 - Subdomain-Based Organization Routing Implementation**
 - Implemented professional subdomain-based careers pages for multi-tenant organization isolation
 - Created subdomain middleware that automatically detects organization from hostname
@@ -66,8 +78,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.
-- **Recruitment Pipeline**: Kanban-style pipeline dashboard with dynamic columns, drag-and-drop functionality, and candidate progression tracking.
-- **Complete Recruitment Workflow**: End-to-end job posting flow from draft creation → publishing → public careers listing → candidate application → pipeline management.
+- **Job-Specific Pipeline System**: Individual Kanban-style pipelines for each job posting with automatic 5-column creation (Applied → Screen → Interview → Offer → Hired). Complete isolation between job pipelines with seamless candidate progression tracking.
+- **Recruitment Pipeline**: Enhanced pipeline dashboard with dynamic columns, drag-and-drop functionality, and job-specific candidate management.
+- **Complete Recruitment Workflow**: End-to-end job posting flow from draft creation → publishing → public careers listing → candidate application → job-specific pipeline placement.
 - **Public Careers Portal**: Dedicated public-facing job listings at `/public/careers` with professional application forms and file upload support.
 - **Candidate Notes System**: Comprehensive notes management for pipeline candidates with privacy controls, user authentication, and team collaboration features.
 - **Interview Scheduling**: Advanced calendar interface with improved popover handling - fixed clipping issues on mobile and desktop with proper z-index stacking, collision detection, and responsive design.
