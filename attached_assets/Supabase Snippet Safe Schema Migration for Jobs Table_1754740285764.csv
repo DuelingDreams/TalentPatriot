@@ -1,0 +1,20 @@
+column_name,data_type,udt_name,is_nullable,column_default
+id,uuid,uuid,NO,gen_random_uuid()
+org_id,uuid,uuid,YES,null
+client_id,uuid,uuid,YES,null
+title,text,text,NO,null
+description,text,text,YES,null
+location,text,text,YES,null
+job_type,USER-DEFINED,job_type,YES,'full-time'::job_type
+department,text,text,YES,null
+status,USER-DEFINED,job_status,YES,'draft'::job_status
+record_status,USER-DEFINED,record_status,YES,'active'::record_status
+assigned_to,uuid,uuid,YES,null
+created_by,uuid,uuid,YES,null
+created_at,timestamp with time zone,timestamptz,YES,now()
+updated_at,timestamp with time zone,timestamptz,YES,now()
+public_slug,character varying,varchar,YES,null
+published_at,timestamp with time zone,timestamptz,YES,null
+experience_level,USER-DEFINED,experience_level,YES,'mid'::experience_level
+remote_option,USER-DEFINED,remote_option,YES,'onsite'::remote_option
+salary_range,character varying,varchar,YES,null
