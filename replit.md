@@ -8,6 +8,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**August 9, 2025 - Dynamic Dashboard Quick Actions Implementation**
+- Updated QuickActions component to use live data for authenticated users instead of hard-coded demo counts
+- Implemented data-aware logic that computes real "pending review" and "new in last 24h" counts from job candidates
+- Added role-based rendering: demo viewers see original demo numbers, authenticated users see live data
+- Enhanced application review metrics with flexible stage matching (applied/new/inbox)
+- Hidden badges when counts are zero to prevent misleading information
+- Maintained backward compatibility while removing hard-coded "8 pending review" and "8 new" demo strings
+- QuickActions now dynamically calculates available actions count for the badge display
+
 **August 9, 2025 - Complete UI Contrast and Accessibility Improvements**
 - Updated theme tokens in index.css with high-contrast opaque color values for light and dark modes
 - Enhanced AppModal component with proper z-index management (z-[100] overlay, z-[101] content), solid backgrounds, and body scroll lock

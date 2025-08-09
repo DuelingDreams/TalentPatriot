@@ -12,6 +12,8 @@ import {
 } from 'lucide-react'
 import { Link } from 'wouter'
 import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
+import { useAuth } from '@/contexts/AuthContext'
+import { useJobCandidates } from '@/hooks/useJobCandidates'
 
 interface QuickAction {
   id: string
@@ -31,7 +33,10 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
-  const demoActions: QuickAction[] = actions || [
+  const { userRole } = useAuth()
+  const { data: jobCandidates } = useJobCandidates()
+
+  const demoActions: QuickAction[] = [
     {
       id: 'post-job',
       title: 'Post New Job',
@@ -85,6 +90,75 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
     }
   ]
 
+  // Calculate real data for authenticated users
+  const appliedStageNames = ['applied', 'new', 'inbox']
+  const createdKey = (jc: any) => jc.appliedAt || jc.created_at || jc.createdAt
+  const isApplied = (jc: any) => appliedStageNames.includes((jc.stage || '').toLowerCase())
+  const lastDay = new Date(Date.now() - 24 * 60 * 60 * 1000)
+  const pendingReview = (jobCandidates || []).filter(jc => isApplied(jc)).length
+  const newInLastDay = (jobCandidates || []).filter(jc => 
+    isApplied(jc) && createdKey(jc) && new Date(createdKey(jc)) > lastDay
+  ).length
+
+  const realActions: QuickAction[] = [
+    {
+      id: 'post-job',
+      title: 'Post New Job',
+      description: 'Create urgent position',
+      icon: Plus,
+      priority: 'high',
+      badge: 'Popular',
+      onClick: () => onActionClick?.('post-job')
+    },
+    {
+      id: 'schedule-interview',
+      title: 'Schedule Interview',
+      description: 'Book candidate meetings',
+      icon: Calendar,
+      href: '/calendar',
+      priority: 'high'
+    },
+    {
+      id: 'review-applications',
+      title: 'Review Applications',
+      description: pendingReview > 0 ? `${pendingReview} pending review` : 'No new applications',
+      icon: Users,
+      href: '/candidates',
+      priority: 'medium',
+      badge: newInLastDay > 0 ? `${newInLastDay} new` : undefined
+    },
+    {
+      id: 'send-updates',
+      title: 'Send Updates',
+      description: 'Bulk candidate emails',
+      icon: MessageSquare,
+      href: '/messages',
+      priority: 'medium'
+    },
+    {
+      id: 'generate-report',
+      title: 'Generate Report',
+      description: 'Weekly performance',
+      icon: FileText,
+      href: '/dashboard',
+      priority: 'low'
+    },
+    {
+      id: 'ai-insights',
+      title: 'AI Insights',
+      description: 'Smart recommendations',
+      icon: Zap,
+      href: '/dashboard',
+      priority: 'medium',
+      badge: 'New'
+    }
+  ]
+
+  // Choose which actions to display based on user role
+  const items = userRole === 'demo_viewer'
+    ? (actions || demoActions)
+    : (actions || realActions)
+
   const getPriorityColor = (priority?: string) => {
     switch (priority) {
       case 'high':
@@ -113,12 +187,12 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="tp-h2 text-[#1A1A1A]">Quick Actions</h3>
           <Badge variant="secondary" className="bg-[#264C99]/10 text-[#264C99]">
-            6 available
+            {items.length} available
           </Badge>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {demoActions.map((action) => {
+          {items.map((action) => {
             const Icon = action.icon
             const content = (
               <div 
