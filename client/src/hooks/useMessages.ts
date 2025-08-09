@@ -1,40 +1,20 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiRequest } from '@/lib/queryClient'
-import type { Message, InsertMessage } from '@/../../shared/schema'
+import type { Message, InsertMessage } from '@shared/schema'
 
 export function useMessages(userId?: string) {
   return useQuery({
-    queryKey: ['messages', userId],
-    queryFn: () => apiRequest(`/api/messages${userId ? `?userId=${userId}` : ''}`),
-  })
-}
-
-export function useMessagesByThread(threadId?: string) {
-  return useQuery({
-    queryKey: ['messages', 'thread', threadId],
-    queryFn: () => apiRequest(`/api/messages/thread/${threadId}`),
-    enabled: !!threadId,
-  })
-}
-
-export function useMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string }) {
-  const queryParams = new URLSearchParams()
-  if (params.clientId) queryParams.set('clientId', params.clientId)
-  if (params.jobId) queryParams.set('jobId', params.jobId)
-  if (params.candidateId) queryParams.set('candidateId', params.candidateId)
-  
-  return useQuery({
-    queryKey: ['messages', 'context', params],
-    queryFn: () => apiRequest(`/api/messages/context?${queryParams.toString()}`),
-    enabled: !!(params.clientId || params.jobId || params.candidateId),
-  })
-}
-
-export function useUnreadMessageCount(userId?: string) {
-  return useQuery({
-    queryKey: ['messages', 'unread-count', userId],
-    queryFn: () => apiRequest(`/api/messages/unread-count${userId ? `?userId=${userId}` : ''}`),
-    refetchInterval: 30000, // Refresh every 30 seconds
+    queryKey: ['/api/messages', userId],
+    queryFn: async () => {
+      const params = new URLSearchParams()
+      if (userId) params.append('userId', userId)
+      
+      const response = await fetch(`/api/messages?${params}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages')
+      }
+      return response.json() as Promise<Message[]>
+    },
+    enabled: !!userId,
   })
 }
 
@@ -42,14 +22,25 @@ export function useCreateMessage() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: (message: InsertMessage) => 
-      apiRequest('/api/messages', {
+    mutationFn: async (message: InsertMessage) => {
+      const response = await fetch('/api/messages', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(message),
-      }),
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to create message')
+      }
+      
+      return response.json() as Promise<Message>
+    },
     onSuccess: () => {
-      // Invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ['messages'] })
+      // Invalidate and refetch messages
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] })
     },
   })
 }
@@ -58,13 +49,25 @@ export function useUpdateMessage() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: ({ id, ...message }: { id: string } & Partial<InsertMessage>) =>
-      apiRequest(`/api/messages/${id}`, {
-        method: 'PATCH',
+    mutationFn: async ({ id, message }: { id: string; message: Partial<InsertMessage> }) => {
+      const response = await fetch(`/api/messages/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(message),
-      }),
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to update message')
+      }
+      
+      return response.json() as Promise<Message>
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] })
+      // Invalidate and refetch messages
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] })
     },
   })
 }
@@ -73,27 +76,25 @@ export function useMarkMessageAsRead() {
   const queryClient = useQueryClient()
   
   return useMutation({
-    mutationFn: ({ messageId, userId }: { messageId: string; userId: string }) =>
-      apiRequest(`/api/messages/${messageId}/read`, {
-        method: 'POST',
+    mutationFn: async ({ messageId, userId }: { messageId: string; userId: string }) => {
+      const response = await fetch(`/api/messages/${messageId}/read`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ userId }),
-      }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] })
+      })
+      
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to mark message as read')
+      }
+      
+      return response.json()
     },
-  })
-}
-
-export function useArchiveMessage() {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: (messageId: string) =>
-      apiRequest(`/api/messages/${messageId}/archive`, {
-        method: 'POST',
-      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['messages'] })
+      // Invalidate and refetch messages
+      queryClient.invalidateQueries({ queryKey: ['/api/messages'] })
     },
   })
 }

@@ -1143,71 +1143,675 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getInterview(id: string): Promise<Interview | undefined> {
-    return undefined
+    try {
+      const { data, error } = await supabase
+        .from('interviews')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') return undefined // Not found
+        console.error('Database interview fetch error:', error)
+        throw new Error(`Failed to fetch interview: ${error.message}`)
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        jobCandidateId: data.job_candidate_id,
+        interviewerId: data.interviewer_id,
+        title: data.title,
+        description: data.description,
+        scheduledAt: data.scheduled_at,
+        duration: data.duration,
+        location: data.location,
+        type: data.type,
+        status: data.status,
+        notes: data.notes,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Interview
+    } catch (err) {
+      console.error('Interview fetch exception:', err)
+      throw err
+    }
   }
 
-  async getInterviews(): Promise<Interview[]> {
-    return []
+  async getInterviews(orgId?: string): Promise<Interview[]> {
+    try {
+      let query = supabase
+        .from('interviews')
+        .select('*')
+        .order('scheduled_at', { ascending: true })
+
+      if (orgId) {
+        query = query.eq('org_id', orgId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Database interviews fetch error:', error)
+        throw new Error(`Failed to fetch interviews: ${error.message}`)
+      }
+
+      return (data || []).map(interview => ({
+        id: interview.id,
+        orgId: interview.org_id,
+        jobCandidateId: interview.job_candidate_id,
+        interviewerId: interview.interviewer_id,
+        title: interview.title,
+        description: interview.description,
+        scheduledAt: interview.scheduled_at,
+        duration: interview.duration,
+        location: interview.location,
+        type: interview.type,
+        status: interview.status,
+        notes: interview.notes,
+        createdAt: interview.created_at,
+        updatedAt: interview.updated_at
+      })) as Interview[]
+    } catch (err) {
+      console.error('Interviews fetch exception:', err)
+      throw err
+    }
   }
 
   async getInterviewsByJobCandidate(jobCandidateId: string): Promise<Interview[]> {
-    return []
+    try {
+      const { data, error } = await supabase
+        .from('interviews')
+        .select('*')
+        .eq('job_candidate_id', jobCandidateId)
+        .order('scheduled_at', { ascending: true })
+
+      if (error) {
+        console.error('Database interviews by job candidate fetch error:', error)
+        throw new Error(`Failed to fetch interviews by job candidate: ${error.message}`)
+      }
+
+      return (data || []).map(interview => ({
+        id: interview.id,
+        orgId: interview.org_id,
+        jobCandidateId: interview.job_candidate_id,
+        interviewerId: interview.interviewer_id,
+        title: interview.title,
+        description: interview.description,
+        scheduledAt: interview.scheduled_at,
+        duration: interview.duration,
+        location: interview.location,
+        type: interview.type,
+        status: interview.status,
+        notes: interview.notes,
+        createdAt: interview.created_at,
+        updatedAt: interview.updated_at
+      })) as Interview[]
+    } catch (err) {
+      console.error('Interviews by job candidate fetch exception:', err)
+      throw err
+    }
   }
 
   async getInterviewsByDateRange(startDate: Date, endDate: Date): Promise<Interview[]> {
-    return []
+    try {
+      const { data, error } = await supabase
+        .from('interviews')
+        .select('*')
+        .gte('scheduled_at', startDate.toISOString())
+        .lte('scheduled_at', endDate.toISOString())
+        .order('scheduled_at', { ascending: true })
+
+      if (error) {
+        console.error('Database interviews by date range fetch error:', error)
+        throw new Error(`Failed to fetch interviews by date range: ${error.message}`)
+      }
+
+      return (data || []).map(interview => ({
+        id: interview.id,
+        orgId: interview.org_id,
+        jobCandidateId: interview.job_candidate_id,
+        interviewerId: interview.interviewer_id,
+        title: interview.title,
+        description: interview.description,
+        scheduledAt: interview.scheduled_at,
+        duration: interview.duration,
+        location: interview.location,
+        type: interview.type,
+        status: interview.status,
+        notes: interview.notes,
+        createdAt: interview.created_at,
+        updatedAt: interview.updated_at
+      })) as Interview[]
+    } catch (err) {
+      console.error('Interviews by date range fetch exception:', err)
+      throw err
+    }
   }
 
   async createInterview(interview: InsertInterview): Promise<Interview> {
-    throw new Error('Not implemented')
+    try {
+      const dbInterview = {
+        org_id: interview.orgId,
+        job_candidate_id: interview.jobCandidateId,
+        interviewer_id: interview.interviewerId,
+        title: interview.title,
+        description: interview.description,
+        scheduled_at: interview.scheduledAt,
+        duration: interview.duration,
+        location: interview.location,
+        type: interview.type,
+        status: interview.status || 'scheduled',
+        notes: interview.notes,
+        updated_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase
+        .from('interviews')
+        .insert(dbInterview)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Database interview creation error:', error)
+        throw new Error(`Failed to create interview: ${error.message}`)
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        jobCandidateId: data.job_candidate_id,
+        interviewerId: data.interviewer_id,
+        title: data.title,
+        description: data.description,
+        scheduledAt: data.scheduled_at,
+        duration: data.duration,
+        location: data.location,
+        type: data.type,
+        status: data.status,
+        notes: data.notes,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Interview
+    } catch (err) {
+      console.error('Interview creation exception:', err)
+      throw err
+    }
   }
 
   async updateInterview(id: string, interview: Partial<InsertInterview>): Promise<Interview> {
-    throw new Error('Not implemented')
+    try {
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      }
+
+      if (interview.title !== undefined) updateData.title = interview.title
+      if (interview.description !== undefined) updateData.description = interview.description
+      if (interview.scheduledAt !== undefined) updateData.scheduled_at = interview.scheduledAt
+      if (interview.duration !== undefined) updateData.duration = interview.duration
+      if (interview.location !== undefined) updateData.location = interview.location
+      if (interview.type !== undefined) updateData.type = interview.type
+      if (interview.status !== undefined) updateData.status = interview.status
+      if (interview.notes !== undefined) updateData.notes = interview.notes
+      if (interview.interviewerId !== undefined) updateData.interviewer_id = interview.interviewerId
+
+      const { data, error } = await supabase
+        .from('interviews')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Database interview update error:', error)
+        throw new Error(`Failed to update interview: ${error.message}`)
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        jobCandidateId: data.job_candidate_id,
+        interviewerId: data.interviewer_id,
+        title: data.title,
+        description: data.description,
+        scheduledAt: data.scheduled_at,
+        duration: data.duration,
+        location: data.location,
+        type: data.type,
+        status: data.status,
+        notes: data.notes,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Interview
+    } catch (err) {
+      console.error('Interview update exception:', err)
+      throw err
+    }
   }
 
   async deleteInterview(id: string): Promise<void> {
-    // Not implemented
+    try {
+      const { error } = await supabase
+        .from('interviews')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        console.error('Database interview deletion error:', error)
+        throw new Error(`Failed to delete interview: ${error.message}`)
+      }
+    } catch (err) {
+      console.error('Interview deletion exception:', err)
+      throw err
+    }
   }
 
   async getMessage(id: string): Promise<Message | undefined> {
-    return undefined
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') return undefined // Not found
+        console.error('Database message fetch error:', error)
+        throw new Error(`Failed to fetch message: ${error.message}`)
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        type: data.type,
+        priority: data.priority,
+        subject: data.subject,
+        content: data.content,
+        senderId: data.sender_id,
+        recipientId: data.recipient_id,
+        clientId: data.client_id,
+        jobId: data.job_id,
+        candidateId: data.candidate_id,
+        jobCandidateId: data.job_candidate_id,
+        isRead: data.is_read,
+        readAt: data.read_at,
+        isArchived: data.is_archived,
+        threadId: data.thread_id,
+        replyToId: data.reply_to_id,
+        attachments: data.attachments,
+        tags: data.tags,
+        recordStatus: data.record_status,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Message
+    } catch (err) {
+      console.error('Message fetch exception:', err)
+      throw err
+    }
   }
 
   async getMessages(userId?: string): Promise<Message[]> {
-    return []
+    try {
+      let query = supabase
+        .from('messages')
+        .select('*')
+        .eq('record_status', 'active')
+        .order('created_at', { ascending: false })
+
+      if (userId) {
+        query = query.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Database messages fetch error:', error)
+        throw new Error(`Failed to fetch messages: ${error.message}`)
+      }
+
+      return (data || []).map(message => ({
+        id: message.id,
+        orgId: message.org_id,
+        type: message.type,
+        priority: message.priority,
+        subject: message.subject,
+        content: message.content,
+        senderId: message.sender_id,
+        recipientId: message.recipient_id,
+        clientId: message.client_id,
+        jobId: message.job_id,
+        candidateId: message.candidate_id,
+        jobCandidateId: message.job_candidate_id,
+        isRead: message.is_read,
+        readAt: message.read_at,
+        isArchived: message.is_archived,
+        threadId: message.thread_id,
+        replyToId: message.reply_to_id,
+        attachments: message.attachments,
+        tags: message.tags,
+        recordStatus: message.record_status,
+        createdAt: message.created_at,
+        updatedAt: message.updated_at
+      })) as Message[]
+    } catch (err) {
+      console.error('Messages fetch exception:', err)
+      throw err
+    }
   }
 
   async getMessagesByThread(threadId: string): Promise<Message[]> {
-    return []
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('thread_id', threadId)
+        .eq('record_status', 'active')
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Database messages by thread fetch error:', error)
+        throw new Error(`Failed to fetch messages by thread: ${error.message}`)
+      }
+
+      return (data || []).map(message => ({
+        id: message.id,
+        orgId: message.org_id,
+        type: message.type,
+        priority: message.priority,
+        subject: message.subject,
+        content: message.content,
+        senderId: message.sender_id,
+        recipientId: message.recipient_id,
+        clientId: message.client_id,
+        jobId: message.job_id,
+        candidateId: message.candidate_id,
+        jobCandidateId: message.job_candidate_id,
+        isRead: message.is_read,
+        readAt: message.read_at,
+        isArchived: message.is_archived,
+        threadId: message.thread_id,
+        replyToId: message.reply_to_id,
+        attachments: message.attachments,
+        tags: message.tags,
+        recordStatus: message.record_status,
+        createdAt: message.created_at,
+        updatedAt: message.updated_at
+      })) as Message[]
+    } catch (err) {
+      console.error('Messages by thread fetch exception:', err)
+      throw err
+    }
   }
 
   async getMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string }): Promise<Message[]> {
-    return []
+    try {
+      let query = supabase
+        .from('messages')
+        .select('*')
+        .eq('record_status', 'active')
+        .order('created_at', { ascending: false })
+
+      if (params.clientId) {
+        query = query.eq('client_id', params.clientId)
+      }
+      if (params.jobId) {
+        query = query.eq('job_id', params.jobId)
+      }
+      if (params.candidateId) {
+        query = query.eq('candidate_id', params.candidateId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Database messages by context fetch error:', error)
+        throw new Error(`Failed to fetch messages by context: ${error.message}`)
+      }
+
+      return (data || []).map(message => ({
+        id: message.id,
+        orgId: message.org_id,
+        type: message.type,
+        priority: message.priority,
+        subject: message.subject,
+        content: message.content,
+        senderId: message.sender_id,
+        recipientId: message.recipient_id,
+        clientId: message.client_id,
+        jobId: message.job_id,
+        candidateId: message.candidate_id,
+        jobCandidateId: message.job_candidate_id,
+        isRead: message.is_read,
+        readAt: message.read_at,
+        isArchived: message.is_archived,
+        threadId: message.thread_id,
+        replyToId: message.reply_to_id,
+        attachments: message.attachments,
+        tags: message.tags,
+        recordStatus: message.record_status,
+        createdAt: message.created_at,
+        updatedAt: message.updated_at
+      })) as Message[]
+    } catch (err) {
+      console.error('Messages by context fetch exception:', err)
+      throw err
+    }
   }
 
   async createMessage(message: InsertMessage): Promise<Message> {
-    throw new Error('Not implemented')
+    try {
+      const dbMessage = {
+        org_id: message.orgId,
+        type: message.type,
+        priority: message.priority || 'normal',
+        subject: message.subject,
+        content: message.content,
+        sender_id: message.senderId,
+        recipient_id: message.recipientId,
+        client_id: message.clientId,
+        job_id: message.jobId,
+        candidate_id: message.candidateId,
+        job_candidate_id: message.jobCandidateId,
+        is_read: message.isRead || false,
+        is_archived: message.isArchived || false,
+        thread_id: message.threadId,
+        reply_to_id: message.replyToId,
+        attachments: message.attachments,
+        tags: message.tags,
+        record_status: message.recordStatus || 'active',
+        updated_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase
+        .from('messages')
+        .insert(dbMessage)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Database message creation error:', error)
+        throw new Error(`Failed to create message: ${error.message}`)
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        type: data.type,
+        priority: data.priority,
+        subject: data.subject,
+        content: data.content,
+        senderId: data.sender_id,
+        recipientId: data.recipient_id,
+        clientId: data.client_id,
+        jobId: data.job_id,
+        candidateId: data.candidate_id,
+        jobCandidateId: data.job_candidate_id,
+        isRead: data.is_read,
+        readAt: data.read_at,
+        isArchived: data.is_archived,
+        threadId: data.thread_id,
+        replyToId: data.reply_to_id,
+        attachments: data.attachments,
+        tags: data.tags,
+        recordStatus: data.record_status,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Message
+    } catch (err) {
+      console.error('Message creation exception:', err)
+      throw err
+    }
   }
 
   async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message> {
-    throw new Error('Not implemented')
+    try {
+      const updateData: any = {
+        updated_at: new Date().toISOString()
+      }
+
+      if (message.subject !== undefined) updateData.subject = message.subject
+      if (message.content !== undefined) updateData.content = message.content
+      if (message.priority !== undefined) updateData.priority = message.priority
+      if (message.isRead !== undefined) updateData.is_read = message.isRead
+      if (message.isArchived !== undefined) updateData.is_archived = message.isArchived
+      if (message.tags !== undefined) updateData.tags = message.tags
+
+      const { data, error } = await supabase
+        .from('messages')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Database message update error:', error)
+        throw new Error(`Failed to update message: ${error.message}`)
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        type: data.type,
+        priority: data.priority,
+        subject: data.subject,
+        content: data.content,
+        senderId: data.sender_id,
+        recipientId: data.recipient_id,
+        clientId: data.client_id,
+        jobId: data.job_id,
+        candidateId: data.candidate_id,
+        jobCandidateId: data.job_candidate_id,
+        isRead: data.is_read,
+        readAt: data.read_at,
+        isArchived: data.is_archived,
+        threadId: data.thread_id,
+        replyToId: data.reply_to_id,
+        attachments: data.attachments,
+        tags: data.tags,
+        recordStatus: data.record_status,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Message
+    } catch (err) {
+      console.error('Message update exception:', err)
+      throw err
+    }
   }
 
   async markMessageAsRead(messageId: string, userId: string): Promise<void> {
-    // Not implemented
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({
+          is_read: true,
+          read_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', messageId)
+        .eq('recipient_id', userId)
+
+      if (error) {
+        console.error('Database mark message as read error:', error)
+        throw new Error(`Failed to mark message as read: ${error.message}`)
+      }
+    } catch (err) {
+      console.error('Mark message as read exception:', err)
+      throw err
+    }
   }
 
   async archiveMessage(messageId: string): Promise<void> {
-    // Not implemented
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({
+          is_archived: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', messageId)
+
+      if (error) {
+        console.error('Database archive message error:', error)
+        throw new Error(`Failed to archive message: ${error.message}`)
+      }
+    } catch (err) {
+      console.error('Archive message exception:', err)
+      throw err
+    }
   }
 
   async addMessageRecipients(messageId: string, recipientIds: string[]): Promise<MessageRecipient[]> {
-    return []
+    try {
+      const recipients = recipientIds.map(recipientId => ({
+        message_id: messageId,
+        recipient_id: recipientId,
+        is_read: false
+      }))
+
+      const { data, error } = await supabase
+        .from('message_recipients')
+        .insert(recipients)
+        .select()
+
+      if (error) {
+        console.error('Database add message recipients error:', error)
+        throw new Error(`Failed to add message recipients: ${error.message}`)
+      }
+
+      return (data || []).map(recipient => ({
+        id: recipient.id,
+        orgId: recipient.org_id,
+        messageId: recipient.message_id,
+        recipientId: recipient.recipient_id,
+        isRead: recipient.is_read,
+        readAt: recipient.read_at,
+        createdAt: recipient.created_at
+      })) as MessageRecipient[]
+    } catch (err) {
+      console.error('Add message recipients exception:', err)
+      throw err
+    }
   }
 
   async getUnreadMessageCount(userId: string): Promise<number> {
-    return 0
+    try {
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('recipient_id', userId)
+        .eq('is_read', false)
+        .eq('record_status', 'active')
+
+      if (error) {
+        console.error('Database unread message count error:', error)
+        throw new Error(`Failed to get unread message count: ${error.message}`)
+      }
+
+      return count || 0
+    } catch (err) {
+      console.error('Unread message count exception:', err)
+      throw err
+    }
   }
 
   // Pipeline Columns

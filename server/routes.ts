@@ -1201,6 +1201,104 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  app.get("/api/interviews/job-candidate/:jobCandidateId", async (req, res) => {
+    try {
+      const interviews = await storage.getInterviewsByJobCandidate(req.params.jobCandidateId);
+      res.json(interviews);
+    } catch (error) {
+      console.error("Error fetching interviews by job candidate:", error);
+      res.status(500).json({ error: "Failed to fetch interviews" });
+    }
+  });
+
+  // Candidate Notes routes
+  app.get("/api/candidate-notes", async (req, res) => {
+    try {
+      const candidateId = req.query.candidateId as string;
+      const jobCandidateId = req.query.jobCandidateId as string;
+      
+      if (jobCandidateId) {
+        const notes = await storage.getCandidateNotesByJobCandidate(jobCandidateId);
+        res.json(notes);
+      } else if (candidateId) {
+        // Fallback for candidate-based lookup
+        const notes = await storage.getCandidateNotesByJobCandidate(candidateId);
+        res.json(notes);
+      } else {
+        res.status(400).json({ error: "candidateId or jobCandidateId is required" });
+      }
+    } catch (error) {
+      console.error("Error fetching candidate notes:", error);
+      res.status(500).json({ error: "Failed to fetch candidate notes" });
+    }
+  });
+
+  app.post("/api/candidate-notes", writeLimiter, async (req, res) => {
+    try {
+      const note = await storage.createCandidateNote(req.body);
+      res.status(201).json(note);
+    } catch (error) {
+      console.error("Error creating candidate note:", error);
+      res.status(500).json({ error: "Failed to create candidate note" });
+    }
+  });
+
+  // Messages routes
+  app.get("/api/messages", async (req, res) => {
+    try {
+      const userId = req.query.userId as string;
+      const messages = await storage.getMessages(userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching messages:", error);
+      res.status(500).json({ error: "Failed to fetch messages" });
+    }
+  });
+
+  app.get("/api/messages/:id", async (req, res) => {
+    try {
+      const message = await storage.getMessage(req.params.id);
+      if (!message) {
+        return res.status(404).json({ error: "Message not found" });
+      }
+      res.json(message);
+    } catch (error) {
+      console.error("Error fetching message:", error);
+      res.status(500).json({ error: "Failed to fetch message" });
+    }
+  });
+
+  app.post("/api/messages", writeLimiter, async (req, res) => {
+    try {
+      const message = await storage.createMessage(req.body);
+      res.status(201).json(message);
+    } catch (error) {
+      console.error("Error creating message:", error);
+      res.status(500).json({ error: "Failed to create message" });
+    }
+  });
+
+  app.put("/api/messages/:id", writeLimiter, async (req, res) => {
+    try {
+      const message = await storage.updateMessage(req.params.id, req.body);
+      res.json(message);
+    } catch (error) {
+      console.error("Error updating message:", error);
+      res.status(500).json({ error: "Failed to update message" });
+    }
+  });
+
+  app.patch("/api/messages/:id/read", writeLimiter, async (req, res) => {
+    try {
+      const { userId } = req.body;
+      await storage.markMessageAsRead(req.params.id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking message as read:", error);
+      res.status(500).json({ error: "Failed to mark message as read" });
+    }
+  });
+
   // Upload routes (new comprehensive system)
   app.use("/api/upload", uploadRouter);
 
