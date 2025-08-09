@@ -4,21 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Send, Loader2, MapPin, Clock, DollarSign, Building2, Briefcase } from 'lucide-react'
-
-interface PublicJob {
-  id: string
-  title: string
-  description: string
-  location?: string
-  salaryRange?: string
-  createdAt: string
-  publicSlug: string
-  client?: {
-    name: string
-  }
-}
+import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug'
+import { supabase } from '@/lib/supabase'
+import { ArrowLeft, Send, Loader2, MapPin, Clock, DollarSign, Building2, Briefcase, Upload, CheckCircle2, AlertCircle, X, RefreshCw } from 'lucide-react'
+import type { Job } from '@shared/schema'
 
 interface ApplicationFormData {
   firstName: string
@@ -29,11 +20,24 @@ interface ApplicationFormData {
   resume: File | null
 }
 
+interface FileUploadState {
+  isUploading: boolean
+  progress: number
+  uploadedUrl: string | null
+  uploadError: string | null
+  retryCount: number
+}
+
+// File validation constants
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx'];
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [500, 1500, 3000]; // exponential backoff in milliseconds
+
 export default function JobApplicationForm() {
   const { slug } = useParams<{ slug: string }>()
   const [, setLocation] = useLocation()
-  const [job, setJob] = useState<PublicJob | null>(null)
-  const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [formData, setFormData] = useState<ApplicationFormData>({
@@ -44,49 +48,179 @@ export default function JobApplicationForm() {
     coverLetter: '',
     resume: null
   })
+  
+  const [uploadState, setUploadState] = useState<FileUploadState>({
+    isUploading: false,
+    progress: 0,
+    uploadedUrl: null,
+    uploadError: null,
+    retryCount: 0
+  })
+  
   const { toast } = useToast()
 
-  // Fetch job by slug
-  useEffect(() => {
-    if (!slug) return
+  // Use shared hook for consistent data fetching
+  const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug)
+
+  // Validate file client-side
+  const validateFile = (file: File): string | null => {
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      return `File size must be less than ${MAX_FILE_SIZE / 1024 / 1024}MB`;
+    }
     
-    const fetchJob = async () => {
-      try {
-        const response = await fetch(`/api/public/jobs/slug/${slug}`)
-        if (!response.ok) {
-          if (response.status === 404) {
-            toast({
-              title: "Job Not Found",
-              description: "This job posting may have been removed or expired.",
-              variant: "destructive"
-            })
-            setLocation('/careers')
-            return
-          }
-          throw new Error('Failed to fetch job')
-        }
-        const data = await response.json()
-        setJob(data)
-      } catch (error) {
-        console.error('Error fetching job:', error)
-        toast({
-          title: "Error",
-          description: "Failed to load job details",
-          variant: "destructive"
-        })
-      } finally {
-        setLoading(false)
+    // Check file type
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      const extension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+      if (!ALLOWED_EXTENSIONS.includes(extension)) {
+        return 'File must be PDF, DOC, or DOCX format';
       }
     }
+    
+    return null;
+  }
 
-    fetchJob()
-  }, [slug, toast, setLocation])
+  // Generate unique filename for Supabase Storage
+  const generateFileName = (originalName: string): string => {
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const extension = originalName.substring(originalName.lastIndexOf('.'));
+    return `resume_${timestamp}_${randomString}${extension}`;
+  }
 
-  const handleInputChange = (field: keyof ApplicationFormData, value: string | File) => {
+  // Upload file to Supabase Storage with retry logic
+  const uploadFileWithRetry = async (file: File, retryCount = 0): Promise<string> => {
+    try {
+      const fileName = generateFileName(file.name);
+      
+      setUploadState(prev => ({
+        ...prev,
+        isUploading: true,
+        progress: 0,
+        uploadError: null,
+        retryCount
+      }));
+
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, file, {
+          onUploadProgress: (progress) => {
+            const percentage = (progress.loaded / progress.total) * 100;
+            setUploadState(prev => ({
+              ...prev,
+              progress: Math.round(percentage)
+            }));
+          }
+        });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(fileName);
+
+      setUploadState(prev => ({
+        ...prev,
+        isUploading: false,
+        progress: 100,
+        uploadedUrl: publicUrl,
+        uploadError: null
+      }));
+
+      return publicUrl;
+
+    } catch (error) {
+      console.error('Upload error:', error);
+      
+      if (retryCount < MAX_RETRIES - 1) {
+        // Retry with exponential backoff
+        const delay = RETRY_DELAYS[retryCount];
+        
+        toast({
+          title: "Upload Failed",
+          description: `Retrying upload in ${delay / 1000} seconds... (${retryCount + 1}/${MAX_RETRIES})`,
+          variant: "destructive"
+        });
+
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return uploadFileWithRetry(file, retryCount + 1);
+      } else {
+        // Final failure
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
+        setUploadState(prev => ({
+          ...prev,
+          isUploading: false,
+          uploadError: errorMessage,
+          retryCount: MAX_RETRIES
+        }));
+        
+        throw new Error(errorMessage);
+      }
+    }
+  }
+
+  const handleInputChange = (field: keyof ApplicationFormData, value: string | File | null) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+  }
+
+  // Handle file selection with validation
+  const handleFileSelect = (file: File | null) => {
+    if (!file) {
+      handleInputChange('resume', null);
+      setUploadState({
+        isUploading: false,
+        progress: 0,
+        uploadedUrl: null,
+        uploadError: null,
+        retryCount: 0
+      });
+      return;
+    }
+
+    // Validate file
+    const validationError = validateFile(file);
+    if (validationError) {
+      toast({
+        title: "Invalid File",
+        description: validationError,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Set file and start upload
+    handleInputChange('resume', file);
+    uploadFileWithRetry(file).catch(error => {
+      console.error('Upload failed after all retries:', error);
+    });
+  }
+
+  // Clear uploaded file
+  const clearUploadedFile = () => {
+    handleInputChange('resume', null);
+    setUploadState({
+      isUploading: false,
+      progress: 0,
+      uploadedUrl: null,
+      uploadError: null,
+      retryCount: 0
+    });
+  }
+
+  // Retry failed upload
+  const retryUpload = () => {
+    if (formData.resume) {
+      uploadFileWithRetry(formData.resume).catch(error => {
+        console.error('Retry upload failed:', error);
+      });
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -104,16 +238,36 @@ export default function JobApplicationForm() {
       return
     }
 
+    // Check if resume is still uploading
+    if (uploadState.isUploading) {
+      toast({
+        title: "Upload in Progress",
+        description: "Please wait for the resume upload to complete before submitting.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Check for upload errors
+    if (formData.resume && uploadState.uploadError) {
+      toast({
+        title: "Upload Error",
+        description: "Please fix the resume upload error before submitting or remove the file.",
+        variant: "destructive"
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      // Prepare application data (JSON format, not FormData for now)
+      // Prepare application data with resume URL
       const applicationData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone || undefined,
         coverLetter: formData.coverLetter || undefined,
-        // TODO: Handle resume upload later
+        resumeUrl: uploadState.uploadedUrl || undefined,
       }
 
       const response = await fetch(`/api/jobs/${job.id}/apply`, {
@@ -158,6 +312,30 @@ export default function JobApplicationForm() {
     }
   }
 
+  // Error state
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {notFound ? 'Job Not Found' : 'Unable to Load Job'}
+          </h1>
+          <p className="text-gray-600 mb-4">
+            {notFound 
+              ? "This job posting may have been removed or expired."
+              : "We're having trouble loading this job. Please try again later."
+            }
+          </p>
+          <Button onClick={() => setLocation('/careers')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Careers
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -169,19 +347,9 @@ export default function JobApplicationForm() {
     )
   }
 
+  // Should not render if job is null but not loading
   if (!job) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Job Not Found</h1>
-          <p className="text-gray-600 mb-4">This job posting may have been removed or expired.</p>
-          <Button onClick={() => setLocation('/careers')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Careers
-          </Button>
-        </div>
-      </div>
-    )
+    return null;
   }
 
   if (submitted) {
@@ -233,10 +401,10 @@ export default function JobApplicationForm() {
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
-                    {job.client && (
+                    {job.department && (
                       <div className="flex items-center gap-1">
                         <Building2 className="w-4 h-4" />
-                        {job.client.name}
+                        {job.department}
                       </div>
                     )}
                     {job.location && (
@@ -263,12 +431,26 @@ export default function JobApplicationForm() {
         <Card>
           <CardHeader>
             <CardTitle>Apply for this Position</CardTitle>
-            {job.salaryRange && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <DollarSign className="w-4 h-4" />
-                <span>{job.salaryRange}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              {job.jobType && (
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span className="capitalize">{job.jobType.replace('-', ' ')}</span>
+                </div>
+              )}
+              {job.location && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  <span>{job.location}</span>
+                </div>
+              )}
+              {job.department && (
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  <span>{job.department}</span>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -340,31 +522,121 @@ export default function JobApplicationForm() {
 
               <div>
                 <Label htmlFor="resume">Resume Upload (Optional)</Label>
-                <Input
-                  id="resume"
-                  name="resume"
-                  type="file"
-                  accept=".pdf,.doc,.docx"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null
-                    handleInputChange('resume', file)
-                  }}
-                  className="cursor-pointer"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Optional. Accepted formats: PDF, DOC, DOCX (max 10MB)
-                </p>
+                
+                {/* File upload interface */}
+                {!uploadState.uploadedUrl && !uploadState.isUploading && !uploadState.uploadError && (
+                  <div className="mt-2">
+                    <Input
+                      id="resume"
+                      name="resume"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null
+                        handleFileSelect(file)
+                      }}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Optional. Accepted formats: PDF, DOC, DOCX (max 10MB)
+                    </p>
+                  </div>
+                )}
+
+                {/* Upload progress */}
+                {uploadState.isUploading && (
+                  <div className="mt-2 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Upload className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium">Uploading...</span>
+                      <span className="text-xs text-gray-500">
+                        {uploadState.retryCount > 0 && `(Retry ${uploadState.retryCount}/${MAX_RETRIES})`}
+                      </span>
+                    </div>
+                    <Progress value={uploadState.progress} className="mb-2" />
+                    <p className="text-xs text-gray-600">
+                      {formData.resume?.name} - {uploadState.progress}%
+                    </p>
+                  </div>
+                )}
+
+                {/* Upload success */}
+                {uploadState.uploadedUrl && !uploadState.uploadError && (
+                  <div className="mt-2 p-4 border border-green-200 rounded-lg bg-green-50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800">Upload Successful</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearUploadedFile}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-green-700 mt-1">
+                      {formData.resume?.name}
+                    </p>
+                  </div>
+                )}
+
+                {/* Upload error */}
+                {uploadState.uploadError && (
+                  <div className="mt-2 p-4 border border-red-200 rounded-lg bg-red-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                        <span className="text-sm font-medium text-red-800">Upload Failed</span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={retryUpload}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                          disabled={uploadState.isUploading}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearUploadedFile}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-100"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-xs text-red-700">
+                      {uploadState.uploadError}
+                    </p>
+                    {uploadState.retryCount >= MAX_RETRIES && (
+                      <p className="text-xs text-red-600 mt-1">
+                        Maximum retry attempts reached. Please try selecting the file again.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
 
               <Button 
                 type="submit" 
                 className="w-full"
-                disabled={isSubmitting}
+                disabled={isSubmitting || uploadState.isUploading || (formData.resume && uploadState.uploadError)}
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Submitting Application...
+                  </>
+                ) : uploadState.isUploading ? (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Uploading Resume...
                   </>
                 ) : (
                   <>
@@ -373,6 +645,18 @@ export default function JobApplicationForm() {
                   </>
                 )}
               </Button>
+              
+              {uploadState.isUploading && (
+                <p className="text-xs text-center text-gray-500 mt-2">
+                  Please wait for the resume upload to complete before submitting
+                </p>
+              )}
+              
+              {formData.resume && uploadState.uploadError && (
+                <p className="text-xs text-center text-red-600 mt-2">
+                  Please fix the resume upload error or remove the file before submitting
+                </p>
+              )}
             </form>
           </CardContent>
         </Card>

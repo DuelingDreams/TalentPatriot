@@ -4,6 +4,7 @@ import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { ensureResumesBucket, testStorageConnection } from "./lib/storageSetup.js";
 
 const app = express();
 
@@ -180,6 +181,15 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Initialize Supabase Storage setup
+  console.log('🔧 Initializing Supabase Storage...');
+  const storageConnected = await testStorageConnection();
+  if (storageConnected) {
+    await ensureResumesBucket();
+  } else {
+    console.warn('⚠️ Supabase Storage not available. Resume uploads will not work.');
+  }
+
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

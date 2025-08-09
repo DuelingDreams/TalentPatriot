@@ -65,6 +65,51 @@ export interface ApplicantData {
   resumeUrl?: string;
 }
 
+// Resume URL validation function
+function validateResumeUrl(resumeUrl: string): boolean {
+  if (!resumeUrl) return true; // Optional field
+  
+  try {
+    const url = new URL(resumeUrl);
+    
+    // Check if it's a Supabase storage URL
+    if (url.hostname.includes('supabase')) {
+      return true;
+    }
+    
+    // Check if it's a valid HTTPS URL (for other cloud providers)
+    if (url.protocol === 'https:') {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Invalid resume URL format:', resumeUrl);
+    return false;
+  }
+}
+
+// Validate file metadata if available
+function validateFileMetadata(fileMetadata?: { type?: string; size?: number }): string | null {
+  if (!fileMetadata) return null;
+  
+  const { type, size } = fileMetadata;
+  
+  // File type validation
+  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  if (type && !allowedTypes.includes(type)) {
+    return 'Invalid file type. Only PDF, DOC, and DOCX files are allowed.';
+  }
+  
+  // File size validation (10MB max)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (size && size > maxSize) {
+    return 'File size exceeds 10MB limit.';
+  }
+  
+  return null;
+}
+
 export interface ApplicationResult {
   candidateId: string;
   applicationId: string; // This will be the job_candidate record ID
@@ -286,6 +331,23 @@ export async function applyToJob(
   requestContext?: { orgId?: string }
 ): Promise<ApplicationResult> {
   console.log('[JobService] Starting job application process', { jobId, email: applicant.email });
+  
+  // Server-side validation
+  if (!applicant.firstName || !applicant.lastName || !applicant.email) {
+    throw new Error('Missing required fields: firstName, lastName, and email are required');
+  }
+  
+  // Validate resume URL if provided
+  if (applicant.resumeUrl && !validateResumeUrl(applicant.resumeUrl)) {
+    console.error('[JobService] Invalid resume URL:', applicant.resumeUrl);
+    throw new Error('Invalid resume URL. Please upload your resume through the provided interface.');
+  }
+  
+  console.log('[JobService] Validation passed for application:', { 
+    jobId, 
+    email: applicant.email,
+    hasResume: !!applicant.resumeUrl 
+  });
   
   // Start a transaction using RPC function or manual transaction handling
   const { data: jobData, error: jobError } = await supabase
