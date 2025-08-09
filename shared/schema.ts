@@ -99,15 +99,21 @@ export const candidates = pgTable("candidates", {
   createdBy: uuid("created_by"),
 });
 
-// Pipeline columns for Kanban board
+// Pipeline columns for Kanban board (job-specific with backward compatibility)
 export const pipelineColumns = pgTable("pipeline_columns", {
   id: uuid("id").primaryKey().defaultRandom(),
   orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  jobId: uuid("job_id").references(() => jobs.id), // Nullable for backward compatibility
   title: text("title").notNull(),
   position: integer("position").notNull(), // 0, 1, 2, etc. for sort order
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  // Index for performance - job-specific queries
+  jobPositionIdx: index("idx_pipeline_cols_job_pos").on(table.jobId, table.position),
+  // Index for org-wide queries (legacy)
+  orgPositionIdx: index("idx_pipeline_cols_org_pos").on(table.orgId, table.position),
+}));
 
 // Main job-candidate relationships table (replaces old applications table)
 export const jobCandidate = pgTable("job_candidate", {

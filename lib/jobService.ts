@@ -251,6 +251,21 @@ export async function publishJob(jobId: string, userContext: UserContext) {
     console.error('Job publish error:', updateError);
     throw new Error(`Failed to publish job: ${updateError.message}`);
   }
+
+  // Import here to avoid circular dependency
+  const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+  
+  // Ensure default pipeline exists for this job (idempotent)
+  try {
+    await ensureDefaultPipelineForJob({ 
+      jobId: updatedJob.id, 
+      organizationId: updatedJob.org_id 
+    });
+    console.log('Default pipeline ensured for published job:', updatedJob.id);
+  } catch (pipelineError) {
+    console.warn('Failed to create pipeline for job, but job published successfully:', pipelineError);
+    // Don't fail job publishing if pipeline creation fails
+  }
   
   return {
     publicUrl: `/careers/${updatedJob.public_slug}`,
@@ -377,37 +392,20 @@ export async function applyToJob(
       };
     }
 
-    // Step 3: Get first pipeline column for this organization
-    const { data: firstColumn, error: columnError } = await supabase
-      .from('pipeline_columns')
-      .select('id, title')
-      .eq('org_id', orgId)
-      .order('position', { ascending: true })
-      .limit(1)
-      .single();
-
-    let firstColumnData = null;
-    if (columnError) {
-      console.error('[JobService] Error getting first pipeline column:', columnError);
-      // Create default pipeline if it doesn't exist
-      const { data: defaultColumn, error: createColumnError } = await supabase
-        .from('pipeline_columns')
-        .insert({
-          org_id: orgId,
-          title: 'Applied',
-          position: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .select('id, title')
-        .single();
-
-      if (createColumnError) {
-        console.error('[JobService] Error creating default pipeline column:', createColumnError);
-        throw new Error('Failed to initialize pipeline');
-      }
-
-      firstColumnData = { id: defaultColumn.id, title: defaultColumn.title };
+    // Step 3: Get first pipeline column for this specific job
+    // Import here to avoid circular dependency
+    const { getFirstColumnId } = await import('../server/lib/pipelineService');
+    
+    let firstColumnId: string;
+    try {
+      firstColumnId = await getFirstColumnId({ 
+        jobId, 
+        organizationId: orgId 
+      });
+      console.log('[JobService] Got first column ID for job application:', firstColumnId);
+    } catch (columnError) {
+      console.error('[JobService] Error getting first column for job:', columnError);
+      throw new Error('Failed to initialize job pipeline for application');
     }
 
     // Step 4: Create job_candidate application record
@@ -417,7 +415,7 @@ export async function applyToJob(
         org_id: orgId,
         job_id: jobId,
         candidate_id: candidateId,
-        pipeline_column_id: firstColumnData?.id || firstColumn?.id,
+        pipeline_column_id: firstColumnId,
         stage: 'applied',
         notes: applicant.coverLetter || null,
         status: 'active',
@@ -435,7 +433,7 @@ export async function applyToJob(
     console.log('[JobService] Job application completed successfully', {
       candidateId,
       applicationId: application.id,
-      pipelineColumn: firstColumnData?.title || firstColumn?.title
+      firstColumnId
     });
 
     return {

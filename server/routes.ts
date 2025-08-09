@@ -894,6 +894,145 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Job-specific pipeline routes
+  app.get("/api/jobs/:jobId/pipeline", async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      console.log('Fetching pipeline for job:', jobId);
+
+      // Get job details to verify it exists and get organization ID
+      const job = await storage.getJob(jobId);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+
+      // Access org_id from raw data
+      const orgId = (job as any).org_id;
+      console.log('Job orgId extracted:', orgId);
+
+      // Import pipeline service
+      const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+
+      // Ensure pipeline exists for this job
+      await ensureDefaultPipelineForJob({ 
+        jobId, 
+        organizationId: orgId 
+      });
+
+      // Get pipeline columns for this job
+      const { data: columns, error: columnsError } = await supabaseAdmin
+        .from('pipeline_columns')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('org_id', orgId)
+        .order('position');
+
+      if (columnsError) {
+        console.error('Error fetching pipeline columns:', columnsError);
+        throw new Error(`Failed to fetch pipeline columns: ${columnsError.message}`);
+      }
+
+      // Get applications for this job
+      const { data: applications } = await supabaseAdmin
+        .from('job_candidate')
+        .select(`
+          id,
+          job_id,
+          candidate_id,
+          pipeline_column_id,
+          status,
+          created_at,
+          stage,
+          notes,
+          candidate:candidates(id, name, email, phone, resume_url)
+        `)
+        .eq('job_id', jobId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      // Transform data to match frontend interface
+      const pipelineData = {
+        columns: columns?.map(col => ({
+          id: col.id,
+          title: col.title,
+          position: col.position.toString()
+        })) || [],
+        applications: applications?.map(app => ({
+          id: app.id,
+          jobId: app.job_id,
+          candidateId: app.candidate_id,
+          columnId: app.pipeline_column_id,
+          status: app.status,
+          appliedAt: app.created_at,
+          candidate: app.candidate ? {
+            id: app.candidate.id,
+            name: app.candidate.name,
+            email: app.candidate.email,
+            phone: app.candidate.phone,
+            resumeUrl: app.candidate.resume_url
+          } : null
+        })) || []
+      };
+
+      res.json(pipelineData);
+    } catch (error) {
+      console.error('Error fetching job pipeline:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch job pipeline", details: errorMsg });
+    }
+  });
+
+  app.get("/api/jobs/:jobId/pipeline-columns", async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      console.log('Fetching pipeline columns for job:', jobId);
+
+      // Get job details to verify it exists and get organization ID
+      const job = await storage.getJob(jobId);
+      if (!job) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+
+      // Import pipeline service
+      const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+
+      // Access org_id from raw data
+      const orgId = (job as any).org_id;
+
+      // Ensure pipeline exists for this job
+      await ensureDefaultPipelineForJob({ 
+        jobId, 
+        organizationId: orgId 
+      });
+
+      // Get pipeline columns for this job  
+      const { data: columns, error: columnsError } = await supabaseAdmin
+        .from('pipeline_columns')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('org_id', orgId)
+        .order('position');
+
+      if (columnsError) {
+        console.error('Error fetching pipeline columns:', columnsError);
+        throw new Error(`Failed to fetch pipeline columns: ${columnsError.message}`);
+      }
+
+      // Transform data to match frontend interface
+      const pipelineColumns = columns?.map(col => ({
+        id: col.id,
+        title: col.title,
+        position: col.position.toString()
+      })) || [];
+
+      res.json(pipelineColumns);
+    } catch (error) {
+      console.error('Error fetching job pipeline columns:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch job pipeline columns", details: errorMsg });
+    }
+  });
+
   // Candidate notes
   app.get("/api/job-candidates/:jobCandidateId/notes", async (req, res) => {
     try {

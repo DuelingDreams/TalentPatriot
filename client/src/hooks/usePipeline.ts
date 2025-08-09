@@ -28,7 +28,7 @@ export interface PipelineData {
   applications: PipelineApplication[]
 }
 
-// Get pipeline data for an organization
+// Get pipeline data for an organization (legacy)
 export function usePipeline(orgId: string | undefined) {
   return useQuery({
     queryKey: ['pipeline', orgId],
@@ -42,7 +42,21 @@ export function usePipeline(orgId: string | undefined) {
   })
 }
 
-// Get pipeline columns for an organization
+// Get pipeline data for a specific job
+export function useJobPipeline(jobId: string | undefined) {
+  return useQuery({
+    queryKey: ['job-pipeline', jobId],
+    queryFn: async (): Promise<PipelineData> => {
+      if (!jobId) throw new Error('Job ID is required')
+      return apiRequest(`/api/jobs/${jobId}/pipeline`)
+    },
+    enabled: !!jobId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000  // 5 minutes
+  })
+}
+
+// Get pipeline columns for an organization (legacy)
 export function usePipelineColumns(orgId: string | undefined) {
   return useQuery({
     queryKey: ['pipeline-columns', orgId],
@@ -51,6 +65,20 @@ export function usePipelineColumns(orgId: string | undefined) {
       return apiRequest(`/api/pipeline-columns/${orgId}`)
     },
     enabled: !!orgId,
+    staleTime: 5 * 60 * 1000, // 5 minutes - columns don't change often
+    gcTime: 10 * 60 * 1000 // 10 minutes
+  })
+}
+
+// Get pipeline columns for a specific job
+export function useJobPipelineColumns(jobId: string | undefined) {
+  return useQuery({
+    queryKey: ['job-pipeline-columns', jobId],
+    queryFn: async (): Promise<PipelineColumn[]> => {
+      if (!jobId) throw new Error('Job ID is required')
+      return apiRequest(`/api/jobs/${jobId}/pipeline-columns`)
+    },
+    enabled: !!jobId,
     staleTime: 5 * 60 * 1000, // 5 minutes - columns don't change often
     gcTime: 10 * 60 * 1000 // 10 minutes
   })
