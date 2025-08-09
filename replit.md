@@ -8,6 +8,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**August 9, 2025 - Complete UI Contrast and Accessibility Improvements**
+- Updated theme tokens in index.css with high-contrast opaque color values for light and dark modes
+- Enhanced AppModal component with proper z-index management (z-[100] overlay, z-[101] content), solid backgrounds, and body scroll lock
+- Improved all form primitives (Input, Textarea, Select) with opaque backgrounds and accessible high-contrast styling
+- Updated labels and form components to use accessible Tailwind color tokens instead of hardcoded values
+- Enhanced Select dropdown with proper z-index stacking (z-[120]), solid backgrounds, and improved hover/focus states
+- Fixed dropdown-fixes.css to include proper dark mode support and enhanced contrast
+- All UI primitives now use consistent `bg-white dark:bg-slate-900` with `text-slate-900 dark:text-slate-100`
+- Implemented sky-blue focus rings (`focus-visible:ring-sky-500`) for better accessibility across all form controls
+- Modal system now prevents background content bleeding and ensures readable text over dimmed overlays on mobile devices
+
 **August 9, 2025 - Complete E2E Testing Infrastructure Implementation**
 - Built comprehensive E2E testing suite covering full job creation → publish → apply → pipeline flow
 - Created intelligent seed script (server/seed/seed-test.ts) for idempotent test data generation with existing organizations

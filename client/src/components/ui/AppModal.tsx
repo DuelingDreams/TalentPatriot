@@ -97,43 +97,43 @@ export function AppModal({ open, onClose, title, children, footer, className = "
 
   return createPortal(
     <>
-      {/* Overlay */}
+      {/* Overlay with strong dimming */}
       <div 
-        className="fixed inset-0 z-[1100] bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-[1px]"
         onClick={handleOverlayClick}
       />
       
-      {/* Dialog */}
-      <div className="fixed inset-0 z-[1110] overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+      {/* Dialog Container */}
+      <div className="fixed inset-0 z-[101] overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
           <Card 
             ref={modalRef}
-            className={`relative transform overflow-hidden bg-white text-left shadow-xl transition-all sm:my-8 w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl ${className}`}
+            className={`relative transform bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-2xl shadow-2xl transition-all max-h-[90vh] overflow-y-auto w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl ${className}`}
             tabIndex={-1}
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-              <CardTitle id="modal-title" className="text-lg font-semibold">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 px-6 pt-6">
+              <CardTitle id="modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
                 {title}
               </CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onClose}
-                className="h-8 w-8 p-0 hover:bg-gray-100"
+                className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400"
               >
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
             
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 px-6 pb-6">
               {children}
             </CardContent>
             
             {footer && (
-              <div className="bg-gray-50 px-6 py-4 sm:flex sm:flex-row-reverse sm:px-6">
+              <div className="bg-slate-50 dark:bg-slate-800 px-6 py-4 sm:flex sm:flex-row-reverse">
                 {footer}
               </div>
             )}
