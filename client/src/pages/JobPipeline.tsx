@@ -13,7 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
-import { useCandidatesForJob, useUpdateCandidateStage } from '@/hooks/useJobCandidates'
+import { useUpdateCandidateStage } from '@/hooks/useJobCandidates'
+import { useCandidatesForJob } from '@/hooks/useCandidatesForJob'
 import { usePipeline, usePipelineColumns, useMoveApplication, organizeApplicationsByColumn } from '@/hooks/usePipeline'
 import { ResumeUpload } from '@/components/candidates/ResumeUpload'
 import { CandidateNotes } from '@/components/candidates/CandidateNotes'
@@ -665,7 +666,17 @@ export default function JobPipeline() {
   
   // Fetch data - must be called before any conditional returns
   const { data: jobs } = useJobs()
-  const { data: jobCandidates, isLoading: candidatesLoading } = useCandidatesForJob(jobId || undefined)
+  const { 
+    data: jobCandidates, 
+    isLoading: candidatesLoading,
+    realtimeStatus,
+    lastRealtimeEvent,
+    isRealtimeEnabled,
+    refresh: refreshCandidates
+  } = useCandidatesForJob(jobId, { 
+    enableRealtime: true, 
+    pollingInterval: 30 
+  })
   const updateCandidateStage = useUpdateCandidateStage()
 
   // Show demo kanban board for demo viewers
@@ -923,14 +934,34 @@ export default function JobPipeline() {
                     </div>
                   </div>
                 </div>
-                <Badge className={
-                  currentJob.status === 'open' ? 'bg-green-100 text-green-800' :
-                  currentJob.status === 'closed' ? 'bg-gray-100 text-gray-800' :
-                  currentJob.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-blue-100 text-blue-800'
-                }>
-                  {currentJob.status.replace('_', ' ')}
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge className={
+                    currentJob.status === 'open' ? 'bg-green-100 text-green-800' :
+                    currentJob.status === 'closed' ? 'bg-gray-100 text-gray-800' :
+                    currentJob.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-blue-100 text-blue-800'
+                  }>
+                    {currentJob.status.replace('_', ' ')}
+                  </Badge>
+                  
+                  {/* Realtime Status Indicator */}
+                  {isRealtimeEnabled && (
+                    <Badge variant="outline" className={`
+                      ${realtimeStatus === 'connected' ? 'text-green-600 border-green-300' : ''}
+                      ${realtimeStatus === 'connecting' ? 'text-yellow-600 border-yellow-300' : ''}
+                      ${realtimeStatus === 'disconnected' ? 'text-red-600 border-red-300' : ''}
+                    `}>
+                      <div className={`w-2 h-2 rounded-full mr-1 ${
+                        realtimeStatus === 'connected' ? 'bg-green-500' : 
+                        realtimeStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' :
+                        realtimeStatus === 'disconnected' ? 'bg-red-500' : 'bg-gray-500'
+                      }`} />
+                      {realtimeStatus === 'connected' ? 'Live' :
+                       realtimeStatus === 'connecting' ? 'Connecting...' :
+                       realtimeStatus === 'disconnected' ? 'Offline' : 'Static'}
+                    </Badge>
+                  )}
+                </div>
               </div>
               {currentJob.description && (
                 <p className="text-slate-600 mt-4">{currentJob.description}</p>

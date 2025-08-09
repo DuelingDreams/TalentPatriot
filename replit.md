@@ -8,6 +8,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+**August 9, 2025 - Supabase Realtime Pipeline System Implementation**
+- Implemented comprehensive Supabase Realtime system for live pipeline updates with automatic fallback
+- Created useCandidatesForJob hook with realtime subscriptions on job_candidate and pipeline_columns tables
+- Added intelligent connection health monitoring and exponential backoff retry logic for realtime failures
+- Built fallback polling system (30s intervals) when realtime connections are unavailable
+- Integrated realtime status indicators in JobPipeline UI with live connection status badges
+- Enhanced job application notifications with toast alerts for new candidates arriving in pipeline
+- Established automatic React Query cache invalidation on INSERT/UPDATE/DELETE database events
+- Implemented clean subscription management with proper mount/unmount lifecycle handling
+- Added comprehensive error handling and logging for realtime connection issues
+- Candidates now appear instantly in pipeline without manual refresh when realtime is active
+
 **August 9, 2025 - Job-Specific Pipeline System Implementation**
 - Implemented complete job-specific pipeline system with individual pipelines per job posting
 - Added job_id field to pipeline_columns table with proper database migration and indexing

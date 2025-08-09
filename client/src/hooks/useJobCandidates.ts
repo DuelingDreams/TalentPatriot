@@ -52,9 +52,10 @@ export function useJobCandidate(id?: string) {
   })
 }
 
-export function useCandidatesForJob(jobId?: string) {
+export function useCandidatesForJob(jobId?: string, options?: { enableRealtime?: boolean; pollingInterval?: number }) {
   const { currentOrgId, userRole } = useAuth()
   
+  // Fallback to original implementation for demo users
   return useQuery({
     queryKey: ['/api/jobs', jobId, 'candidates', { orgId: currentOrgId }],
     queryFn: () => {
