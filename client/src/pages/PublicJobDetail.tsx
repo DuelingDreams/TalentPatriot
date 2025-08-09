@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useLocation } from 'wouter';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MapPin, Calendar, Building2, Clock, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug';
 import type { Job } from '@shared/schema';
 
 interface ApplicationForm {
@@ -36,10 +36,8 @@ export default function PublicJobDetail() {
     coverLetter: ''
   });
 
-  const { data: job, isLoading } = useQuery<Job>({
-    queryKey: [`/api/public/jobs/${id}`],
-    enabled: !!id,
-  });
+  // Use shared hook for consistent data fetching
+  const { job, isLoading, error, notFound } = usePublicJobBySlug(id);
 
   const applicationMutation = useMutation({
     mutationFn: async (data: Omit<ApplicationForm, 'coverLetter'>) => {
@@ -104,6 +102,30 @@ export default function PublicJobDetail() {
     });
   };
 
+  // Error state
+  if (error && !isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {notFound ? 'Job Not Found' : 'Unable to Load Job'}
+          </h1>
+          <p className="text-gray-600 mb-6">
+            {notFound 
+              ? "The job you're looking for doesn't exist or is no longer available."
+              : "We're having trouble loading this job. Please try again later."
+            }
+          </p>
+          <Button onClick={() => setLocation('/jobs')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Jobs
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">
@@ -122,19 +144,9 @@ export default function PublicJobDetail() {
     );
   }
 
+  // Should not render if job is null but not loading
   if (!job) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Job Not Found</h1>
-          <p className="text-gray-600 mb-6">The job you're looking for doesn't exist or is no longer available.</p>
-          <Button onClick={() => setLocation('/jobs')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Jobs
-          </Button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (

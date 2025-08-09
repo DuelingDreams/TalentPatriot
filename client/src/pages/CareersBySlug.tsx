@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -6,20 +6,9 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
+import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug'
 import { MapPin, Clock, DollarSign, Briefcase, Building2, Send, Loader2, ArrowLeft } from 'lucide-react'
-
-interface PublicJob {
-  id: string
-  title: string
-  description: string
-  location?: string
-  salaryRange?: string
-  createdAt: string
-  publicSlug: string
-  client?: {
-    name: string
-  }
-}
+import type { Job } from '@shared/schema'
 
 interface ApplicationFormData {
   name: string
@@ -31,8 +20,6 @@ interface ApplicationFormData {
 export default function CareersBySlug() {
   const { slug } = useParams<{ slug: string }>()
   const [, setLocation] = useLocation()
-  const [job, setJob] = useState<PublicJob | null>(null)
-  const [loading, setLoading] = useState(true)
   const [isApplying, setIsApplying] = useState(false)
   const [applicationSubmitted, setApplicationSubmitted] = useState(false)
   const [applicationData, setApplicationData] = useState<ApplicationFormData>({
@@ -43,43 +30,10 @@ export default function CareersBySlug() {
   })
   const { toast } = useToast()
 
-  // Fetch job by slug
-  useEffect(() => {
-    if (!slug) return
-    
-    const fetchJob = async () => {
-      try {
-        const response = await fetch(`/api/public/jobs/slug/${slug}`)
-        if (!response.ok) {
-          if (response.status === 404) {
-            toast({
-              title: "Job Not Found",
-              description: "This job posting may have been removed or expired.",
-              variant: "destructive"
-            })
-            setLocation('/careers')
-            return
-          }
-          throw new Error('Failed to fetch job')
-        }
-        const data = await response.json()
-        setJob(data)
-      } catch (error) {
-        console.error('Error fetching job:', error)
-        toast({
-          title: "Error",
-          description: "Failed to load job details",
-          variant: "destructive"
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
+  // Use shared hook for consistent data fetching
+  const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug)
 
-    fetchJob()
-  }, [slug, toast, setLocation])
-
-  const handleInputChange = (field: keyof ApplicationFormData, value: string | File) => {
+  const handleInputChange = (field: keyof ApplicationFormData, value: string | File | null) => {
     setApplicationData(prev => ({
       ...prev,
       [field]: value
@@ -148,6 +102,30 @@ export default function CareersBySlug() {
     }
   }
 
+  // Error state
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {notFound ? 'Job Not Found' : 'Unable to Load Job'}
+          </h1>
+          <p className="text-gray-600 mb-4">
+            {notFound 
+              ? "This job posting may have been removed or expired."
+              : "We're having trouble loading this job. Please try again later."
+            }
+          </p>
+          <Button onClick={() => setLocation('/careers')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Jobs
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -159,19 +137,9 @@ export default function CareersBySlug() {
     )
   }
 
+  // Should not render if job is null but not loading
   if (!job) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Job Not Found</h1>
-          <p className="text-gray-600 mb-4">This job posting may have been removed or expired.</p>
-          <Button onClick={() => setLocation('/careers')}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Jobs
-          </Button>
-        </div>
-      </div>
-    )
+    return null;
   }
 
   return (
@@ -194,10 +162,10 @@ export default function CareersBySlug() {
             <div>
               <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
               <div className="flex items-center gap-4 text-sm text-gray-600">
-                {job.client && (
+                {job.department && (
                   <div className="flex items-center gap-1">
                     <Building2 className="w-4 h-4" />
-                    {job.client.name}
+                    {job.department}
                   </div>
                 )}
                 {job.location && (
@@ -335,20 +303,20 @@ export default function CareersBySlug() {
                 <CardTitle>Job Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {job.salaryRange && (
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm">{job.salaryRange}</span>
-                  </div>
-                )}
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">Full-time position</span>
+                  <span className="text-sm capitalize">{job.jobType?.replace('-', ' ') || 'Full-time'}</span>
                 </div>
                 {job.location && (
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-gray-400" />
                     <span className="text-sm">{job.location}</span>
+                  </div>
+                )}
+                {job.department && (
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm">{job.department}</span>
                   </div>
                 )}
               </CardContent>

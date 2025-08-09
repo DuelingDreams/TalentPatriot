@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
 import { MapPin, Calendar, Building2, DollarSign, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useDebounce } from '@/hooks/useDebounce';
+import { usePublicJobs } from '@/hooks/usePublicJobs';
 import type { Job } from '@shared/schema';
 
 export default function PublicJobsList() {
@@ -14,19 +15,60 @@ export default function PublicJobsList() {
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('__all_types');
 
-  const { data: jobs = [], isLoading } = useQuery<Job[]>({
-    queryKey: ['/api/public/jobs'],
+  // Debounce search term to prevent excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 400);
+  const debouncedLocationFilter = useDebounce(locationFilter, 400);
+
+  // Use the shared hook with debounced search
+  const filters = useMemo(() => ({
+    location: debouncedLocationFilter || undefined,
+    jobType: typeFilter === '__all_types' ? undefined : typeFilter,
+  }), [debouncedLocationFilter, typeFilter]);
+
+  const { 
+    jobs, 
+    isLoading, 
+    error, 
+    isEmpty 
+  } = usePublicJobs({
+    q: debouncedSearchTerm || undefined,
+    filters
   });
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLocation = !locationFilter || job.location?.toLowerCase().includes(locationFilter.toLowerCase());
-    const matchesType = typeFilter === '__all_types' || job.jobType === typeFilter;
+  // Client-side filtering for immediate feedback on search input
+  const filteredJobs = useMemo(() => {
+    if (!searchTerm && !locationFilter && typeFilter === '__all_types') {
+      return jobs;
+    }
     
-    return matchesSearch && matchesLocation && matchesType;
-  });
+    return jobs.filter(job => {
+      const matchesSearch = !searchTerm || 
+        job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        job.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesLocation = !locationFilter || 
+        job.location?.toLowerCase().includes(locationFilter.toLowerCase());
+      const matchesType = typeFilter === '__all_types' || job.jobType === typeFilter;
+      
+      return matchesSearch && matchesLocation && matchesType;
+    });
+  }, [jobs, searchTerm, locationFilter, typeFilter]);
 
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Unable to Load Jobs</h1>
+          <p className="text-gray-600 mb-6">We're having trouble loading the job listings. Please try again later.</p>
+          <Button onClick={() => window.location.reload()}>
+            Refresh Page
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-12">

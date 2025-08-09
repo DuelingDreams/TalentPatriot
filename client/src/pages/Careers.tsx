@@ -1,35 +1,30 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useMemo } from 'react'
 import { useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX } from 'lucide-react'
-import { EmptyState } from '@/components/ui/empty-state'
-
-interface PublicJob {
-  id: string
-  title: string
-  description: string
-  location?: string
-  salaryRange?: string
-  createdAt: string
-  publicSlug: string
-  client?: {
-    name: string
-  }
-}
+import { useDebounce } from '@/hooks/useDebounce'
+import { usePublicJobs } from '@/hooks/usePublicJobs'
+import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX, Calendar } from 'lucide-react'
+import type { Job } from '@shared/schema'
 
 export default function Careers() {
   const [searchTerm, setSearchTerm] = useState('')
   const [, setLocation] = useLocation()
   const { toast } = useToast()
 
-  // Fetch public jobs using React Query
-  const { data: jobs = [], isLoading: loading, error } = useQuery({
-    queryKey: ['/api/public/jobs'],
-    queryFn: () => fetch('/api/public/jobs').then(r => r.json())
+  // Debounce search term to prevent excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 400)
+
+  // Use shared hook for consistent data fetching with caching
+  const { 
+    jobs, 
+    isLoading: loading, 
+    error, 
+    isEmpty 
+  } = usePublicJobs({
+    q: debouncedSearchTerm || undefined
   })
 
   // Handle errors
@@ -41,11 +36,16 @@ export default function Careers() {
     })
   }
 
-  const filteredJobs = jobs.filter((job: PublicJob) =>
-    job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    job.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  // Client-side filtering for immediate feedback on search input
+  const filteredJobs = useMemo(() => {
+    if (!searchTerm) return jobs;
+    
+    return jobs.filter((job: Job) =>
+      job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [jobs, searchTerm])
 
 
 
@@ -100,15 +100,15 @@ export default function Careers() {
           </div>
         ) : filteredJobs.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredJobs.map((job: PublicJob) => (
+            {filteredJobs.map((job: Job) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => setLocation(`/careers/${job.publicSlug}/apply`)}>
                 <CardHeader>
                   <CardTitle className="text-xl">{job.title}</CardTitle>
-                  {job.client && (
+                  {job.department && (
                     <div className="flex items-center gap-2 text-gray-600 mt-1">
                       <Building2 className="w-4 h-4" />
-                      <span>{job.client.name}</span>
+                      <span>{job.department}</span>
                     </div>
                   )}
                 </CardHeader>
@@ -122,14 +122,14 @@ export default function Careers() {
                         <span>{job.location}</span>
                       </div>
                     )}
-                    {job.salaryRange && (
+                    {job.jobType && (
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4" />
-                        <span>{job.salaryRange}</span>
+                        <Clock className="w-4 h-4" />
+                        <span className="capitalize">{job.jobType.replace('-', ' ')}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4" />
+                      <Calendar className="w-4 h-4" />
                       <span>Posted {new Date(job.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
