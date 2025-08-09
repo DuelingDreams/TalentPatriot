@@ -1,105 +1,10 @@
 # Project Overview
 
-This is a full-stack Applicant Tracking System (ATS) web application, designed for small and mid-sized businesses (teams of 5-500 employees). It aims to be a lightweight, candidate-friendly ATS that provides essential recruitment management features without unnecessary complexity. Key capabilities include a modern dashboard, recruitment pipeline management, client and candidate tracking, and internal team communication. The project envisions replacing traditional ATS, spreadsheet-based systems, and improving team collaboration in hiring.
+This is a full-stack Applicant Tracking System (ATS) web application designed for small and mid-sized businesses (teams of 5-500 employees). It aims to be a lightweight, candidate-friendly ATS offering essential recruitment management features without unnecessary complexity. Key capabilities include a modern dashboard, recruitment pipeline management, client and candidate tracking, and internal team communication. The project's vision is to replace traditional ATS and spreadsheet-based systems, enhancing team collaboration in hiring and improving the overall recruitment experience.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
-
-## Recent Changes
-
-**August 9, 2025 - Complete Demo Mode Security Implementation**
-- Achieved comprehensive demo mode security with zero unprotected server writes when isDemoUser is true
-- Protected all remaining direct API calls: OnboardingStep2.tsx, OrganizationSetup.tsx, ResumeUpload.tsx, useCandidateNotes.ts create function
-- Added demo protection to health.tsx database operations, ForgotPassword.tsx password reset, and AuthCallback.tsx database checks
-- Standardized protection pattern across codebase: Import useDemoFlag, check isDemoUser, return early or show demo message
-- Maintained OAuth authentication compatibility while ensuring complete API call isolation in demo mode
-- Demo safety verified: Server writes completely blocked when isDemoUser is true across entire application
-
-**August 9, 2025 - Comprehensive Demo Mode Architecture Implementation**
-- Built complete Demo Mode system with centralized adapter pattern architecture for full feature parity and data isolation
-- Implemented dataAdapter.ts as unified demo/live data switching layer with in-memory demo storage
-- Updated AuthContext with useDemoFlag() hook supporting userRole, URL parameter (?demo=true), and localStorage persistence
-- Modified core data hooks (useJobs, useClients, useJobCandidates) to use adapter pattern with demo detection
-- Established sophisticated demo toggle system with three access methods: URL parameter, demo_viewer role, localStorage
-- Created comprehensive Demo Access Guide with security guarantees and usage instructions
-- Maintained visual consistency between demo and live modes while ensuring complete API call isolation
-- Built demo data structure with realistic company profiles, job postings, and candidate pipelines
-- Integrated demo mode throughout application with proper React Query configuration (disabled refetch, extended staleTime)
-
-**August 9, 2025 - Dynamic Dashboard Quick Actions Implementation**
-- Updated QuickActions component to use live data for authenticated users instead of hard-coded demo counts
-- Implemented data-aware logic that computes real "pending review" and "new in last 24h" counts from job candidates
-- Added role-based rendering: demo viewers see original demo numbers, authenticated users see live data
-- Enhanced application review metrics with flexible stage matching (applied/new/inbox)
-- Hidden badges when counts are zero to prevent misleading information
-- Maintained backward compatibility while removing hard-coded "8 pending review" and "8 new" demo strings
-- QuickActions now dynamically calculates available actions count for the badge display
-
-**August 9, 2025 - Complete UI Contrast and Accessibility Improvements**
-- Updated theme tokens in index.css with high-contrast opaque color values for light and dark modes
-- Enhanced AppModal component with proper z-index management (z-[100] overlay, z-[101] content), solid backgrounds, and body scroll lock
-- Improved all form primitives (Input, Textarea, Select) with opaque backgrounds and accessible high-contrast styling
-- Updated labels and form components to use accessible Tailwind color tokens instead of hardcoded values
-- Enhanced Select dropdown with proper z-index stacking (z-[120]), solid backgrounds, and improved hover/focus states
-- Fixed dropdown-fixes.css to include proper dark mode support and enhanced contrast
-- All UI primitives now use consistent `bg-white dark:bg-slate-900` with `text-slate-900 dark:text-slate-100`
-- Implemented sky-blue focus rings (`focus-visible:ring-sky-500`) for better accessibility across all form controls
-- Modal system now prevents background content bleeding and ensures readable text over dimmed overlays on mobile devices
-
-**August 9, 2025 - Complete E2E Testing Infrastructure Implementation**
-- Built comprehensive E2E testing suite covering full job creation → publish → apply → pipeline flow
-- Created intelligent seed script (server/seed/seed-test.ts) for idempotent test data generation with existing organizations
-- Implemented headless API testing system (cypress/e2e-api/) that works without GUI dependencies
-- Established Cypress configuration with custom commands for job creation, publishing, and application testing
-- Added complete test coverage: jobs-publish.cy.ts, public-apply.cy.ts, pipeline-inbox.cy.ts
-- Created automated test runner script (test-scripts/run-e2e-tests.sh) with colored output and error handling
-- Built simple E2E test for public-facing recruitment flow validation without authentication requirements
-- All tests validate: job publishing, public visibility, application submission, pipeline integration, and realtime updates
-- Test suite ready for CI/CD integration with proper exit codes and comprehensive logging
-
-**August 9, 2025 - Supabase Realtime Pipeline System Implementation**
-- Implemented comprehensive Supabase Realtime system for live pipeline updates with automatic fallback
-- Created useCandidatesForJob hook with realtime subscriptions on job_candidate and pipeline_columns tables
-- Added intelligent connection health monitoring and exponential backoff retry logic for realtime failures
-- Built fallback polling system (30s intervals) when realtime connections are unavailable
-- Integrated realtime status indicators in JobPipeline UI with live connection status badges
-- Enhanced job application notifications with toast alerts for new candidates arriving in pipeline
-- Established automatic React Query cache invalidation on INSERT/UPDATE/DELETE database events
-- Implemented clean subscription management with proper mount/unmount lifecycle handling
-- Added comprehensive error handling and logging for realtime connection issues
-- Candidates now appear instantly in pipeline without manual refresh when realtime is active
-
-**August 9, 2025 - Job-Specific Pipeline System Implementation**
-- Implemented complete job-specific pipeline system with individual pipelines per job posting
-- Added job_id field to pipeline_columns table with proper database migration and indexing
-- Created ensureDefaultPipelineForJob service with automatic 5-column creation (Applied → Screen → Interview → Offer → Hired)
-- Built job-specific API endpoints: GET /api/jobs/:jobId/pipeline and GET /api/jobs/:jobId/pipeline-columns
-- Integrated pipeline creation with job publishing workflow for seamless recruitment flow
-- Implemented idempotent pipeline operations preventing duplicate column creation
-- Fixed database field mapping issues between snake_case (database) and camelCase (TypeScript)
-- Added comprehensive error handling and validation throughout pipeline services
-- Established complete end-to-end testing verification with successful job application placement
-- All job applications now automatically place candidates in the "Applied" column
-
-**August 8, 2025 - Subdomain-Based Organization Routing Implementation**
-- Implemented professional subdomain-based careers pages for multi-tenant organization isolation
-- Created subdomain middleware that automatically detects organization from hostname
-- Updated careers API to serve organization-specific job listings with complete data isolation
-- Added SQL migration system to generate unique URL-safe slugs for all organizations
-- Enhanced careers page header to dynamically display company name from subdomain
-- Established secure multi-tenant routing: company-name.talentpatriot.app/careers
-- Complete security implementation preventing cross-organization data leakage
-- Professional branded experience for job seekers with organization-specific contexts
-- Application ready for redeployment with subdomain routing functionality
-
-**August 8, 2025 - Candidate Notes System Implementation**
-- Enhanced pipeline candidate cards to match demo design with fully functional Notes buttons
-- Implemented comprehensive candidate notes system with create/view/privacy functionality
-- Added CandidateNotesDialog component with professional UI and user authentication
-- Created complete backend storage methods for candidate notes with Supabase integration
-- Set up candidate_notes database table with RLS policies and performance indexes
-- Fixed API endpoints to use correct jobCandidateId parameter structure
 
 ## System Architecture
 
@@ -110,21 +15,15 @@ Preferred communication style: Simple, everyday language.
 - **Component Library**: Shadcn/ui
 - **State Management**: TanStack React Query for server state
 - **Build Tool**: Vite
-- **Design Principles**: Light mode with soft gray backgrounds, rounded cards, and a consistent TalentPatriot brand styling system (Navy, Soft Blue, Light Gray, Inter font family). Professional UI/UX overhaul with modern analytics and professional appearance. Enhanced popover/modal UX with proper z-index stacking (z-[100]) and collision detection.
+- **Design Principles**: Light mode with soft gray backgrounds, rounded cards, and a consistent TalentPatriot brand styling system (Navy, Soft Blue, Light Gray, Inter font family). Professional UI/UX with modern analytics and appearance. Enhanced popover/modal UX with proper z-index stacking and collision detection. Implemented complete UI contrast and accessibility improvements with high-contrast opaque color values for light and dark modes, and accessible focus rings.
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **API Structure**: Clean RESTful endpoints with comprehensive Zod validation
 - **Request Handling**: JSON and URL-encoded body parsing with strict input validation
-- **Error Handling**: Centralized error middleware with detailed Zod validation errors, comprehensive DOM exception prevention, and refined error handling for stability.
-- **API Endpoints**: Complete recruitment flow implementation:
-  - `POST /api/jobs` - Job creation with validation (default draft status)
-  - `POST /api/jobs/:jobId/publish` - Job publishing endpoint
-  - `GET /api/public/jobs` - Public job listings for careers page
-  - `POST /api/jobs/:jobId/apply` - Job application with file upload
-  - `POST /api/candidates` - Candidate creation with duplicate checking
-  - Pipeline integration with automatic column assignment
-- **Validation**: Comprehensive Zod schemas for all inputs with detailed error messages
+- **Error Handling**: Centralized error middleware with detailed Zod validation errors and refined error handling for stability.
+- **API Endpoints**: Support for a complete recruitment flow including job creation, publishing, public listings, application submission with file upload, and candidate management.
+- **Validation**: Comprehensive Zod schemas for all inputs.
 
 ### Data Storage
 - **ORM**: Drizzle ORM
@@ -132,25 +31,25 @@ Preferred communication style: Simple, everyday language.
 - **Schema**: ATS-specific tables with UUID primary keys and `org_id` foreign keys for multi-tenancy.
 - **Migrations**: Drizzle-kit for schema migrations.
 - **Key Schema Decisions**:
-    - **Multi-tenancy**: Organizations table, `user_organizations` join table for role-based access, and `org_id` foreign keys across all core tables for complete data isolation.
-    - **Role-Based Access Control (RBAC)**: Comprehensive Row-Level Security (RLS) policies implemented for `hiring_manager`, `recruiter`, `admin`, `interviewer`, and `demo_viewer` roles. User roles are securely stored in a `user_profiles` table.
-    - **Dynamic Pipeline System**: `pipeline_columns` table for configurable Kanban stages and `applications` table for job-candidate relationships with dynamic column assignments.
-    - **Performance Optimization**: Extensive indexing (15+ indexes for `org_id`, status, search), intelligent query caching (React Query), materialized views, and full-text search (GIN indexes).
-    - **Security**: UUID-based primary keys, proper foreign key relationships, comprehensive form validation, rate limiting, secure authentication (Supabase Auth, OAuth for Google/Microsoft), and anti-phishing security headers.
+    - **Multi-tenancy**: Organizations table, `user_organizations` join table for role-based access, and `org_id` foreign keys across all core tables for complete data isolation. Subdomain-based organization routing for careers pages ensures secure multi-tenant isolation.
+    - **Role-Based Access Control (RBAC)**: Comprehensive Row-Level Security (RLS) policies implemented for `hiring_manager`, `recruiter`, `admin`, `interviewer`, and `demo_viewer` roles.
+    - **Dynamic Pipeline System**: `pipeline_columns` table for configurable Kanban stages and `applications` table for job-candidate relationships with dynamic column assignments. Job-specific pipelines are automatically created with default columns (Applied → Screen → Interview → Offer → Hired) upon job publishing.
+    - **Performance Optimization**: Extensive indexing, intelligent query caching (React Query), materialized views, and full-text search (GIN indexes).
+    - **Security**: UUID-based primary keys, proper foreign key relationships, comprehensive form validation, rate limiting, secure authentication (Supabase Auth, OAuth for Google/Microsoft), and anti-phishing security headers. Comprehensive demo mode architecture implemented to prevent server writes when `isDemoUser` is true.
 
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.
-- **Job-Specific Pipeline System**: Individual Kanban-style pipelines for each job posting with automatic 5-column creation (Applied → Screen → Interview → Offer → Hired). Complete isolation between job pipelines with seamless candidate progression tracking.
-- **Recruitment Pipeline**: Enhanced pipeline dashboard with dynamic columns, drag-and-drop functionality, and job-specific candidate management.
+- **Job-Specific Pipeline System**: Individual Kanban-style pipelines for each job posting with drag-and-drop functionality and job-specific candidate management. Supabase Realtime provides live pipeline updates with automatic fallback to polling.
 - **Complete Recruitment Workflow**: End-to-end job posting flow from draft creation → publishing → public careers listing → candidate application → job-specific pipeline placement.
-- **Public Careers Portal**: Dedicated public-facing job listings at `/public/careers` with professional application forms and file upload support.
-- **Candidate Notes System**: Comprehensive notes management for pipeline candidates with privacy controls, user authentication, and team collaboration features.
-- **Interview Scheduling**: Advanced calendar interface with improved popover handling - fixed clipping issues on mobile and desktop with proper z-index stacking, collision detection, and responsive design.
-- **Onboarding Workflow**: 5-step user onboarding including account creation, company setup, goal-based personalization, guided job creation/candidate import, and success celebration.
-- **Job Board Integration**: UI for various job boards (LinkedIn, Indeed, etc.) with cost estimates and multi-platform distribution.
+- **Public Careers Portal**: Dedicated public-facing job listings at `/public/careers` with professional application forms and file upload support, supporting subdomain-based routing for branded experiences.
+- **Candidate Notes System**: Comprehensive notes management for pipeline candidates with privacy controls and user authentication.
+- **Interview Scheduling**: Advanced calendar interface with improved popover handling.
+- **Onboarding Workflow**: 5-step user onboarding process.
+- **Job Board Integration**: UI for various job boards with cost estimates.
 - **Internal Communication**: Team messaging system.
-- **Reporting & Analytics**: Dashboard with key statistics, performance overview, and data visualizations.
-- **Resume Management**: Upload, preview (PDF/Word), and organization-based storage of resumes.
+- **Reporting & Analytics**: Dashboard with key statistics and performance overview.
+- **Resume Management**: Upload, preview, and organization-based storage of resumes.
+- **Dynamic Dashboard Quick Actions**: Live data computation for "pending review" and "new in last 24h" counts for authenticated users.
 
 ## External Dependencies
 
@@ -161,5 +60,5 @@ Preferred communication style: Simple, everyday language.
 - **Date Handling**: date-fns
 - **Charting**: Recharts
 - **Image Upload**: Multer (backend)
-- **Security**: HaveIBeenPwned.org (for password security checks)
+- **Security**: HaveIBeenPwned.org
 - **OAuth Providers**: Google, Microsoft
