@@ -60,6 +60,15 @@ export default function OnboardingStep5() {
         color: 'bg-purple-50 hover:bg-purple-100 border-purple-200',
         iconColor: 'text-purple-600',
         id: 'invite-team'
+      },
+      {
+        title: 'Explore Dashboard',
+        description: 'Take a guided tour of your new ATS platform',
+        icon: MessageCircle,
+        link: '/dashboard?onboarding=true&tour=welcome',
+        color: 'bg-orange-50 hover:bg-orange-100 border-orange-200',
+        iconColor: 'text-orange-600',
+        id: 'explore'
       }
     ]
 
@@ -211,12 +220,20 @@ export default function OnboardingStep5() {
 
         {/* Dashboard Link */}
         <div className="text-center mt-8">
-          <Link href="/dashboard">
-            <Button variant="ghost" className="text-talentpatriot-softblue hover:text-talentpatriot-navy">
-              Skip to Dashboard
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
+          <div className="flex justify-center gap-4">
+            <Link href="/dashboard">
+              <Button variant="ghost" className="text-talentpatriot-softblue hover:text-talentpatriot-navy">
+                Go to Dashboard
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+            
+            <Link href="/onboarding/checklist">
+              <Button variant="outline" className="border-talentpatriot-softblue text-talentpatriot-softblue hover:bg-talentpatriot-softblue hover:text-white">
+                View Full Checklist
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 

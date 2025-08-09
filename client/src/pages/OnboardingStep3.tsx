@@ -15,12 +15,12 @@ import {
 
 const goalOptions = [
   {
-    id: 'post-job',
+    id: 'create-job',
     title: 'Post a job',
     description: 'Create your first job posting and start attracting candidates',
     icon: Plus,
     color: 'bg-blue-500',
-    path: '/jobs',
+    path: '/jobs?onboarding=true&action=create-guided',
     action: 'create-job'
   },
   {
@@ -29,25 +29,25 @@ const goalOptions = [
     description: 'Upload your existing candidate database or resume files',
     icon: Users,
     color: 'bg-green-500',
-    path: '/candidates',
+    path: '/candidates?onboarding=true&action=import-guided',
     action: 'import-candidates'
   },
   {
-    id: 'invite-teammate',
+    id: 'invite-team',
     title: 'Invite a teammate',
     description: 'Add team members to collaborate on hiring decisions',
     icon: UserPlus,
     color: 'bg-purple-500',
-    path: '/dashboard',
+    path: '/onboarding/checklist?focus=team',
     action: 'invite-team'
   },
   {
-    id: 'explore-dashboard',
+    id: 'explore',
     title: 'Explore the dashboard',
     description: 'Take a tour of TalentPatriot and see what you can do',
     icon: BarChart3,
     color: 'bg-orange-500',
-    path: '/dashboard',
+    path: '/dashboard?onboarding=true&tour=welcome',
     action: 'explore'
   }
 ]

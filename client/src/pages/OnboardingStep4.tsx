@@ -115,6 +115,23 @@ export default function OnboardingStep4() {
     setIsAutoPlaying(false)
     setLocation(`/onboarding/step5?goal=${selectedGoal || 'explore'}`)
   }
+  
+  const handleCompleteWalkthrough = () => {
+    setLocation(`/onboarding/step5?goal=${selectedGoal || 'explore'}`)
+  }
+  
+  const handleSkipToGoal = () => {
+    // Get the goal-specific destination and route directly there
+    const goalDestinations = {
+      'create-job': '/jobs?onboarding=true&action=create-guided',
+      'import-candidates': '/candidates?onboarding=true&action=import-guided', 
+      'invite-team': '/onboarding/checklist?focus=team',
+      'explore': '/dashboard?onboarding=true&tour=welcome'
+    }
+    
+    const destination = goalDestinations[selectedGoal as keyof typeof goalDestinations] || '/dashboard'
+    setLocation(destination)
+  }
 
   const handlePauseResume = () => {
     setIsAutoPlaying(!isAutoPlaying)
@@ -298,13 +315,30 @@ export default function OnboardingStep4() {
 
         {/* Controls */}
         <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={handleSkipWalkthrough}
-            className="text-[#5C667B]"
-          >
-            Skip Tour
-          </Button>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              onClick={handleSkipWalkthrough}
+              className="text-[#5C667B]"
+            >
+              Skip Tour
+            </Button>
+            
+            {selectedGoal && selectedGoal !== 'explore' && (
+              <Button
+                onClick={handleSkipToGoal}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Go Directly to {
+                  selectedGoal === 'create-job' ? 'Job Creation' :
+                  selectedGoal === 'import-candidates' ? 'Import Candidates' :
+                  selectedGoal === 'invite-team' ? 'Team Setup' : 
+                  'Dashboard'
+                }
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
+          </div>
           
           <div className="flex items-center space-x-3">
             <Badge variant="secondary" className="px-3 py-1">
@@ -323,7 +357,7 @@ export default function OnboardingStep4() {
               onClick={() => setLocation(`/onboarding/step5?goal=${selectedGoal || 'explore'}`)}
               className="bg-[#1F3A5F] hover:bg-[#264C99] text-white"
             >
-              Continue to Dashboard
+              Finish Setup
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
