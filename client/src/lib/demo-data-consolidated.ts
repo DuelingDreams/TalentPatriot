@@ -1,6 +1,9 @@
 // client/src/lib/demo-data-consolidated.ts
 import { v4 as uuidv4 } from 'uuid';
 
+// ====== Constants ======
+export const DEMO_ORG_ID = '550e8400-e29b-41d4-a716-446655440000';
+
 // ====== Helper Functions ======
 const now = new Date();
 const daysAgo = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000).toISOString();
@@ -23,7 +26,7 @@ export const demoClients = [
 export const demoJobs = [
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[0].id,
     title: 'Frontend Developer',
     description: 'Build and maintain responsive web applications for SMB clients.',
@@ -39,7 +42,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[0].id,
     title: 'IT Support Specialist',
     description: 'Provide Tier 1-2 support for SMB clients.',
@@ -55,7 +58,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[1].id,
     title: 'Digital Marketing Manager',
     description: 'Lead campaigns for B2B and B2C SMB clients.',
@@ -71,7 +74,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[1].id,
     title: 'Content Writer',
     description: 'Create engaging content for client blogs and campaigns.',
@@ -87,7 +90,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[2].id,
     title: 'Project Manager - Construction',
     description: 'Manage commercial construction projects for SMB clients.',
@@ -103,7 +106,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[2].id,
     title: 'Skilled Carpenter',
     description: 'Perform finish carpentry and custom builds.',
@@ -119,7 +122,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[3].id,
     title: 'Financial Analyst',
     description: 'Analyze financial data for SMB investment portfolios.',
@@ -135,7 +138,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[3].id,
     title: 'Accountant',
     description: 'Manage accounts payable/receivable for SMB clients.',
@@ -151,7 +154,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[4].id,
     title: 'Registered Nurse',
     description: 'Provide patient care for a small healthcare practice.',
@@ -167,7 +170,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[4].id,
     title: 'Medical Assistant',
     description: 'Assist physicians and nurses in patient care.',
@@ -183,7 +186,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[0].id,
     title: 'DevOps Engineer',
     description: 'Automate and maintain cloud infrastructure.',
@@ -199,7 +202,7 @@ export const demoJobs = [
   },
   {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     client_id: demoClients[1].id,
     title: 'Graphic Designer',
     description: 'Design brand materials and marketing assets.',
@@ -217,11 +220,11 @@ export const demoJobs = [
 
 // ====== Pipeline Columns ======
 export const demoPipelineColumns = [
-  { id: uuidv4(), job_id: null, organization_id: 'DEMO_ORG_ID', name: 'Applied', position: 1 },
-  { id: uuidv4(), job_id: null, organization_id: 'DEMO_ORG_ID', name: 'Screen', position: 2 },
-  { id: uuidv4(), job_id: null, organization_id: 'DEMO_ORG_ID', name: 'Interview', position: 3 },
-  { id: uuidv4(), job_id: null, organization_id: 'DEMO_ORG_ID', name: 'Offer', position: 4 },
-  { id: uuidv4(), job_id: null, organization_id: 'DEMO_ORG_ID', name: 'Hired', position: 5 },
+  { id: uuidv4(), job_id: null, organization_id: DEMO_ORG_ID, name: 'Applied', position: 1 },
+  { id: uuidv4(), job_id: null, organization_id: DEMO_ORG_ID, name: 'Screen', position: 2 },
+  { id: uuidv4(), job_id: null, organization_id: DEMO_ORG_ID, name: 'Interview', position: 3 },
+  { id: uuidv4(), job_id: null, organization_id: DEMO_ORG_ID, name: 'Offer', position: 4 },
+  { id: uuidv4(), job_id: null, organization_id: DEMO_ORG_ID, name: 'Hired', position: 5 },
 ];
 
 // ====== Candidates ======
@@ -236,7 +239,7 @@ export const demoCandidates = Array.from({ length: 40 }).map((_, i) => {
   const job = pick(demoJobs);
   return {
     id: uuidv4(),
-    organization_id: 'DEMO_ORG_ID',
+    organization_id: DEMO_ORG_ID,
     job_id: job.id,
     name: `${fn} ${ln}`,
     email: `${fn.toLowerCase()}.${ln.toLowerCase()}@example.com`,

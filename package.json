@@ -51,6 +51,7 @@
     "@types/compression": "^1.8.1",
     "@types/memoizee": "^0.4.12",
     "@types/multer": "^2.0.0",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "@uppy/aws-s3": "^4.3.2",
