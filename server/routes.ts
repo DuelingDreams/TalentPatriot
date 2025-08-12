@@ -2,9 +2,7 @@ import type { Express } from "express";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { createServer, type Server } from "http";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+
 import { storage } from "./storage";
 import * as jobService from "../lib/jobService";
 import { z } from 'zod';
@@ -58,46 +56,7 @@ const publicJobLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Configure multer for file uploads
-const uploadsDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
-const storage_multer = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const orgId = req.body.orgId || 'general';
-    const orgUploadsDir = path.join(uploadsDir, orgId);
-    if (!fs.existsSync(orgUploadsDir)) {
-      fs.mkdirSync(orgUploadsDir, { recursive: true });
-    }
-    cb(null, orgUploadsDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, 'resume-' + uniqueSuffix + ext);
-  }
-});
-
-const fileFilter = (req: any, file: any, cb: any) => {
-  // Check file type
-  const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Invalid file type. Only PDF and Word documents are allowed.'), false);
-  }
-};
-
-const upload = multer({
-  storage: storage_multer,
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
-  },
-  fileFilter: fileFilter
-});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log('📡 Registered all API routes');
@@ -806,16 +765,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   // This route is deprecated - use /api/jobs/:jobId/apply instead
-  app.post("/api/public/apply", writeLimiter, async (req, res) => {
-    try {
-      res.status(410).json({ 
-        error: "This endpoint is deprecated", 
-        message: "Please use POST /api/jobs/:jobId/apply instead" 
-      });
-    } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
-    }
-  });
+
 
   // Candidates routes
   app.get("/api/candidates", async (req, res) => {
@@ -1303,27 +1253,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.use("/api/upload", uploadRouter);
 
   // File upload endpoint (legacy)
-  app.post("/api/upload/resume", writeLimiter, upload.single('resume'), async (req, res) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-      }
 
-      const orgId = req.body.orgId || 'general';
-      const fileUrl = `/uploads/${orgId}/${req.file.filename}`;
-      
-      res.status(200).json({
-        url: fileUrl,
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        size: req.file.size
-      });
-    } catch (error) {
-      console.error('File upload error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'File upload failed';
-      res.status(500).json({ error: errorMessage });
-    }
-  });
 
   // Health check endpoint
   app.get("/api/health", async (req, res) => {
@@ -1391,7 +1321,7 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // Serve uploaded files statically
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 
   // PUBLIC ROUTES - No authentication required
 
@@ -1420,70 +1350,7 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
-  // This route uses older storage methods - deprecated in favor of jobService route above
 
-  app.post("/api/jobs/:jobId/apply-old", publicJobLimiter, async (req, res) => {
-    try {
-      const { jobId } = req.params;
-      const validatedData = jobApplicationSchema.parse(req.body);
-      
-      // Get the job to find its organization
-      const job = await storage.getJob(jobId);
-      if (!job || job.status !== 'open') {
-        return res.status(404).json({ error: "Job not available for applications" });
-      }
-      
-      // Find or create candidate with RLS-compliant storage
-      let candidate = await storage.getCandidateByEmail(validatedData.email, job.orgId);
-      if (!candidate) {
-        candidate = await storage.createCandidate({
-          name: `${validatedData.firstName} ${validatedData.lastName}`,
-          email: validatedData.email,
-          phone: validatedData.phone || null,
-          resumeUrl: validatedData.resumeUrl || null,
-          orgId: job.orgId
-        });
-      }
-      
-      // Check if already applied
-      const existingJobCandidates = await storage.getJobCandidatesByJob(job.id);
-      const existingApplication = existingJobCandidates.find(jc => jc.candidateId === candidate.id);
-      if (existingApplication) {
-        return res.status(409).json({ error: "You have already applied to this job" });
-      }
-      
-      // Create job candidate relationship
-      const jobCandidate = await storage.createJobCandidate({
-        orgId: job.orgId,
-        jobId: job.id,
-        candidateId: candidate.id,
-        stage: 'applied',
-        status: 'active',
-        notes: 'Applied via public careers page'
-      });
-      
-      const applicationResult = {
-        candidate,
-        jobCandidate,
-        message: 'Application submitted successfully'
-      };
-      
-      res.status(201).json(applicationResult);
-    } catch (error) {
-      console.error("Error submitting application:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
-        });
-      }
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      if (errorMessage.includes('already applied')) {
-        return res.status(409).json({ error: errorMessage });
-      }
-      res.status(500).json({ error: "Failed to submit application", details: errorMessage });
-    }
-  });
 
   // PIPELINE COLUMNS ENDPOINTS
   app.get("/api/pipeline-columns", async (req, res) => {
@@ -1640,46 +1507,9 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
-  // POST /api/jobs - Create a new job
-  app.post("/api/jobs", writeLimiter, async (req, res) => {
-    try {
-      // Validate request body with Zod
-      const createJobSchema = insertJobSchema.extend({
-        orgId: z.string().min(1, "Organization ID is required"),
-        clientId: z.string().optional() // Make clientId optional since clients are optional
-      });
-      
-      const validatedData = createJobSchema.parse(req.body);
-      
-      const job = await storage.createJob(validatedData);
-      
-      // Create default pipeline columns for this job's organization if they don't exist
-      await ensureDefaultPipeline(validatedData.orgId);
-      
-      res.status(201).json(job);
-    } catch (error: any) {
-      console.error("Error creating job:", error);
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: error.errors 
-        });
-      }
-      res.status(500).json({ error: "Failed to create job" });
-    }
-  });
 
-  // POST /api/jobs/:jobId/publish - Publish a job
-  app.post("/api/jobs/:jobId/publish", writeLimiter, async (req, res) => {
-    try {
-      const { jobId } = req.params;
-      const job = await storage.publishJob(jobId);
-      res.json(job);
-    } catch (error: any) {
-      console.error('Error publishing job:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
+
+
 
   // Add subdomain middleware for public routes
   app.use(subdomainResolver);
@@ -1712,150 +1542,9 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
-  // POST /api/jobs/:jobId/apply - Apply to a job
-  app.post('/api/jobs/:jobId/apply', publicJobLimiter, upload.single('resume'), async (req, res) => {
-    try {
-      const { jobId } = req.params;
-      const { name, email, phone, candidateId } = req.body;
-      
-      // Get job to get org_id
-      const job = await storage.getJob(jobId);
-      if (!job || job.status !== 'open') {
-        return res.status(404).json({ error: 'Job not found or not accepting applications' });
-      }
 
-      let candidate;
-      
-      // If candidateId provided, use existing candidate
-      if (candidateId) {
-        candidate = await storage.getCandidate(candidateId);
-        if (!candidate) {
-          return res.status(404).json({ error: 'Candidate not found' });
-        }
-      } else {
-        // Create new candidate or find existing by email
-        const existingCandidate = await storage.getCandidateByEmail ? 
-          await storage.getCandidateByEmail(email, job.orgId) : null;
-        if (existingCandidate) {
-          candidate = existingCandidate;
-        } else {
-          candidate = await storage.createCandidate({
-            name,
-            email,
-            phone,
-            orgId: job.orgId,
-            status: 'active',
-            resumeUrl: req.file ? `/uploads/${job.orgId}/${req.file.filename}` : null
-          });
-        }
-      }
 
-      // Get first pipeline column
-      const firstColumn = await getFirstPipelineColumn(job.orgId);
-      
-      // Create job-candidate relationship
-      const jobCandidate = await storage.createJobCandidate({
-        jobId,
-        candidateId: candidate.id,
-        orgId: job.orgId,
-        stage: 'applied',
-        status: 'active',
-        pipelineColumnId: firstColumn.id
-      });
 
-      res.json({ success: true, jobCandidate, candidate });
-    } catch (error: any) {
-      console.error('Error processing job application:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  // POST /api/jobs/:jobId/apply - Apply to a job
-  app.post("/api/jobs/:jobId/apply", writeLimiter, async (req, res) => {
-    try {
-      const { jobId } = req.params;
-      
-      // Validate job exists
-      const job = await storage.getJob(jobId);
-      if (!job) {
-        return res.status(404).json({ error: "Job not found" });
-      }
-      
-      // Validate request body
-      const applySchema = z.object({
-        candidateId: z.string().optional(),
-        name: z.string().optional(),
-        email: z.string().email().optional(),
-        phone: z.string().optional(),
-      }).refine(data => data.candidateId || (data.name && data.email), {
-        message: "Either candidateId or both name and email are required"
-      });
-      
-      const validatedData = applySchema.parse(req.body);
-      
-      let candidateId = validatedData.candidateId;
-      
-      // If no candidateId provided, find or create candidate
-      if (!candidateId) {
-        let candidate = await storage.getCandidateByEmail(validatedData.email!, job.orgId);
-        
-        if (!candidate) {
-          // Create new candidate
-          candidate = await storage.createCandidate({
-            name: validatedData.name!,
-            email: validatedData.email!,
-            phone: validatedData.phone || null,
-            orgId: job.orgId,
-            status: 'active'
-          });
-        }
-        candidateId = candidate.id;
-      }
-      
-      // Check if candidate already applied to this job
-      const existingApplications = await storage.getJobCandidatesByJob(jobId);
-      const alreadyApplied = existingApplications.some(app => app.candidateId === candidateId);
-      
-      if (alreadyApplied) {
-        return res.status(409).json({ 
-          error: "Candidate has already applied to this job" 
-        });
-      }
-      
-      // Get first pipeline column for this organization
-      const firstColumn = await getFirstPipelineColumn(job.orgId);
-      if (!firstColumn) {
-        await ensureDefaultPipeline(job.orgId);
-        const newFirstColumn = await getFirstPipelineColumn(job.orgId);
-        if (!newFirstColumn) {
-          return res.status(500).json({ error: "Unable to create pipeline for job applications" });
-        }
-      }
-      
-      // Create job candidate record
-      const jobCandidate = await storage.createJobCandidate({
-        jobId: jobId,
-        candidateId: candidateId,
-        orgId: job.orgId,
-        stage: 'applied',
-        status: 'active',
-        pipelineColumnId: firstColumn?.id || null,
-        notes: null,
-        assignedTo: null
-      });
-      
-      res.status(201).json(jobCandidate);
-    } catch (error: any) {
-      console.error("Error processing job application:", error);
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: error.errors 
-        });
-      }
-      res.status(500).json({ error: "Failed to process job application" });
-    }
-  });
 
   // Auth endpoints - Forgot Password
   app.post('/api/auth/forgot-password', authLimiter, async (req: express.Request, res: express.Response) => {
