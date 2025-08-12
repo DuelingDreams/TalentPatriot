@@ -545,6 +545,15 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       };
       
       const job = await createJobService(validatedData, userContext);
+      
+      // Ensure pipeline is initialized for the job
+      try {
+        const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+        await ensureDefaultPipelineForJob({ jobId: job.id, organizationId: job.org_id });
+      } catch (e) {
+        console.warn('[API] ensureDefaultPipelineForJob on draft failed:', e);
+      }
+      
       console.info('[API] POST /api/jobs →', { success: true, jobId: job.id });
       res.status(201).json(job);
     } catch (error) {

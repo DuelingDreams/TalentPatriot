@@ -211,6 +211,18 @@ export async function createJob(data: CreateJobData, userContext: UserContext) {
     throw new Error(`Failed to create job: ${error.message}`);
   }
   
+  // Initialize pipeline for the new job
+  try {
+    const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+    await ensureDefaultPipelineForJob({
+      jobId: result.id,
+      organizationId: (result as any).org_id ?? data.orgId,
+    });
+    console.log('[JobService] Pipeline ensured at draft creation for job', result.id);
+  } catch (e) {
+    console.warn('[JobService] Pipeline init failed on draft create (non-blocking):', e);
+  }
+  
   return result;
 }
 
@@ -252,6 +264,9 @@ export async function publishJob(jobId: string, userContext: UserContext) {
   }
   if (!job.job_type) {
     validationErrors.push('Job type is required');
+  }
+  if (!job.experience_level) {
+    validationErrors.push('Experience level is required');
   }
   
   if (validationErrors.length > 0) {
