@@ -36,6 +36,7 @@ Preferred communication style: Simple, everyday language.
     - **Dynamic Pipeline System**: `pipeline_columns` table for configurable Kanban stages and `applications` table for job-candidate relationships with dynamic column assignments. Job-specific pipelines are automatically created with default columns (Applied → Screen → Interview → Offer → Hired) upon job publishing.
     - **Performance Optimization**: Extensive indexing, intelligent query caching (React Query), materialized views, and full-text search (GIN indexes).
     - **Security**: UUID-based primary keys, proper foreign key relationships, comprehensive form validation, rate limiting, secure authentication (Supabase Auth, OAuth for Google/Microsoft), and anti-phishing security headers. Comprehensive demo mode architecture implemented to prevent server writes when `isDemoUser` is true.
+    - **Complete Onboarding Workflow**: Automated user signup → profile creation → organization setup → currentOrgId availability workflow with Supabase triggers and functions. Organization guards prevent operations until proper organization context is loaded.
 
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.

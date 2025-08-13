@@ -306,7 +306,54 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/organizations", writeLimiter, async (req, res) => {
     try {
-      const organization = await storage.createOrganization(req.body);
+      const { name, ownerId, slug, metadata } = req.body;
+      
+      // Create the organization
+      const organization = await storage.createOrganization({
+        name,
+        ownerId,
+        slug
+      });
+
+      // Add the owner to the user_organizations table
+      await storage.createUserOrganization({
+        userId: ownerId,
+        orgId: organization.id,
+        role: 'owner'
+      });
+
+      // Update user metadata in Supabase Auth to include currentOrgId
+      if (ownerId) {
+        try {
+          // Use Supabase admin client to update user metadata
+          const { createClient } = await import('@supabase/supabase-js');
+          const supabaseUrl = process.env.VITE_SUPABASE_URL!;
+          const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+          
+          const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+            auth: {
+              autoRefreshToken: false,
+              persistSession: false
+            }
+          });
+
+          await supabaseAdmin.auth.admin.updateUserById(ownerId, {
+            user_metadata: {
+              currentOrgId: organization.id,
+              role: metadata?.ownerRole || 'admin',
+              companyName: name,
+              companySize: metadata?.companySize,
+              onboardingCompleted: true
+            }
+          });
+          
+          console.log(`Updated user ${ownerId} metadata with orgId: ${organization.id}`);
+        } catch (metaError) {
+          console.warn('Failed to update user metadata:', metaError);
+          // Don't fail the whole request if metadata update fails
+        }
+      }
+      
       res.status(201).json(organization);
     } catch (error) {
       console.error("Error creating organization:", error);
