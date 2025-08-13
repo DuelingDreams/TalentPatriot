@@ -1,0 +1,68 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { useAuth } from '@/contexts/AuthContext'
+
+export function useJobsQuery() {
+  const { currentOrgId } = useAuth()
+  return useQuery({
+    enabled: !!currentOrgId,
+    queryKey: ['/api/jobs', currentOrgId],
+    queryFn: async () => {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      const res = await fetch(`/api/jobs?orgId=${encodeURIComponent(currentOrgId)}`)
+      if (!res.ok) throw new Error('Failed to load jobs')
+      return res.json()
+    },
+  })
+}
+
+export function useCreateJob() {
+  const qc = useQueryClient()
+  const { currentOrgId } = useAuth()
+  return useMutation({
+    mutationFn: async (payload: any) => {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-org-id': currentOrgId },
+        body: JSON.stringify({ ...payload, orgId: currentOrgId }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error || 'Failed to create job')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      toast.success('Job saved as draft')
+      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+      qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
+    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to create job'),
+  })
+}
+
+export function usePublishJob() {
+  const qc = useQueryClient()
+  const { currentOrgId } = useAuth()
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      const res = await fetch(`/api/jobs/${jobId}/publish`, {
+        method: 'POST',
+        headers: { 'x-org-id': currentOrgId },
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.details || err?.error || 'Failed to publish job')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      toast.success('Job published')
+      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+      qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
+    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to publish job'),
+  })
+}

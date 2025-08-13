@@ -1,90 +1,48 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import toast from 'react-hot-toast'
+import { useAuth } from '@/contexts/AuthContext'
 import { apiRequest } from '@/lib/queryClient'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
 import { InsertJob, Job } from '../../../shared/schema'
-import { useAuth } from '@/contexts/AuthContext'
-import toast from 'react-hot-toast'
+
+export function useJobsQuery() {
+  const { currentOrgId } = useAuth()
+  return useQuery({
+    enabled: !!currentOrgId,
+    queryKey: ['/api/jobs', currentOrgId],
+    queryFn: async () => {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      const res = await fetch(`/api/jobs?orgId=${encodeURIComponent(currentOrgId)}`)
+      if (!res.ok) throw new Error('Failed to load jobs')
+      return res.json()
+    },
+  })
+}
 
 export function useCreateJob() {
-  const queryClient = useQueryClient()
+  const qc = useQueryClient()
   const { currentOrgId } = useAuth()
-  const { isDemoUser } = useDemoFlag()
-
   return useMutation({
-    mutationFn: async (jobData: Omit<InsertJob, 'orgId'>) => {
-      if (isDemoUser) {
-        return demoAdapter.createJob({
-          ...jobData,
-          organization_id: 'DEMO_ORG_ID'
-        })
-      }
-
-      if (!currentOrgId) {
-        throw new Error('Organization ID is required')
-      }
-
-      // Send all job data fields to API
-      const validJobData = {
-        ...jobData,
-        orgId: currentOrgId,
-      }
-
-      const response = await fetch('/api/jobs', {
+    mutationFn: async (payload: any) => {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      const res = await fetch('/api/jobs', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(validJobData),
+        headers: { 'Content-Type': 'application/json', 'x-org-id': currentOrgId },
+        body: JSON.stringify({ ...payload, orgId: currentOrgId }),
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        // Handle validation errors from new Zod validation
-        if (error.details && Array.isArray(error.details)) {
-          throw new Error(`${error.error}: ${error.details.join(', ')}`)
-        }
-        throw new Error(error.error || 'Failed to create job')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error || 'Failed to create job')
       }
-
-      return response.json() as Promise<Job>
+      return res.json()
     },
-    onMutate: async (newJob) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/jobs'] })
-      
-      // Snapshot the previous value
-      const previousJobs = queryClient.getQueryData(['/api/jobs'])
-      
-      // Optimistically update to the new value with placeholder slug
-      queryClient.setQueryData(['/api/jobs'], (old: any) => {
-        const optimisticJob = {
-          id: `temp-${Date.now()}`,
-          ...newJob,
-          orgId: currentOrgId,
-          status: 'draft',
-          publicSlug: `temp-slug-${Date.now()}`, // Placeholder slug
-          createdAt: new Date().toISOString(),
-        }
-        return old ? [...old, optimisticJob] : [optimisticJob]
-      })
-      
-      return { previousJobs }
+    onSuccess: () => {
+      toast.success('Job saved as draft')
+      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+      qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
     },
-    onError: (err, newJob, context) => {
-      // If the mutation fails, use the context to roll back
-      queryClient.setQueryData(['/api/jobs'], context?.previousJobs)
-      toast.error(err.message || 'Failed to create job')
-    },
-    onSuccess: (data) => {
-      toast.success('Job created successfully!')
-      // Immediately refetch to get server-generated slug
-      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] })
-    },
-    onSettled: () => {
-      // Always refetch to sync with server state
-      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] })
-    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to create job'),
   })
 }
 
@@ -131,66 +89,28 @@ export function useJobApplication() {
   })
 }
 
-// New hook for job publishing
 export function usePublishJob() {
-  const queryClient = useQueryClient()
-
+  const qc = useQueryClient()
+  const { currentOrgId } = useAuth()
   return useMutation({
     mutationFn: async (jobId: string) => {
-      const response = await fetch(`/api/jobs/${jobId}/publish`, {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      const res = await fetch(`/api/jobs/${jobId}/publish`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'x-org-id': currentOrgId },
       })
-
-      if (!response.ok) {
-        const error = await response.json()
-        if (error.details && Array.isArray(error.details)) {
-          throw new Error(`${error.error}: ${error.details.join(', ')}`)
-        }
-        throw new Error(error.error || 'Failed to publish job')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.details || err?.error || 'Failed to publish job')
       }
-
-      return response.json() as Promise<{
-        publicUrl: string;
-        job: {
-          id: string;
-          slug: string;
-          status: string;
-          published_at: string;
-        };
-      }>
+      return res.json()
     },
-    onMutate: async (jobId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['/api/jobs'] })
-      
-      // Snapshot the previous value
-      const previousJobs = queryClient.getQueryData(['/api/jobs'])
-      
-      // Optimistically update the job status
-      queryClient.setQueryData(['/api/jobs'], (old: any) => {
-        if (!old) return old
-        return old.map((job: any) => 
-          job.id === jobId ? { ...job, status: 'open' } : job
-        )
-      })
-      
-      return { previousJobs }
+    onSuccess: () => {
+      toast.success('Job published')
+      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+      qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
     },
-    onError: (err, jobId, context) => {
-      // Roll back on error
-      queryClient.setQueryData(['/api/jobs'], context?.previousJobs)
-      toast.error(err.message || 'Failed to publish job')
-    },
-    onSuccess: (result) => {
-      toast.success(`Job published successfully! View at: ${result.publicUrl}`)
-      // Invalidate queries to sync state
-      queryClient.invalidateQueries({ queryKey: ['/api/jobs'] })
-      queryClient.invalidateQueries({ queryKey: ['/api/public/jobs'] })
-      return result
-    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to publish job'),
   })
 }
 
