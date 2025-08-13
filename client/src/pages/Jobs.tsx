@@ -20,6 +20,15 @@ export default function Jobs() {
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
 
+  // Guard: Wait for organization to load before proceeding
+  if (!currentOrgId) {
+    return (
+      <DashboardLayout pageTitle="Jobs">
+        <div className="p-4 text-sm text-muted-foreground">Loading organization...</div>
+      </DashboardLayout>
+    )
+  }
+
   // Handle onboarding actions for demo users
   useEffect(() => {
     if (userRole === 'demo_viewer') {

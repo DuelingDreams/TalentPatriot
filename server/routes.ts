@@ -523,7 +523,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     title: z.string().min(1, "Job title is required"),
     description: z.string().optional(),
     clientId: z.string().optional(),
-    orgId: z.string().min(1, "Organization ID is required").optional(), // Will be injected from header
+    orgId: z.string().min(1, "Organization ID is required"), // Injected from header
     location: z.string().optional(),
     jobType: z.enum(['full-time', 'part-time', 'contract', 'internship']).optional(),
     remoteOption: z.enum(['onsite', 'remote', 'hybrid']).optional(),
@@ -544,6 +544,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       const requestData = { ...req.body, orgId };
       const validatedData = createJobSchema.parse(requestData);
+      
+      // Ensure orgId is defined before proceeding
+      if (!validatedData.orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
       
       // Extract user context from request (you'll need to set this up with auth middleware)
       const userContext = { 
