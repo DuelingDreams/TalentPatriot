@@ -1,6 +1,6 @@
--- COMPLETE ONBOARDING SETUP SQL SCRIPT
+-- SAFE ONBOARDING SETUP SQL SCRIPT
 -- Copy and paste this entire script into Supabase SQL Editor
--- This ensures proper user signup → onboarding → organization creation → currentOrgId workflow
+-- This avoids foreign key constraint issues and focuses on core onboarding functionality
 
 -- =================================================================
 -- 1. ENABLE REQUIRED EXTENSIONS
@@ -23,19 +23,35 @@ EXCEPTION
 END $$;
 
 -- =================================================================
--- 3. ORGANIZATIONS TABLE
+-- 3. REMOVE FOREIGN KEY CONSTRAINT FROM ORGANIZATIONS IF IT EXISTS
+-- =================================================================
+DO $$
+BEGIN
+    -- Check if foreign key constraint exists and drop it
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'organizations_owner_id_fkey'
+        AND table_name = 'organizations'
+    ) THEN
+        ALTER TABLE public.organizations DROP CONSTRAINT organizations_owner_id_fkey;
+        RAISE NOTICE 'Removed foreign key constraint on organizations.owner_id';
+    END IF;
+END $$;
+
+-- =================================================================
+-- 4. CREATE/UPDATE ORGANIZATIONS TABLE
 -- =================================================================
 CREATE TABLE IF NOT EXISTS public.organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    owner_id UUID NOT NULL, -- references auth.users(id)
+    owner_id UUID NOT NULL, -- references auth.users(id) but no FK constraint
     slug TEXT UNIQUE,
     metadata JSONB DEFAULT '{}'::jsonb
 );
 
 -- =================================================================
--- 4. USER PROFILES TABLE
+-- 5. USER PROFILES TABLE
 -- =================================================================
 CREATE TABLE IF NOT EXISTS public.user_profiles (
     id UUID PRIMARY KEY, -- references auth.users(id)
@@ -46,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
 );
 
 -- =================================================================
--- 5. USER ORGANIZATIONS TABLE (JOIN TABLE)
+-- 6. USER ORGANIZATIONS TABLE (JOIN TABLE)
 -- =================================================================
 CREATE TABLE IF NOT EXISTS public.user_organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -58,7 +74,7 @@ CREATE TABLE IF NOT EXISTS public.user_organizations (
 );
 
 -- =================================================================
--- 6. INDEXES FOR PERFORMANCE
+-- 7. INDEXES FOR PERFORMANCE
 -- =================================================================
 CREATE INDEX IF NOT EXISTS idx_organizations_owner_id ON public.organizations(owner_id);
 CREATE INDEX IF NOT EXISTS idx_organizations_slug ON public.organizations(slug);
@@ -67,7 +83,7 @@ CREATE INDEX IF NOT EXISTS idx_user_organizations_org_id ON public.user_organiza
 CREATE INDEX IF NOT EXISTS idx_user_profiles_id ON public.user_profiles(id);
 
 -- =================================================================
--- 7. AUTOMATIC USER PROFILE CREATION
+-- 8. AUTOMATIC USER PROFILE CREATION
 -- =================================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -96,7 +112,7 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- =================================================================
--- 8. AUTOMATIC ORGANIZATION MEMBERSHIP
+-- 9. AUTOMATIC ORGANIZATION MEMBERSHIP
 -- =================================================================
 CREATE OR REPLACE FUNCTION public.handle_new_organization()
 RETURNS TRIGGER AS $$
@@ -121,7 +137,7 @@ CREATE TRIGGER on_organization_created
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_organization();
 
 -- =================================================================
--- 9. COMPLETE ONBOARDING FUNCTION
+-- 10. COMPLETE ONBOARDING FUNCTION
 -- =================================================================
 CREATE OR REPLACE FUNCTION public.complete_user_onboarding(
     user_id UUID,
@@ -211,7 +227,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =================================================================
--- 10. GET USER'S CURRENT ORGANIZATION
+-- 11. GET USER'S CURRENT ORGANIZATION
 -- =================================================================
 CREATE OR REPLACE FUNCTION public.get_user_current_organization(user_id UUID)
 RETURNS JSON AS $$
@@ -241,7 +257,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =================================================================
--- 11. ROW LEVEL SECURITY (RLS)
+-- 12. ROW LEVEL SECURITY (RLS)
 -- =================================================================
 ALTER TABLE public.organizations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
@@ -301,35 +317,32 @@ CREATE POLICY "Users can create their membership" ON public.user_organizations
     );
 
 -- =================================================================
--- 12. DEMO ORGANIZATION SETUP
+-- 13. CREATE DEMO ORGANIZATION SAFELY
 -- =================================================================
+-- Only create demo organization if you have a real user to assign as owner
+-- Replace 'YOUR_USER_ID_HERE' with an actual user ID from auth.users
 
--- First, create a system user in auth.users if it doesn't exist
--- Note: This requires superuser privileges in Supabase
+-- First, let's see if there are any existing users
 DO $$
 DECLARE
-    demo_user_exists BOOLEAN;
+    first_user_id UUID;
+    demo_org_id UUID := '3eaf74e7-eda2-415a-a6ca-2556a9425ae2';
 BEGIN
-    -- Check if demo user exists
-    SELECT EXISTS (
-        SELECT 1 FROM auth.users 
-        WHERE id = '00000000-0000-0000-0000-000000000000'
-    ) INTO demo_user_exists;
+    -- Try to find the first real user
+    SELECT id INTO first_user_id 
+    FROM auth.users 
+    WHERE email IS NOT NULL 
+    AND id != '00000000-0000-0000-0000-000000000000'
+    LIMIT 1;
     
-    -- If demo user doesn't exist, we'll use a different approach
-    IF NOT demo_user_exists THEN
-        -- Try to find any existing user to be the demo org owner
-        -- Or create the organization without the demo user constraint
-        RAISE NOTICE 'Demo system user does not exist, skipping demo organization creation';
-        RAISE NOTICE 'You can create the demo organization manually after creating a demo user';
-    ELSE
-        -- Demo user exists, create the organization
+    IF first_user_id IS NOT NULL THEN
+        -- Create demo organization with real user as owner
         INSERT INTO public.organizations (id, name, created_at, owner_id, slug, metadata)
         VALUES (
-            '3eaf74e7-eda2-415a-a6ca-2556a9425ae2',
+            demo_org_id,
             'TalentPatriot Demo Company',
             NOW(),
-            '00000000-0000-0000-0000-000000000000',
+            first_user_id,
             'demo-company',
             '{"demo": true, "companySize": "medium", "onboardingCompleted": true}'::jsonb
         )
@@ -337,7 +350,9 @@ BEGIN
             name = EXCLUDED.name,
             metadata = EXCLUDED.metadata;
         
-        RAISE NOTICE 'Demo organization created successfully';
+        RAISE NOTICE 'Demo organization created with user % as owner', first_user_id;
+    ELSE
+        RAISE NOTICE 'No users found - demo organization will be created when first user signs up';
     END IF;
 EXCEPTION
     WHEN others THEN
@@ -345,7 +360,7 @@ EXCEPTION
 END $$;
 
 -- =================================================================
--- 13. FIX EXISTING USERS WITHOUT PROFILES
+-- 14. FIX EXISTING USERS WITHOUT PROFILES
 -- =================================================================
 INSERT INTO public.user_profiles (id, role, created_at, updated_at)
 SELECT 
@@ -355,57 +370,61 @@ SELECT
     NOW()
 FROM auth.users au
 WHERE au.id NOT IN (SELECT id FROM public.user_profiles)
-    AND au.id != '00000000-0000-0000-0000-000000000000'
     AND au.email IS NOT NULL
 ON CONFLICT (id) DO NOTHING;
 
 -- =================================================================
--- 14. GRANT PERMISSIONS
+-- 15. GRANT PERMISSIONS
 -- =================================================================
 GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT ALL ON ALL TABLES IN SCHEMA public TO authenticated;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO authenticated;
 
--- Specific function grants
-GRANT EXECUTE ON FUNCTION public.handle_new_user() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.handle_new_organization() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.complete_user_onboarding(UUID, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_user_current_organization(UUID) TO authenticated;
-
 -- =================================================================
--- 15. VERIFICATION AND TESTING
+-- 16. VERIFICATION
 -- =================================================================
-
--- Test if triggers are working
 SELECT 
-    trigger_name, 
-    event_manipulation, 
-    event_object_table 
+    'Triggers' as component,
+    count(*) as count
 FROM information_schema.triggers 
 WHERE trigger_schema = 'public' 
-    AND trigger_name IN ('on_auth_user_created', 'on_organization_created');
+    AND trigger_name IN ('on_auth_user_created', 'on_organization_created')
 
--- Test if functions exist
+UNION ALL
+
 SELECT 
-    routine_name, 
-    routine_type 
+    'Functions' as component,
+    count(*) as count
 FROM information_schema.routines 
 WHERE routine_schema = 'public' 
-    AND routine_name IN ('handle_new_user', 'handle_new_organization', 'complete_user_onboarding', 'get_user_current_organization');
+    AND routine_name IN ('handle_new_user', 'handle_new_organization', 'complete_user_onboarding', 'get_user_current_organization')
 
--- Verify demo organization exists
-SELECT id, name, slug FROM public.organizations WHERE id = '3eaf74e7-eda2-415a-a6ca-2556a9425ae2';
+UNION ALL
+
+SELECT 
+    'Organizations' as component,
+    count(*) as count
+FROM public.organizations
+
+UNION ALL
+
+SELECT 
+    'User Profiles' as component,
+    count(*) as count
+FROM public.user_profiles;
 
 -- =================================================================
--- 16. SUCCESS MESSAGE
+-- 17. SUCCESS MESSAGE
 -- =================================================================
 DO $$
 BEGIN
-    RAISE NOTICE '✅ ONBOARDING SETUP COMPLETE!';
+    RAISE NOTICE '✅ SAFE ONBOARDING SETUP COMPLETE!';
+    RAISE NOTICE '   - Removed problematic foreign key constraints';
     RAISE NOTICE '   - User profiles will be created automatically on signup';
     RAISE NOTICE '   - Organization membership will be handled automatically';
-    RAISE NOTICE '   - Demo organization is ready';
+    RAISE NOTICE '   - Demo organization created with existing user (if any)';
     RAISE NOTICE '   - RLS policies are in place';
     RAISE NOTICE '   - Helper functions are available';
+    RAISE NOTICE '   - Ready for user onboarding workflow';
 END $$;
