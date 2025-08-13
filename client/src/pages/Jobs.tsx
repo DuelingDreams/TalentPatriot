@@ -5,10 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCreateJob, usePublishJob } from '@/hooks/useJobMutation'
+import { useJobsQuery, useCreateJob, usePublishJob } from '@/hooks/useJobMutation'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink, FileX } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
@@ -20,7 +19,6 @@ export default function Jobs() {
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
-  const publishJobMutation = usePublishJob()
 
   // Handle onboarding actions for demo users
   useEffect(() => {
@@ -128,8 +126,24 @@ export default function Jobs() {
     )
   }
 
+  // Guard: Show loading if no currentOrgId
+  if (!currentOrgId && userRole !== 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Jobs">
+        <div className="flex items-center justify-center py-12">
+          <div className="flex items-center gap-2 text-slate-600">
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Loading organization...
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   // Fetch data using our hooks
-  const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobs()
+  const { data: jobs, isLoading: jobsLoading, error: jobsError } = useJobsQuery()
+  const createJob = useCreateJob()
+  const publishJob = usePublishJob()
 
   // Use demo data for demo users
   const displayJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
@@ -157,54 +171,12 @@ export default function Jobs() {
     }
   }
 
-  const handlePublishJob = async (jobId: string) => {
-    try {
-      const result = await publishJobMutation.mutateAsync(jobId)
-
-      toast({
-        title: "Job Published!",
-        description: `Your job is now live at ${result.publicUrl}`,
-      })
-      // Jobs list will refresh automatically via React Query
-      return result
-    } catch (error) {
-      console.error('Error publishing job:', error)
-      toast({
-        title: "Error",
-        description: "Failed to publish job. Please try again.",
-        variant: "destructive",
-      })
-      throw error
-    }
+  const handleCreate = (values: any) => {
+    createJob.mutate(values)
   }
 
-  // Check if user has organization
-  if (!currentOrgId && userRole !== 'demo_viewer') {
-    return (
-      <DashboardLayout pageTitle="Jobs">
-        <div className="p-6 space-y-6">
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building2 className="w-8 h-8 text-blue-600" />
-              </div>
-              <CardTitle className="text-2xl">Organization Setup Required</CardTitle>
-              <p className="text-[#5C667B] mt-2">
-                You need to set up your organization before you can post jobs.
-              </p>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Button 
-                onClick={() => setLocation('/settings/organization')}
-                className="btn-primary"
-              >
-                Set Up Organization
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    )
+  const handlePublish = (jobId: string) => {
+    publishJob.mutate(jobId)
   }
 
   return (
@@ -312,18 +284,18 @@ export default function Jobs() {
                         <div className="flex items-center gap-2 ml-6">
                           {job.status === 'draft' && !isDemoMode && (
                             <Button
-                              onClick={() => handlePublishJob(job.id)}
-                              disabled={publishJobMutation.isPending}
+                              onClick={() => handlePublish(job.id)}
+                              disabled={publishJob.isPending}
                               variant="outline"
                               size="sm"
                               className="flex items-center gap-1"
                             >
-                              {publishJobMutation.isPending ? (
+                              {publishJob.isPending ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                               ) : (
                                 <Globe className="w-4 h-4" />
                               )}
-                              {publishJobMutation.isPending ? 'Publishing...' : 'Publish'}
+                              {publishJob.isPending ? 'Publishing...' : 'Publish'}
                             </Button>
                           )}
                           <Link href={`/pipeline/${job.id}`}>

@@ -116,19 +116,10 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       })
       return
     }
-
-    if (!currentOrgId) {
-      toast({
-        title: "Organization Required",
-        description: "Please ensure you have an organization set up to post jobs.",
-        variant: "destructive",
-      })
-      return
-    }
     
     try {
-      // Map form data to job creation payload - slug is generated server-side
-      const jobData = {
+      // Map form data to job creation payload - orgId is auto-injected by hook
+      const values = {
         title: data.title,
         description: data.description,
         clientId: data.clientId === "__no_client" ? undefined : data.clientId,
@@ -141,18 +132,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
         autoPost: data.autoPost
       }
       
-      await createJobMutation.mutateAsync(jobData)
-      
-      // Show success message for draft creation
-      const boardCount = data.postingTargets.length
-      const additionalInfo = boardCount > 0 
-        ? ` Distribution settings saved for ${boardCount} job board${boardCount > 1 ? 's' : ''}.`
-        : ""
-      
-      toast({
-        title: "Job Saved as Draft!",
-        description: "Job saved as draft! You can publish it when ready to make it live." + additionalInfo,
-      })
+      createJobMutation.mutate(values)
       
       setIsOpen(false)
       form.reset()
