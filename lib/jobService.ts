@@ -327,6 +327,30 @@ export async function publishJob(jobId: string, userContext: UserContext) {
     // Don't fail job publishing if pipeline creation fails
   }
   
+  // Post to external job boards if configured
+  try {
+    const { postJobToTargets } = await import('../server/integrations/jobBoards');
+    if (updatedJob.auto_post || (Array.isArray(updatedJob.posting_targets) && updatedJob.posting_targets.length > 0)) {
+      const { data: org } = await supabase.from('organizations').select('id,name,slug').eq('id', updatedJob.org_id).single();
+      if (org) {
+        await postJobToTargets({
+          job: { 
+            id: updatedJob.id, 
+            title: updatedJob.title, 
+            description: updatedJob.description, 
+            location: updatedJob.location, 
+            slug: updatedJob.public_slug 
+          },
+          org,
+          targets: updatedJob.posting_targets || [],
+        });
+      }
+    }
+  } catch (externalPostError) {
+    console.warn('External job board posting failed, but job published successfully:', externalPostError);
+    // Don't fail job publishing if external posting fails
+  }
+  
   return {
     publicUrl: `/careers/${updatedJob.public_slug}`,
     job: {
