@@ -96,49 +96,22 @@ export default function OnboardingStep2() {
     }
 
     try {
-      // Create organization with the provided company details
-      const orgResponse = await fetch('/api/organizations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: companyName.trim(),
-          ownerId: user.id,
-          slug: companyName.toLowerCase()
-            .replace(/[^a-z0-9\s-]/g, '')
-            .replace(/\s+/g, '-')
-            .replace(/-+/g, '-')
-            .substring(0, 50),
-          metadata: {
-            companySize,
-            ownerRole: userRole,
-            onboardingCompleted: true,
-          }
-        }),
-      })
+      // Use the new onboarding service for cleaner organization creation
+      const { OnboardingService } = await import('@/services/onboardingService')
+      
+      const result = await OnboardingService.createOrganizationAndAssignUser(
+        user.id,
+        companyName.trim(),
+        companySize,
+        userRole
+      )
 
-      if (orgResponse.ok) {
-        const organization = await orgResponse.json()
-        
-        // Add user to organization as owner
-        await fetch('/api/user-organizations', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            orgId: organization.id,
-            role: 'owner',
-          }),
-        })
-
+      if (result.success && result.organization) {
         // Update user metadata with role and organization info via Supabase
         const { error: updateError } = await supabase.auth.updateUser({
           data: {
             role: userRole,
-            currentOrgId: organization.id,
+            currentOrgId: result.organization.id,
             companyName: companyName.trim(),
             companySize: companySize,
             onboardingCompleted: true,
@@ -157,8 +130,7 @@ export default function OnboardingStep2() {
         // Redirect to Step 3 to choose first goal
         setLocation('/onboarding/step3')
       } else {
-        const errorData = await orgResponse.json()
-        setError(errorData.error || 'Failed to set up your organization. Please try again.')
+        setError(result.error || 'Failed to set up your organization. Please try again.')
       }
     } catch (err) {
       setError('Network error. Please check your connection and try again.')

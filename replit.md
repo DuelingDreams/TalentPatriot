@@ -38,6 +38,7 @@ Preferred communication style: Simple, everyday language.
     - **Security**: UUID-based primary keys, proper foreign key relationships, comprehensive form validation, rate limiting, secure authentication (Supabase Auth, OAuth for Google/Microsoft), and anti-phishing security headers. Comprehensive demo mode architecture implemented to prevent server writes when `isDemoUser` is true.
     - **Complete Onboarding Workflow**: Automated user signup → profile creation → organization setup → currentOrgId availability workflow with Supabase triggers and functions. Organization guards prevent operations until proper organization context is loaded.
     - **User-Organization Management**: Comprehensive REST API endpoints for automatically assigning users to organizations, eliminating manual SQL operations. Includes role validation, duplicate prevention, and owner protection.
+    - **Integrated Signup Workflow**: Complete integration of user-organization assignment endpoints into the signup workflow with OnboardingService, useUserOrganization hooks, and comprehensive error handling with database trigger fallbacks.
 
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.
