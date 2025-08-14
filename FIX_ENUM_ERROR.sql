@@ -8,10 +8,10 @@ DO $$
 DECLARE
     invalid_count INTEGER;
 BEGIN
-    -- Check for invalid user_role values (your valid roles: recruiter, admin, hiring_manager)
+    -- Check for invalid user_role values (matching your actual Supabase enums)
     SELECT COUNT(*) INTO invalid_count
     FROM public.user_profiles 
-    WHERE role::text NOT IN ('recruiter', 'admin', 'hiring_manager');
+    WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
     
     IF invalid_count > 0 THEN
         RAISE NOTICE 'Found % invalid user_role values', invalid_count;
@@ -20,7 +20,7 @@ BEGIN
         FOR rec IN 
             SELECT id, role::text as invalid_role 
             FROM public.user_profiles 
-            WHERE role::text NOT IN ('recruiter', 'admin', 'hiring_manager')
+            WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer')
         LOOP
             RAISE NOTICE 'User % has invalid role: %', rec.id, rec.invalid_role;
         END LOOP;
@@ -38,7 +38,7 @@ BEGIN
     -- Update any invalid user_role values to 'recruiter' (default)
     UPDATE public.user_profiles 
     SET role = 'recruiter'::user_role
-    WHERE role::text NOT IN ('recruiter', 'admin', 'hiring_manager');
+    WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
     
     RAISE NOTICE '✓ Cleaned up invalid user_role values';
 EXCEPTION
@@ -54,7 +54,7 @@ EXCEPTION
             -- Update invalid values
             UPDATE public.user_profiles 
             SET role = 'recruiter' 
-            WHERE role NOT IN ('recruiter', 'admin', 'hiring_manager');
+            WHERE role NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
             
             RAISE NOTICE '✓ Converted role column to text and cleaned up invalid values';
         EXCEPTION
@@ -97,9 +97,9 @@ END $$;
 -- Now create/recreate the enums safely
 DO $$ 
 BEGIN
-    -- Drop and recreate user_role enum (matching your actual data)
+    -- Drop and recreate user_role enum (matching your actual Supabase database)
     DROP TYPE IF EXISTS user_role CASCADE;
-    CREATE TYPE user_role AS ENUM ('recruiter', 'admin', 'hiring_manager');
+    CREATE TYPE user_role AS ENUM ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
     RAISE NOTICE '✓ Created user_role enum';
     
     -- Drop and recreate org_role enum  

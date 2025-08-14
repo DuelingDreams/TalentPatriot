@@ -7,9 +7,9 @@
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create enums if they don't exist (matching your actual data)
+-- Create enums if they don't exist (matching your actual Supabase database)
 DO $$ BEGIN
-    CREATE TYPE user_role AS ENUM ('recruiter', 'admin', 'hiring_manager');
+    CREATE TYPE user_role AS ENUM ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS public.organizations (
 -- Create user profiles table
 CREATE TABLE IF NOT EXISTS public.user_profiles (
     id UUID PRIMARY KEY,
-    role user_role DEFAULT 'recruiter' NOT NULL,
+    role user_role DEFAULT 'hiring_manager' NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
     metadata JSONB DEFAULT '{}'::jsonb
@@ -76,7 +76,7 @@ BEGIN
     INSERT INTO public.user_profiles (id, role, created_at, updated_at)
     VALUES (
         NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'role', 'recruiter')::user_role,
+        COALESCE(NEW.raw_user_meta_data->>'role', 'hiring_manager')::user_role,
         NOW(),
         NOW()
     );
@@ -121,7 +121,7 @@ CREATE OR REPLACE FUNCTION public.complete_user_onboarding(
     user_id UUID,
     org_name TEXT,
     org_slug TEXT DEFAULT NULL,
-    user_role TEXT DEFAULT 'recruiter',
+    user_role TEXT DEFAULT 'hiring_manager',
     company_size TEXT DEFAULT NULL,
     owner_role TEXT DEFAULT 'admin'
 )
@@ -329,7 +329,7 @@ END $$;
 INSERT INTO public.user_profiles (id, role, created_at, updated_at)
 SELECT 
     au.id,
-    COALESCE(au.raw_user_meta_data->>'role', 'recruiter')::user_role,
+    COALESCE(au.raw_user_meta_data->>'role', 'hiring_manager')::user_role,
     COALESCE(au.created_at, NOW()),
     NOW()
 FROM auth.users au

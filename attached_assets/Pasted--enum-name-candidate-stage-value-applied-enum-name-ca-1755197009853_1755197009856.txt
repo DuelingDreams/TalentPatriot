@@ -1,0 +1,222 @@
+[
+  {
+    "enum_name": "candidate_stage",
+    "value": "applied"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "value": "phone_screen"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "value": "interview"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "value": "technical"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "value": "final"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "value": "offer"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "value": "hired"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "value": "rejected"
+  },
+  {
+    "enum_name": "experience_level",
+    "value": "entry"
+  },
+  {
+    "enum_name": "experience_level",
+    "value": "mid"
+  },
+  {
+    "enum_name": "experience_level",
+    "value": "senior"
+  },
+  {
+    "enum_name": "experience_level",
+    "value": "executive"
+  },
+  {
+    "enum_name": "interview_status",
+    "value": "scheduled"
+  },
+  {
+    "enum_name": "interview_status",
+    "value": "completed"
+  },
+  {
+    "enum_name": "interview_status",
+    "value": "cancelled"
+  },
+  {
+    "enum_name": "interview_status",
+    "value": "no_show"
+  },
+  {
+    "enum_name": "interview_type",
+    "value": "phone"
+  },
+  {
+    "enum_name": "interview_type",
+    "value": "video"
+  },
+  {
+    "enum_name": "interview_type",
+    "value": "in_person"
+  },
+  {
+    "enum_name": "interview_type",
+    "value": "technical"
+  },
+  {
+    "enum_name": "job_status",
+    "value": "draft"
+  },
+  {
+    "enum_name": "job_status",
+    "value": "open"
+  },
+  {
+    "enum_name": "job_status",
+    "value": "closed"
+  },
+  {
+    "enum_name": "job_status",
+    "value": "on_hold"
+  },
+  {
+    "enum_name": "job_status",
+    "value": "filled"
+  },
+  {
+    "enum_name": "job_type",
+    "value": "full-time"
+  },
+  {
+    "enum_name": "job_type",
+    "value": "part-time"
+  },
+  {
+    "enum_name": "job_type",
+    "value": "contract"
+  },
+  {
+    "enum_name": "job_type",
+    "value": "freelance"
+  },
+  {
+    "enum_name": "job_type",
+    "value": "internship"
+  },
+  {
+    "enum_name": "message_priority",
+    "value": "low"
+  },
+  {
+    "enum_name": "message_priority",
+    "value": "normal"
+  },
+  {
+    "enum_name": "message_priority",
+    "value": "high"
+  },
+  {
+    "enum_name": "message_priority",
+    "value": "urgent"
+  },
+  {
+    "enum_name": "message_type",
+    "value": "general"
+  },
+  {
+    "enum_name": "message_type",
+    "value": "interview"
+  },
+  {
+    "enum_name": "message_type",
+    "value": "application"
+  },
+  {
+    "enum_name": "message_type",
+    "value": "team"
+  },
+  {
+    "enum_name": "org_role",
+    "value": "owner"
+  },
+  {
+    "enum_name": "org_role",
+    "value": "admin"
+  },
+  {
+    "enum_name": "org_role",
+    "value": "hiring_manager"
+  },
+  {
+    "enum_name": "org_role",
+    "value": "recruiter"
+  },
+  {
+    "enum_name": "org_role",
+    "value": "interviewer"
+  },
+  {
+    "enum_name": "org_role",
+    "value": "viewer"
+  },
+  {
+    "enum_name": "record_status",
+    "value": "active"
+  },
+  {
+    "enum_name": "record_status",
+    "value": "inactive"
+  },
+  {
+    "enum_name": "record_status",
+    "value": "demo"
+  },
+  {
+    "enum_name": "remote_option",
+    "value": "onsite"
+  },
+  {
+    "enum_name": "remote_option",
+    "value": "remote"
+  },
+  {
+    "enum_name": "remote_option",
+    "value": "hybrid"
+  },
+  {
+    "enum_name": "user_role",
+    "value": "hiring_manager"
+  },
+  {
+    "enum_name": "user_role",
+    "value": "recruiter"
+  },
+  {
+    "enum_name": "user_role",
+    "value": "admin"
+  },
+  {
+    "enum_name": "user_role",
+    "value": "interviewer"
+  },
+  {
+    "enum_name": "user_role",
+    "value": "demo_viewer"
+  }
+]
