@@ -17,13 +17,17 @@ BEGIN
         RAISE NOTICE 'Found % invalid user_role values', invalid_count;
         
         -- Show the invalid values
-        FOR rec IN 
-            SELECT id, role::text as invalid_role 
-            FROM public.user_profiles 
-            WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer')
-        LOOP
-            RAISE NOTICE 'User % has invalid role: %', rec.id, rec.invalid_role;
-        END LOOP;
+        DECLARE
+            rec RECORD;
+        BEGIN
+            FOR rec IN 
+                SELECT id, role::text as invalid_role 
+                FROM public.user_profiles 
+                WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer')
+            LOOP
+                RAISE NOTICE 'User % has invalid role: %', rec.id, rec.invalid_role;
+            END LOOP;
+        END;
     ELSE
         RAISE NOTICE 'No invalid user_role values found';
     END IF;
