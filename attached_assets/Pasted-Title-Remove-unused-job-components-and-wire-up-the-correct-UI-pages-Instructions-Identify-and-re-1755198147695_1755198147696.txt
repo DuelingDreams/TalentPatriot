@@ -1,0 +1,57 @@
+Title: Remove unused job components and wire up the correct UI pages
+
+Instructions:
+
+Identify and remove unused files.
+
+Delete these files because they are no longer part of the final design:
+
+client/src/components/jobs/GuidedJobCreation.tsx – a demo wizard that doesn’t call the real API.
+
+client/src/pages/PublicJobsList.tsx – a duplicate jobs list page.
+
+client/src/pages/PublicJobDetail.tsx – an outdated detail page with a single name field.
+
+Search the codebase (grep or VS Code “Find All”) for any imports of these files. Replace them with the correct components:
+
+Replace GuidedJobCreation with PostJobDialog wherever used.
+
+Use Careers.tsx for the public jobs list.
+
+Use CareersBySlug.tsx (and JobApplicationForm.tsx for the apply page) for public job details instead of PublicJobDetail.tsx.
+
+Update routes and imports.
+
+Check your router configuration (e.g., client/src/App.tsx or wherever routes are defined). Remove references to PublicJobsList and PublicJobDetail.
+
+Ensure the /careers path renders Careers.tsx.
+
+Ensure the job detail route (/careers/:slug) renders CareersBySlug.tsx.
+
+For full applications, ensure /careers/:slug/apply uses JobApplicationForm.tsx.
+
+Clean up unused assets.
+
+If the removed components have associated CSS or images, delete those files too.
+
+Verify UI wiring.
+
+Run npm run lint to catch any unresolved imports after deleting the files.
+
+Run npm run dev and confirm:
+
+The Jobs dashboard still loads, allows draft creation, publishes jobs, and the pipeline view works.
+
+The public careers page (/careers) lists published jobs.
+
+Clicking a job navigates to /careers/{slug} and shows details via CareersBySlug.tsx.
+
+The quick apply is no longer exposed or is replaced by the correct JobApplicationForm.tsx.
+
+Commit your changes.
+
+Create a branch called refactor/remove-unused-job-pages.
+
+Commit the deletions and any updated imports or routes.
+
+Push and open a PR explaining that you removed unused components and connected the correct pages to avoid confusion and broken flows.

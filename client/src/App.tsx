@@ -43,9 +43,7 @@ const OnboardingChecklist = lazy(() => import("@/pages/OnboardingChecklist"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 const Landing = lazy(() => import("@/pages/Landing"));
 const AuthCallback = lazy(() => import("@/pages/AuthCallback"));
-// Public job posting pages
-const PublicJobsList = lazy(() => import("@/pages/PublicJobsList"));
-const PublicJobDetail = lazy(() => import("@/pages/PublicJobDetail"));
+// Public job posting pages - using correct components
 const OrganizationSetup = lazy(() => import("@/pages/OrganizationSetup"));
 const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("@/pages/TermsOfService"));

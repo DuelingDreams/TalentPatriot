@@ -11,7 +11,7 @@ import { useJobsQuery, useCreateJob, usePublishJob } from '@/hooks/useJobMutatio
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
 import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink, FileX } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
-import GuidedJobCreation from '@/components/jobs/GuidedJobCreation'
+
 import { EmptyState } from '@/components/ui/empty-state'
 
 export default function Jobs() {
@@ -321,19 +321,10 @@ export default function Jobs() {
             )}
           </div>
         )}
-        {/* Guided Job Creation Modal */}
-        <GuidedJobCreation
+        {/* Job Creation Modal */}
+        <PostJobDialog
           isOpen={isGuidedModalOpen}
           onClose={() => setIsGuidedModalOpen(false)}
-          onComplete={(jobData) => {
-            // Handle guided job creation completion
-            toast({
-              title: "Congratulations!",
-              description: "Your first job has been posted successfully. Welcome to TalentPatriot!",
-            })
-            // Clear URL parameters
-            window.history.replaceState({}, '', '/jobs')
-          }}
         />
       </div>
     </DashboardLayout>
