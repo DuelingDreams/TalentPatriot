@@ -8,10 +8,10 @@ DO $$
 DECLARE
     invalid_count INTEGER;
 BEGIN
-    -- Check for invalid user_role values
+    -- Check for invalid user_role values (your valid roles: recruiter, admin, hiring_manager)
     SELECT COUNT(*) INTO invalid_count
     FROM public.user_profiles 
-    WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
+    WHERE role::text NOT IN ('recruiter', 'admin', 'hiring_manager');
     
     IF invalid_count > 0 THEN
         RAISE NOTICE 'Found % invalid user_role values', invalid_count;
@@ -20,7 +20,7 @@ BEGIN
         FOR rec IN 
             SELECT id, role::text as invalid_role 
             FROM public.user_profiles 
-            WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer')
+            WHERE role::text NOT IN ('recruiter', 'admin', 'hiring_manager')
         LOOP
             RAISE NOTICE 'User % has invalid role: %', rec.id, rec.invalid_role;
         END LOOP;
@@ -35,10 +35,10 @@ END $$;
 -- Clean up invalid data
 DO $$
 BEGIN
-    -- Update any invalid user_role values to 'hiring_manager' (default)
+    -- Update any invalid user_role values to 'recruiter' (default)
     UPDATE public.user_profiles 
-    SET role = 'hiring_manager'::user_role
-    WHERE role::text NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
+    SET role = 'recruiter'::user_role
+    WHERE role::text NOT IN ('recruiter', 'admin', 'hiring_manager');
     
     RAISE NOTICE '✓ Cleaned up invalid user_role values';
 EXCEPTION
@@ -53,8 +53,8 @@ EXCEPTION
             
             -- Update invalid values
             UPDATE public.user_profiles 
-            SET role = 'hiring_manager' 
-            WHERE role NOT IN ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
+            SET role = 'recruiter' 
+            WHERE role NOT IN ('recruiter', 'admin', 'hiring_manager');
             
             RAISE NOTICE '✓ Converted role column to text and cleaned up invalid values';
         EXCEPTION
@@ -97,9 +97,9 @@ END $$;
 -- Now create/recreate the enums safely
 DO $$ 
 BEGIN
-    -- Drop and recreate user_role enum
+    -- Drop and recreate user_role enum (matching your actual data)
     DROP TYPE IF EXISTS user_role CASCADE;
-    CREATE TYPE user_role AS ENUM ('hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer');
+    CREATE TYPE user_role AS ENUM ('recruiter', 'admin', 'hiring_manager');
     RAISE NOTICE '✓ Created user_role enum';
     
     -- Drop and recreate org_role enum  
