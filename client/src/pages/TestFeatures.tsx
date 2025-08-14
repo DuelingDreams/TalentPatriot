@@ -94,7 +94,7 @@ export function TestFeatures() {
         title: interviewTitle || 'Test Interview',
         type: 'video',
         status: 'scheduled',
-        scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+        scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
         duration: '60',
         location: 'Video Call',
         interviewerId: user.id,
@@ -338,3 +338,5 @@ export function TestFeatures() {
     </div>
   )
 }
+
+export default TestFeatures
