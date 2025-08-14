@@ -26,13 +26,21 @@ const writeLimiter = rateLimit({
 });
 
 // Supabase client for server-side operations
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Create service role client for server-side auth operations
 let supabaseAdmin: any = null;
 if (supabaseUrl && supabaseServiceKey) {
-  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+  console.log('✅ Supabase admin client initialized for organization creation');
+} else {
+  console.warn('⚠️ Supabase credentials missing - organization creation may fail');
 }
 
 // Authentication rate limiter
@@ -309,35 +317,32 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     try {
       const { name, ownerId, slug, metadata } = req.body;
       
-      // Create the organization
+      console.log('Creating organization:', { name, ownerId, slug });
+      
+      // Simple approach: Create organization directly without relying on database functions
+      // This avoids foreign key constraint issues in production
+      
+      // Step 1: Ensure user profile exists (handles the foreign key issue)
+      try {
+        await storage.ensureUserProfile(ownerId);
+        console.log('User profile ensured for:', ownerId);
+      } catch (userError) {
+        console.warn('Failed to ensure user profile:', userError);
+        // Continue anyway - may already exist
+      }
+      
+      // Step 2: Create the organization
       const organization = await storage.createOrganization({
         name,
         ownerId,
         slug
       });
+      
+      console.log('Organization created:', organization.id);
 
-      // Add the owner to the user_organizations table
-      await storage.createUserOrganization({
-        userId: ownerId,
-        orgId: organization.id,
-        role: 'owner'
-      });
-
-      // Update user metadata in Supabase Auth to include currentOrgId
-      if (ownerId) {
+      // Step 3: Update user metadata in Supabase Auth (if possible)
+      if (ownerId && supabaseAdmin) {
         try {
-          // Use Supabase admin client to update user metadata
-          const { createClient } = await import('@supabase/supabase-js');
-          const supabaseUrl = process.env.VITE_SUPABASE_URL!;
-          const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-          
-          const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-            auth: {
-              autoRefreshToken: false,
-              persistSession: false
-            }
-          });
-
           await supabaseAdmin.auth.admin.updateUserById(ownerId, {
             user_metadata: {
               currentOrgId: organization.id,
@@ -351,8 +356,10 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           console.log(`Updated user ${ownerId} metadata with orgId: ${organization.id}`);
         } catch (metaError) {
           console.warn('Failed to update user metadata:', metaError);
-          // Don't fail the whole request if metadata update fails
+          // Don't fail the request if this fails
         }
+      } else {
+        console.warn('No Supabase admin client available for user metadata update');
       }
       
       res.status(201).json(organization);

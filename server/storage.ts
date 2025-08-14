@@ -44,6 +44,7 @@ export interface IStorage {
   getUserProfile(id: string): Promise<UserProfile | undefined>;
   createUserProfile(userProfile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile>;
+  ensureUserProfile(userId: string): Promise<UserProfile>;
   
   // Performance-optimized methods
   getDashboardStats(orgId: string): Promise<any>;
@@ -203,6 +204,30 @@ export class DatabaseStorage implements IStorage {
     
     if (error) throw new Error(`Failed to update user profile: ${error.message}`);
     return data as UserProfile;
+  }
+
+  async ensureUserProfile(userId: string): Promise<UserProfile> {
+    // First try to get existing user profile
+    const existing = await this.getUserProfile(userId);
+    if (existing) {
+      return existing;
+    }
+
+    // If not found, create a new user profile
+    try {
+      return await this.createUserProfile({
+        id: userId,
+        role: 'hiring_manager'
+      });
+    } catch (error) {
+      console.warn('Failed to create user profile, may already exist:', error);
+      // Try to get it again in case it was created by another process/trigger
+      const retryProfile = await this.getUserProfile(userId);
+      if (retryProfile) {
+        return retryProfile;
+      }
+      throw new Error(`Failed to ensure user profile exists for user ${userId}`);
+    }
   }
 
   // Performance methods
