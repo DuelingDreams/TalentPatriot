@@ -37,6 +37,7 @@ Preferred communication style: Simple, everyday language.
     - **Performance Optimization**: Extensive indexing, intelligent query caching (React Query), materialized views, and full-text search (GIN indexes).
     - **Security**: UUID-based primary keys, proper foreign key relationships, comprehensive form validation, rate limiting, secure authentication (Supabase Auth, OAuth for Google/Microsoft), and anti-phishing security headers. Comprehensive demo mode architecture implemented to prevent server writes when `isDemoUser` is true.
     - **Complete Onboarding Workflow**: Automated user signup → profile creation → organization setup → currentOrgId availability workflow with Supabase triggers and functions. Organization guards prevent operations until proper organization context is loaded.
+    - **User-Organization Management**: Comprehensive REST API endpoints for automatically assigning users to organizations, eliminating manual SQL operations. Includes role validation, duplicate prevention, and owner protection.
 
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.

@@ -11,6 +11,7 @@ import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineSer
 import { insertCandidateSchema, insertJobSchema, insertJobCandidateSchema } from "../shared/schema";
 import { createClient } from '@supabase/supabase-js';
 import { subdomainResolver } from './middleware/subdomainResolver';
+import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 
 
 // Write operation rate limiter
@@ -465,6 +466,126 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     } catch (error) {
       console.error("Error removing user from organization:", error);
       res.status(400).json({ error: "Failed to remove user from organization" });
+    }
+  });
+
+  // NEW ENDPOINT: Automatically assign user to organization
+  app.post('/api/organizations/:orgId/users', writeLimiter, async (req, res) => {
+    const { orgId } = req.params;
+    const { userId, role = 'recruiter' } = req.body;
+    
+    // Validate required parameters
+    if (!orgId || !userId) {
+      return res.status(400).json({ 
+        error: 'orgId and userId are required',
+        details: 'Both organization ID and user ID must be provided'
+      });
+    }
+
+    // Validate role if provided
+    const validRoles = ['owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer'];
+    if (role && !validRoles.includes(role)) {
+      return res.status(400).json({
+        error: 'Invalid role',
+        details: `Role must be one of: ${validRoles.join(', ')}`
+      });
+    }
+
+    try {
+      const result = await addUserToOrganization(orgId, userId, role);
+      
+      if (result.success) {
+        return res.status(201).json({
+          success: true,
+          message: result.message,
+          data: {
+            orgId,
+            userId,
+            role
+          }
+        });
+      } else {
+        // Handle different error types
+        const statusCode = result.error === 'USER_ALREADY_MEMBER' ? 409 : 
+                          result.error === 'ORGANIZATION_NOT_FOUND' ? 404 : 400;
+        
+        return res.status(statusCode).json({
+          error: result.message,
+          code: result.error
+        });
+      }
+    } catch (error: any) {
+      console.error('Error in user-organization assignment endpoint:', error);
+      return res.status(500).json({ 
+        error: 'Failed to assign user to organization',
+        details: error.message 
+      });
+    }
+  });
+
+  // Enhanced endpoint to get organization users with user service
+  app.get('/api/organizations/:orgId/users/details', async (req, res) => {
+    const { orgId } = req.params;
+    
+    if (!orgId) {
+      return res.status(400).json({ error: 'Organization ID is required' });
+    }
+
+    try {
+      const result = await getOrganizationUsers(orgId);
+      
+      if (result.success) {
+        return res.json({
+          success: true,
+          data: result.data
+        });
+      } else {
+        return res.status(400).json({
+          error: result.error
+        });
+      }
+    } catch (error: any) {
+      console.error('Error fetching organization users:', error);
+      return res.status(500).json({ 
+        error: 'Failed to fetch organization users',
+        details: error.message 
+      });
+    }
+  });
+
+  // Enhanced endpoint to remove user from organization
+  app.delete('/api/organizations/:orgId/users/:userId', writeLimiter, async (req, res) => {
+    const { orgId, userId } = req.params;
+    
+    if (!orgId || !userId) {
+      return res.status(400).json({ 
+        error: 'orgId and userId are required' 
+      });
+    }
+
+    try {
+      const result = await removeUserFromOrganization(orgId, userId);
+      
+      if (result.success) {
+        return res.status(200).json({
+          success: true,
+          message: result.message
+        });
+      } else {
+        const statusCode = result.error === 'USER_NOT_MEMBER' ? 404 : 
+                          result.error === 'CANNOT_REMOVE_OWNER' ? 403 : 400;
+        
+        return res.status(statusCode).json({
+          error: result.message,
+          code: result.error
+        });
+      }
+    } catch (error: any) {
+      console.error('Error removing user from organization:', error);
+      return res.status(500).json({ 
+        error: 'Failed to remove user from organization',
+        details: error.message 
+      });
     }
   });
 
