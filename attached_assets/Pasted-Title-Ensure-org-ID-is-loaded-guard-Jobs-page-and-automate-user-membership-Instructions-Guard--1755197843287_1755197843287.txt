@@ -1,0 +1,54 @@
+Title: Ensure org ID is loaded, guard Jobs page, and automate user membership
+
+Instructions:
+
+Guard the Jobs page until currentOrgId loads.
+
+Open client/src/pages/Jobs.tsx.
+
+Import useAuth from @/contexts/AuthContext.
+
+At the start of the JobsPage component, read const { currentOrgId } = useAuth().
+
+If !currentOrgId, return a simple <div className="p-4 text-sm text-muted-foreground">Loading organization…</div> before making any API calls.
+
+Keep the existing error and isLoading handling below that guard.
+
+Always pass orgId in job mutations.
+
+In client/src/hooks/useJobMutation.ts, update the hooks:
+
+useJobsQuery: fetch /api/jobs?orgId=${encodeURIComponent(currentOrgId)} only when currentOrgId is truthy (enabled: !!currentOrgId).
+
+useCreateJob: throw an error if currentOrgId is falsy, then call fetch('/api/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-org-id': currentOrgId }, body: JSON.stringify({ ...payload, orgId: currentOrgId }) }).
+
+usePublishJob: throw an error if currentOrgId is falsy, then call fetch(\/api/jobs/${jobId}/publish`, { method: 'POST', headers: { 'x-org-id': currentOrgId }})`.
+
+Remove any assumptions that orgId might come from form values; the hook should inject it automatically.
+
+Ensure the “New Job” dialog doesn’t proceed without organization context.
+
+In client/src/components/dialogs/PostJobDialog.tsx, continue to use the createJob hook as-is; it now errors if currentOrgId is undefined.
+
+Automate new user membership.
+
+When creating or inviting a new user, call the backend endpoint you added (POST /api/organizations/:orgId/users) with the user’s ID and desired role. For example:
+
+await fetch(`/api/organizations/${orgId}/users`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ userId: newUserId, role: 'recruiter' }),
+});
+
+
+The server will insert a row into public.user_organizations if it doesn’t already exist, so you no longer need to run manual SQL.
+
+Lint and test.
+
+Run npm run lint and npm run dev to ensure there are no TypeScript errors.
+
+Create a new user, use the new endpoint to assign them to an organization, and verify that the Jobs page waits until the organization loads and that draft creation succeeds.
+
+Commit and push.
+
+Create a branch named fix/org-id-guard-and-auto-membership, commit your changes, and open a pull request summarizing what was done.

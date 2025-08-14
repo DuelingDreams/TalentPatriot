@@ -15,7 +15,8 @@ import { demoAdapter } from '@/lib/dataAdapter';
 import type { Job } from '@shared/schema';
 
 interface ApplicationForm {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone: string;
   resumeUrl: string;
@@ -31,7 +32,8 @@ export default function PublicJobDetail() {
   const [showApplicationForm, setShowApplicationForm] = useState(false);
   const [applicationSubmitted, setApplicationSubmitted] = useState(false);
   const [formData, setFormData] = useState<ApplicationForm>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     resumeUrl: '',
@@ -42,16 +44,19 @@ export default function PublicJobDetail() {
   const { job, isLoading, error, notFound } = usePublicJobBySlug(id);
 
   const applicationMutation = useMutation({
-    mutationFn: async (data: Omit<ApplicationForm, 'coverLetter'>) => {
+    mutationFn: async (data: ApplicationForm) => {
       return await fetch(`/api/jobs/${id}/apply`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: data.name,
+          firstName: data.firstName,
+          lastName: data.lastName,
           email: data.email,
           phone: data.phone,
+          resumeUrl: data.resumeUrl,
+          coverLetter: data.coverLetter,
         }),
       }).then(async (response) => {
         if (!response.ok) {
@@ -87,20 +92,22 @@ export default function PublicJobDetail() {
   };
 
   const handleSubmitApplication = () => {
-    if (!formData.name || !formData.email) {
+    if (!formData.firstName || !formData.lastName || !formData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your name and email address.",
+        description: "Please fill in your first name, last name, and email address.",
         variant: "destructive",
       });
       return;
     }
 
     applicationMutation.mutate({
-      name: formData.name,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
       email: formData.email,
       phone: formData.phone,
       resumeUrl: formData.resumeUrl,
+      coverLetter: formData.coverLetter,
     });
   };
 
@@ -330,24 +337,34 @@ export default function PublicJobDetail() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <Label htmlFor="name">Full Name *</Label>
+                    <Label htmlFor="firstName">First Name *</Label>
                     <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Your full name"
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      placeholder="Your first name"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="email">Email Address *</Label>
+                    <Label htmlFor="lastName">Last Name *</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="your.email@example.com"
+                      id="lastName"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      placeholder="Your last name"
                     />
                   </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="email">Email Address *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="your.email@example.com"
+                  />
                 </div>
                 
                 <div className="grid gap-4 md:grid-cols-2">
