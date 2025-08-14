@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useLocation } from 'wouter'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useToast } from '@/hooks/use-toast'
 import { useDemoFlag } from '@/lib/demoFlag'
+import { clearDemoModeForRealUsers } from '@/lib/demoToggle'
 import { Loader2, Building2, Users, Briefcase } from 'lucide-react'
 
 const companySizeOptions = [
@@ -39,6 +40,11 @@ export default function OnboardingStep2() {
   const [, setLocation] = useLocation()
   const { toast } = useToast()
   const { isDemoUser } = useDemoFlag()
+
+  // Clear demo mode for real users during onboarding
+  useEffect(() => {
+    clearDemoModeForRealUsers()
+  }, [])
 
   // Redirect to login if not authenticated
   if (!user) {

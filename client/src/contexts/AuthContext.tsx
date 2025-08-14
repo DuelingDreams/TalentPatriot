@@ -42,8 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
 
-        // Determine if user is in demo mode
-        const isDemoUser = session?.user?.email === 'demo@yourapp.com' || isDemoEnabled()
+        // Determine if user is in demo mode - only for specific demo email or explicit demo flag
+        const isDemoUser = session?.user?.email === 'demo@yourapp.com' || 
+                          session?.user?.email === 'demo@talentpatriot.com' ||
+                          (isDemoEnabled() && session?.user?.email?.includes('demo'))
 
         if (session?.user) {
           if (isDemoUser) {
