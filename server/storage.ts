@@ -213,20 +213,32 @@ export class DatabaseStorage implements IStorage {
       return existing;
     }
 
-    // If not found, create a new user profile
+    // Check if user exists in auth.users table first
+    // We can't directly query this, so we'll use the admin client to check
+    console.log(`Attempting to ensure user profile for: ${userId}`);
+    
+    // Try to create user profile - if it fails due to FK constraint, 
+    // it means the user doesn't exist in auth.users
     try {
       return await this.createUserProfile({
         id: userId,
         role: 'hiring_manager'
       });
-    } catch (error) {
-      console.warn('Failed to create user profile, may already exist:', error);
+    } catch (error: any) {
+      console.warn('Failed to create user profile:', error?.message);
+      
+      // If it's a foreign key constraint error, the user doesn't exist in auth.users
+      if (error?.message?.includes('foreign key constraint') || error?.message?.includes('violates foreign key')) {
+        throw new Error(`User ${userId} does not exist in authentication system. User must be registered through Supabase Auth first.`);
+      }
+      
       // Try to get it again in case it was created by another process/trigger
       const retryProfile = await this.getUserProfile(userId);
       if (retryProfile) {
         return retryProfile;
       }
-      throw new Error(`Failed to ensure user profile exists for user ${userId}`);
+      
+      throw new Error(`Failed to ensure user profile exists for user ${userId}: ${error?.message}`);
     }
   }
 

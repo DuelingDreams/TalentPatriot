@@ -319,53 +319,82 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       console.log('Creating organization:', { name, ownerId, slug });
       
-      // Simple approach: Create organization directly without relying on database functions
-      // This avoids foreign key constraint issues in production
-      
-      // Step 1: Ensure user profile exists (handles the foreign key issue)
+      // Production-ready approach: Validate user exists in auth system first
+      if (!supabaseAdmin) {
+        return res.status(500).json({ 
+          error: "Server configuration error - authentication system unavailable",
+          code: "AUTH_SYSTEM_UNAVAILABLE"
+        });
+      }
+
+      // Step 1: Verify user exists in Supabase Auth
+      try {
+        const { data: authUser, error: authError } = await supabaseAdmin.auth.admin.getUserById(ownerId);
+        
+        if (authError || !authUser?.user) {
+          console.error('User not found in auth system:', authError);
+          return res.status(400).json({ 
+            error: "Invalid user ID. User must be registered through authentication system first.",
+            code: "USER_NOT_FOUND",
+            details: "Please ensure the user is properly authenticated before creating an organization."
+          });
+        }
+        
+        console.log('Auth user verified:', authUser.user.email);
+      } catch (authCheckError) {
+        console.error('Auth check error:', authCheckError);
+        return res.status(400).json({ 
+          error: "Unable to verify user authentication.",
+          code: "AUTH_CHECK_FAILED"
+        });
+      }
+
+      // Step 2: Ensure user profile exists (now we know user exists in auth)
       try {
         await storage.ensureUserProfile(ownerId);
         console.log('User profile ensured for:', ownerId);
-      } catch (userError) {
-        console.warn('Failed to ensure user profile:', userError);
-        // Continue anyway - may already exist
+      } catch (userError: any) {
+        console.error('Failed to ensure user profile:', userError?.message);
+        return res.status(500).json({ 
+          error: "Failed to setup user profile",
+          code: "PROFILE_SETUP_FAILED"
+        });
       }
       
-      // Step 2: Create the organization
+      // Step 3: Create the organization
       const organization = await storage.createOrganization({
         name,
         ownerId,
         slug
       });
       
-      console.log('Organization created:', organization.id);
+      console.log('Organization created successfully:', organization.id);
 
-      // Step 3: Update user metadata in Supabase Auth (if possible)
-      if (ownerId && supabaseAdmin) {
-        try {
-          await supabaseAdmin.auth.admin.updateUserById(ownerId, {
-            user_metadata: {
-              currentOrgId: organization.id,
-              role: metadata?.ownerRole || 'admin',
-              companyName: name,
-              companySize: metadata?.companySize,
-              onboardingCompleted: true
-            }
-          });
-          
-          console.log(`Updated user ${ownerId} metadata with orgId: ${organization.id}`);
-        } catch (metaError) {
-          console.warn('Failed to update user metadata:', metaError);
-          // Don't fail the request if this fails
-        }
-      } else {
-        console.warn('No Supabase admin client available for user metadata update');
+      // Step 4: Update user metadata in Supabase Auth
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(ownerId, {
+          user_metadata: {
+            currentOrgId: organization.id,
+            role: metadata?.ownerRole || 'admin',
+            companyName: name,
+            companySize: metadata?.companySize,
+            onboardingCompleted: true
+          }
+        });
+        
+        console.log(`Updated user ${ownerId} metadata with orgId: ${organization.id}`);
+      } catch (metaError) {
+        console.warn('Failed to update user metadata (non-critical):', metaError);
+        // Don't fail the request if metadata update fails
       }
       
       res.status(201).json(organization);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating organization:", error);
-      res.status(400).json({ error: "Failed to create organization" });
+      res.status(400).json({ 
+        error: "Failed to create organization",
+        details: error?.message || "Unknown error occurred"
+      });
     }
   });
 
