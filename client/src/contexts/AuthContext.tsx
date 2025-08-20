@@ -12,7 +12,7 @@ interface AuthContextType {
   currentOrgId: string | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
-  signUp: (email: string, password: string, role?: string, orgName?: string) => Promise<{ error: any }>
+  signUp: (email: string, password: string, role?: string, orgId?: string) => Promise<{ error: any }>
   signInWithOAuth: (provider: 'google' | 'azure') => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateUserRole: (role: string) => Promise<{ error: any }>
@@ -218,16 +218,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string, role = 'hiring_manager', orgName?: string) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    role = 'hiring_manager', 
+    orgId = DEMO_ORG_ID // Default to demo org for development, can be overridden
+  ) => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-      })
-      return { error }
-    } catch (error) {
-      console.warn('Sign up error:', error)
-      return { error }
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({ 
+        email, 
+        password 
+      });
+      
+      if (signUpError) {
+        console.warn('Sign up error:', signUpError);
+        return { error: signUpError };
+      }
+
+      // If user was created successfully, assign them to the organization
+      if (user?.id) {
+        try {
+          const response = await fetch(`/api/organizations/${orgId}/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, role }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.warn('Failed to assign user to organization:', errorData);
+            // Don't fail the entire signup if organization assignment fails
+            // The user can be assigned to an organization later
+          } else {
+            console.log('User successfully assigned to organization during signup');
+          }
+        } catch (assignmentError) {
+          console.warn('Error during organization assignment:', assignmentError);
+          // Don't fail the entire signup process
+        }
+      }
+
+      return { error: null };
+    } catch (err) {
+      console.warn('Sign up error:', err);
+      return { error: err };
     }
   }
 

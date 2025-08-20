@@ -418,6 +418,69 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Assign a user to an organization and update their auth metadata
+  app.post('/api/organizations/:orgId/users', writeLimiter, async (req, res) => {
+    const { orgId } = req.params;
+    const { userId, role = 'hiring_manager' } = req.body;
+    
+    if (!orgId || !userId) {
+      return res.status(400).json({ error: 'orgId and userId are required' });
+    }
+
+    // Check if supabaseAdmin is available
+    if (!supabaseAdmin) {
+      return res.status(500).json({ 
+        error: "Server configuration error - authentication system unavailable",
+        code: "AUTH_SYSTEM_UNAVAILABLE"
+      });
+    }
+
+    try {
+      console.log(`Assigning user ${userId} to organization ${orgId} with role ${role}`);
+
+      // 1) Check if membership already exists
+      const { data: existingMembership } = await supabaseAdmin
+        .from('user_organizations')
+        .select('id')
+        .eq('org_id', orgId)
+        .eq('user_id', userId)
+        .single();
+
+      // 2) If not, insert the membership
+      if (!existingMembership) {
+        const { error: insertErr } = await supabaseAdmin
+          .from('user_organizations')
+          .insert({ org_id: orgId, user_id: userId, role });
+        
+        if (insertErr) {
+          console.error('Error inserting user-organization membership:', insertErr);
+          throw insertErr;
+        }
+        
+        console.log(`Created new membership for user ${userId} in organization ${orgId}`);
+      } else {
+        console.log(`User ${userId} already has membership in organization ${orgId}`);
+      }
+
+      // 3) Update the user's auth metadata so AuthContext picks it up
+      const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        user_metadata: { currentOrgId: orgId, role },
+      });
+      
+      if (updateErr) {
+        console.error('Error updating user auth metadata:', updateErr);
+        throw updateErr;
+      }
+      
+      console.log(`Updated auth metadata for user ${userId} with orgId: ${orgId}, role: ${role}`);
+
+      res.status(201).json({ success: true });
+    } catch (err: any) {
+      console.error('Error assigning user to organization:', err);
+      return res.status(400).json({ error: err.message || 'Failed to assign user' });
+    }
+  });
+
   // User Organizations routes
   app.get("/api/user-organizations", async (req, res) => {
     try {
