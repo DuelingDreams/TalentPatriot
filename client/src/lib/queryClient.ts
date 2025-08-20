@@ -143,8 +143,16 @@ export const queryClient = new QueryClient({
       // Keep data in cache for 10 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
       // Retry once on failure with exponential backoff
-      retry: 1,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      retry: (failureCount, error: any) => {
+        // Don't retry on authentication or authorization errors
+        if (error?.message?.includes('401') || error?.message?.includes('403') || 
+            error?.message?.includes('Unauthorized') || error?.message?.includes('Forbidden')) {
+          return false;
+        }
+        // Only retry once for other errors
+        return failureCount < 1;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Shorter retry delays
     },
     mutations: {
       retry: 1,

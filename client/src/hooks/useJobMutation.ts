@@ -22,18 +22,23 @@ export function useJobsQuery() {
 
 export function useCreateJob() {
   const qc = useQueryClient()
-  const { currentOrgId } = useAuth()
+  const { currentOrgId, user } = useAuth()
   return useMutation({
     mutationFn: async (payload: any) => {
       if (!currentOrgId) throw new Error('Organization ID is required')
+      if (!user?.id) throw new Error('User authentication required')
       const res = await fetch('/api/jobs', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-org-id': currentOrgId },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-org-id': currentOrgId,
+          'x-user-id': user.id
+        },
         body: JSON.stringify({ ...payload, orgId: currentOrgId }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        throw new Error(err?.error || 'Failed to create job')
+        throw new Error(err?.details || err?.error || 'Failed to create job')
       }
       return res.json()
     },
@@ -91,13 +96,17 @@ export function useJobApplication() {
 
 export function usePublishJob() {
   const qc = useQueryClient()
-  const { currentOrgId } = useAuth()
+  const { currentOrgId, user } = useAuth()
   return useMutation({
     mutationFn: async (jobId: string) => {
       if (!currentOrgId) throw new Error('Organization ID is required')
+      if (!user?.id) throw new Error('User authentication required')
       const res = await fetch(`/api/jobs/${jobId}/publish`, {
         method: 'POST',
-        headers: { 'x-org-id': currentOrgId },
+        headers: { 
+          'x-org-id': currentOrgId,
+          'x-user-id': user.id
+        },
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
@@ -117,7 +126,7 @@ export function usePublishJob() {
 // New hook for candidate creation
 export function useCreateCandidate() {
   const queryClient = useQueryClient()
-  const { currentOrgId } = useAuth()
+  const { currentOrgId, user } = useAuth()
 
   return useMutation({
     mutationFn: async (candidateData: {
@@ -129,11 +138,16 @@ export function useCreateCandidate() {
       if (!currentOrgId) {
         throw new Error('Organization ID is required')
       }
+      if (!user?.id) {
+        throw new Error('User authentication required')
+      }
 
       const response = await fetch('/api/candidates', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-org-id': currentOrgId,
+          'x-user-id': user.id
         },
         body: JSON.stringify({
           ...candidateData,
