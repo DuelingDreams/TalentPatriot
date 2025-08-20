@@ -45,6 +45,7 @@ Preferred communication style: Simple, everyday language.
 - **Production Build System**: Complete production deployment configuration with static file serving, build pipeline (`npm run build`), and compressed asset delivery. Server automatically detects environment and serves compiled client assets in production mode.
 - **User-Organization Assignment**: Fully automated membership assignment endpoint `/api/organizations/:orgId/users` integrated into signup workflow with comprehensive error handling and auth metadata updates.
 - **Deployment Ready (August 2025)**: Application prepared for production redeployment with optimized builds, validated environment variables, working health checks, and complete user-organization workflow testing.
+- **Performance Fix (August 2025)**: Resolved subdomain resolver middleware causing excessive database queries and constant refresh issues by filtering out Replit development URLs and API requests from organization resolution.
 
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.

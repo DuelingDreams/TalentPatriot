@@ -29,6 +29,11 @@ export async function subdomainResolver(req: Request, res: Response, next: NextF
       return next();
     }
 
+    // Skip processing for API requests - they don't need organization context from subdomain
+    if (req.path.startsWith('/api/') || req.path.startsWith('/_vite') || req.path.startsWith('/node_modules')) {
+      return next();
+    }
+
     // Extract subdomain from host
     const subdomain = extractSubdomain(host);
     
@@ -53,7 +58,10 @@ export async function subdomainResolver(req: Request, res: Response, next: NextF
       
       console.log(`[SUBDOMAIN] Resolved ${subdomain} → ${organization.name} (${organization.id})`);
     } else {
-      console.log(`[SUBDOMAIN] No organization found for subdomain: ${subdomain}`);
+      // Only log if it's a potential organization subdomain (not Replit URLs)
+      if (subdomain.length <= 30 && !/^[a-f0-9\-]{30,}$/i.test(subdomain)) {
+        console.log(`[SUBDOMAIN] No organization found for subdomain: ${subdomain}`);
+      }
     }
 
     next();
@@ -78,13 +86,29 @@ function extractSubdomain(host: string): string | null {
     return parts[0] !== 'localhost' ? parts[0] : null;
   }
   
+  // Skip Replit development domains - they're not organization subdomains
+  if (hostname.includes('.replit.app') || hostname.includes('.replit.dev') || hostname.includes('.replit.co')) {
+    return null;
+  }
+  
+  // Skip other development/internal domains
+  if (hostname.includes('.vercel.app') || hostname.includes('.herokuapp.com') || hostname.includes('.netlify.app')) {
+    return null;
+  }
+  
   // For production - look for pattern like company.talentpatriot.app
   if (parts.length >= 3) {
     const subdomain = parts[0];
-    // Ignore common non-organization subdomains
+    // Ignore common non-organization subdomains and UUIDs/random strings
     if (['www', 'api', 'admin', 'app'].includes(subdomain)) {
       return null;
     }
+    
+    // Skip UUID-like strings (typical of Replit URLs)
+    if (subdomain.length > 30 || /^[a-f0-9\-]{30,}$/i.test(subdomain)) {
+      return null;
+    }
+    
     return subdomain;
   }
   
