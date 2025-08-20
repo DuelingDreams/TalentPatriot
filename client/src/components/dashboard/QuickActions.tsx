@@ -95,8 +95,8 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
   const createdKey = (jc: any) => jc.appliedAt || jc.created_at || jc.createdAt
   const isApplied = (jc: any) => appliedStageNames.includes((jc.stage || '').toLowerCase())
   const lastDay = new Date(Date.now() - 24 * 60 * 60 * 1000)
-  const pendingReview = (jobCandidates || []).filter(jc => isApplied(jc)).length
-  const newInLastDay = (jobCandidates || []).filter(jc => 
+  const pendingReview = (jobCandidates || []).filter((jc: any) => isApplied(jc)).length
+  const newInLastDay = (jobCandidates || []).filter((jc: any) => 
     isApplied(jc) && createdKey(jc) && new Date(createdKey(jc)) > lastDay
   ).length
 

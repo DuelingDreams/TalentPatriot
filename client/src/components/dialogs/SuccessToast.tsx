@@ -24,15 +24,13 @@ export function showEnhancedSuccess({
   const { toast } = useToast()
   
   toast({
-    title: (
-      <div className="flex items-center gap-2">
-        <CheckCircle className="w-5 h-5 text-green-600" />
-        {title}
-      </div>
-    ),
+    title: title,
     description: (
       <div className="space-y-3">
-        <p>{description}</p>
+        <div className="flex items-center gap-2">
+          <CheckCircle className="w-5 h-5 text-green-600" />
+          <p>{description}</p>
+        </div>
         <div className="flex gap-2">
           {showViewAction && (
             <Button size="sm" variant="outline" onClick={onView}>

@@ -322,10 +322,12 @@ export default function Jobs() {
           </div>
         )}
         {/* Job Creation Modal */}
-        <PostJobDialog
-          isOpen={isGuidedModalOpen}
-          onClose={() => setIsGuidedModalOpen(false)}
-        />
+        {isGuidedModalOpen && (
+          <PostJobDialog
+            trigger={<></>}
+            onJobCreated={() => setIsGuidedModalOpen(false)}
+          />
+        )}
       </div>
     </DashboardLayout>
   )
