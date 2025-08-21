@@ -745,7 +745,7 @@ export default function JobPipeline() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const candidate = jobCandidates?.find((c: any) => c.id === event.active.id)
-    setActiveCandidate(candidate || null)
+    setActiveCandidate(candidate as any || null)
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -798,12 +798,12 @@ export default function JobPipeline() {
     const newStage = over.id as string
 
     const candidate = jobCandidates?.find((c: any) => c.id === candidateId)
-    if (!candidate || candidate.stage === newStage) return
+    if (!candidate || (candidate as any).stage === newStage) return
 
     try {
       toast({
         title: "Stage Updated",
-        description: `Moving ${candidate.candidates?.name || 'candidate'} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}...`,
+        description: `Moving ${(candidate as any).candidate?.name || 'candidate'} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}...`,
       })
 
       await updateCandidateStage.mutateAsync({
@@ -813,7 +813,7 @@ export default function JobPipeline() {
 
       toast({
         title: "Success",
-        description: `${candidate.candidates?.name || 'Candidate'} moved to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`,
+        description: `${(candidate as any).candidate?.name || 'Candidate'} moved to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`,
       })
     } catch (error) {
       console.error('Failed to update candidate stage:', error)

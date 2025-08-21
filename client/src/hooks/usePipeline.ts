@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
+import type { JobCandidate } from '@shared/schema'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
 
