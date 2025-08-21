@@ -22,7 +22,9 @@ export function useCandidates(options: { refetchInterval?: number } = {}) {
       totalYearsExperience: null,
       educationLevel: null,
       currentJobTitle: null,
-      searchableContent: null
+      searchableContent: null,
+      summary: null,
+      education: null
     })) as Candidate[],
     getDemoItem: (id: string) => {
       const candidate = getDemoCandidate(id);
@@ -39,7 +41,9 @@ export function useCandidates(options: { refetchInterval?: number } = {}) {
         totalYearsExperience: null,
         educationLevel: null,
         currentJobTitle: null,
-        searchableContent: null
+        searchableContent: null,
+        summary: null,
+        education: null
       } as Candidate;
     },
     refetchInterval: options.refetchInterval || 120000, // 2 minutes default
@@ -69,7 +73,9 @@ export function useCandidate(id?: string) {
       totalYearsExperience: null,
       educationLevel: null,
       currentJobTitle: null,
-      searchableContent: null
+      searchableContent: null,
+      summary: null,
+      education: null
     } as Candidate;
   })
 }
