@@ -31,7 +31,19 @@ import { Link, useLocation } from 'wouter'
 import { useToast } from '@/hooks/use-toast'
 
 export default function Candidates() {
-  const { userRole, currentOrgId } = useAuth()
+  console.log('[Candidates] Component mounting')
+  
+  let userRole, currentOrgId;
+  try {
+    const authContext = useAuth();
+    userRole = authContext.userRole;
+    currentOrgId = authContext.currentOrgId;
+    console.log('[Candidates] Auth context loaded:', { userRole, currentOrgId });
+  } catch (error) {
+    console.error('[Candidates] Error accessing auth context:', error);
+    throw error;
+  }
+  
   const [, setLocation] = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('all')
@@ -134,7 +146,18 @@ export default function Candidates() {
   }
 
   // Real candidates page for authenticated users
-  const { data: candidates, isLoading, error } = useCandidates()
+  let candidates, isLoading, error;
+  try {
+    console.log('[Candidates] About to call useCandidates hook with context:', { currentOrgId, userRole });
+    const candidatesResult = useCandidates();
+    candidates = candidatesResult.data;
+    isLoading = candidatesResult.isLoading;
+    error = candidatesResult.error;
+    console.log('[Candidates] useCandidates hook returned:', { candidates: candidates?.length, isLoading, error });
+  } catch (hookError) {
+    console.error('[Candidates] Error in useCandidates hook:', hookError);
+    throw new Error(`Failed to load candidates data: ${hookError.message}`);
+  }
   
   // Debug logging for troubleshooting
   console.log('[Candidates] currentOrgId:', currentOrgId, 'userRole:', userRole, 'loading:', isLoading, 'error:', error, 'candidates:', candidates?.length)

@@ -21,6 +21,17 @@ export class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorB
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('App Error Boundary caught an error:', error, errorInfo)
+    console.error('Error stack:', error.stack)
+    console.error('Component stack:', errorInfo.componentStack)
+    
+    // Send detailed error info to help debugging
+    console.group('🔴 CANDIDATES PAGE ERROR DEBUG')
+    console.error('Error name:', error.name)
+    console.error('Error message:', error.message)
+    console.error('Error cause:', error.cause)
+    console.error('Full error object:', error)
+    console.error('Error info:', errorInfo)
+    console.groupEnd()
   }
 
   render() {
