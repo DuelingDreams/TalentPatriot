@@ -1,20 +1,119 @@
--- SQL Script to create Messages and Message Recipients tables
+-- SQL Script to update Messages tables for existing database
 -- Copy and paste this into your Supabase SQL Editor
 
--- Create enums if they don't exist
-DO $$ BEGIN
-  CREATE TYPE message_type AS ENUM ('internal', 'client', 'candidate', 'system');
+-- Check if message_type enum exists and add missing values
+DO $$ 
+BEGIN
+  -- Try to add missing enum values if they don't exist
+  BEGIN
+    ALTER TYPE message_type ADD VALUE IF NOT EXISTS 'internal';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
+  
+  BEGIN
+    ALTER TYPE message_type ADD VALUE IF NOT EXISTS 'client';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
+  
+  BEGIN
+    ALTER TYPE message_type ADD VALUE IF NOT EXISTS 'candidate';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
+  
+  BEGIN
+    ALTER TYPE message_type ADD VALUE IF NOT EXISTS 'system';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
 EXCEPTION
-  WHEN duplicate_object THEN null;
+  -- If message_type enum doesn't exist, create it
+  WHEN undefined_object THEN
+    CREATE TYPE message_type AS ENUM ('internal', 'client', 'candidate', 'system');
 END $$;
 
-DO $$ BEGIN
-  CREATE TYPE message_priority AS ENUM ('low', 'normal', 'high', 'urgent');
+-- Check if message_priority enum exists and add missing values
+DO $$ 
+BEGIN
+  -- Try to add missing enum values if they don't exist
+  BEGIN
+    ALTER TYPE message_priority ADD VALUE IF NOT EXISTS 'low';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
+  
+  BEGIN
+    ALTER TYPE message_priority ADD VALUE IF NOT EXISTS 'normal';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
+  
+  BEGIN
+    ALTER TYPE message_priority ADD VALUE IF NOT EXISTS 'high';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
+  
+  BEGIN
+    ALTER TYPE message_priority ADD VALUE IF NOT EXISTS 'urgent';
+  EXCEPTION
+    WHEN duplicate_object THEN NULL;
+  END;
 EXCEPTION
-  WHEN duplicate_object THEN null;
+  -- If message_priority enum doesn't exist, create it
+  WHEN undefined_object THEN
+    CREATE TYPE message_priority AS ENUM ('low', 'normal', 'high', 'urgent');
 END $$;
 
--- Create messages table
+-- Add missing columns to messages table if they don't exist
+DO $$
+BEGIN
+  -- Add thread_id column if it doesn't exist
+  BEGIN
+    ALTER TABLE messages ADD COLUMN thread_id UUID;
+  EXCEPTION
+    WHEN duplicate_column THEN NULL;
+  END;
+  
+  -- Add reply_to_id column if it doesn't exist
+  BEGIN
+    ALTER TABLE messages ADD COLUMN reply_to_id UUID;
+  EXCEPTION
+    WHEN duplicate_column THEN NULL;
+  END;
+  
+  -- Add attachments column if it doesn't exist
+  BEGIN
+    ALTER TABLE messages ADD COLUMN attachments TEXT[];
+  EXCEPTION
+    WHEN duplicate_column THEN NULL;
+  END;
+  
+  -- Add tags column if it doesn't exist
+  BEGIN
+    ALTER TABLE messages ADD COLUMN tags TEXT[];
+  EXCEPTION
+    WHEN duplicate_column THEN NULL;
+  END;
+  
+  -- Add is_archived column if it doesn't exist
+  BEGIN
+    ALTER TABLE messages ADD COLUMN is_archived BOOLEAN NOT NULL DEFAULT false;
+  EXCEPTION
+    WHEN duplicate_column THEN NULL;
+  END;
+  
+  -- Add record_status column if it doesn't exist
+  BEGIN
+    ALTER TABLE messages ADD COLUMN record_status record_status DEFAULT 'active';
+  EXCEPTION
+    WHEN duplicate_column THEN NULL;
+  END;
+END $$;
+
+-- Create messages table if it doesn't exist (fallback)
 CREATE TABLE IF NOT EXISTS messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id UUID NOT NULL REFERENCES organizations(id),
@@ -48,7 +147,7 @@ CREATE TABLE IF NOT EXISTS messages (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
--- Create message_recipients table
+-- Create message_recipients table if it doesn't exist
 CREATE TABLE IF NOT EXISTS message_recipients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id UUID NOT NULL REFERENCES organizations(id),
