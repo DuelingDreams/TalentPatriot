@@ -1037,13 +1037,20 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       const { slug } = paramsParse.data;
-      const allJobs = await storage.getJobs();
-      const job = allJobs.find(job => job.publicSlug === slug && job.status === 'open');
+      console.log(`[API] GET /api/public/jobs/slug/${slug} | Looking for job with slug: ${slug}`);
+      
+      // Use jobService instead of storage for consistency with other public job endpoints
+      const allJobs = await jobService.getPublicJobs();
+      const job = allJobs.find(job => job.public_slug === slug && job.status === 'open');
+      
+      console.log(`[API] Found jobs: ${allJobs.length}, Looking for slug: ${slug}`);
+      console.log(`[API] Available slugs: ${allJobs.map(j => j.publicSlug).join(', ')}`);
       
       if (!job) {
         return res.status(404).json({ error: "Job not found" });
       }
       
+      console.log(`[API] Job found: ${job.title} (ID: ${job.id})`);
       res.json(job);
     } catch (error) {
       console.error('Error fetching job by slug:', error);

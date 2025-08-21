@@ -657,13 +657,18 @@ export async function getPublicJobs() {
     .from('jobs')
     .select('*')
     .eq('status', 'open')
-    .neq('public_slug', null)
+    .not('public_slug', 'is', null)
     .eq('record_status', 'active')
     .order('published_at', { ascending: false });
     
   if (error) {
     console.error('Public jobs fetch error:', error);
     throw new Error(`Failed to fetch public jobs: ${error.message}`);
+  }
+  
+  console.log(`[JobService] getPublicJobs found ${data?.length || 0} jobs`);
+  if (data?.length) {
+    console.log(`[JobService] Job slugs: ${data.map(j => j.public_slug).join(', ')}`);
   }
   
   return data || [];

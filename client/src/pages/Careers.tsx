@@ -102,7 +102,7 @@ export default function Careers() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredJobs.map((job: Job) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => setLocation(`/careers/${job.publicSlug}/apply`)}>
+                onClick={() => setLocation(`/careers/${job.public_slug}`)}>
                 <CardHeader>
                   <CardTitle className="text-xl">{job.title}</CardTitle>
                   {job.department && (
