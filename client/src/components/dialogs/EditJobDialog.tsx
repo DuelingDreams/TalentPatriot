@@ -11,7 +11,7 @@ import { toast } from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useClients } from '@/hooks/useClients'
 import { useUpdateJob } from '@/hooks/useJobMutation'
-import { AppModal } from '@/components/ui/modal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Loader2, Edit } from 'lucide-react'
 import type { Job } from '@/../../shared/schema'
 
@@ -101,21 +101,15 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
   )
 
   return (
-    <>
-      {/* Trigger Button */}
-      {trigger ? (
-        <div onClick={() => setIsOpen(true)}>{trigger}</div>
-      ) : (
-        <div onClick={() => setIsOpen(true)}>{defaultTrigger}</div>
-      )}
-
-      {/* Modal */}
-      <AppModal
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        title="Edit Job"
-        className="lg:max-w-2xl"
-      >
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        {trigger || defaultTrigger}
+      </DialogTrigger>
+      
+      <DialogContent className="lg:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit Job</DialogTitle>
+        </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto pr-2">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pb-4">
@@ -313,7 +307,7 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
             </form>
           </Form>
         </div>
-      </AppModal>
-    </>
+      </DialogContent>
+    </Dialog>
   )
 }
