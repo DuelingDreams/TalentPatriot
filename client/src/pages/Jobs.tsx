@@ -1,4 +1,5 @@
 import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
+import { EditJobDialog } from '@/components/dialogs/EditJobDialog'
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -292,20 +293,29 @@ export default function Jobs() {
                         
                         <div className="flex items-center gap-2 ml-6">
                           {job.status === 'draft' && !isDemoMode && (
-                            <Button
-                              onClick={() => handlePublish(job.id)}
-                              disabled={publishJob.isPending}
-                              variant="outline"
-                              size="sm"
-                              className="flex items-center gap-1"
-                            >
-                              {publishJob.isPending ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Globe className="w-4 h-4" />
-                              )}
-                              {publishJob.isPending ? 'Publishing...' : 'Publish'}
-                            </Button>
+                            <>
+                              <EditJobDialog 
+                                job={job}
+                                onJobUpdated={() => {
+                                  // Refresh jobs data after update
+                                  // The hook will automatically invalidate queries
+                                }}
+                              />
+                              <Button
+                                onClick={() => handlePublish(job.id)}
+                                disabled={publishJob.isPending}
+                                variant="outline"
+                                size="sm"
+                                className="flex items-center gap-1"
+                              >
+                                {publishJob.isPending ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Globe className="w-4 h-4" />
+                                )}
+                                {publishJob.isPending ? 'Publishing...' : 'Publish'}
+                              </Button>
+                            </>
                           )}
                           <Link href={`/pipeline/${job.id}`}>
                             <Button variant="outline" size="sm">

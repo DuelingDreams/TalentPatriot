@@ -837,6 +837,12 @@ export class DatabaseStorage implements IStorage {
       if (updateData.clientId !== undefined) dbUpdate.client_id = updateData.clientId
       if (updateData.assignedTo !== undefined) dbUpdate.assigned_to = updateData.assignedTo
       if (updateData.recordStatus !== undefined) dbUpdate.record_status = updateData.recordStatus
+      if (updateData.location !== undefined) dbUpdate.location = updateData.location
+      if (updateData.jobType !== undefined) dbUpdate.job_type = updateData.jobType
+      if (updateData.remoteOption !== undefined) dbUpdate.remote_option = updateData.remoteOption
+      if (updateData.salaryRange !== undefined) dbUpdate.salary_range = updateData.salaryRange
+      if (updateData.experienceLevel !== undefined) dbUpdate.experience_level = updateData.experienceLevel
+      if (updateData.updatedAt !== undefined) dbUpdate.updated_at = updateData.updatedAt
       
       const { data, error } = await supabase
         .from('jobs')

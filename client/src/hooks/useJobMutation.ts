@@ -123,6 +123,37 @@ export function usePublishJob() {
   })
 }
 
+export function useUpdateJob() {
+  const qc = useQueryClient()
+  const { currentOrgId, user } = useAuth()
+  return useMutation({
+    mutationFn: async (jobData: Partial<Job> & { id: string }) => {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      if (!user?.id) throw new Error('User authentication required')
+      const { id, ...updateData } = jobData
+      const res = await fetch(`/api/jobs/${id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-org-id': currentOrgId,
+          'x-user-id': user.id
+        },
+        body: JSON.stringify(updateData),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.details || err?.error || 'Failed to update job')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+      qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
+    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to update job'),
+  })
+}
+
 // New hook for candidate creation
 export function useCreateCandidate() {
   const queryClient = useQueryClient()
