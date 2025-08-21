@@ -163,14 +163,14 @@ ${resumeText}
   private validateAndCleanParsedData(data: any): ParsedResumeData {
     return {
       personalInfo: {
-        name: data.personalInfo?.name || null,
-        email: data.personalInfo?.email || null,
-        phone: data.personalInfo?.phone || null,
-        location: data.personalInfo?.location || null,
-        linkedIn: data.personalInfo?.linkedIn || null,
-        portfolio: data.personalInfo?.portfolio || null,
+        name: data.personalInfo?.name || undefined,
+        email: data.personalInfo?.email || undefined,
+        phone: data.personalInfo?.phone || undefined,
+        location: data.personalInfo?.location || undefined,
+        linkedIn: data.personalInfo?.linkedIn || undefined,
+        portfolio: data.personalInfo?.portfolio || undefined,
       },
-      summary: data.summary || null,
+      summary: data.summary || undefined,
       skills: {
         technical: Array.isArray(data.skills?.technical) ? data.skills.technical : [],
         soft: Array.isArray(data.skills?.soft) ? data.skills.soft : [],
@@ -180,16 +180,16 @@ ${resumeText}
         title: exp.title || '',
         company: exp.company || '',
         duration: exp.duration || '',
-        location: exp.location || null,
+        location: exp.location || undefined,
         description: exp.description || '',
         achievements: Array.isArray(exp.achievements) ? exp.achievements : [],
       })) : [],
       education: Array.isArray(data.education) ? data.education.map((edu: any) => ({
         degree: edu.degree || '',
         institution: edu.institution || '',
-        graduationYear: edu.graduationYear || null,
-        gpa: edu.gpa || null,
-        major: edu.major || null,
+        graduationYear: edu.graduationYear || undefined,
+        gpa: edu.gpa || undefined,
+        major: edu.major || undefined,
       })) : [],
       projects: Array.isArray(data.projects) ? data.projects.map((proj: any) => ({
         name: proj.name || '',
@@ -209,14 +209,14 @@ ${resumeText}
   private createEmptyResumeData(): ParsedResumeData {
     return {
       personalInfo: {
-        name: null,
-        email: null,
-        phone: null,
-        location: null,
-        linkedIn: null,
-        portfolio: null,
+        name: undefined,
+        email: undefined,
+        phone: undefined,
+        location: undefined,
+        linkedIn: undefined,
+        portfolio: undefined,
       },
-      summary: null,
+      summary: undefined,
       skills: {
         technical: [],
         soft: [],

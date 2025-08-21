@@ -931,12 +931,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       const updatedJob = await storage.updateJob(jobId, {
         ...validatedData,
-        client_id: validatedData.clientId,
-        job_type: validatedData.jobType,
-        remote_option: validatedData.remoteOption,
-        salary_range: validatedData.salaryRange,
-        experience_level: validatedData.experienceLevel,
-        updated_at: new Date().toISOString(),
+        updatedAt: new Date(),
       });
 
       console.info('[API] PUT /api/jobs/:jobId →', { success: true, jobId });
@@ -1122,12 +1117,48 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   const jobApplicationSchema = z.object({
+    // Basic Information
     firstName: z.string().min(1, "First name is required").max(50, "First name too long"),
     lastName: z.string().min(1, "Last name is required").max(50, "Last name too long"),
     email: z.string().email("Valid email is required").max(255, "Email too long"),
     phone: z.string().optional().refine(val => !val || val.length <= 20, "Phone number too long"),
+    
+    // Files
     resumeUrl: z.string().url("Invalid resume URL").optional(),
-    coverLetter: z.string().max(2000, "Cover letter too long").optional()
+    coverLetter: z.string().max(2000, "Cover letter too long").optional(),
+    
+    // Structured data (JSON strings from FormData)
+    education: z.string().optional().refine(val => {
+      if (!val) return true;
+      try { JSON.parse(val); return true; } catch { return false; }
+    }, "Invalid education data"),
+    employment: z.string().optional().refine(val => {
+      if (!val) return true;
+      try { JSON.parse(val); return true; } catch { return false; }
+    }, "Invalid employment data"),
+    
+    // External Links
+    linkedinUrl: z.string().url("Invalid LinkedIn URL").optional(),
+    portfolioUrl: z.string().url("Invalid portfolio URL").optional(),
+    
+    // Legal/Eligibility
+    workAuthorization: z.enum(['yes', 'no']).optional(),
+    visaSponsorship: z.enum(['yes', 'no']).optional(),
+    ageConfirmation: z.enum(['18-or-older', 'under-18']).optional(),
+    previousEmployee: z.enum(['yes', 'no']).optional(),
+    
+    // Outreach
+    referralSource: z.enum(['career-page', 'linkedin', 'indeed', 'referral', 'other']).optional(),
+    
+    // Acknowledgments
+    dataPrivacyAck: z.enum(['true', 'false']).optional(),
+    aiAcknowledgment: z.enum(['true', 'false']).optional(),
+    
+    // Diversity (Optional)
+    gender: z.enum(['male', 'female', 'non-binary', 'other', '']).optional(),
+    raceEthnicity: z.enum(['asian', 'black', 'hispanic', 'white', 'two-or-more', 'other', '']).optional(),
+    veteranStatus: z.enum(['veteran', 'disabled-veteran', 'recently-separated', '']).optional(),
+    disabilityStatus: z.enum(['yes', 'no', '']).optional()
   });
 
   app.post("/api/jobs/:jobId/apply", publicJobLimiter, async (req, res) => {
@@ -1166,6 +1197,17 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           resumeUrl: applicantData.resumeUrl
         }
       });
+
+      // TODO: Store additional application metadata in a separate table
+      // For now, log the comprehensive data for future implementation
+      if (applicantData.education || applicantData.linkedinUrl) {
+        console.log('[APPLICATION] Comprehensive data received:', {
+          candidateId: result.candidateId,
+          hasEducation: !!applicantData.education,
+          hasLinkedIn: !!applicantData.linkedinUrl,
+          referralSource: applicantData.referralSource
+        });
+      }
 
       console.info('[API] POST /api/jobs/:jobId/apply →', { 
         success: true, 
