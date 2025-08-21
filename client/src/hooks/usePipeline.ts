@@ -126,9 +126,9 @@ export function useMoveApplication() {
 
   return useMutation({
     mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
-      return apiRequest(`/api/applications/${applicationId}/move`, {
+      return apiRequest({
+        url: `/api/applications/${applicationId}/move`,
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ columnId })
       })
     },

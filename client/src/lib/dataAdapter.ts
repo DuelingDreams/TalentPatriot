@@ -117,14 +117,14 @@ export const demoAdapter = {
 
   async getCandidatesForJob(jobId: string) {
     await delay();
-    return store.candidates.filter(c => c.job_id === jobId);
+    return store.candidates.filter((c: any) => c.job_id === jobId);
   },
 
   async moveCandidateStage(candidateId: string, nextStageName: string) {
     await delay();
     const c = store.candidates.find(x => x.id === candidateId);
     if (!c) throw new Error('Candidate not found');
-    c.stage = nextStageName;
+    (c as any).stage = nextStageName;
     return c;
   },
 
@@ -133,7 +133,7 @@ export const demoAdapter = {
     ensureDefaultPipeline(jobId);
     // Deduplicate by email within org
     const email = (applicant.email || '').toLowerCase();
-    let c = store.candidates.find(x => x.organization_id === 'DEMO_ORG_ID' && (x.email||'').toLowerCase() === email);
+    let c = store.candidates.find((x: any) => x.organization_id === 'DEMO_ORG_ID' && (x.email||'').toLowerCase() === email);
     if (!c) {
       c = {
         id: uuidv4(),

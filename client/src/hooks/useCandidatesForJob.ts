@@ -64,19 +64,30 @@ export function useCandidatesForJob(
       if (isDemoUser) {
         if (!jobId) return []
         return demoAdapter.getCandidatesForJob(jobId).then(candidates => 
-          candidates.map(c => ({
+          candidates.map((c: any) => ({
             id: c.id,
             jobId: jobId,
             candidateId: c.id,
             columnId: null,
-            status: 'active', // Default status for demo candidates
+            status: 'active' as const,
             appliedAt: c.createdAt || new Date().toISOString(),
             candidate: {
               id: c.id,
               name: c.name,
               email: c.email,
-              phone: c.phone,
-              resumeUrl: c.resumeUrl
+              phone: c.phone || null,
+              resumeUrl: c.resumeUrl || null,
+              createdAt: new Date(c.createdAt),
+              updatedAt: new Date(c.updatedAt),
+              orgId: c.orgId,
+              status: 'demo' as const,
+              resumeParsed: false,
+              skills: [],
+              experienceLevel: 'mid' as const,
+              totalYearsExperience: null,
+              educationLevel: null,
+              currentJobTitle: null,
+              searchableContent: null
             }
           }))
         )
@@ -162,7 +173,7 @@ export function useCandidatesForJob(
               queryClient.invalidateQueries({ queryKey })
             }
           )
-          .on('subscribe', (status) => {
+          .on('subscribe', (status: string) => {
             if (!mounted) return
             
             console.log('[Realtime] Subscription status:', status)
@@ -175,7 +186,7 @@ export function useCandidatesForJob(
               }
             }
           })
-          .on('error', (error) => {
+          .on('error', (error: any) => {
             if (!mounted) return
             
             console.error('[Realtime] Subscription error:', error)
