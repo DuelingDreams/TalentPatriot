@@ -8,21 +8,21 @@ export default function Unauthorized() {
   const { userRole, signOut } = useAuth()
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 font-[Inter,sans-serif]">
       <div className="w-full max-w-md">
-        <Card>
+        <Card className="bg-white">
           <CardHeader className="text-center">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Shield className="w-8 h-8 text-red-600" />
             </div>
-            <CardTitle className="text-xl text-slate-900">Access Denied</CardTitle>
+            <CardTitle className="text-xl text-[#1A1A1A]">Access Denied</CardTitle>
             <CardDescription>
               You don't have permission to access this page
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
-            <div className="text-sm text-slate-600">
-              <p>Your current role: <span className="font-medium">{userRole || 'Unknown'}</span></p>
+            <div className="text-sm text-[#5C667B]">
+              <p>Your current role: <span className="font-medium text-[#1A1A1A]">{userRole || 'Unknown'}</span></p>
               <p className="mt-2">Please contact your administrator if you believe this is an error.</p>
             </div>
             
@@ -37,7 +37,7 @@ export default function Unauthorized() {
               <Button 
                 variant="ghost" 
                 onClick={signOut}
-                className="w-full text-slate-600"
+                className="w-full text-[#5C667B]"
               >
                 Sign out
               </Button>

@@ -123,7 +123,27 @@
   }
   
   label, .label-text {
-    @apply text-sm font-semibold text-[#5C667B];
+    @apply text-sm font-medium text-[#1A1A1A] mb-1;
+  }
+  
+  .text-muted {
+    @apply text-[#5C667B];
+  }
+  
+  .text-muted-foreground {
+    @apply text-[#5C667B];
+  }
+  
+  .bg-page {
+    @apply bg-[#F7F9FC];
+  }
+  
+  .bg-card-surface {
+    @apply bg-[#F0F4F8];
+  }
+  
+  .border-brand {
+    @apply border-[#E6F0FF];
   }
 }
 

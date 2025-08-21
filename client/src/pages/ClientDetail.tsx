@@ -33,9 +33,9 @@ export default function ClientDetail() {
     return (
       <DashboardLayout pageTitle="Client Not Found">
         <div className="text-center py-12">
-          <Building2 className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-          <h3 className="text-lg font-medium text-slate-900 mb-2">Client not found</h3>
-          <p className="text-slate-500 mb-4">The client you're looking for doesn't exist.</p>
+          <Building2 className="w-12 h-12 mx-auto text-[#5C667B] mb-4" />
+          <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">Client not found</h3>
+          <p className="text-[#5C667B] mb-4">The client you're looking for doesn't exist.</p>
           <Link href="/clients">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
