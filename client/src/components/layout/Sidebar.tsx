@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOrganizations } from '@/hooks/useOrganizations'
 import { 
   Home, 
   Briefcase, 
@@ -13,7 +14,8 @@ import {
   MessageSquare,
   HelpCircle, 
   FileText,
-  BarChart3
+  BarChart3,
+  Globe
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -30,6 +32,7 @@ const navigationItems = [
   { label: 'Candidates', href: '/candidates', icon: Users, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
+  { label: 'Careers Page', href: '/careers', icon: Globe, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'], external: true },
 ]
 
 const secondaryItems = [
@@ -39,11 +42,30 @@ const secondaryItems = [
 
 export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const [location] = useLocation()
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
+  const { data: organizations } = useOrganizations()
 
   const filteredNavigationItems = navigationItems.filter(item => 
     !userRole || item.roles.includes(userRole)
   )
+
+  // Get current organization from the organizations list
+  const currentOrganization = organizations?.find(org => org.id === currentOrgId)
+
+  // Generate the careers page URL based on the current organization
+  const getCareersUrl = () => {
+    if (!currentOrganization?.slug) {
+      return '/careers' // Fallback to regular careers page
+    }
+    
+    if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
+      // Development environment
+      return `http://${currentOrganization.slug}.localhost:5000/careers`
+    } else {
+      // Production environment
+      return `https://${currentOrganization.slug}.talentpatriot.app/careers`
+    }
+  }
 
   return (
     <>
@@ -84,6 +106,33 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
             {filteredNavigationItems.map((item) => {
               const Icon = item.icon
               const isActive = location === item.href
+              
+              // Handle external careers page link
+              if (item.label === 'Careers Page') {
+                const careersUrl = getCareersUrl()
+                
+                return (
+                  <a 
+                    key={item.href} 
+                    href={careersUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-sm font-medium text-[#5C667B] hover:bg-[#F0F4F8]"
+                      onClick={onClose}
+                    >
+                      <Icon className="w-5 h-5 mr-3" />
+                      {item.label}
+                      <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </Button>
+                  </a>
+                )
+              }
               
               return (
                 <Link key={item.href} href={item.href}>
