@@ -65,19 +65,19 @@ export function useJobPipeline(jobId: string | undefined) {
             { id: 'hired', title: 'Hired', position: '5' },
           ],
           applications: await demoAdapter.getCandidatesForJob(jobId).then(candidates =>
-            candidates.map(c => ({
+            candidates.map((c: any) => ({
               id: c.id,
               jobId: jobId,
               candidateId: c.id,
-              columnId: c.stage.toLowerCase(),
-              status: c.stage,
-              appliedAt: c.applied_at,
+              columnId: 'applied', // Default demo candidates to applied stage
+              status: 'active',
+              appliedAt: c.createdAt || new Date().toISOString(),
               candidate: {
                 id: c.id,
                 name: c.name,
                 email: c.email,
                 phone: c.phone,
-                resumeUrl: c.resume_url
+                resumeUrl: c.resumeUrl
               }
             }))
           )
@@ -128,11 +128,13 @@ export function useMoveApplication() {
     mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
       return apiRequest(`/api/applications/${applicationId}/move`, {
         method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ columnId })
       })
     },
     onSuccess: () => {
-      // Invalidate pipeline queries to refresh the view
+      // Invalidate all pipeline-related queries
+      queryClient.invalidateQueries({ queryKey: ['job-pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['applications'] })
     }

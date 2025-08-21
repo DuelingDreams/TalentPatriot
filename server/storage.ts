@@ -88,6 +88,7 @@ export interface IStorage {
   createJob(job: InsertJob): Promise<Job>;
   publishJob(jobId: string): Promise<Job>;
   updateJob(id: string, data: Partial<InsertJob>): Promise<Job>;
+  deleteJob(id: string): Promise<void>;
   
   // Candidates
   getCandidate(id: string): Promise<Candidate | undefined>;
