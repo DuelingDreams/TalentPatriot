@@ -97,6 +97,14 @@ export const candidates = pgTable("candidates", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdBy: uuid("created_by"),
+  // Resume parsing fields
+  resumeParsed: boolean("resume_parsed").default(false),
+  skills: text("skills").array(), // JSON array of skills
+  experienceLevel: experienceLevelEnum("experience_level"),
+  totalYearsExperience: integer("total_years_experience").default(0),
+  education: text("education"), // JSON string of education data
+  summary: text("summary"),
+  searchableContent: text("searchable_content"), // For full-text search
 });
 
 // Pipeline columns for Kanban board (job-specific with backward compatibility)

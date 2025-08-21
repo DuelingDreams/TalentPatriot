@@ -38,6 +38,7 @@ import {
 } from "@shared/schema";
 import { createClient } from '@supabase/supabase-js';
 import { atsEmailService } from './emailService';
+import { resumeParsingService, type ParsedResumeData } from './resumeParser';
 
 // Storage interface for ATS system
 export interface IStorage {
@@ -170,6 +171,10 @@ export interface IStorage {
     experienceLevel?: string;
     remoteOption?: string;
   }): Promise<Job[]>;
+  
+  // Resume parsing functionality
+  parseAndUpdateCandidate(candidateId: string, resumeText?: string): Promise<Candidate>;
+  searchCandidatesBySkills(orgId: string, skills: string[]): Promise<Candidate[]>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -2238,6 +2243,123 @@ export class DatabaseStorage implements IStorage {
     } catch (err) {
       console.error('Advanced job search exception:', err);
       throw err;
+    }
+  }
+
+  // Resume parsing functionality
+  async parseAndUpdateCandidate(candidateId: string, resumeText?: string): Promise<Candidate> {
+    try {
+      // Get the current candidate
+      const { data: candidateData, error: candidateError } = await this.supabase
+        .from('candidates')
+        .select('*')
+        .eq('id', candidateId)
+        .single();
+
+      if (candidateError || !candidateData) {
+        throw new Error('Candidate not found');
+      }
+
+      const candidate = candidateData as Candidate;
+
+      let parsedData: ParsedResumeData | null = null;
+
+      // Parse resume text if provided
+      if (resumeText) {
+        try {
+          parsedData = await resumeParsingService.parseResumeText(resumeText);
+        } catch (error) {
+          console.error('Resume parsing failed:', error);
+          // Continue without parsing rather than failing completely
+        }
+      }
+
+      // Update candidate with parsed data
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (parsedData) {
+        // Extract all skills for searchable array
+        const allSkills = [
+          ...parsedData.skills.technical,
+          ...parsedData.skills.soft,
+          ...parsedData.skills.certifications,
+        ];
+
+        updateData.resume_parsed = true;
+        updateData.skills = allSkills;
+        updateData.experience_level = parsedData.experienceLevel;
+        updateData.total_years_experience = parsedData.totalYearsExperience;
+        updateData.education = JSON.stringify(parsedData.education);
+        updateData.summary = parsedData.summary;
+        updateData.searchable_content = resumeParsingService.extractSearchableContent(parsedData);
+
+        // Update name and contact info if parsed and not already set
+        if (parsedData.personalInfo.name && !candidate.name.trim()) {
+          updateData.name = parsedData.personalInfo.name;
+        }
+        if (parsedData.personalInfo.email && !candidate.email.trim()) {
+          updateData.email = parsedData.personalInfo.email;
+        }
+        if (parsedData.personalInfo.phone && !candidate.phone) {
+          updateData.phone = parsedData.personalInfo.phone;
+        }
+      }
+
+      // Update the candidate
+      const { data, error } = await this.supabase
+        .from('candidates')
+        .update(updateData)
+        .eq('id', candidateId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating candidate with parsed data:', error);
+        throw error;
+      }
+
+      return data as Candidate;
+    } catch (error) {
+      console.error('Error in parseAndUpdateCandidate:', error);
+      throw error;
+    }
+  }
+
+  async searchCandidatesBySkills(orgId: string, skills: string[]): Promise<Candidate[]> {
+    try {
+      if (!skills.length) {
+        return [];
+      }
+
+      // Search candidates by skills array or searchable content
+      let query = supabase
+        .from('candidates')
+        .select('*')
+        .eq('org_id', orgId)
+        .eq('status', 'active');
+
+      // Build skill search conditions using OR for multiple skills
+      const skillSearchConditions = skills.map(skill => {
+        const cleanSkill = skill.toLowerCase().trim();
+        return `skills.cs.{${cleanSkill}},searchable_content.ilike.%${cleanSkill}%`;
+      });
+
+      // Combine all skill conditions with OR
+      query = query.or(skillSearchConditions.join(','));
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error searching candidates by skills:', error);
+        throw error;
+      }
+
+      return (data || []) as Candidate[];
+    } catch (error) {
+      console.error('Error in searchCandidatesBySkills:', error);
+      throw error;
     }
   }
 }

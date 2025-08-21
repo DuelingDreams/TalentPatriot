@@ -3,7 +3,8 @@ import { AdvancedSearch } from '@/components/AdvancedSearch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, Users, Briefcase, Mail, Bell } from 'lucide-react';
+import { Search, Users, Briefcase, Mail, Bell, Brain } from 'lucide-react';
+import { ResumeParser } from '@/components/ResumeParser';
 import { Button } from '@/components/ui/button';
 
 export default function SearchDemo() {
@@ -56,7 +57,7 @@ export default function SearchDemo() {
       </div>
 
       {/* Feature Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -98,11 +99,28 @@ export default function SearchDemo() {
             </Button>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5" />
+              Resume Parsing
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2 text-sm">
+              <li>• AI-powered resume text extraction</li>
+              <li>• Auto-populate candidate fields</li>
+              <li>• Extract skills, experience, education</li>
+              <li>• Search candidates by parsed skills</li>
+            </ul>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Search Interface */}
       <Tabs defaultValue="candidates" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="candidates" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Search Candidates
@@ -110,6 +128,10 @@ export default function SearchDemo() {
           <TabsTrigger value="jobs" className="flex items-center gap-2">
             <Briefcase className="w-4 h-4" />
             Search Jobs
+          </TabsTrigger>
+          <TabsTrigger value="resume-parser" className="flex items-center gap-2">
+            <Brain className="w-4 h-4" />
+            Resume Parser
           </TabsTrigger>
         </TabsList>
 
@@ -199,6 +221,16 @@ export default function SearchDemo() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        <TabsContent value="resume-parser" className="space-y-6">
+          <ResumeParser 
+            candidateId="201123d9-b564-4826-82a9-dbce26f25bd9" // Demo candidate ID
+            onParseComplete={(data) => {
+              console.log('Resume parsed:', data);
+              alert('Resume parsing complete! Check the parsed data below.');
+            }}
+          />
         </TabsContent>
       </Tabs>
 

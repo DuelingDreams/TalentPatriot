@@ -998,6 +998,55 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Resume parsing endpoints
+  const resumeParsingSchema = z.object({
+    resumeText: z.string().min(1, "Resume text is required")
+  });
+
+  app.post('/api/candidates/:candidateId/parse-resume', writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const { candidateId } = req.params;
+      const validatedData = resumeParsingSchema.parse(req.body);
+
+      const updatedCandidate = await storage.parseAndUpdateCandidate(candidateId, validatedData.resumeText);
+      res.json({ success: true, candidate: updatedCandidate });
+    } catch (error) {
+      console.error('Resume parsing error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      res.status(500).json({ error: 'Failed to parse resume' });
+    }
+  });
+
+  // Search candidates by skills endpoint
+  const skillsSearchSchema = z.object({
+    orgId: z.string().min(1, "Organization ID is required"),
+    skills: z.array(z.string()).min(1, "At least one skill is required")
+  });
+
+  app.post('/api/search/candidates/by-skills', writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const validatedData = skillsSearchSchema.parse(req.body);
+      const results = await storage.searchCandidatesBySkills(validatedData.orgId, validatedData.skills);
+      res.json(results);
+    } catch (error) {
+      console.error('Skills search error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      res.status(500).json({ error: 'Failed to search candidates by skills' });
+    }
+  });
+
   // JOB APPLICATION ROUTE - Complete flow using jobService
   const jobApplicationParamsSchema = z.object({
     jobId: z.string().uuid("Invalid job ID format")
