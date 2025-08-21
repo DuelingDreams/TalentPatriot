@@ -140,6 +140,16 @@ export interface IStorage {
   // Pipeline Columns
   getPipelineColumns(orgId: string): Promise<PipelineColumn[]>;
   createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn>;
+  
+  // Job applications
+  submitJobApplication(applicationData: {
+    jobId: string;
+    name: string;
+    email: string;
+    phone?: string;
+    resumeUrl?: string;
+  }): Promise<{ candidateId: string; applicationId: string }>;
+  getJobCandidateByJobAndCandidate(jobId: string, candidateId: string): Promise<JobCandidate | undefined>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -1926,6 +1936,139 @@ export class DatabaseStorage implements IStorage {
     }
     
     return data as Job
+  }
+
+  async submitJobApplication(applicationData: {
+    jobId: string;
+    name: string;
+    email: string;
+    phone?: string;
+    resumeUrl?: string;
+  }): Promise<{ candidateId: string; applicationId: string }> {
+    try {
+      // First get the job to determine orgId
+      const job = await this.getJob(applicationData.jobId);
+      if (!job) {
+        throw new Error('Job not found');
+      }
+
+      // Check if candidate already exists by email in this org
+      let candidate = await this.getCandidateByEmail(applicationData.email, job.orgId);
+
+      if (!candidate) {
+        // Create new candidate
+        candidate = await this.createCandidate({
+          name: applicationData.name,
+          email: applicationData.email,
+          phone: applicationData.phone || null,
+          resumeUrl: applicationData.resumeUrl || null,
+          orgId: job.orgId,
+          status: 'active'
+        });
+      } else {
+        // Update existing candidate with new resume if provided
+        if (applicationData.resumeUrl) {
+          candidate = await this.updateCandidate(candidate.id, {
+            resumeUrl: applicationData.resumeUrl
+          });
+        }
+      }
+
+      // Check if application already exists
+      const existingApplication = await this.getJobCandidateByJobAndCandidate(
+        applicationData.jobId, 
+        candidate.id
+      );
+
+      if (existingApplication) {
+        throw new Error('You have already applied to this job');
+      }
+
+      // Get the "Applied" pipeline column for this job's org
+      const pipelineColumns = await this.getPipelineColumns(job.orgId);
+      let appliedColumn = pipelineColumns.find(col => 
+        col.title.toLowerCase().includes('applied') || 
+        col.title.toLowerCase().includes('application')
+      );
+
+      // If no "Applied" column exists, use the first column or create default pipeline
+      if (!appliedColumn && pipelineColumns.length > 0) {
+        appliedColumn = pipelineColumns[0]; // Use first column as fallback
+      }
+
+      if (!appliedColumn) {
+        // Create default pipeline columns if none exist
+        appliedColumn = await this.createPipelineColumn({
+          title: 'Applied',
+          position: 0,
+          orgId: job.orgId
+        });
+        
+        // Create other default columns
+        await this.createPipelineColumn({
+          title: 'Screen',
+          position: 1,
+          orgId: job.orgId
+        });
+        
+        await this.createPipelineColumn({
+          title: 'Interview',
+          position: 2,
+          orgId: job.orgId
+        });
+        
+        await this.createPipelineColumn({
+          title: 'Offer',
+          position: 3,
+          orgId: job.orgId
+        });
+        
+        await this.createPipelineColumn({
+          title: 'Hired',
+          position: 4,
+          orgId: job.orgId
+        });
+      }
+
+      // Create job-candidate relationship and place in "Applied" column
+      const jobCandidate = await this.createJobCandidate({
+        orgId: job.orgId,
+        jobId: applicationData.jobId,
+        candidateId: candidate.id,
+        pipelineColumnId: appliedColumn.id,
+        stage: 'applied'
+      });
+
+      return {
+        candidateId: candidate.id,
+        applicationId: jobCandidate.id
+      };
+    } catch (err) {
+      console.error('Job application submission exception:', err);
+      throw err;
+    }
+  }
+
+  async getJobCandidateByJobAndCandidate(jobId: string, candidateId: string): Promise<JobCandidate | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('candidate_id', candidateId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return undefined; // Not found
+        console.error('Database job candidate fetch error:', error);
+        throw new Error(`Failed to fetch job candidate: ${error.message}`);
+      }
+
+      return data as JobCandidate;
+    } catch (err) {
+      console.error('Job candidate by job and candidate exception:', err);
+      throw err;
+    }
   }
 }
 
