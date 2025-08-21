@@ -743,6 +743,75 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   })
 
+  // AI Insights endpoint
+  app.get('/api/ai/insights', async (req, res) => {
+    try {
+      const { orgId } = req.query as { orgId: string }
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID is required' })
+      }
+
+      // Import AI insights generator
+      const { generateAIInsights } = await import('./aiInsights')
+
+      // Gather recruitment data from the database (simplified for demo)
+      // In a real implementation, this would query actual database tables
+      const recruitmentData = {
+        totalJobs: 12,
+        totalCandidates: 89,
+        totalApplications: 156,
+        applicationsTrend: 15.3,
+        avgTimeToHire: 28,
+        topSources: [
+          { source: 'Company Website', count: 45 },
+          { source: 'LinkedIn', count: 32 },
+          { source: 'Referrals', count: 26 },
+          { source: 'Job Boards', count: 19 }
+        ],
+        pipelineStages: [
+          { stage: 'Applied', count: 89 },
+          { stage: 'Screening', count: 45 },
+          { stage: 'Interview', count: 22 },
+          { stage: 'Offer', count: 8 },
+          { stage: 'Hired', count: 6 }
+        ],
+        recentActivity: [
+          { type: 'applications', count: 12, date: '2024-08-21' },
+          { type: 'interviews', count: 8, date: '2024-08-21' },
+          { type: 'hires', count: 2, date: '2024-08-20' }
+        ]
+      }
+
+      // Generate AI insights using OpenAI
+      const insights = await generateAIInsights(orgId, recruitmentData)
+      
+      res.json(insights)
+    } catch (error) {
+      console.error('Error generating AI insights:', error)
+      res.status(500).json({ error: 'Failed to generate AI insights' })
+    }
+  })
+
+  // AI Resume Analysis endpoint
+  app.post('/api/ai/analyze-resume', async (req, res) => {
+    try {
+      const { resumeText } = req.body
+      
+      if (!resumeText) {
+        return res.status(400).json({ error: 'Resume text is required' })
+      }
+
+      const { analyzeResumeWithAI } = await import('./aiInsights')
+      const analysis = await analyzeResumeWithAI(resumeText)
+      
+      res.json(analysis)
+    } catch (error) {
+      console.error('Error analyzing resume:', error)
+      res.status(500).json({ error: 'Failed to analyze resume' })
+    }
+  })
+
   // Data Export/Import endpoints
   app.post('/api/data/export', writeLimiter, async (req, res) => {
     try {

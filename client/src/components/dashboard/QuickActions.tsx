@@ -84,9 +84,15 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
       title: 'AI Insights',
       description: 'Smart recommendations',
       icon: Zap,
-      href: '/dashboard',
       priority: 'medium',
-      badge: 'New'
+      badge: 'New',
+      onClick: () => {
+        // Scroll to AI Insights component
+        const aiInsightsElement = document.querySelector('[data-component="ai-insights"]')
+        if (aiInsightsElement) {
+          aiInsightsElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
     }
   ]
 
@@ -148,9 +154,15 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
       title: 'AI Insights',
       description: 'Smart recommendations',
       icon: Zap,
-      href: '/dashboard',
       priority: 'medium',
-      badge: 'New'
+      badge: 'New',
+      onClick: () => {
+        // Scroll to AI Insights component
+        const aiInsightsElement = document.querySelector('[data-component="ai-insights"]')
+        if (aiInsightsElement) {
+          aiInsightsElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }
+      }
     }
   ]
 

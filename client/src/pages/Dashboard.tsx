@@ -17,6 +17,7 @@ import { PipelineOverview } from '@/components/dashboard/PipelineOverview'
 import { JobsChart } from '@/components/dashboard/JobsChart'
 import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
 import { QuickActions } from '@/components/dashboard/QuickActions'
+import { AIInsights } from '@/components/ai/AIInsights'
 import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator'
 import { useRealTimeRefresh } from '@/hooks/useRealTimeRefresh'
 
@@ -264,9 +265,10 @@ export default function Dashboard() {
         </div>
 
         {/* Analytics Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           <PipelineOverview data={pipelineData} loading={jobCandidatesLoading} />
           <JobsChart data={jobStatusData} loading={jobsLoading} />
+          <AIInsights />
         </div>
 
         {/* Performance Overview - Only show if there's data */}
