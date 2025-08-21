@@ -136,6 +136,9 @@ export default function Candidates() {
   // Real candidates page for authenticated users
   const { data: candidates, isLoading, error } = useCandidates()
   
+  // Debug logging for troubleshooting
+  console.log('[Candidates] currentOrgId:', currentOrgId, 'userRole:', userRole, 'loading:', isLoading, 'error:', error, 'candidates:', candidates?.length)
+  
   // Handle loading and error states
   if (isLoading) {
     return (

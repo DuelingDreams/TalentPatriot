@@ -66,9 +66,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Use demo org as fallback for development
             if (!orgId) {
               console.warn('No orgId found for regular user, using demo organization')
-              setCurrentOrgIdState(DEMO_ORG_ID)
+              const fallbackOrgId = '90531171-d56b-4732-baba-35be47b0cb08' // Use real test org
+              setCurrentOrgIdState(fallbackOrgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', fallbackOrgId)
+              })
             } else {
               setCurrentOrgIdState(orgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', orgId)
+              })
             }
           }
         } else if (isDemoUser) {

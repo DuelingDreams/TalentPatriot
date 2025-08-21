@@ -76,7 +76,23 @@ function getCurrentOrgId(): string | null {
       // First try sessionStorage with safe access
       if (window.sessionStorage) {
         const orgId = sessionStorage.getItem('currentOrgId');
-        if (orgId) return orgId;
+        if (orgId && orgId !== 'null' && orgId !== 'undefined') {
+          return orgId;
+        }
+      }
+      
+      // Fallback: use demo org ID if we're in development and no org is set
+      const isDevelopment = window.location.hostname.includes('localhost') || 
+                          window.location.hostname.includes('replit') ||
+                          process.env.NODE_ENV === 'development';
+      
+      if (isDevelopment) {
+        console.warn('No orgId found in sessionStorage, using demo organization for development');
+        // Set it in sessionStorage for next time
+        if (window.sessionStorage) {
+          sessionStorage.setItem('currentOrgId', '90531171-d56b-4732-baba-35be47b0cb08');
+        }
+        return '90531171-d56b-4732-baba-35be47b0cb08';
       }
       
       // Fallback to extracting from DOM or global state
