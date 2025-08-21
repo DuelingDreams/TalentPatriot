@@ -60,7 +60,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       return `http://${currentOrganization.slug}.localhost:5000/careers`
     } else {
       // Production environment
-      return `https://${currentOrganization.slug}.talentpatriot.app/careers`
+      return `https://${currentOrganization.slug}.talentpatriot.com/careers`
     }
   }
 

@@ -9,10 +9,16 @@ import type { Job, InsertJob } from '@/../../shared/schema'
 
 export function useJobs(options: { refetchInterval?: number } = {}) {
   const { isDemoUser } = useDemoFlag()
+  const { currentOrgId } = useAuth()
   
   return useQuery({
     queryKey: ['/api/jobs'],
-    queryFn: () => isDemoUser ? demoAdapter.getJobs() : apiRequest('/api/jobs'),
+    queryFn: () => {
+      if (isDemoUser) return demoAdapter.getJobs()
+      if (!currentOrgId) throw new Error('Organization context required')
+      return apiRequest(`/api/jobs?orgId=${currentOrgId}`)
+    },
+    enabled: isDemoUser || !!currentOrgId, // Only fetch when we have org context
     refetchInterval: isDemoUser ? false : (options.refetchInterval || 60000), // 1 minute for performance
     staleTime: isDemoUser ? 120000 : (3 * 60 * 1000), // 3 minutes for better performance
     refetchOnWindowFocus: false, // Disable for better performance
