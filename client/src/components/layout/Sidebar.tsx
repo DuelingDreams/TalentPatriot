@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/AuthContext'
-import { useOrganizations } from '@/hooks/useOrganizations'
+import { useCurrentOrganization } from '@/hooks/useOrganizations'
 import { 
   Home, 
   Briefcase, 
@@ -42,15 +42,12 @@ const secondaryItems = [
 
 export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const [location] = useLocation()
-  const { userRole, currentOrgId } = useAuth()
-  const { data: organizations } = useOrganizations()
+  const { userRole } = useAuth()
+  const { data: currentOrganization } = useCurrentOrganization()
 
   const filteredNavigationItems = navigationItems.filter(item => 
     !userRole || item.roles.includes(userRole)
   )
-
-  // Get current organization from the organizations list
-  const currentOrganization = organizations?.find(org => org.id === currentOrgId)
 
   // Generate the careers page URL based on the current organization
   const getCareersUrl = () => {
