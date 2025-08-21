@@ -69,14 +69,14 @@ export function useCandidatesForJob(
             jobId: jobId,
             candidateId: c.id,
             columnId: null,
-            status: c.stage,
-            appliedAt: c.applied_at,
+            status: 'active', // Default status for demo candidates
+            appliedAt: c.createdAt || new Date().toISOString(),
             candidate: {
               id: c.id,
               name: c.name,
               email: c.email,
               phone: c.phone,
-              resumeUrl: c.resume_url
+              resumeUrl: c.resumeUrl
             }
           }))
         )
