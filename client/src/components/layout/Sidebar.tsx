@@ -56,13 +56,8 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       return '/careers' // Fallback to regular careers page
     }
     
-    if (typeof window !== 'undefined' && window.location.hostname.includes('localhost')) {
-      // Development environment
-      return `http://${currentOrganization.slug}.localhost:5000/careers`
-    } else {
-      // Production environment
-      return `https://${currentOrganization.slug}.talentpatriot.com/careers`
-    }
+    // Use path-based routing (no DNS required) for better scalability
+    return `/org/${currentOrganization.slug}/careers`
   }
 
   return (
@@ -105,21 +100,22 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
               const Icon = item.icon
               const isActive = location === item.href
               
-              // Handle external careers page link
+              // Handle careers page link (using path-based routing)
               if (item.label === 'Careers Page') {
                 const careersUrl = getCareersUrl()
                 
                 return (
-                  <a 
+                  <Link 
                     key={item.href} 
                     href={careersUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="block"
                   >
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-sm font-medium text-[#5C667B] hover:bg-[#F0F4F8]"
+                      className={cn(
+                        "w-full justify-start text-sm font-medium",
+                        isActive ? "bg-[#F0F4F8] text-[#264C99] font-semibold" : "text-[#5C667B] hover:bg-[#F0F4F8]"
+                      )}
                       onClick={onClose}
                     >
                       <Icon className="w-5 h-5 mr-3" />

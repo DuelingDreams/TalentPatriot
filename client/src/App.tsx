@@ -95,10 +95,17 @@ function Router() {
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={TermsOfService} />
         <Route path="/health" component={Health} />
-        {/* Public careers pages */}
+        {/* Public careers pages - Multiple routing approaches */}
         <Route path="/careers" component={Careers} />
         <Route path="/careers/:slug" component={CareersBySlug} />
         <Route path="/careers/:slug/apply" component={JobApplicationForm} />
+        
+        {/* Organization-specific careers pages (path-based routing) */}
+        <Route path="/org/:orgSlug/careers" component={CareersBySlug} />
+        <Route path="/org/:orgSlug/careers/:jobSlug" component={lazy(() => import('@/pages/JobApplicationForm'))} />
+        <Route path="/org/:orgSlug/apply/:jobSlug" component={JobApplicationForm} />
+        
+        {/* Demo and test routes */}
         <Route path="/demo/resume-parsing" component={lazy(() => import('./pages/ResumeParsingDemo'))} />
         
         {/* Legacy redirect support */}

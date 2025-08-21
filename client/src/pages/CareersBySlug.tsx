@@ -72,7 +72,7 @@ interface ApplicationFormData {
 }
 
 export default function CareersBySlug() {
-  const { slug } = useParams<{ slug: string }>()
+  const { slug, orgSlug } = useParams<{ slug: string; orgSlug?: string }>()
   const [, setLocation] = useLocation()
   const [isApplying, setIsApplying] = useState(false)
   const [applicationSubmitted, setApplicationSubmitted] = useState(false)
