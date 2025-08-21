@@ -37,8 +37,25 @@ export default function Candidates() {
   const [activeTab, setActiveTab] = useState('all')
   const { toast } = useToast()
 
-  // Guard: Ensure organization context is loaded
-  if (!currentOrgId && userRole !== 'demo_viewer') {
+  // Guard: Ensure organization context is loaded (only show loading for a brief moment)
+  useEffect(() => {
+    // Add a timeout to catch cases where currentOrgId never loads
+    const timeout = setTimeout(() => {
+      if (!currentOrgId && userRole !== 'demo_viewer') {
+        console.error('Organization context failed to load within 5 seconds')
+        toast({
+          title: "Loading Issue",
+          description: "Having trouble loading your organization. Please refresh the page.",
+          variant: "destructive"
+        })
+      }
+    }, 5000)
+
+    return () => clearTimeout(timeout)
+  }, [currentOrgId, userRole, toast])
+
+  // Show brief loading state only if we're still initializing
+  if (!currentOrgId && userRole !== 'demo_viewer' && userRole !== null) {
     return (
       <DashboardLayout pageTitle="Candidates">
         <div className="flex items-center justify-center h-64">
@@ -117,7 +134,40 @@ export default function Candidates() {
   }
 
   // Real candidates page for authenticated users
-  const { data: candidates, isLoading } = useCandidates()
+  const { data: candidates, isLoading, error } = useCandidates()
+  
+  // Handle loading and error states
+  if (isLoading) {
+    return (
+      <DashboardLayout pageTitle="Candidates">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading candidates...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout pageTitle="Candidates">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileX className="w-8 h-8 text-red-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Candidates</h3>
+            <p className="text-gray-600 mb-4">There was an issue loading your candidates. Please try refreshing the page.</p>
+            <Button onClick={() => window.location.reload()} className="bg-blue-600 text-white">
+              Refresh Page
+            </Button>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
   
   // Filter candidates based on search and tab
   const filteredCandidates = candidates?.filter((candidate: any) => {

@@ -21,13 +21,12 @@ export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
         return options.getDemoData(userRole)
       }
       if (!currentOrgId) {
-        console.warn(`No currentOrgId found for user role: ${userRole}`)
-        return []
+        throw new Error(`Organization context not loaded for user role: ${userRole}`)
       }
       console.log(`Making API call to ${options.endpoint}?orgId=${currentOrgId}`)
       return apiRequest(`${options.endpoint}?orgId=${currentOrgId}`)
     },
-    enabled: true,
+    enabled: userRole === 'demo_viewer' || !!currentOrgId, // Only enable when we have org context or are demo user
     refetchInterval: options.refetchInterval || false,
     staleTime: options.staleTime || 5 * 60 * 1000, // 5 minutes default
     gcTime: 10 * 60 * 1000, // 10 minutes
