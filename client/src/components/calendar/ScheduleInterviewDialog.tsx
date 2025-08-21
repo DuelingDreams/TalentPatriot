@@ -134,7 +134,7 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto p-6">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-6 z-[9999] bg-white shadow-lg border">
         <DialogHeader className="space-y-3">
           <DialogTitle className="text-xl font-semibold">Schedule Interview</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -142,7 +142,7 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-6">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-6 relative z-10">
           {/* Candidate Selection */}
           <div className="space-y-2">
             <Label htmlFor="candidate" className="text-sm font-medium">Candidate *</Label>
@@ -218,7 +218,7 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
                 </Button>
               </PopoverTrigger>
               <PopoverContent 
-                className="w-auto p-0 z-[100] max-h-[400px] overflow-auto" 
+                className="w-auto p-0 z-[9999] max-h-[400px] overflow-auto bg-white shadow-lg border" 
                 align="start"
                 side="bottom"
                 sideOffset={8}

@@ -1492,7 +1492,6 @@ export class DatabaseStorage implements IStorage {
       let query = supabase
         .from('messages')
         .select('*')
-        .eq('record_status', 'active')
         .order('created_at', { ascending: false })
 
       if (userId) {
@@ -1521,12 +1520,12 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: message.job_candidate_id,
         isRead: message.is_read,
         readAt: message.read_at,
-        isArchived: message.is_archived,
+        isArchived: message.is_archived || false,
         threadId: message.thread_id,
         replyToId: message.reply_to_id,
         attachments: message.attachments,
         tags: message.tags,
-        recordStatus: message.record_status,
+        recordStatus: message.record_status || 'active',
         createdAt: message.created_at,
         updatedAt: message.updated_at
       })) as Message[]
@@ -1650,13 +1649,10 @@ export class DatabaseStorage implements IStorage {
         candidate_id: message.candidateId,
         job_candidate_id: message.jobCandidateId,
         is_read: message.isRead || false,
-        is_archived: message.isArchived || false,
         thread_id: message.threadId,
         reply_to_id: message.replyToId,
         attachments: message.attachments,
-        tags: message.tags,
-        record_status: message.recordStatus || 'active',
-        updated_at: new Date().toISOString()
+        tags: message.tags
       }
 
       const { data, error } = await supabase
@@ -1685,12 +1681,12 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: data.job_candidate_id,
         isRead: data.is_read,
         readAt: data.read_at,
-        isArchived: data.is_archived,
+        isArchived: data.is_archived || false,
         threadId: data.thread_id,
         replyToId: data.reply_to_id,
         attachments: data.attachments,
         tags: data.tags,
-        recordStatus: data.record_status,
+        recordStatus: data.record_status || 'active',
         createdAt: data.created_at,
         updatedAt: data.updated_at
       } as Message
@@ -1837,7 +1833,6 @@ export class DatabaseStorage implements IStorage {
         .select('*', { count: 'exact', head: true })
         .eq('recipient_id', userId)
         .eq('is_read', false)
-        .eq('record_status', 'active')
 
       if (error) {
         console.error('Database unread message count error:', error)
