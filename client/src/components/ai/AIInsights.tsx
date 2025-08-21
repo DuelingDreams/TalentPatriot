@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Brain, TrendingUp, Users, Target, AlertCircle, CheckCircle, Lightbulb, RefreshCw } from 'lucide-react'
+import { Brain, TrendingUp, Users, Target, AlertCircle, CheckCircle, Lightbulb, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from '@/hooks/use-toast'
 
@@ -36,7 +36,7 @@ export function AIInsights() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const currentOrganization = { id: user?.user_metadata?.currentOrgId || 'demo-org' }
 
-  const { data: insights, isLoading, refetch } = useQuery<AIInsight>({
+  const { data: insights, isLoading, error, refetch } = useQuery<AIInsight>({
     queryKey: ['/api/ai/insights', currentOrganization.id],
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 10 * 60 * 1000, // 10 minutes
@@ -82,7 +82,7 @@ export function AIInsights() {
 
   if (isLoading) {
     return (
-      <Card className="h-[600px]">
+      <Card className="h-[600px]" data-component="ai-insights">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
@@ -97,6 +97,39 @@ export function AIInsights() {
             <div className="text-center space-y-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#264C99] mx-auto"></div>
               <p className="text-sm text-muted-foreground">Analyzing recruitment data...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="h-[600px]" data-component="ai-insights">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Brain className="h-5 w-5 text-[#264C99]" />
+              <CardTitle className="text-lg">AI Insights</CardTitle>
+              <Badge variant="secondary" className="text-xs">New</Badge>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-[500px]">
+            <div className="text-center space-y-3">
+              <AlertTriangle className="h-8 w-8 text-orange-500 mx-auto" />
+              <p className="text-sm text-muted-foreground">Unable to generate AI insights</p>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => refetch()}
+                className="mt-2"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
             </div>
           </div>
         </CardContent>
