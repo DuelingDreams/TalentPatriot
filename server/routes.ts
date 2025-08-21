@@ -752,6 +752,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID is required' })
       }
 
+      console.log(`[AI INSIGHTS] Generating insights for organization: ${orgId}`)
+
       // Import AI insights generator
       const { generateAIInsights } = await import('./aiInsights')
 
