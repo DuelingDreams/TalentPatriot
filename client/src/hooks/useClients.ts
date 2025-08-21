@@ -5,13 +5,20 @@ import { demoAdapter } from '@/lib/dataAdapter'
 import type { Client, InsertClient } from '@/../../shared/schema'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function useClients(options: { refetchInterval?: number } = {}) {
   const { isDemoUser } = useDemoFlag()
+  const { currentOrgId } = useAuth()
   
   return useQuery({
-    queryKey: ['/api/clients'],
-    queryFn: () => isDemoUser ? demoAdapter.getClients() : apiRequest('/api/clients'),
+    queryKey: ['/api/clients', currentOrgId],
+    queryFn: () => {
+      if (isDemoUser) return demoAdapter.getClients()
+      if (!currentOrgId) throw new Error('Organization context required')
+      return apiRequest(`/api/clients?orgId=${currentOrgId}`)
+    },
+    enabled: isDemoUser || !!currentOrgId,
     refetchInterval: isDemoUser ? false : options.refetchInterval,
     staleTime: isDemoUser ? 60000 : (5 * 60 * 1000),
     refetchOnWindowFocus: !isDemoUser,

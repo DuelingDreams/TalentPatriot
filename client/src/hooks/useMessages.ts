@@ -1,12 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Message, InsertMessage } from '@shared/schema'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function useMessages(userId?: string) {
+  const { currentOrgId } = useAuth()
+  
   return useQuery({
-    queryKey: ['/api/messages', userId],
+    queryKey: ['/api/messages', userId, currentOrgId],
     queryFn: async () => {
       const params = new URLSearchParams()
       if (userId) params.append('userId', userId)
+      if (currentOrgId) params.append('orgId', currentOrgId)
       
       const response = await fetch(`/api/messages?${params}`)
       if (!response.ok) {
@@ -14,7 +18,7 @@ export function useMessages(userId?: string) {
       }
       return response.json() as Promise<Message[]>
     },
-    enabled: !!userId,
+    enabled: !!userId && !!currentOrgId,
   })
 }
 

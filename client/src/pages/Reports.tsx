@@ -39,23 +39,23 @@ interface ReportMetrics {
 const COLORS = ['#1F3A5F', '#264C99', '#5C667B', '#8B9DC3', '#A8B5D1']
 
 export default function Reports() {
-  const { user } = useAuth()
-  const currentOrganization = { id: user?.user_metadata?.currentOrgId || 'demo-org' }
+  const { currentOrgId } = useAuth()
   const [selectedPeriod, setSelectedPeriod] = useState('3months')
   const [generatingReport, setGeneratingReport] = useState(false)
 
   const { data: metrics, isLoading } = useQuery<ReportMetrics>({
-    queryKey: ['/api/reports/metrics', currentOrganization?.id, selectedPeriod],
-    enabled: !!currentOrganization?.id,
+    queryKey: ['/api/reports/metrics', currentOrgId, selectedPeriod],
+    queryFn: () => fetch(`/api/reports/metrics?orgId=${currentOrgId}&period=${selectedPeriod}`).then(res => res.json()),
+    enabled: !!currentOrgId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
   const generateReport = async (format: 'pdf' | 'excel') => {
-    if (!currentOrganization?.id) return
+    if (!currentOrgId) return
 
     setGeneratingReport(true)
     try {
-      const response = await fetch(`/api/reports/generate?orgId=${currentOrganization.id}&period=${selectedPeriod}&format=${format}`, {
+      const response = await fetch(`/api/reports/generate?orgId=${currentOrgId}&period=${selectedPeriod}&format=${format}`, {
         method: 'POST',
       })
 

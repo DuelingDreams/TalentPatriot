@@ -26,7 +26,7 @@ export default function Messages() {
       </DashboardLayout>
     )
   }
-  const { data: allMessages = [] } = useMessages()
+  const { data: allMessages = [] } = useMessages(user?.id)
   const { data: unreadData } = useUnreadMessageCount(user?.id)
   const unreadCount = unreadData?.count || 0
 

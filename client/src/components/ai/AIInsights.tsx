@@ -32,12 +32,13 @@ interface AIInsight {
 }
 
 export function AIInsights() {
-  const { user } = useAuth()
+  const { currentOrgId } = useAuth()
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const currentOrganization = { id: user?.user_metadata?.currentOrgId || 'demo-org' }
 
   const { data: insights, isLoading, error, refetch } = useQuery<AIInsight>({
-    queryKey: ['/api/ai/insights', currentOrganization.id],
+    queryKey: ['/api/ai/insights', currentOrgId],
+    queryFn: () => fetch(`/api/ai/insights?orgId=${currentOrgId}`).then(res => res.json()),
+    enabled: !!currentOrgId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 10 * 60 * 1000, // 10 minutes
   })
