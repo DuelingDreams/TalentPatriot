@@ -49,7 +49,6 @@ export function useCandidates(options: { refetchInterval?: number } = {}) {
     refetchInterval: options.refetchInterval || 120000, // 2 minutes default
     staleTime: 5 * 60 * 1000, // 5 minutes for candidates - performance optimization
   })
-  console.info('[RQ] useCandidates', 'loading=', result.isLoading, 'error=', result.error)
   return result
 }
 

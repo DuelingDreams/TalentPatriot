@@ -12,16 +12,7 @@ interface GenericCrudOptions<T, InsertT> {
 }
 
 export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
-  let currentOrgId, userRole;
-  try {
-    const authContext = useAuth();
-    currentOrgId = authContext.currentOrgId;
-    userRole = authContext.userRole;
-    console.log('[useGenericList] Auth context:', { currentOrgId, userRole, endpoint: options.endpoint });
-  } catch (authError) {
-    console.error('[useGenericList] Error accessing auth context:', authError);
-    throw new Error(`Failed to access authentication context: ${authError.message}`);
-  }
+  const { currentOrgId, userRole } = useAuth()
   
   return useQuery({
     queryKey: [options.queryKey, { orgId: currentOrgId }],
