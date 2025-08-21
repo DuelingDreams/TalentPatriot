@@ -37,6 +37,7 @@ import {
   type InsertMessageRecipient
 } from "@shared/schema";
 import { createClient } from '@supabase/supabase-js';
+import { atsEmailService } from './emailService';
 
 // Storage interface for ATS system
 export interface IStorage {
@@ -150,6 +151,25 @@ export interface IStorage {
     resumeUrl?: string;
   }): Promise<{ candidateId: string; applicationId: string }>;
   getJobCandidateByJobAndCandidate(jobId: string, candidateId: string): Promise<JobCandidate | undefined>;
+  
+  // Enhanced search capabilities
+  searchCandidatesAdvanced(filters: {
+    orgId: string;
+    searchTerm?: string;
+    jobId?: string;
+    stage?: string;
+    status?: string;
+    skills?: string[];
+    dateRange?: { start: Date; end: Date };
+  }): Promise<Candidate[]>;
+  searchJobsAdvanced(filters: {
+    orgId: string;
+    searchTerm?: string;
+    status?: string;
+    clientId?: string;
+    experienceLevel?: string;
+    remoteOption?: string;
+  }): Promise<Job[]>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -2039,6 +2059,37 @@ export class DatabaseStorage implements IStorage {
         stage: 'applied'
       });
 
+      // Send email notification to hiring managers/recruiters
+      try {
+        // Get organization details
+        const organization = await this.getOrganization(job.orgId);
+        if (organization) {
+          // Get team members who should be notified (hiring managers, recruiters, admins)
+          const teamMembers = await this.getUserOrganizations(job.orgId);
+          const notificationRecipients = teamMembers.filter((member: any) => 
+            ['hiring_manager', 'recruiter', 'admin'].includes(member.role || '')
+          );
+
+          // Send notification emails
+          for (const recipient of notificationRecipients) {
+            const userProfile = await this.getUserProfile(recipient.userId);
+            if (userProfile?.id) {
+              // For now, use a placeholder email until user profile includes email
+              const email = userProfile.id + '@example.com'; // Temporary - should be real email from auth
+              await atsEmailService.sendNewApplicationNotification(
+                email,
+                candidate.name,
+                job.title,
+                organization.name
+              );
+            }
+          }
+        }
+      } catch (emailError) {
+        console.warn('Failed to send application notification email:', emailError);
+        // Don't fail the application if email fails
+      }
+
       return {
         candidateId: candidate.id,
         applicationId: jobCandidate.id
@@ -2067,6 +2118,125 @@ export class DatabaseStorage implements IStorage {
       return data as JobCandidate;
     } catch (err) {
       console.error('Job candidate by job and candidate exception:', err);
+      throw err;
+    }
+  }
+
+  // Enhanced search for candidates with advanced filtering
+  async searchCandidatesAdvanced(filters: {
+    orgId: string;
+    searchTerm?: string;
+    jobId?: string;
+    stage?: string;
+    status?: string;
+    skills?: string[];
+    dateRange?: { start: Date; end: Date };
+  }): Promise<Candidate[]> {
+    try {
+      let query = supabase
+        .from('candidates')
+        .select(`
+          *,
+          job_candidate!inner(
+            stage,
+            status,
+            job_id,
+            created_at
+          )
+        `)
+        .eq('org_id', filters.orgId);
+
+      // Filter by search term (name, email)
+      if (filters.searchTerm) {
+        query = query.or(`name.ilike.%${filters.searchTerm}%,email.ilike.%${filters.searchTerm}%`);
+      }
+
+      // Filter by specific job
+      if (filters.jobId) {
+        query = query.eq('job_candidate.job_id', filters.jobId);
+      }
+
+      // Filter by pipeline stage
+      if (filters.stage) {
+        query = query.eq('job_candidate.stage', filters.stage);
+      }
+
+      // Filter by status
+      if (filters.status) {
+        query = query.eq('job_candidate.status', filters.status);
+      }
+
+      // Filter by date range
+      if (filters.dateRange) {
+        query = query
+          .gte('job_candidate.created_at', filters.dateRange.start.toISOString())
+          .lte('job_candidate.created_at', filters.dateRange.end.toISOString());
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Advanced candidate search error:', error);
+        throw new Error(`Failed to search candidates: ${error.message}`);
+      }
+
+      return data as Candidate[];
+    } catch (err) {
+      console.error('Advanced candidate search exception:', err);
+      throw err;
+    }
+  }
+
+  // Enhanced search for jobs with advanced filtering
+  async searchJobsAdvanced(filters: {
+    orgId: string;
+    searchTerm?: string;
+    status?: string;
+    clientId?: string;
+    experienceLevel?: string;
+    remoteOption?: string;
+  }): Promise<Job[]> {
+    try {
+      let query = supabase
+        .from('jobs')
+        .select('*')
+        .eq('org_id', filters.orgId);
+
+      // Filter by search term (title, description, location)
+      if (filters.searchTerm) {
+        query = query.or(`title.ilike.%${filters.searchTerm}%,description.ilike.%${filters.searchTerm}%,location.ilike.%${filters.searchTerm}%`);
+      }
+
+      // Filter by status
+      if (filters.status) {
+        query = query.eq('status', filters.status);
+      }
+
+      // Filter by client
+      if (filters.clientId) {
+        query = query.eq('client_id', filters.clientId);
+      }
+
+      // Filter by experience level
+      if (filters.experienceLevel) {
+        query = query.eq('experience_level', filters.experienceLevel);
+      }
+
+      // Filter by remote option
+      if (filters.remoteOption) {
+        query = query.eq('remote_option', filters.remoteOption);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Advanced job search error:', error);
+        throw new Error(`Failed to search jobs: ${error.message}`);
+      }
+
+      return data as Job[];
+    } catch (err) {
+      console.error('Advanced job search exception:', err);
       throw err;
     }
   }

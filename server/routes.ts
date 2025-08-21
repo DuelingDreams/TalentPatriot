@@ -914,6 +914,90 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Enhanced search routes
+  const candidateSearchSchema = z.object({
+    orgId: z.string().uuid("Invalid organization ID"),
+    searchTerm: z.string().optional(),
+    jobId: z.string().uuid().optional(),
+    stage: z.string().optional(),
+    status: z.string().optional(),
+    skills: z.array(z.string()).optional(),
+    startDate: z.string().datetime().optional(),
+    endDate: z.string().datetime().optional()
+  });
+
+  const jobSearchSchema = z.object({
+    orgId: z.string().uuid("Invalid organization ID"),
+    searchTerm: z.string().optional(),
+    status: z.string().optional(),
+    clientId: z.string().uuid().optional(),
+    experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
+    remoteOption: z.enum(['onsite', 'remote', 'hybrid']).optional()
+  });
+
+  app.post("/api/search/candidates", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const validatedData = candidateSearchSchema.parse(req.body);
+      
+      const filters: any = {
+        orgId: validatedData.orgId,
+        searchTerm: validatedData.searchTerm,
+        jobId: validatedData.jobId,
+        stage: validatedData.stage,
+        status: validatedData.status,
+        skills: validatedData.skills
+      };
+
+      if (validatedData.startDate && validatedData.endDate) {
+        filters.dateRange = {
+          start: new Date(validatedData.startDate),
+          end: new Date(validatedData.endDate)
+        };
+      }
+
+      const results = await storage.searchCandidatesAdvanced(filters);
+      res.json(results);
+    } catch (error) {
+      console.error('Candidate search error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
+  app.post("/api/search/jobs", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const validatedData = jobSearchSchema.parse(req.body);
+      
+      const filters = {
+        orgId: validatedData.orgId,
+        searchTerm: validatedData.searchTerm,
+        status: validatedData.status,
+        clientId: validatedData.clientId,
+        experienceLevel: validatedData.experienceLevel,
+        remoteOption: validatedData.remoteOption
+      };
+
+      const results = await storage.searchJobsAdvanced(filters);
+      res.json(results);
+    } catch (error) {
+      console.error('Job search error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      res.status(500).json({ error: "Search failed" });
+    }
+  });
+
   // JOB APPLICATION ROUTE - Complete flow using jobService
   const jobApplicationParamsSchema = z.object({
     jobId: z.string().uuid("Invalid job ID format")
