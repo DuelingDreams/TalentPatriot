@@ -1199,13 +1199,15 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: data.job_candidate_id,
         interviewerId: data.interviewer_id,
         title: data.title,
-        description: data.description,
         scheduledAt: data.scheduled_at,
         duration: data.duration,
         location: data.location,
         type: data.type,
         status: data.status,
         notes: data.notes,
+        feedback: data.feedback,
+        rating: data.rating,
+        recordStatus: data.record_status || 'active',
         createdAt: data.created_at,
         updatedAt: data.updated_at
       } as Interview
@@ -1239,13 +1241,15 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: interview.job_candidate_id,
         interviewerId: interview.interviewer_id,
         title: interview.title,
-        description: interview.description,
         scheduledAt: interview.scheduled_at,
         duration: interview.duration,
         location: interview.location,
         type: interview.type,
         status: interview.status,
         notes: interview.notes,
+        feedback: interview.feedback,
+        rating: interview.rating,
+        recordStatus: interview.record_status || 'active',
         createdAt: interview.created_at,
         updatedAt: interview.updated_at
       })) as Interview[]
@@ -1274,13 +1278,15 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: interview.job_candidate_id,
         interviewerId: interview.interviewer_id,
         title: interview.title,
-        description: interview.description,
         scheduledAt: interview.scheduled_at,
         duration: interview.duration,
         location: interview.location,
         type: interview.type,
         status: interview.status,
         notes: interview.notes,
+        feedback: interview.feedback,
+        rating: interview.rating,
+        recordStatus: interview.record_status || 'active',
         createdAt: interview.created_at,
         updatedAt: interview.updated_at
       })) as Interview[]
@@ -1310,13 +1316,15 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: interview.job_candidate_id,
         interviewerId: interview.interviewer_id,
         title: interview.title,
-        description: interview.description,
         scheduledAt: interview.scheduled_at,
         duration: interview.duration,
         location: interview.location,
         type: interview.type,
         status: interview.status,
         notes: interview.notes,
+        feedback: interview.feedback,
+        rating: interview.rating,
+        recordStatus: interview.record_status || 'active',
         createdAt: interview.created_at,
         updatedAt: interview.updated_at
       })) as Interview[]
@@ -1333,13 +1341,15 @@ export class DatabaseStorage implements IStorage {
         job_candidate_id: interview.jobCandidateId,
         interviewer_id: interview.interviewerId,
         title: interview.title,
-        description: interview.description,
         scheduled_at: interview.scheduledAt,
         duration: interview.duration,
         location: interview.location,
         type: interview.type,
         status: interview.status || 'scheduled',
         notes: interview.notes,
+        feedback: interview.feedback,
+        rating: interview.rating,
+        record_status: interview.recordStatus || 'active',
         updated_at: new Date().toISOString()
       }
 
@@ -1360,13 +1370,15 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: data.job_candidate_id,
         interviewerId: data.interviewer_id,
         title: data.title,
-        description: data.description,
         scheduledAt: data.scheduled_at,
         duration: data.duration,
         location: data.location,
         type: data.type,
         status: data.status,
         notes: data.notes,
+        feedback: data.feedback,
+        rating: data.rating,
+        recordStatus: data.record_status || 'active',
         createdAt: data.created_at,
         updatedAt: data.updated_at
       } as Interview
@@ -1383,13 +1395,15 @@ export class DatabaseStorage implements IStorage {
       }
 
       if (interview.title !== undefined) updateData.title = interview.title
-      if (interview.description !== undefined) updateData.description = interview.description
       if (interview.scheduledAt !== undefined) updateData.scheduled_at = interview.scheduledAt
       if (interview.duration !== undefined) updateData.duration = interview.duration
       if (interview.location !== undefined) updateData.location = interview.location
       if (interview.type !== undefined) updateData.type = interview.type
       if (interview.status !== undefined) updateData.status = interview.status
       if (interview.notes !== undefined) updateData.notes = interview.notes
+      if (interview.feedback !== undefined) updateData.feedback = interview.feedback
+      if (interview.rating !== undefined) updateData.rating = interview.rating
+      if (interview.recordStatus !== undefined) updateData.record_status = interview.recordStatus
       if (interview.interviewerId !== undefined) updateData.interviewer_id = interview.interviewerId
 
       const { data, error } = await supabase
@@ -1410,13 +1424,15 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: data.job_candidate_id,
         interviewerId: data.interviewer_id,
         title: data.title,
-        description: data.description,
         scheduledAt: data.scheduled_at,
         duration: data.duration,
         location: data.location,
         type: data.type,
         status: data.status,
         notes: data.notes,
+        feedback: data.feedback,
+        rating: data.rating,
+        recordStatus: data.record_status || 'active',
         createdAt: data.created_at,
         updatedAt: data.updated_at
       } as Interview
