@@ -406,7 +406,7 @@ export default function CareersBySlug() {
             {!applicationSubmitted && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Apply to {job.client?.name || 'Our Organization'}</CardTitle>
+                  <CardTitle>Apply to Our Organization</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6 max-h-[80vh] overflow-y-auto">
                   {/* Basic Information */}
@@ -734,7 +734,7 @@ export default function CareersBySlug() {
                       </Select>
                     </div>
                     <div>
-                      <Label>Have you previously been employed by {job.client?.name || 'this organization'}? *</Label>
+                      <Label>Have you previously been employed by this organization? *</Label>
                       <Select
                         value={applicationData.previousEmployee}
                         onValueChange={(value) => handleInputChange('previousEmployee', value)}
@@ -794,7 +794,7 @@ export default function CareersBySlug() {
                         onCheckedChange={(checked) => handleInputChange('aiAcknowledgment', checked)}
                       />
                       <Label htmlFor="aiAcknowledgment" className="text-sm leading-relaxed">
-                        I understand that {job.client?.name || 'this organization'} may use AI tools in the evaluation process.
+                        I understand that this organization may use AI tools in the evaluation process.
                       </Label>
                     </div>
                   </div>
@@ -918,7 +918,7 @@ export default function CareersBySlug() {
                     Application Submitted!
                   </h3>
                   <p className="text-green-700">
-                    Thank you for your interest in the {job.title} position at {job.client?.name || 'our organization'}. 
+                    Thank you for your interest in the {job.title} position at our organization. 
                     We'll review your application and be in touch soon.
                   </p>
                 </CardContent>
