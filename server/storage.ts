@@ -417,6 +417,17 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async deleteJob(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      throw new Error(error.message)
+    }
+  }
+
   // User Organizations
   async getUserOrganization(id: string): Promise<UserOrganization | undefined> {
     const { data, error } = await supabase

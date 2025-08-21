@@ -949,6 +949,44 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Delete job endpoint  
+  app.delete("/api/jobs/:jobId", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const jobId = req.params.jobId;
+      const orgId = req.headers['x-org-id'] as string;
+      const userId = req.headers['x-user-id'] as string;
+
+      if (!orgId) {
+        return res.status(400).json({ error: "Missing organization ID", details: "x-org-id header is required" });
+      }
+
+      if (!userId) {
+        return res.status(400).json({ error: "Missing user ID", details: "x-user-id header is required" });
+      }
+
+      // Get existing job to verify ownership
+      const existingJob = await storage.getJob(jobId);
+      if (!existingJob) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+
+      if (existingJob.orgId !== orgId) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      // Delete the job and related data
+      await storage.deleteJob(jobId);
+
+      console.info('[API] DELETE /api/jobs/:jobId →', { success: true, jobId });
+      res.json({ message: "Job deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to delete job", details: errorMessage });
+    }
+  });
+
   // CANDIDATE ROUTES - Clean implementation using jobService
   const createCandidateSchema = z.object({
     name: z.string().min(1, "Candidate name is required"),

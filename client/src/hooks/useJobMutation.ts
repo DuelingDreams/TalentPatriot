@@ -154,6 +154,30 @@ export function useUpdateJob() {
   })
 }
 
+export function useDeleteJob() {
+  const qc = useQueryClient()
+  const { currentOrgId, user } = useAuth()
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      if (!currentOrgId) throw new Error('Organization ID is required')
+      if (!user?.id) throw new Error('User authentication required')
+      const res = await fetch(`/api/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(error.message || 'Failed to delete job')
+      }
+      return res.json()
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+      qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
+    },
+  })
+}
+
 // New hook for candidate creation
 export function useCreateCandidate() {
   const queryClient = useQueryClient()

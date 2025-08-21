@@ -37,6 +37,20 @@ export default function Candidates() {
   const [activeTab, setActiveTab] = useState('all')
   const { toast } = useToast()
 
+  // Guard: Ensure organization context is loaded
+  if (!currentOrgId && userRole !== 'demo_viewer') {
+    return (
+      <DashboardLayout pageTitle="Candidates">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading organization context...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   // Handle onboarding actions for demo users
   useEffect(() => {
     if (userRole === 'demo_viewer') {

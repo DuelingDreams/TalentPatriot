@@ -10,9 +10,20 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { toast } from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useClients } from '@/hooks/useClients'
-import { useUpdateJob } from '@/hooks/useJobMutation'
+import { useUpdateJob, useDeleteJob } from '@/hooks/useJobMutation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Loader2, Edit } from 'lucide-react'
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from '@/components/ui/alert-dialog'
+import { Loader2, Edit, Trash2 } from 'lucide-react'
 import type { Job } from '@/../../shared/schema'
 
 const editJobSchema = z.object({
@@ -39,6 +50,7 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
   // Remove useToast since we're using react-hot-toast
   const { userRole } = useAuth()
   const updateJobMutation = useUpdateJob()
+  const deleteJobMutation = useDeleteJob()
   const { data: clients, isLoading: clientsLoading } = useClients()
 
   const form = useForm<EditJobFormData>({
@@ -89,6 +101,19 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
     } catch (error) {
       console.error('Job update error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to update job'
+      toast.error(errorMessage)
+    }
+  }
+
+  const handleDelete = async () => {
+    try {
+      await deleteJobMutation.mutateAsync(job.id)
+      setIsOpen(false)
+      onJobUpdated?.()
+      toast.success("Job deleted successfully.")
+    } catch (error) {
+      console.error('Job delete error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete job'
       toast.error(errorMessage)
     }
   }
@@ -163,7 +188,7 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
                           {clientsLoading ? (
                             <SelectItem value="loading" disabled>Loading clients...</SelectItem>
                           ) : (
-                            clients?.map((client) => (
+                            clients?.map((client: any) => (
                               <SelectItem key={client.id} value={client.id}>
                                 {client.name}
                               </SelectItem>
@@ -280,29 +305,70 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsOpen(false)}
-                  disabled={updateJobMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={updateJobMutation.isPending}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  {updateJobMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    'Update Job'
-                  )}
-                </Button>
+              <div className="flex justify-between pt-4 border-t">
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      className="flex items-center gap-2"
+                      disabled={updateJobMutation.isPending || deleteJobMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Job
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Job</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{job.title}"? This action cannot be undone and will permanently remove all job data, applications, and candidate pipeline information.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        disabled={deleteJobMutation.isPending}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        {deleteJobMutation.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          'Delete Job'
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsOpen(false)}
+                    disabled={updateJobMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={updateJobMutation.isPending}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {updateJobMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Updating...
+                      </>
+                    ) : (
+                      'Update Job'
+                    )}
+                  </Button>
+                </div>
               </div>
             </form>
           </Form>

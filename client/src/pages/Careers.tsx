@@ -102,7 +102,7 @@ export default function Careers() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredJobs.map((job: Job) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => setLocation(`/careers/${job.public_slug}`)}>
+                onClick={() => setLocation(`/careers/${job.publicSlug || job.id}`)}>
                 <CardHeader>
                   <CardTitle className="text-xl">{job.title}</CardTitle>
                   {job.department && (
@@ -134,7 +134,10 @@ export default function Careers() {
                     </div>
                   </div>
 
-                  <Button className="w-full mt-4">
+                  <Button 
+                    className="w-full mt-4"
+                    onClick={() => window.location.href = `/careers/${job.publicSlug || job.id}`}
+                  >
                     View Details & Apply
                   </Button>
                 </CardContent>
