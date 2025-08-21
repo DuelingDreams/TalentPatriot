@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Sidebar } from './Sidebar'
 import { TopNavbar } from './TopNavbar'
+import { SkipLink } from '../accessibility/SkipLink'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -12,6 +13,8 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
 
   return (
     <div className="flex h-screen bg-[#F7F9FC]">
+      <SkipLink href="#main-content">Skip to main content</SkipLink>
+      
       <Sidebar 
         isOpen={sidebarOpen} 
         onClose={() => setSidebarOpen(false)} 
@@ -23,7 +26,12 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
           pageTitle={pageTitle}
         />
         
-        <main className="flex-1 overflow-auto bg-[#F7F9FC]">
+        <main 
+          id="main-content" 
+          className="flex-1 overflow-auto bg-[#F7F9FC]"
+          role="main"
+          aria-label={pageTitle ? `${pageTitle} content` : 'Main content'}
+        >
           {children}
         </main>
       </div>
