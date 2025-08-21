@@ -5,18 +5,70 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
-import { MapPin, Clock, DollarSign, Briefcase, Building2, Send, Loader2, ArrowLeft } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Briefcase, Building2, Send, Loader2, ArrowLeft, Plus, X } from 'lucide-react'
 import type { Job } from '@shared/schema'
 
+interface EducationEntry {
+  school: string
+  degree: string
+  fieldOfStudy: string
+  graduationYear?: string
+}
+
+interface EmploymentEntry {
+  company: string
+  jobTitle: string
+  startDate: string
+  endDate: string
+  current: boolean
+  description?: string
+}
+
 interface ApplicationFormData {
-  name: string
+  // Basic Information
+  firstName: string
+  lastName: string
   email: string
   phone: string
+  
+  // Files
   resume?: File | null
+  coverLetter?: File | null
+  
+  // Education (repeatable)
+  education: EducationEntry[]
+  
+  // Employment (repeatable)
+  employment: EmploymentEntry[]
+  
+  // External Links
+  linkedinUrl: string
+  portfolioUrl?: string
+  
+  // Legal/Eligibility
+  workAuthorization: string
+  visaSponsorship: string
+  ageConfirmation: string
+  previousEmployee: string
+  
+  // Outreach
+  referralSource: string
+  
+  // Acknowledgments
+  dataPrivacyAck: boolean
+  aiAcknowledgment: boolean
+  
+  // Diversity (Optional)
+  gender?: string
+  raceEthnicity?: string
+  veteranStatus?: string
+  disabilityStatus?: string
 }
 
 export default function CareersBySlug() {
@@ -25,31 +77,142 @@ export default function CareersBySlug() {
   const [isApplying, setIsApplying] = useState(false)
   const [applicationSubmitted, setApplicationSubmitted] = useState(false)
   const [applicationData, setApplicationData] = useState<ApplicationFormData>({
-    name: '',
+    // Basic Information
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
-    resume: null
+    
+    // Files
+    resume: null,
+    coverLetter: null,
+    
+    // Education (start with one entry)
+    education: [{ school: '', degree: '', fieldOfStudy: '', graduationYear: '' }],
+    
+    // Employment (start with one entry)
+    employment: [{ company: '', jobTitle: '', startDate: '', endDate: '', current: false, description: '' }],
+    
+    // External Links
+    linkedinUrl: '',
+    portfolioUrl: '',
+    
+    // Legal/Eligibility
+    workAuthorization: '',
+    visaSponsorship: '',
+    ageConfirmation: '',
+    previousEmployee: '',
+    
+    // Outreach
+    referralSource: '',
+    
+    // Acknowledgments
+    dataPrivacyAck: false,
+    aiAcknowledgment: false,
+    
+    // Diversity (Optional)
+    gender: '',
+    raceEthnicity: '',
+    veteranStatus: '',
+    disabilityStatus: ''
   })
   const { toast } = useToast()
 
   // Use shared hook for consistent data fetching
   const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug)
 
-  const handleInputChange = (field: keyof ApplicationFormData, value: string | File | null) => {
+  const handleInputChange = (field: keyof ApplicationFormData, value: any) => {
     setApplicationData(prev => ({
       ...prev,
       [field]: value
     }))
   }
 
+  const handleEducationChange = (index: number, field: keyof EducationEntry, value: string) => {
+    setApplicationData(prev => ({
+      ...prev,
+      education: prev.education.map((edu, i) => 
+        i === index ? { ...edu, [field]: value } : edu
+      )
+    }))
+  }
+
+  const handleEmploymentChange = (index: number, field: keyof EmploymentEntry, value: any) => {
+    setApplicationData(prev => ({
+      ...prev,
+      employment: prev.employment.map((emp, i) => 
+        i === index ? { ...emp, [field]: value } : emp
+      )
+    }))
+  }
+
+  const addEducationEntry = () => {
+    setApplicationData(prev => ({
+      ...prev,
+      education: [...prev.education, { school: '', degree: '', fieldOfStudy: '', graduationYear: '' }]
+    }))
+  }
+
+  const removeEducationEntry = (index: number) => {
+    if (applicationData.education.length > 1) {
+      setApplicationData(prev => ({
+        ...prev,
+        education: prev.education.filter((_, i) => i !== index)
+      }))
+    }
+  }
+
+  const addEmploymentEntry = () => {
+    setApplicationData(prev => ({
+      ...prev,
+      employment: [...prev.employment, { company: '', jobTitle: '', startDate: '', endDate: '', current: false, description: '' }]
+    }))
+  }
+
+  const removeEmploymentEntry = (index: number) => {
+    if (applicationData.employment.length > 1) {
+      setApplicationData(prev => ({
+        ...prev,
+        employment: prev.employment.filter((_, i) => i !== index)
+      }))
+    }
+  }
+
   const handleApply = async () => {
     if (!job) return
 
     // Basic validation
-    if (!applicationData.name || !applicationData.email) {
+    if (!applicationData.firstName || !applicationData.lastName || !applicationData.email) {
       toast({
         title: "Missing Information",
-        description: "Please fill in your name and email address.",
+        description: "Please fill in your first name, last name, and email address.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!applicationData.workAuthorization || !applicationData.visaSponsorship || !applicationData.ageConfirmation || !applicationData.previousEmployee) {
+      toast({
+        title: "Missing Required Information",
+        description: "Please complete all required eligibility questions.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!applicationData.referralSource) {
+      toast({
+        title: "Missing Information",
+        description: "Please let us know how you heard about this position.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!applicationData.dataPrivacyAck) {
+      toast({
+        title: "Privacy Notice Required",
+        description: "Please confirm receipt of the Privacy Notice.",
         variant: "destructive"
       })
       return
@@ -68,10 +231,40 @@ export default function CareersBySlug() {
     try {
       // Create FormData for file upload
       const formData = new FormData()
-      formData.append('name', applicationData.name)
+      formData.append('name', `${applicationData.firstName} ${applicationData.lastName}`.trim())
+      formData.append('firstName', applicationData.firstName)
+      formData.append('lastName', applicationData.lastName)
       formData.append('email', applicationData.email)
       formData.append('phone', applicationData.phone)
-      formData.append('resume', applicationData.resume)
+      
+      // Files
+      if (applicationData.resume) formData.append('resume', applicationData.resume)
+      if (applicationData.coverLetter) formData.append('coverLetter', applicationData.coverLetter)
+      
+      // Structured data as JSON
+      formData.append('education', JSON.stringify(applicationData.education))
+      formData.append('employment', JSON.stringify(applicationData.employment))
+      formData.append('linkedinUrl', applicationData.linkedinUrl)
+      if (applicationData.portfolioUrl) formData.append('portfolioUrl', applicationData.portfolioUrl)
+      
+      // Legal/Eligibility
+      formData.append('workAuthorization', applicationData.workAuthorization)
+      formData.append('visaSponsorship', applicationData.visaSponsorship)
+      formData.append('ageConfirmation', applicationData.ageConfirmation)
+      formData.append('previousEmployee', applicationData.previousEmployee)
+      
+      // Outreach
+      formData.append('referralSource', applicationData.referralSource)
+      
+      // Acknowledgments
+      formData.append('dataPrivacyAck', applicationData.dataPrivacyAck.toString())
+      formData.append('aiAcknowledgment', applicationData.aiAcknowledgment.toString())
+      
+      // Diversity (Optional)
+      if (applicationData.gender) formData.append('gender', applicationData.gender)
+      if (applicationData.raceEthnicity) formData.append('raceEthnicity', applicationData.raceEthnicity)
+      if (applicationData.veteranStatus) formData.append('veteranStatus', applicationData.veteranStatus)
+      if (applicationData.disabilityStatus) formData.append('disabilityStatus', applicationData.disabilityStatus)
 
       const response = await fetch(`/api/jobs/${job.id}/apply`, {
         method: 'POST',
@@ -207,76 +400,509 @@ export default function CareersBySlug() {
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Professional Application Form */}
           <div className="space-y-6">
             {/* Quick Apply */}
             {!applicationSubmitted && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Apply for this Position</CardTitle>
+                  <CardTitle>Apply to {job.client?.name || 'Our Organization'}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Full Name *</Label>
-                    <Input
-                      id="name"
-                      value={applicationData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Your full name"
-                    />
+                <CardContent className="space-y-6 max-h-[80vh] overflow-y-auto">
+                  {/* Basic Information */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Basic Information</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="firstName">First Name *</Label>
+                        <Input
+                          id="firstName"
+                          value={applicationData.firstName}
+                          onChange={(e) => handleInputChange('firstName', e.target.value)}
+                          placeholder="First name"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="lastName">Last Name *</Label>
+                        <Input
+                          id="lastName"
+                          value={applicationData.lastName}
+                          onChange={(e) => handleInputChange('lastName', e.target.value)}
+                          placeholder="Last name"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email Address *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={applicationData.email}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        placeholder="your.email@example.com"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Input
+                        id="phone"
+                        type="tel"
+                        value={applicationData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        placeholder="(555) 123-4567"
+                        required
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="email">Email Address *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={applicationData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="your.email@example.com"
-                    />
+
+                  {/* Files */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Documents</h3>
+                    <div>
+                      <Label htmlFor="resume">Resume/CV *</Label>
+                      <Input
+                        id="resume"
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt,.rtf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null
+                          handleInputChange('resume', file)
+                        }}
+                        className="cursor-pointer"
+                        required
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Accepted formats: PDF, DOC, DOCX, TXT, RTF (max 10MB)
+                      </p>
+                    </div>
+                    <div>
+                      <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                      <Input
+                        id="coverLetter"
+                        type="file"
+                        accept=".pdf,.doc,.docx,.txt,.rtf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null
+                          handleInputChange('coverLetter', file)
+                        }}
+                        className="cursor-pointer"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      value={applicationData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="(555) 123-4567"
-                    />
+
+                  {/* Education */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Education</h3>
+                    {applicationData.education.map((edu, index) => (
+                      <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <h4 className="font-medium">Education Entry {index + 1}</h4>
+                          {applicationData.education.length > 1 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeEducationEntry(index)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          <div>
+                            <Label>School/Institution *</Label>
+                            <Input
+                              value={edu.school}
+                              onChange={(e) => handleEducationChange(index, 'school', e.target.value)}
+                              placeholder="University or school name"
+                              required
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Degree *</Label>
+                              <Select
+                                value={edu.degree}
+                                onValueChange={(value) => handleEducationChange(index, 'degree', value)}
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select degree" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="high-school">High School Diploma</SelectItem>
+                                  <SelectItem value="associates">Associate's Degree</SelectItem>
+                                  <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
+                                  <SelectItem value="masters">Master's Degree</SelectItem>
+                                  <SelectItem value="phd">Ph.D.</SelectItem>
+                                  <SelectItem value="other">Other</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label>Graduation Year</Label>
+                              <Input
+                                type="number"
+                                value={edu.graduationYear || ''}
+                                onChange={(e) => handleEducationChange(index, 'graduationYear', e.target.value)}
+                                placeholder="2024"
+                                min="1950"
+                                max="2030"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Label>Field of Study *</Label>
+                            <Input
+                              value={edu.fieldOfStudy}
+                              onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
+                              placeholder="e.g., Computer Science, Marketing"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addEducationEntry}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Another Education
+                    </Button>
                   </div>
-                  <div>
-                    <Label htmlFor="resume">Resume Upload *</Label>
-                    <Input
-                      id="resume"
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0] || null
-                        handleInputChange('resume', file)
-                      }}
-                      className="cursor-pointer"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Accepted formats: PDF, DOC, DOCX (max 10MB)
+
+                  {/* Employment */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Employment History</h3>
+                    {applicationData.employment.map((emp, index) => (
+                      <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <h4 className="font-medium">Employment Entry {index + 1}</h4>
+                          {applicationData.employment.length > 1 && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeEmploymentEntry(index)}
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Company Name *</Label>
+                              <Input
+                                value={emp.company}
+                                onChange={(e) => handleEmploymentChange(index, 'company', e.target.value)}
+                                placeholder="Company name"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label>Job Title *</Label>
+                              <Input
+                                value={emp.jobTitle}
+                                onChange={(e) => handleEmploymentChange(index, 'jobTitle', e.target.value)}
+                                placeholder="Your role"
+                                required
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label>Start Date *</Label>
+                              <Input
+                                type="date"
+                                value={emp.startDate}
+                                onChange={(e) => handleEmploymentChange(index, 'startDate', e.target.value)}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label>End Date</Label>
+                              <Input
+                                type="date"
+                                value={emp.endDate}
+                                onChange={(e) => handleEmploymentChange(index, 'endDate', e.target.value)}
+                                disabled={emp.current}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`current-${index}`}
+                              checked={emp.current}
+                              onCheckedChange={(checked) => handleEmploymentChange(index, 'current', checked)}
+                            />
+                            <Label htmlFor={`current-${index}`} className="text-sm">
+                              Current Position
+                            </Label>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addEmploymentEntry}
+                      className="w-full"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Another Employment
+                    </Button>
+                  </div>
+
+                  {/* External Links */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Professional Links</h3>
+                    <div>
+                      <Label htmlFor="linkedinUrl">LinkedIn Profile URL *</Label>
+                      <Input
+                        id="linkedinUrl"
+                        type="url"
+                        value={applicationData.linkedinUrl}
+                        onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
+                        placeholder="https://linkedin.com/in/yourprofile"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="portfolioUrl">Portfolio / GitHub / Personal Website</Label>
+                      <Input
+                        id="portfolioUrl"
+                        type="url"
+                        value={applicationData.portfolioUrl || ''}
+                        onChange={(e) => handleInputChange('portfolioUrl', e.target.value)}
+                        placeholder="https://your-portfolio.com"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Legal/Eligibility */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Legal & Eligibility</h3>
+                    <div>
+                      <Label>Are you authorized to work where this position is located? *</Label>
+                      <Select
+                        value={applicationData.workAuthorization}
+                        onValueChange={(value) => handleInputChange('workAuthorization', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select One" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Will you now or in the future require visa sponsorship? *</Label>
+                      <Select
+                        value={applicationData.visaSponsorship}
+                        onValueChange={(value) => handleInputChange('visaSponsorship', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select One" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Age Confirmation *</Label>
+                      <Select
+                        value={applicationData.ageConfirmation}
+                        onValueChange={(value) => handleInputChange('ageConfirmation', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select One" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="18-or-older">I am 18 or older</SelectItem>
+                          <SelectItem value="under-18">I am under 18</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Have you previously been employed by {job.client?.name || 'this organization'}? *</Label>
+                      <Select
+                        value={applicationData.previousEmployee}
+                        onValueChange={(value) => handleInputChange('previousEmployee', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select One" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="yes">Yes</SelectItem>
+                          <SelectItem value="no">No</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Outreach */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">How Did You Hear About Us?</h3>
+                    <div>
+                      <Label>How did you hear about this opportunity? *</Label>
+                      <Select
+                        value={applicationData.referralSource}
+                        onValueChange={(value) => handleInputChange('referralSource', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select One" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="career-page">Career Page</SelectItem>
+                          <SelectItem value="linkedin">LinkedIn</SelectItem>
+                          <SelectItem value="indeed">Indeed</SelectItem>
+                          <SelectItem value="referral">Employee Referral</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Acknowledgments */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Acknowledgments</h3>
+                    <div className="flex items-start space-x-2">
+                      <Checkbox
+                        id="dataPrivacyAck"
+                        checked={applicationData.dataPrivacyAck}
+                        onCheckedChange={(checked) => handleInputChange('dataPrivacyAck', checked)}
+                        required
+                      />
+                      <Label htmlFor="dataPrivacyAck" className="text-sm leading-relaxed">
+                        I confirm receipt of the Privacy Notice and consent to the processing of my personal data for recruitment purposes. *
+                      </Label>
+                    </div>
+                    <div className="flex items-start space-x-2">
+                      <Checkbox
+                        id="aiAcknowledgment"
+                        checked={applicationData.aiAcknowledgment}
+                        onCheckedChange={(checked) => handleInputChange('aiAcknowledgment', checked)}
+                      />
+                      <Label htmlFor="aiAcknowledgment" className="text-sm leading-relaxed">
+                        I understand that {job.client?.name || 'this organization'} may use AI tools in the evaluation process.
+                      </Label>
+                    </div>
+                  </div>
+
+                  {/* Diversity (Optional) */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Voluntary Self-Identification</h3>
+                    <p className="text-sm text-gray-600">
+                      The following information is requested for diversity and inclusion purposes and is completely optional. 
+                      This information will not be used in hiring decisions.
                     </p>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Gender</Label>
+                        <Select
+                          value={applicationData.gender || ''}
+                          onValueChange={(value) => handleInputChange('gender', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Prefer not to say" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Prefer not to say</SelectItem>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="non-binary">Non-binary</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Race/Ethnicity</Label>
+                        <Select
+                          value={applicationData.raceEthnicity || ''}
+                          onValueChange={(value) => handleInputChange('raceEthnicity', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Prefer not to say" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Prefer not to say</SelectItem>
+                            <SelectItem value="asian">Asian</SelectItem>
+                            <SelectItem value="black">Black/African American</SelectItem>
+                            <SelectItem value="hispanic">Hispanic/Latino</SelectItem>
+                            <SelectItem value="white">White</SelectItem>
+                            <SelectItem value="two-or-more">Two or more races</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Veteran Status</Label>
+                        <Select
+                          value={applicationData.veteranStatus || ''}
+                          onValueChange={(value) => handleInputChange('veteranStatus', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Prefer not to say" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Prefer not to say</SelectItem>
+                            <SelectItem value="veteran">Veteran</SelectItem>
+                            <SelectItem value="disabled-veteran">Disabled Veteran</SelectItem>
+                            <SelectItem value="recently-separated">Recently Separated Veteran</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Disability Status</Label>
+                        <Select
+                          value={applicationData.disabilityStatus || ''}
+                          onValueChange={(value) => handleInputChange('disabilityStatus', value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Prefer not to say" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Prefer not to say</SelectItem>
+                            <SelectItem value="yes">Yes, I have a disability</SelectItem>
+                            <SelectItem value="no">No, I do not have a disability</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
                   </div>
-                  <Button 
-                    className="w-full"
-                    onClick={handleApply}
-                    disabled={isApplying}
-                  >
-                    {isApplying ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Submitting...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Submit Application
-                      </>
-                    )}
-                  </Button>
+
+                  {/* Submit Button */}
+                  <div className="pt-4 border-t">
+                    <Button 
+                      className="w-full"
+                      onClick={handleApply}
+                      disabled={isApplying}
+                      size="lg"
+                    >
+                      {isApplying ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Submitting Application...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Submit Application
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}
@@ -292,7 +918,7 @@ export default function CareersBySlug() {
                     Application Submitted!
                   </h3>
                   <p className="text-green-700">
-                    Thank you for your interest in this position. 
+                    Thank you for your interest in the {job.title} position at {job.client?.name || 'our organization'}. 
                     We'll review your application and be in touch soon.
                   </p>
                 </CardContent>
