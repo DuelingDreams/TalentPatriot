@@ -13,9 +13,9 @@ export function useJobs(options: { refetchInterval?: number } = {}) {
   return useQuery({
     queryKey: ['/api/jobs'],
     queryFn: () => isDemoUser ? demoAdapter.getJobs() : apiRequest('/api/jobs'),
-    refetchInterval: isDemoUser ? false : (options.refetchInterval || 30000),
-    staleTime: isDemoUser ? 60000 : (1 * 60 * 1000),
-    refetchOnWindowFocus: !isDemoUser,
+    refetchInterval: isDemoUser ? false : (options.refetchInterval || 60000), // 1 minute for performance
+    staleTime: isDemoUser ? 120000 : (3 * 60 * 1000), // 3 minutes for better performance
+    refetchOnWindowFocus: false, // Disable for better performance
   })
 }
 

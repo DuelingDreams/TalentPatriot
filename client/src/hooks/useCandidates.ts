@@ -1,6 +1,6 @@
 import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
 import { demoCandidates } from '@/lib/demo-data-consolidated'
-import type { Candidate, InsertCandidate } from '@/../../shared/schema'
+import type { Candidate, InsertCandidate } from '../../shared/schema'
 
 export function useCandidates(options: { refetchInterval?: number } = {}) {
   const getDemoCandidate = (candidateId: string) => {
@@ -12,8 +12,8 @@ export function useCandidates(options: { refetchInterval?: number } = {}) {
     queryKey: '/api/candidates',
     getDemoData: () => demoCandidates as Candidate[],
     getDemoItem: getDemoCandidate,
-    refetchInterval: options.refetchInterval,
-    staleTime: 3 * 60 * 1000, // 3 minutes for candidates
+    refetchInterval: options.refetchInterval || 120000, // 2 minutes default
+    staleTime: 5 * 60 * 1000, // 5 minutes for candidates - performance optimization
   })
   console.info('[RQ] useCandidates', 'loading=', result.isLoading, 'error=', result.error)
   return result

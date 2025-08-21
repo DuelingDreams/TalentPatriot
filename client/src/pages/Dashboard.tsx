@@ -68,9 +68,9 @@ export default function Dashboard() {
 
   // Demo viewers now use the same dashboard components with demo data
 
-  // Set up real-time refresh for dashboard data
+  // Set up real-time refresh for dashboard data - optimized for performance
   const realTimeRefresh = useRealTimeRefresh({
-    interval: 30000, // 30 seconds
+    interval: 60000, // 1 minute for better performance
     enabled: true,
     queries: ['/api/jobs', '/api/clients', '/api/candidates', '/api/job-candidates']
   })

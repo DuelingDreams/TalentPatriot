@@ -61,13 +61,20 @@ app.use(speedLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Add performance optimizations and cache control headers
+// Enhanced performance optimizations and cache control headers
 app.use((req, res, next) => {
   // Performance optimizations
   if (req.method === 'GET') {
-    // Cache GET requests for API endpoints
+    // Cache GET requests for API endpoints - longer caching for performance
     if (req.path.startsWith('/api/')) {
-      res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); // 5 minutes
+      // Different caching strategies for different endpoints
+      if (req.path.includes('/jobs') || req.path.includes('/candidates')) {
+        res.setHeader('Cache-Control', 'public, max-age=180, must-revalidate'); // 3 minutes for dynamic data
+      } else if (req.path.includes('/clients') || req.path.includes('/organizations')) {
+        res.setHeader('Cache-Control', 'public, max-age=600, must-revalidate'); // 10 minutes for semi-static data
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate'); // 5 minutes default
+      }
     }
     // Cache static assets for longer
     if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
@@ -75,8 +82,9 @@ app.use((req, res, next) => {
     }
   }
   
-  // Enable GZIP compression hints
+  // Enable GZIP compression hints and performance headers
   res.setHeader('Vary', 'Accept-Encoding');
+  res.setHeader('X-Powered-By', 'TalentPatriot High-Performance Server');
   
   next();
 });

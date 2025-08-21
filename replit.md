@@ -46,6 +46,8 @@ Preferred communication style: Simple, everyday language.
 - **User-Organization Assignment**: Fully automated membership assignment endpoint `/api/organizations/:orgId/users` integrated into signup workflow with comprehensive error handling and auth metadata updates.
 - **Deployment Ready (August 2025)**: Application prepared for production redeployment with optimized builds, validated environment variables, working health checks, and complete user-organization workflow testing.
 - **Performance Fix (August 2025)**: Resolved subdomain resolver middleware causing excessive database queries and constant refresh issues by filtering out Replit development URLs and API requests from organization resolution.
+- **UI/UX Consistency (August 2025)**: Standardized "Post New Job" button labels across all pages and components for consistent user experience.
+- **Performance Optimization (August 2025)**: Implemented comprehensive performance improvements including enhanced query caching (2-5 minute stale times), reduced API polling intervals, intelligent server-side caching strategies, optimized query hooks with memoization, and virtualized components for large datasets.
 
 ### Core Features
 - **Applicant Tracking**: Comprehensive client, job, and candidate management with full CRUD operations.

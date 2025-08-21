@@ -203,7 +203,7 @@ export default function Jobs() {
                 triggerButton={
                   <Button className="bg-primary text-white py-2 px-4 rounded-2xl shadow-sm hover:shadow-lg">
                     <Plus className="w-4 h-4 mr-2" />
-                    New Job
+                    Post New Job
                   </Button>
                 }
                 onJobCreated={() => {
@@ -240,7 +240,7 @@ export default function Jobs() {
                 title="No jobs yet"
                 description="Get started by posting your first job opening to begin recruiting candidates."
                 action={{
-                  label: "Post Your First Job",
+                  label: "Post New Job",
                   onClick: () => setIsGuidedModalOpen(true)
                 }}
               />

@@ -91,6 +91,11 @@ function extractSubdomain(host: string): string | null {
     return null;
   }
   
+  // Skip localhost and development domains
+  if (hostname.includes('localhost') || hostname.includes('127.0.0.1') || hostname === '127') {
+    return null;
+  }
+  
   // Skip other development/internal domains
   if (hostname.includes('.vercel.app') || hostname.includes('.herokuapp.com') || hostname.includes('.netlify.app')) {
     return null;

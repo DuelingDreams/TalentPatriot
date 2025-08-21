@@ -138,10 +138,10 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      // Optimize caching - data is fresh for 5 minutes
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      // Keep data in cache for 10 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime in v5)
+      // Aggressive caching for performance - data is fresh for 2 minutes
+      staleTime: 2 * 60 * 1000, // 2 minutes  
+      // Keep data in cache for 15 minutes
+      gcTime: 15 * 60 * 1000, // 15 minutes (renamed from cacheTime in v5)
       // Retry once on failure with exponential backoff
       retry: (failureCount, error: any) => {
         // Don't retry on authentication or authorization errors
