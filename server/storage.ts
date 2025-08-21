@@ -2250,7 +2250,7 @@ export class DatabaseStorage implements IStorage {
   async parseAndUpdateCandidate(candidateId: string, resumeText?: string): Promise<Candidate> {
     try {
       // Get the current candidate
-      const { data: candidateData, error: candidateError } = await this.supabase
+      const { data: candidateData, error: candidateError } = await supabase
         .from('candidates')
         .select('*')
         .eq('id', candidateId)
@@ -2308,7 +2308,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Update the candidate
-      const { data, error } = await this.supabase
+      const { data, error } = await supabase
         .from('candidates')
         .update(updateData)
         .eq('id', candidateId)

@@ -98,6 +98,7 @@ function Router() {
         <Route path="/careers" component={Careers} />
         <Route path="/careers/:slug" component={CareersBySlug} />
         <Route path="/careers/:slug/apply" component={JobApplicationForm} />
+        <Route path="/demo/resume-parsing" component={lazy(() => import('./pages/ResumeParsingDemo'))} />
         
         {/* Legacy redirect support */}
         <Route path="/public/careers" component={Careers} />
