@@ -53,6 +53,7 @@ const CareersBySlug = lazy(() => import("@/pages/CareersBySlug"));
 const JobApplicationForm = lazy(() => import("@/pages/JobApplicationForm"));
 const Health = lazy(() => import("@/pages/health"));
 const TestFeatures = lazy(() => import("@/pages/TestFeatures"));
+const Help = lazy(() => import("@/pages/Help"));
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -190,9 +191,9 @@ function Router() {
           </ProtectedRoute>
         </Route>
         
-        <Route path="/reports">
+        <Route path="/help">
           <ProtectedRoute>
-            <Reports />
+            <Help />
           </ProtectedRoute>
         </Route>
         
