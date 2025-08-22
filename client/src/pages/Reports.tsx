@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { CalendarDays, Users, TrendingUp, Clock, Download, FileSpreadsheet, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from '@/hooks/use-toast'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 
 interface ReportMetrics {
   timeToHire: {
@@ -88,24 +89,26 @@ export default function Reports() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h1>
+      <DashboardLayout pageTitle="Reports & Analytics">
+        <div className="container mx-auto p-6 space-y-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h1>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader className="pb-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader className="pb-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+      </DashboardLayout>
     )
   }
 
@@ -118,7 +121,8 @@ export default function Reports() {
   )
 
   return (
-    <div className="container mx-auto p-4 lg:p-6 space-y-6">
+    <DashboardLayout pageTitle="Reports & Analytics">
+      <div className="container mx-auto p-4 lg:p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
@@ -395,6 +399,7 @@ export default function Reports() {
         </CardContent>
       </Card>
       )}
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }
