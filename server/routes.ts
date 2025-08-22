@@ -1181,7 +1181,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   // REWRITTEN JOB ROUTES - Clean implementation with Zod validation using jobService
-  const { createJob: createJobService, publishJob: publishJobService } = await import('../lib/jobService.js');
+  const { createJob: createJobService, publishJob: publishJobService } = await import('../lib/jobService');
   
   const createJobSchema = z.object({
     title: z.string().min(1, "Job title is required"),
@@ -1224,7 +1224,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       // Ensure pipeline is initialized for the job
       try {
-        const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+        const { ensureDefaultPipelineForJob } = await import('./lib/pipelineService');
         await ensureDefaultPipelineForJob({ jobId: job.id, organizationId: job.org_id });
       } catch (e) {
         console.warn('[API] ensureDefaultPipelineForJob on draft failed:', e);
@@ -1892,7 +1892,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.log('Job orgId extracted:', orgId);
 
       // Import pipeline service
-      const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+      const { ensureDefaultPipelineForJob } = await import('./lib/pipelineService');
 
       // Ensure pipeline exists for this job
       await ensureDefaultPipelineForJob({ 
@@ -1975,7 +1975,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Import pipeline service
-      const { ensureDefaultPipelineForJob } = await import('../server/lib/pipelineService');
+      const { ensureDefaultPipelineForJob } = await import('./lib/pipelineService');
 
       // Access org_id from raw data
       const orgId = (job as any).org_id;

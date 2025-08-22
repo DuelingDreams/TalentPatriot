@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase'
+import { supabase } from './supabase'
 
 // Default pipeline columns in order for each job
 const DEFAULT_PIPELINE_COLUMNS = [
