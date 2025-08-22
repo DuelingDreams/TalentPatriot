@@ -21,7 +21,7 @@ interface AIRecommendation {
 }
 
 interface AIInsight {
-  summary: string
+  summary: string | null
   recommendations: AIRecommendation[]
   metrics: {
     trendsAnalyzed: number
@@ -29,6 +29,7 @@ interface AIInsight {
     recommendationsGenerated: number
   }
   lastUpdated: string
+  hasData?: boolean
 }
 
 export function AIInsights() {
@@ -166,7 +167,30 @@ export function AIInsights() {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {insights ? (
+        {insights && insights.hasData === false ? (
+          // Empty state for new organizations with no data
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center">
+              <Brain className="w-8 h-8 text-blue-400" />
+            </div>
+            <div className="text-center space-y-2">
+              <h3 className="font-medium text-gray-900 dark:text-white">
+                AI Insights Coming Soon
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-sm">
+                As you add jobs, candidates, and build your recruitment pipeline, our AI will analyze your data to provide personalized insights and recommendations.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button onClick={() => window.location.href = '/jobs'} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                Create Your First Job
+              </Button>
+              <Button onClick={() => window.location.href = '/candidates'} variant="outline" size="sm">
+                Add Candidates
+              </Button>
+            </div>
+          </div>
+        ) : insights && insights.summary ? (
           <>
             {/* AI Summary */}
             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
