@@ -112,8 +112,7 @@ function Router() {
         <Route path="/unauthorized" component={Unauthorized} />
         <Route path="/about" component={About} />
         <Route path="/beta" component={BetaProgram} />
-        <Route path="/profile-settings" component={ProfileSettings} />
-        <Route path="/account-settings" component={AccountSettings} />
+
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={TermsOfService} />
         <Route path="/health" component={Health} />
@@ -221,6 +220,18 @@ function Router() {
         <Route path="/docs">
           <ProtectedRoute>
             <Documentation />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/profile-settings">
+          <ProtectedRoute>
+            <ProfileSettings />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/account-settings">
+          <ProtectedRoute>
+            <AccountSettings />
           </ProtectedRoute>
         </Route>
         

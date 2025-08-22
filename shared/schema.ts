@@ -317,7 +317,7 @@ export const insertClientSchema = createInsertSchema(clients).omit({
 
 export const insertJobSchema = createInsertSchema(jobs).omit({
   id: true,
-  publicSlug: true,
+  public_slug: true,
   createdAt: true,
 });
 
