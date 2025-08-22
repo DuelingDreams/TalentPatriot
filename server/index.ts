@@ -5,6 +5,7 @@ import slowDown from "express-slow-down";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { serveDualPathStatic } from "./staticServer";
 import { ensureResumesBucket, testStorageConnection } from "./lib/storageSetup.js";
 
 const app = express();
@@ -215,7 +216,7 @@ app.use((req, res, next) => {
   if (app.get("env") === "development") {
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    serveDualPathStatic(app);
   }
 
   // ALWAYS serve the app on port 5000
