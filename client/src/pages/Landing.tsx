@@ -48,6 +48,11 @@ export default function Landing() {
                   Sign In
                 </Button>
               </Link>
+              <Link href="/beta">
+                <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white font-medium text-sm md:text-base px-3 md:px-4 py-2 transition-colors">
+                  Join Beta
+                </Button>
+              </Link>
               <Link href="/onboarding/step1">
                 <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
                   Start Free
@@ -69,17 +74,27 @@ export default function Landing() {
             Stop losing track of candidates and start hiring smarter.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/onboarding/step1">
-              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Start Free
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link href="/beta">
+              <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+                Join Free Beta Program
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Button 
-              className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
-            >
-              Book a Demo
-            </Button>
+            <Link href="/onboarding/step1">
+              <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+
+          {/* Beta Program Badge */}
+          <div className="mb-12">
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+              <Sparkles className="w-4 h-4" />
+              Free Beta Access Available - No Credit Card Required
+            </div>
           </div>
           
           {/* Responsive Placeholder Image/Video Section */}
@@ -231,18 +246,50 @@ export default function Landing() {
             Start Hiring Smarter Today
           </h2>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/onboarding/step1">
-              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Start Free
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link href="/beta">
+              <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+                Join Free Beta Program
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Button 
-              className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-4 font-medium text-base w-full sm:w-auto transition-colors"
-            >
-              Book a Demo
+            <Link href="/onboarding/step1">
+              <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
+                Start Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Email Capture Section */}
+      <section className="py-16 bg-gradient-to-br from-[#1F3A5F] to-[#264C99] text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
+          <Mail className="w-12 h-12 mx-auto mb-6 opacity-90" />
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Get Early Access Updates
+          </h2>
+          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+            Not ready for the full beta application? Get notified about product updates, 
+            new features, and early access opportunities.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
+            <Input 
+              type="email" 
+              placeholder="Enter your email address"
+              className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:bg-white/20 focus:border-white"
+            />
+            <Button className="bg-white text-[#1F3A5F] hover:bg-gray-100 px-8 py-3 font-medium whitespace-nowrap">
+              Get Updates
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
+          
+          <p className="text-sm opacity-70 mt-4">
+            No spam. Unsubscribe anytime. Updates about TalentPatriot's development only.
+          </p>
         </div>
       </section>
 
