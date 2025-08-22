@@ -173,7 +173,9 @@ export function useCandidatesForJob(
               queryClient.invalidateQueries({ queryKey })
             }
           )
-          .on('subscribe', (status: string) => {
+
+        // Subscribe to the channel first
+        await channel.subscribe((status: string, _err?: any) => {
             if (!mounted) return
             
             console.log('[Realtime] Subscription status:', status)
@@ -186,7 +188,9 @@ export function useCandidatesForJob(
               }
             }
           })
-          .on('error', (error: any) => {
+
+        // Handle subscription errors
+        channel.on('error', (error: any, _data?: any, _callback?: () => void) => {
             if (!mounted) return
             
             console.error('[Realtime] Subscription error:', error)
@@ -201,8 +205,6 @@ export function useCandidatesForJob(
             })
           })
 
-        // Subscribe to the channel
-        await channel.subscribe()
         channelRef.current = channel
 
       } catch (error) {

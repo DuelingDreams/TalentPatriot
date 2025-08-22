@@ -74,7 +74,7 @@ export function MobilePipeline({ columns, candidates, jobId }: MobilePipelinePro
           <Card key={column.id} className="shadow-sm">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-medium">{column.title || column.name || 'Column'}</CardTitle>
+                <CardTitle className="text-lg font-medium">{column.title || 'Column'}</CardTitle>
                 <Badge variant="secondary" className="text-sm">
                   {columnCandidates.length}
                 </Badge>
@@ -165,7 +165,7 @@ export function MobilePipeline({ columns, candidates, jobId }: MobilePipelinePro
                               </div>
                               <div className="flex items-center space-x-3 text-sm">
                                 <Badge variant="outline">
-                                  Current Stage: {column.title || column.name || 'Unknown'}
+                                  Current Stage: {column.title || 'Unknown'}
                                 </Badge>
                               </div>
                             </div>
@@ -206,7 +206,7 @@ export function MobilePipeline({ columns, candidates, jobId }: MobilePipelinePro
                                     value={col.id}
                                     disabled={col.id === candidate.columnId}
                                   >
-                                    {col.title || col.name || 'Column'} {col.id === candidate.columnId && '(Current)'}
+                                    {col.title || 'Column'} {col.id === candidate.columnId && '(Current)'}
                                   </SelectItem>
                                 ))}
                               </SelectContent>

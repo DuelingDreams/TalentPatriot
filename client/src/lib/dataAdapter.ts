@@ -146,11 +146,11 @@ export const demoAdapter = {
         stage: 'Applied',
         applied_at: new Date().toISOString(),
       } as any;
-      store.candidates.unshift(c);
+      if (c) store.candidates.unshift(c);
     } else {
-      c.job_id = jobId;
-      c.stage = 'Applied';
-      c.applied_at = new Date().toISOString();
+      (c as any).job_id = jobId;
+      (c as any).stage = 'Applied';
+      (c as any).applied_at = new Date().toISOString();
     }
     return { candidate_id: c!.id, application_id: uuidv4() };
   },
