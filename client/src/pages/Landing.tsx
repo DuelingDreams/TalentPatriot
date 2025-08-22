@@ -90,15 +90,15 @@ export default function Landing() {
           </div>
 
           {/* Clarification Text */}
-          <div className="mb-12 max-w-3xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-[#5C667B]">
-              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
-                <div className="font-semibold text-green-800 mb-1">Beta Access</div>
-                <div>Application required. Free forever during beta. Direct feedback shapes the product.</div>
+          <div className="mb-12 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-sm text-[#5C667B]">
+              <div className="text-center p-5 bg-green-50 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition-shadow">
+                <div className="font-semibold text-green-800 mb-2 text-base">Beta Access</div>
+                <div className="leading-relaxed">Application required. Free forever during beta. Direct feedback shapes the product.</div>
               </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="font-semibold text-blue-800 mb-1">Quick Start</div>
-                <div>Immediate access. Self-service setup. Standard pricing applies after beta period.</div>
+              <div className="text-center p-5 bg-[#EBF4FF] rounded-xl border border-[#1F3A5F]/20 shadow-sm hover:shadow-md transition-shadow">
+                <div className="font-semibold text-[#1F3A5F] mb-2 text-base">Quick Start</div>
+                <div className="leading-relaxed">Immediate access. Self-service setup. Standard pricing applies after beta period.</div>
               </div>
             </div>
           </div>
@@ -285,15 +285,15 @@ export default function Landing() {
             <Input 
               type="email" 
               placeholder="Enter your email address"
-              className="flex-1 bg-white/10 border-white/20 text-white placeholder:text-white/70 focus:bg-white/20 focus:border-white"
+              className="flex-1 bg-white/10 border-white/30 text-white placeholder:text-white/70 focus:bg-white/20 focus:border-white/60 focus:ring-white/20 px-4 py-3 rounded-lg"
             />
-            <Button className="bg-white text-[#1F3A5F] hover:bg-gray-100 px-8 py-3 font-medium whitespace-nowrap">
+            <Button className="bg-white text-[#1F3A5F] hover:bg-white/90 px-8 py-3 font-medium whitespace-nowrap rounded-lg shadow-lg hover:shadow-xl transition-all">
               Get Updates
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
           
-          <p className="text-sm opacity-70 mt-4">
+          <p className="text-sm opacity-80 mt-6 font-[Inter,sans-serif]">
             No spam. Unsubscribe anytime. Updates about TalentPatriot's development only.
           </p>
         </div>
