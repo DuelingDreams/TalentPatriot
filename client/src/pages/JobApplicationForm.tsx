@@ -107,13 +107,8 @@ export default function JobApplicationForm() {
       const { data, error } = await supabase.storage
         .from('resumes')
         .upload(fileName, file, {
-          onUploadProgress: (progress) => {
-            const percentage = (progress.loaded / progress.total) * 100;
-            setUploadState(prev => ({
-              ...prev,
-              progress: Math.round(percentage)
-            }));
-          }
+          cacheControl: '3600',
+          upsert: false
         });
 
       if (error) {
@@ -637,7 +632,7 @@ export default function JobApplicationForm() {
               <Button 
                 type="submit" 
                 className="w-full"
-                disabled={isSubmitting || uploadState.isUploading || (formData.resume && uploadState.uploadError)}
+                disabled={isSubmitting || uploadState.isUploading || !!(formData.resume && uploadState.uploadError)}
               >
                 {isSubmitting ? (
                   <>

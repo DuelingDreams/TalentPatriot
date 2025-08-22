@@ -262,7 +262,7 @@ export default function ClientDetail() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {clientJobs.map((job) => (
+                        {clientJobs.map((job: any) => (
                           <TableRow key={job.id}>
                             <TableCell>
                               <Link href={`/jobs/${job.id}`}>

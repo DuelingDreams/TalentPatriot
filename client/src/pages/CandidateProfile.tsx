@@ -201,7 +201,7 @@ export default function CandidateProfile() {
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Last Activity</span>
                     <span className="font-semibold text-sm">
-                      {applications?.[0] ? formatDistanceToNow(new Date(applications[0].updatedAt), { addSuffix: true }) : 'None'}
+                      {applications?.[0] ? formatDistanceToNow(new Date(applications[0].dateUpdated), { addSuffix: true }) : 'None'}
                     </span>
                   </div>
                 </CardContent>

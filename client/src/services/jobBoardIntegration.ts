@@ -63,7 +63,7 @@ class LinkedInJobsAPI {
   }
 
   private mapJobType(jobType: string): string {
-    const mapping = {
+    const mapping: Record<string, string> = {
       'full_time': 'FULL_TIME',
       'part_time': 'PART_TIME', 
       'contract': 'CONTRACT',
@@ -73,7 +73,7 @@ class LinkedInJobsAPI {
   }
 
   private mapRemoteOption(option: string): string {
-    const mapping = {
+    const mapping: Record<string, string> = {
       'onsite': 'ON_SITE',
       'remote': 'REMOTE',
       'hybrid': 'HYBRID'
@@ -82,7 +82,7 @@ class LinkedInJobsAPI {
   }
 
   private mapExperienceLevel(level: string): string {
-    const mapping = {
+    const mapping: Record<string, string> = {
       'entry': 'ENTRY_LEVEL',
       'mid': 'MID_SENIOR',
       'senior': 'SENIOR',
@@ -130,7 +130,7 @@ class IndeedJobsAPI {
   }
 
   private mapJobType(jobType: string): string {
-    const mapping = {
+    const mapping: Record<string, string> = {
       'full_time': 'fulltime',
       'part_time': 'parttime',
       'contract': 'contract',
@@ -289,7 +289,7 @@ export class JobBoardIntegrationService {
   calculatePostingCosts(targetBoards: string[]): Record<string, number> {
     const costs: Record<string, number> = {}
     
-    const pricingMap = {
+    const pricingMap: Record<string, number> = {
       linkedin: 495, // Monthly plan
       indeed: 50,    // Per post estimate
       monster: 249,  // Monthly plan

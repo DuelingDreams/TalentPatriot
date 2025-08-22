@@ -314,7 +314,7 @@ export default function CareersBySlug() {
               <p className="mt-2 text-sm text-gray-500">
                 {notFound 
                   ? "This job posting may have been removed or expired."
-                  : (error || "We're having trouble loading this job. Please try again later.")
+                  : (String(error) || "We're having trouble loading this job. Please try again later.")
                 }
               </p>
               <div className="mt-4 space-y-2">

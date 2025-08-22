@@ -175,7 +175,7 @@ export function useCandidatesForJob(
           )
 
         // Subscribe to the channel first
-        await channel.subscribe((status: string, _err?: any) => {
+        await channel.subscribe((status: string, _err?: any, _callback?: () => void) => {
             if (!mounted) return
             
             console.log('[Realtime] Subscription status:', status)
@@ -189,7 +189,7 @@ export function useCandidatesForJob(
             }
           })
 
-        // Handle subscription errors
+        // Handle subscription errors (skip callback parameter to match Supabase API)
         channel.on('error', (error: any) => {
             if (!mounted) return
             

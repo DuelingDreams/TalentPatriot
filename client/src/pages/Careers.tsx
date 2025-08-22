@@ -79,7 +79,7 @@ export default function Careers() {
                   Unable to Load Jobs
                 </h3>
                 <p className="mt-2 text-sm text-gray-500">
-                  {error || 'There was a problem loading the job listings'}
+                  {String(error) || 'There was a problem loading the job listings'}
                 </p>
                 <Button 
                   onClick={() => window.location.reload()} 
