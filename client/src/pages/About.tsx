@@ -244,9 +244,9 @@ export default function About() {
                   one that combines enterprise-level functionality with startup-friendly simplicity.
                 </p>
                 <p>
-                  We're currently in early access, working closely with forward-thinking companies 
-                  to refine our platform and ensure it truly solves the recruitment challenges 
-                  facing growing teams today.
+                  We're currently offering free beta access to forward-thinking companies who want 
+                  to help shape the future of recruitment technology. Our beta partners get full 
+                  access to all features while providing valuable feedback to refine the platform.
                 </p>
               </div>
             </div>
@@ -261,8 +261,8 @@ export default function About() {
               <Card className="bg-[#F7F9FC] p-6">
                 <div className="text-center">
                   <Building2 className="w-8 h-8 text-[#264C99] mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-[#1F3A5F]">Beta</div>
-                  <div className="text-sm text-[#5C667B]">Early Access</div>
+                  <div className="text-2xl font-bold text-[#1F3A5F]">Free</div>
+                  <div className="text-sm text-[#5C667B]">Beta Access</div>
                 </div>
               </Card>
               <Card className="bg-[#F7F9FC] p-6">
@@ -374,15 +374,15 @@ export default function About() {
       <section className="py-16 bg-[#1F3A5F]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Hiring?
+            Ready to Shape the Future of Hiring?
           </h2>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join hundreds of growing companies who've made TalentPatriot their recruitment platform of choice.
+            Join our free beta program and help build the recruitment platform that growing teams actually need.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/onboarding/step1">
               <Button className="bg-white text-[#1F3A5F] hover:bg-gray-100 px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Start Free Trial
+                Join Free Beta
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>

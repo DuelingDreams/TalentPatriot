@@ -6,6 +6,8 @@ This is a full-stack Applicant Tracking System (ATS) web application for small a
 
 Preferred communication style: Simple, everyday language.
 
+**Beta Strategy**: Offering free beta access to early users to gather feedback, testimonials, and product validation before public launch.
+
 ## System Architecture
 
 ### Frontend Architecture
