@@ -5,7 +5,7 @@ import slowDown from "express-slow-down";
 import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { serveDualPathStatic } from "./staticServer";
+import { serveDualPathStatic } from "./staticServer.js";
 import { ensureResumesBucket, testStorageConnection } from "./lib/storageSetup.js";
 
 const app = express();
