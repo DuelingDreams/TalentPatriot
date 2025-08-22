@@ -76,14 +76,14 @@ export const jobs = pgTable("jobs", {
   clientId: uuid("client_id").references(() => clients.id),
   status: jobStatusEnum("status").default('draft').notNull(),
   recordStatus: recordStatusEnum("record_status").default('active').notNull(),
-  publicSlug: varchar("public_slug", { length: 255 }),
+  public_slug: varchar("public_slug", { length: 255 }),
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdBy: uuid("created_by"),
   assignedTo: uuid("assigned_to"),
 }, (table) => ({
-  uniquePublicSlug: uniqueIndex("unique_public_slug").on(table.publicSlug),
+  uniquePublicSlug: uniqueIndex("unique_public_slug").on(table.public_slug),
 }));
 
 export const candidates = pgTable("candidates", {

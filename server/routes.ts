@@ -1783,7 +1783,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const job = allJobs.find(job => job.public_slug === slug && job.status === 'open');
       
       console.log(`[API] Found jobs: ${allJobs.length}, Looking for slug: ${slug}`);
-      console.log(`[API] Available slugs: ${allJobs.map(j => j.publicSlug).join(', ')}`);
+      console.log(`[API] Available slugs: ${allJobs.map(j => j.public_slug).join(', ')}`);
       
       if (!job) {
         return res.status(404).json({ error: "Job not found" });

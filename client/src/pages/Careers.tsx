@@ -148,8 +148,8 @@ export default function Careers() {
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => {
                   const jobPath = orgSlug 
-                    ? `/org/${orgSlug}/careers/${job.publicSlug || job.id}`
-                    : `/careers/${job.publicSlug || job.id}`;
+                    ? `/org/${orgSlug}/careers/${job.public_slug || job.id}`
+                    : `/careers/${job.public_slug || job.id}`;
                   setLocation(jobPath);
                 }}>
                 <CardHeader>
@@ -188,8 +188,8 @@ export default function Careers() {
                     onClick={(e) => {
                       e.stopPropagation();
                       const jobPath = orgSlug 
-                        ? `/org/${orgSlug}/careers/${job.publicSlug || job.id}/apply`
-                        : `/careers/${job.publicSlug || job.id}/apply`;
+                        ? `/org/${orgSlug}/careers/${job.public_slug || job.id}/apply`
+                        : `/careers/${job.public_slug || job.id}/apply`;
                       setLocation(jobPath);
                     }}
                   >
