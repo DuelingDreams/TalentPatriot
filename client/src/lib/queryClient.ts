@@ -15,7 +15,7 @@ export async function apiRequest(
   let method: string = 'GET';
   let body: string | undefined;
 
-  // Handle both parameter styles for backward compatibility
+  // Handle both parameter styles
   if (typeof urlOrOptions === 'string') {
     url = urlOrOptions;
     if (options) {

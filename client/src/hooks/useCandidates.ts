@@ -79,6 +79,3 @@ export function useCandidate(id?: string) {
   })
 }
 
-export function useCreateCandidate() {
-  return useGenericCreate<Candidate, InsertCandidate>('/api/candidates', '/api/candidates')
-}

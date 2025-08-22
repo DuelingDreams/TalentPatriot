@@ -31,7 +31,7 @@ export interface PipelineData {
   applications: PipelineApplication[]
 }
 
-// Get pipeline data for an organization (legacy)
+// Get pipeline data for an organization
 export function usePipeline(orgId: string | undefined) {
   return useQuery({
     queryKey: ['pipeline', orgId],
@@ -92,7 +92,7 @@ export function useJobPipeline(jobId: string | undefined) {
   })
 }
 
-// Get pipeline columns for an organization (legacy)
+// Get pipeline columns for an organization
 export function usePipelineColumns(orgId: string | undefined) {
   return useQuery({
     queryKey: ['pipeline-columns', orgId],

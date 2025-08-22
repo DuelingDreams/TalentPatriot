@@ -48,7 +48,7 @@ export function useJobsByClient(clientId?: string) {
     queryFn: () => apiRequest(`/api/clients/${clientId}/jobs`),
     enabled: !!clientId,
   })
-  console.info('[RQ] useJobsByClient', 'loading=', result.isLoading, 'error=', result.error)
+
   return result
 }
 

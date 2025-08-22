@@ -341,5 +341,3 @@ function getDemoJobCandidates(jobId?: string): JobCandidate[] {
   return []
 }
 
-// Re-export for backward compatibility
-export { useCandidatesForJob as useCandidatesForJobWithRealtime }
