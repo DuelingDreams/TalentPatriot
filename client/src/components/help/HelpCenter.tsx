@@ -101,7 +101,7 @@ const faqItems = [
   {
     id: 'faq1',
     question: 'How do I invite team members to my organization?',
-    answer: 'Go to Settings > Team Management, click "Invite Team Member", enter their email address, and select their role. They\'ll receive an invitation email to join your organization.'
+    answer: 'Go to Account Settings (click your profile icon in the top right and select "Account Settings"), then scroll to the Team Management section. Click "Invite Members" to add new users to your organization. They\'ll receive an invitation email to join.'
   },
   {
     id: 'faq2',

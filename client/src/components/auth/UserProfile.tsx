@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { User, Settings, LogOut, Shield } from 'lucide-react'
+import { Link } from 'wouter'
 
 export function UserProfile() {
   const { user, userRole, signOut } = useAuth()
@@ -91,10 +92,10 @@ export function UserProfile() {
           </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-64 bg-white border border-slate-200 shadow-lg">
+        <DropdownMenuLabel className="px-4 py-3 bg-slate-50">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.email}</p>
+            <p className="text-sm font-medium leading-none text-slate-900">{user.email}</p>
             <div className="flex items-center gap-2 mt-2">
               <Shield className="w-3 h-3 text-slate-500" />
               <Badge variant="secondary" className={`text-xs ${getRoleColor(userRole)}`}>
@@ -103,23 +104,27 @@ export function UserProfile() {
             </div>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem disabled>
-          <User className="w-4 h-4 mr-2" />
-          Profile Settings
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled>
-          <Settings className="w-4 h-4 mr-2" />
-          Account Settings
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+        <DropdownMenuSeparator className="bg-slate-200" />
+        <Link href="/profile-settings">
+          <DropdownMenuItem className="px-4 py-3 hover:bg-slate-50 cursor-pointer">
+            <User className="w-4 h-4 mr-3 text-slate-600" />
+            <span className="text-slate-900 font-medium">Profile Settings</span>
+          </DropdownMenuItem>
+        </Link>
+        <Link href="/account-settings">
+          <DropdownMenuItem className="px-4 py-3 hover:bg-slate-50 cursor-pointer">
+            <Settings className="w-4 h-4 mr-3 text-slate-600" />
+            <span className="text-slate-900 font-medium">Account Settings</span>
+          </DropdownMenuItem>
+        </Link>
+        <DropdownMenuSeparator className="bg-slate-200" />
         <DropdownMenuItem 
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="text-red-600 focus:text-red-600"
+          className="px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer"
         >
-          <LogOut className="w-4 h-4 mr-2" />
-          {isSigningOut ? 'Signing out...' : 'Sign out'}
+          <LogOut className="w-4 h-4 mr-3" />
+          <span className="font-medium">{isSigningOut ? 'Signing out...' : 'Sign out'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

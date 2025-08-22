@@ -56,6 +56,8 @@ const TestFeatures = lazy(() => import("@/pages/TestFeatures"));
 const Help = lazy(() => import("@/pages/Help"));
 const Documentation = lazy(() => import("@/pages/Documentation"));
 const About = lazy(() => import("@/pages/About"));
+const ProfileSettings = lazy(() => import("@/pages/ProfileSettings"));
+const AccountSettings = lazy(() => import("@/pages/AccountSettings"));
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -96,6 +98,8 @@ function Router() {
         <Route path="/onboarding/checklist" component={OnboardingChecklist} />
         <Route path="/unauthorized" component={Unauthorized} />
         <Route path="/about" component={About} />
+        <Route path="/profile-settings" component={ProfileSettings} />
+        <Route path="/account-settings" component={AccountSettings} />
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={TermsOfService} />
         <Route path="/health" component={Health} />
