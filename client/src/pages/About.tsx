@@ -73,27 +73,23 @@ export default function About() {
               About TalentPatriot
             </h1>
             <p className="text-lg md:text-xl lg:text-2xl text-[#1F3A5F] font-medium mb-8 max-w-4xl mx-auto">
-              We're revolutionizing recruitment for growing teams with AI-powered simplicity and human-centered design.
+              Building the future of recruitment technology for growing teams with AI-powered simplicity and human-centered design.
             </p>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+          {/* Our Focus */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-[#1F3A5F] mb-2">5-500</div>
               <div className="text-[#5C667B] font-medium">Team Size Focus</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[#1F3A5F] mb-2">75%</div>
-              <div className="text-[#5C667B] font-medium">Time Saved</div>
+              <div className="text-3xl md:text-4xl font-bold text-[#1F3A5F] mb-2">2024</div>
+              <div className="text-[#5C667B] font-medium">Founded</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[#1F3A5F] mb-2">95%</div>
-              <div className="text-[#5C667B] font-medium">AI Accuracy</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-[#1F3A5F] mb-2">24/7</div>
-              <div className="text-[#5C667B] font-medium">Support</div>
+              <div className="text-3xl md:text-4xl font-bold text-[#1F3A5F] mb-2">Beta</div>
+              <div className="text-[#5C667B] font-medium">Early Access</div>
             </div>
           </div>
         </div>
@@ -248,9 +244,9 @@ export default function About() {
                   one that combines enterprise-level functionality with startup-friendly simplicity.
                 </p>
                 <p>
-                  Today, TalentPatriot serves companies from 5 to 500 employees, helping them 
-                  streamline their hiring process, make better recruiting decisions, and build 
-                  teams that drive their success forward.
+                  We're currently in early access, working closely with forward-thinking companies 
+                  to refine our platform and ensure it truly solves the recruitment challenges 
+                  facing growing teams today.
                 </p>
               </div>
             </div>
@@ -265,22 +261,22 @@ export default function About() {
               <Card className="bg-[#F7F9FC] p-6">
                 <div className="text-center">
                   <Building2 className="w-8 h-8 text-[#264C99] mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-[#1F3A5F]">1000+</div>
-                  <div className="text-sm text-[#5C667B]">Companies</div>
+                  <div className="text-2xl font-bold text-[#1F3A5F]">Beta</div>
+                  <div className="text-sm text-[#5C667B]">Early Access</div>
                 </div>
               </Card>
               <Card className="bg-[#F7F9FC] p-6">
                 <div className="text-center">
                   <UserCheck className="w-8 h-8 text-[#264C99] mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-[#1F3A5F]">50K+</div>
-                  <div className="text-sm text-[#5C667B]">Hires</div>
+                  <div className="text-2xl font-bold text-[#1F3A5F]">AI-First</div>
+                  <div className="text-sm text-[#5C667B]">Technology</div>
                 </div>
               </Card>
               <Card className="bg-[#F7F9FC] p-6">
                 <div className="text-center">
                   <BarChart3 className="w-8 h-8 text-[#264C99] mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-[#1F3A5F]">99.9%</div>
-                  <div className="text-sm text-[#5C667B]">Uptime</div>
+                  <div className="text-2xl font-bold text-[#1F3A5F]">Growing</div>
+                  <div className="text-sm text-[#5C667B]">Team</div>
                 </div>
               </Card>
             </div>
@@ -294,7 +290,7 @@ export default function About() {
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-4">Why Choose TalentPatriot?</h2>
             <p className="text-lg text-[#5C667B] max-w-3xl mx-auto">
-              We're not just another ATS. We're your recruitment growth partner.
+              We're building the next generation of recruitment technology designed specifically for growing teams.
             </p>
           </div>
 
@@ -361,8 +357,8 @@ export default function About() {
                 <Users className="w-16 h-16 text-[#264C99] mx-auto mb-6" />
                 <h3 className="text-2xl font-bold text-[#1A1A1A] mb-4">We're Growing!</h3>
                 <p className="text-[#5C667B] leading-relaxed mb-6">
-                  Our team is expanding rapidly. We're looking for talented individuals who share our 
-                  passion for building great recruitment technology.
+                  We're building something special and looking for talented individuals who share our 
+                  passion for creating great recruitment technology for growing teams.
                 </p>
                 <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-6 py-3">
                   Join Our Team
