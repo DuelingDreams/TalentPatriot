@@ -109,6 +109,14 @@ export default function Reports() {
     )
   }
 
+  // Check if this is a new organization with no data
+  const hasData = metrics && (
+    metrics.pipelineConversion.applied > 0 || 
+    metrics.timeToHire.average > 0 || 
+    metrics.sourceOfHire.length > 0 ||
+    metrics.recruiterPerformance.length > 0
+  )
+
   return (
     <div className="container mx-auto p-4 lg:p-6 space-y-6">
       {/* Header */}
@@ -155,8 +163,35 @@ export default function Reports() {
         </div>
       </div>
 
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+      {/* Show empty state for new organizations */}
+      {!hasData && (
+        <Card className="p-8">
+          <CardContent className="text-center">
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BarChart3 className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              No Data Available
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+              Start creating jobs and receiving applications to see your analytics and reports here. 
+              Your recruitment metrics will appear as you build your hiring pipeline.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button onClick={() => window.location.href = '/jobs'} className="bg-blue-600 hover:bg-blue-700">
+                Create Your First Job
+              </Button>
+              <Button variant="outline" onClick={() => window.location.href = '/clients'}>
+                Add a Client
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Key Metrics Cards - Only show if there's data */}
+      {hasData && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg Time to Hire</CardTitle>
@@ -317,8 +352,10 @@ export default function Reports() {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      {/* Recruiter Performance */}
+      {/* Recruiter Performance - Only show if there's data */}
+      {hasData && (
       <Card>
         <CardHeader>
           <CardTitle>Recruiter Performance</CardTitle>
@@ -355,6 +392,7 @@ export default function Reports() {
           </div>
         </CardContent>
       </Card>
+      )}
     </div>
   )
 }

@@ -661,58 +661,190 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID is required' })
       }
 
-      // Generate analytics data based on actual database queries (simplified for demo)
-      const mockMetrics = {
-        timeToHire: {
-          average: 28,
-          median: 24,
-          trend: -5.2,
-          byMonth: [
-            { month: 'Jan', average: 32, count: 8 },
-            { month: 'Feb', average: 29, count: 12 },
-            { month: 'Mar', average: 26, count: 15 },
-            { month: 'Apr', average: 28, count: 10 },
-            { month: 'May', average: 25, count: 18 },
-            { month: 'Jun', average: 27, count: 14 }
-          ]
-        },
-        sourceOfHire: [
-          { source: 'Company Website', count: 45, percentage: 35 },
-          { source: 'LinkedIn', count: 32, percentage: 25 },
-          { source: 'Referrals', count: 26, percentage: 20 },
-          { source: 'Job Boards', count: 19, percentage: 15 },
-          { source: 'Other', count: 6, percentage: 5 }
-        ],
-        pipelineConversion: {
-          applied: 128,
-          screened: 89,
-          interviewed: 45,
-          offered: 18,
-          hired: 14,
-          conversionRates: [
-            { stage: 'Applied to Screened', rate: 69.5 },
-            { stage: 'Screened to Interview', rate: 50.6 },
-            { stage: 'Interview to Offer', rate: 40.0 },
-            { stage: 'Offer to Hired', rate: 77.8 }
-          ]
-        },
-        recruiterPerformance: [
-          { recruiter: 'Sarah Johnson', jobsPosted: 8, candidatesHired: 5, avgTimeToHire: 22, conversionRate: 18.5 },
-          { recruiter: 'Mike Chen', jobsPosted: 6, candidatesHired: 4, avgTimeToHire: 26, conversionRate: 16.2 },
-          { recruiter: 'Emily Davis', jobsPosted: 5, candidatesHired: 3, avgTimeToHire: 31, conversionRate: 14.8 },
-          { recruiter: 'Alex Rodriguez', jobsPosted: 4, candidatesHired: 2, avgTimeToHire: 35, conversionRate: 12.1 }
-        ],
-        monthlyTrends: [
-          { month: 'Jan', applications: 28, hires: 3 },
-          { month: 'Feb', applications: 35, hires: 4 },
-          { month: 'Mar', applications: 42, hires: 6 },
-          { month: 'Apr', applications: 31, hires: 3 },
-          { month: 'May', applications: 48, hires: 7 },
-          { month: 'Jun', applications: 38, hires: 5 }
+      console.log(`[REPORTS] Generating metrics for organization: ${orgId}, period: ${period}`)
+
+      // Calculate date range based on period
+      const now = new Date()
+      let startDate: Date
+      
+      switch (period) {
+        case '1month':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate())
+          break
+        case '6months':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate())
+          break
+        case '1year':
+          startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+          break
+        default: // 3months
+          startDate = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate())
+      }
+
+      // Get real data from database
+      const [jobs, candidates, applications] = await Promise.all([
+        storage.getJobsByOrg(orgId),
+        storage.getCandidatesByOrg(orgId),
+        // Get job applications for this organization
+        supabaseAdmin
+          .from('job_applications')
+          .select(`
+            *,
+            job:jobs!inner(*),
+            candidate:candidates(*)
+          `)
+          .eq('jobs.org_id', orgId)
+          .gte('created_at', startDate.toISOString())
+          .then(({ data }: any) => data || [])
+      ])
+
+      // Filter jobs and candidates by date range
+      const periodJobs = jobs.filter((job: any) => new Date(job.createdAt) >= startDate)
+      const periodCandidates = candidates.filter((candidate: any) => new Date(candidate.createdAt) >= startDate)
+
+      console.log(`[REPORTS] Found ${periodJobs.length} jobs, ${periodCandidates.length} candidates, ${applications.length} applications for org ${orgId}`)
+
+      // Calculate time to hire metrics
+      const hiredApplications = applications.filter((app: any) => app.status === 'hired')
+      let timeToHireMetrics = {
+        average: 0,
+        median: 0,
+        trend: 0,
+        byMonth: [] as Array<{ month: string; average: number; count: number }>
+      }
+
+      if (hiredApplications.length > 0) {
+        const hireTimes = hiredApplications.map((app: any) => {
+          const applied = new Date(app.created_at)
+          const hired = new Date(app.updated_at)
+          return Math.ceil((hired.getTime() - applied.getTime()) / (1000 * 60 * 60 * 24))
+        })
+
+        timeToHireMetrics.average = Math.round(hireTimes.reduce((sum: number, time: number) => sum + time, 0) / hireTimes.length)
+        
+        const sortedTimes = [...hireTimes].sort((a, b) => a - b)
+        timeToHireMetrics.median = sortedTimes[Math.floor(sortedTimes.length / 2)] || 0
+
+        // Calculate monthly breakdown
+        const monthlyHires = hiredApplications.reduce((acc: Record<string, number[]>, app: any) => {
+          const month = new Date(app.updated_at).toLocaleDateString('en-US', { month: 'short' })
+          if (!acc[month]) acc[month] = []
+          
+          const applied = new Date(app.created_at)
+          const hired = new Date(app.updated_at)
+          const days = Math.ceil((hired.getTime() - applied.getTime()) / (1000 * 60 * 60 * 24))
+          acc[month].push(days)
+          return acc
+        }, {} as Record<string, number[]>)
+
+        timeToHireMetrics.byMonth = Object.entries(monthlyHires).map(([month, times]) => ({
+          month,
+          average: Math.round((times as number[]).reduce((sum: number, time: number) => sum + time, 0) / (times as number[]).length),
+          count: (times as number[]).length
+        }))
+      }
+
+      // Calculate source of hire
+      const sourceOfHire = applications.reduce((acc: Record<string, number>, app: any) => {
+        const source = app.source || 'Company Website'
+        acc[source] = (acc[source] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+
+      const totalApplications = applications.length
+      const sourceOfHireArray = Object.entries(sourceOfHire).map(([source, count]) => ({
+        source,
+        count: count as number,
+        percentage: totalApplications > 0 ? Math.round(((count as number) / totalApplications) * 100) : 0
+      }))
+
+      // Calculate pipeline conversion
+      const appliedCount = applications.length
+      const screenedCount = applications.filter((app: any) => ['screened', 'interviewed', 'offered', 'hired'].includes(app.status)).length
+      const interviewedCount = applications.filter((app: any) => ['interviewed', 'offered', 'hired'].includes(app.status)).length
+      const offeredCount = applications.filter((app: any) => ['offered', 'hired'].includes(app.status)).length
+      const hiredCount = applications.filter((app: any) => app.status === 'hired').length
+
+      const pipelineConversion = {
+        applied: appliedCount,
+        screened: screenedCount,
+        interviewed: interviewedCount,
+        offered: offeredCount,
+        hired: hiredCount,
+        conversionRates: [
+          { stage: 'Applied to Screened', rate: appliedCount > 0 ? Math.round((screenedCount / appliedCount) * 100 * 10) / 10 : 0 },
+          { stage: 'Screened to Interview', rate: screenedCount > 0 ? Math.round((interviewedCount / screenedCount) * 100 * 10) / 10 : 0 },
+          { stage: 'Interview to Offer', rate: interviewedCount > 0 ? Math.round((offeredCount / interviewedCount) * 100 * 10) / 10 : 0 },
+          { stage: 'Offer to Hired', rate: offeredCount > 0 ? Math.round((hiredCount / offeredCount) * 100 * 10) / 10 : 0 }
         ]
       }
 
-      res.json(mockMetrics)
+      // Get recruiter performance (users in this organization)
+      const { data: orgUsers } = await supabaseAdmin
+        .from('user_organizations')
+        .select('user_id, users(*)')
+        .eq('org_id', orgId)
+
+      const recruiterPerformance = []
+      if (orgUsers) {
+        for (const orgUser of orgUsers) {
+          if (!orgUser.users) continue
+          
+          const userJobs = periodJobs.filter((job: any) => job.createdBy === orgUser.user_id)
+          const userApplications = applications.filter((app: any) => 
+            userJobs.some((job: any) => job.id === app.job_id)
+          )
+          const userHires = userApplications.filter((app: any) => app.status === 'hired')
+          
+          if (userJobs.length > 0 || userApplications.length > 0) {
+            const userHireTimes = userHires.map((app: any) => {
+              const applied = new Date(app.created_at)
+              const hired = new Date(app.updated_at)
+              return Math.ceil((hired.getTime() - applied.getTime()) / (1000 * 60 * 60 * 24))
+            })
+            
+            recruiterPerformance.push({
+              recruiter: orgUser.users.full_name || orgUser.users.email?.split('@')[0] || 'Unknown',
+              jobsPosted: userJobs.length,
+              candidatesHired: userHires.length,
+              avgTimeToHire: userHireTimes.length > 0 ? Math.round(userHireTimes.reduce((sum: number, time: number) => sum + time, 0) / userHireTimes.length) : 0,
+              conversionRate: userApplications.length > 0 ? Math.round((userHires.length / userApplications.length) * 100 * 10) / 10 : 0
+            })
+          }
+        }
+      }
+
+      // Calculate monthly trends
+      const monthlyTrends = []
+      for (let i = 5; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const nextMonthDate = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
+        const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' })
+        
+        const monthApplications = applications.filter((app: any) => {
+          const appDate = new Date(app.created_at)
+          return appDate >= monthDate && appDate < nextMonthDate
+        })
+        
+        const monthHires = monthApplications.filter((app: any) => app.status === 'hired')
+        
+        monthlyTrends.push({
+          month: monthName,
+          applications: monthApplications.length,
+          hires: monthHires.length
+        })
+      }
+
+      const metrics = {
+        timeToHire: timeToHireMetrics,
+        sourceOfHire: sourceOfHireArray,
+        pipelineConversion,
+        recruiterPerformance,
+        monthlyTrends
+      }
+
+      console.log(`[REPORTS] Generated metrics:`, JSON.stringify(metrics, null, 2))
+      res.json(metrics)
     } catch (error) {
       console.error('Error fetching analytics metrics:', error)
       res.status(500).json({ error: 'Failed to fetch analytics metrics' })
