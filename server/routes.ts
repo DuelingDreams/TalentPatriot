@@ -1798,9 +1798,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // This route is deprecated - use /api/jobs/:jobId/apply instead
-
-
   // Candidates routes
   app.get("/api/candidates", async (req, res) => {
     try {
@@ -2285,9 +2282,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   // Upload routes (new comprehensive system)
   app.use("/api/upload", uploadRouter);
-
-  // File upload endpoint (legacy)
-
 
   // Health check endpoint
   app.get("/api/health", async (req, res) => {

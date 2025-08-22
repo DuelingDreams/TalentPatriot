@@ -190,7 +190,7 @@ export function useCandidatesForJob(
           })
 
         // Handle subscription errors
-        channel.on('error', (error: any, _data?: any, _callback?: () => void) => {
+        channel.on('error', (error: any) => {
             if (!mounted) return
             
             console.error('[Realtime] Subscription error:', error)
