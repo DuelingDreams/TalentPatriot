@@ -6,6 +6,11 @@ export interface UsePublicJobBySlugOptions {
   orgSlug?: string;
 }
 
+export interface PublicJobResult {
+  data: Job | null;
+  error: string | null;
+}
+
 /**
  * Hook for fetching a single public job by slug with caching
  * Used by both PublicJobDetail and CareersBySlug pages to ensure consistency
@@ -17,53 +22,65 @@ export function usePublicJobBySlug(
   const { enabled = true, orgSlug } = options;
 
   const {
-    data: job,
+    data,
     isLoading,
     error,
     refetch,
     isFetching
-  } = useQuery<Job>({
+  } = useQuery<PublicJobResult>({
     queryKey: ['/api/public/jobs/slug', slug, orgSlug],
     queryFn: async () => {
       if (!slug) {
-        throw new Error('Job slug is required');
+        return { data: null, error: 'Job slug is required' };
       }
 
-      const url = orgSlug 
-        ? `/api/public/jobs/slug/${slug}?orgSlug=${orgSlug}`
-        : `/api/public/jobs/slug/${slug}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('Job not found');
+      try {
+        const url = orgSlug 
+          ? `/api/public/jobs/slug/${slug}?orgSlug=${orgSlug}`
+          : `/api/public/jobs/slug/${slug}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            return { data: null, error: 'Job not found' };
+          }
+          const errorData = await response.json().catch(() => ({}));
+          return { 
+            data: null, 
+            error: errorData.error || `Failed to fetch job: ${response.status} ${response.statusText}` 
+          };
         }
-        throw new Error(`Failed to fetch job: ${response.status} ${response.statusText}`);
+        
+        const jobData = await response.json();
+        return { data: jobData, error: null };
+      } catch (networkError) {
+        return { 
+          data: null, 
+          error: networkError instanceof Error ? networkError.message : 'Network error occurred' 
+        };
       }
-      
-      return response.json();
     },
     enabled: enabled && !!slug,
     staleTime: 60000, // 60 seconds
     gcTime: 120000, // 2 minutes (formerly cacheTime in v4)
     retry: (failureCount, error) => {
-      // Don't retry on 404 errors
-      if (error.message === 'Job not found') {
-        return false;
-      }
+      // Don't retry on 404 errors (now handled in data)
       return failureCount < 2;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
   });
 
+  const job = data?.data || null;
+  const fetchError = error || data?.error;
+
   return {
     job,
     isLoading,
     isFetching,
-    error,
+    error: fetchError,
     refetch,
     // Computed state
-    notFound: error?.message === 'Job not found',
-    hasError: !!error
+    notFound: data?.error === 'Job not found',
+    hasError: !!fetchError
   };
 }

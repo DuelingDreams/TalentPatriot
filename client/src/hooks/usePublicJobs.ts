@@ -26,6 +26,11 @@ export interface PublicJobsResponse {
   totalPages: number;
 }
 
+export interface PublicJobsResult {
+  data: Job[] | null;
+  error: string | null;
+}
+
 /**
  * Hook for fetching public jobs with caching and filtering support
  * Provides consistent data shape across all public job components
@@ -60,14 +65,26 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
     error,
     refetch,
     isFetching
-  } = useQuery<Job[]>({
+  } = useQuery<PublicJobsResult>({
     queryKey: ['/api/public/jobs', { q, filters, page, pageSize, sort, orgSlug }],
     queryFn: async () => {
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch jobs: ${response.status} ${response.statusText}`);
+      try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          return { 
+            data: null, 
+            error: errorData.error || `Failed to fetch jobs: ${response.status} ${response.statusText}` 
+          };
+        }
+        const jobsData = await response.json();
+        return { data: jobsData, error: null };
+      } catch (networkError) {
+        return { 
+          data: null, 
+          error: networkError instanceof Error ? networkError.message : 'Network error occurred' 
+        };
       }
-      return response.json();
     },
     enabled,
     staleTime: 60000, // 60 seconds
@@ -77,18 +94,19 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
   });
 
   // Transform data to consistent format
-  const jobs = data || [];
+  const jobs = data?.data || [];
   const total = jobs.length;
+  const fetchError = error || data?.error;
 
   return {
     jobs,
     total,
     isLoading,
     isFetching,
-    error,
+    error: fetchError,
     refetch,
     // Computed state
     isEmpty: !isLoading && jobs.length === 0,
-    hasError: !!error
+    hasError: !!fetchError
   };
 }

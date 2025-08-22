@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { useDebounce } from '@/hooks/useDebounce'
 import { usePublicJobs } from '@/hooks/usePublicJobs'
-import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX, Calendar } from 'lucide-react'
+import { PageErrorBoundary } from '@/components/ui/page-error-boundary'
+import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX, Calendar, AlertCircle } from 'lucide-react'
 import type { Job } from '@shared/schema'
 
 export default function Careers() {
@@ -29,14 +30,8 @@ export default function Careers() {
     orgSlug
   })
 
-  // Handle errors
-  if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to load job listings",
-      variant: "destructive"
-    })
-  }
+  // Show user-friendly error message instead of toast for better UX
+  const hasError = !!error;
 
   // Client-side filtering for immediate feedback on search input
   const filteredJobs = useMemo(() => {
@@ -51,9 +46,63 @@ export default function Careers() {
 
 
 
+  // Show error state
+  if (hasError) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Careers at {orgSlug ? orgSlug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'TalentPatriot'}
+                </h1>
+                <p className="mt-2 text-gray-600">Find your next opportunity</p>
+              </div>
+              <img 
+                src="/talentpatriot-logo.png"
+                alt="TalentPatriot" 
+                className="h-12 object-contain"
+              />
+            </div>
+          </div>
+        </header>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <div className="mt-4 text-center">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Unable to Load Jobs
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  {error || 'There was a problem loading the job listings'}
+                </p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  className="mt-4"
+                  size="sm"
+                >
+                  Try Again
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <PageErrorBoundary 
+      fallbackTitle="Unable to Load Career Page"
+      fallbackDescription="There was an error loading the careers page. Please try again."
+    >
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
@@ -159,5 +208,6 @@ export default function Careers() {
         )}
       </div>
     </div>
+    </PageErrorBoundary>
   )
 }

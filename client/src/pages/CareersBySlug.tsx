@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { useToast } from '@/hooks/use-toast'
 import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug'
+import { PageErrorBoundary } from '@/components/ui/page-error-boundary'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
-import { MapPin, Clock, DollarSign, Briefcase, Building2, Send, Loader2, ArrowLeft, Plus, X } from 'lucide-react'
+import { MapPin, Clock, DollarSign, Briefcase, Building2, Send, Loader2, ArrowLeft, Plus, X, AlertCircle } from 'lucide-react'
 import type { Job } from '@shared/schema'
 
 interface EducationEntry {
@@ -301,24 +302,40 @@ export default function CareersBySlug() {
   if (error && !loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {notFound ? 'Job Not Found' : 'Unable to Load Job'}
-          </h1>
-          <p className="text-gray-600 mb-4">
-            {notFound 
-              ? "This job posting may have been removed or expired."
-              : "We're having trouble loading this job. Please try again later."
-            }
-          </p>
-          <Button onClick={() => {
-            const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
-            setLocation(careersPath);
-          }}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Jobs
-          </Button>
-        </div>
+        <Card className="max-w-md mx-auto">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <div className="mt-4 text-center">
+              <h3 className="text-lg font-medium text-gray-900">
+                {notFound ? 'Job Not Found' : 'Unable to Load Job'}
+              </h3>
+              <p className="mt-2 text-sm text-gray-500">
+                {notFound 
+                  ? "This job posting may have been removed or expired."
+                  : (error || "We're having trouble loading this job. Please try again later.")
+                }
+              </p>
+              <div className="mt-4 space-y-2">
+                <Button onClick={() => window.location.reload()} size="sm">
+                  Try Again
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
+                    setLocation(careersPath);
+                  }}
+                  size="sm"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Jobs
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -341,6 +358,10 @@ export default function CareersBySlug() {
   }
 
   return (
+    <PageErrorBoundary 
+      fallbackTitle="Unable to Load Job Details"
+      fallbackDescription="There was an error loading the job details page. Please try again."
+    >
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
@@ -959,5 +980,6 @@ export default function CareersBySlug() {
         </div>
       </div>
     </div>
+    </PageErrorBoundary>
   )
 }

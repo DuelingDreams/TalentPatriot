@@ -249,8 +249,10 @@ export default function Reports() {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      {/* Charts */}
+      {/* Charts - Only show if there's data */}
+      {hasData && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Time to Hire Trend */}
         <Card>
