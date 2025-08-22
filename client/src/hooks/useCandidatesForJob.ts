@@ -189,21 +189,8 @@ export function useCandidatesForJob(
             }
           })
 
-        // Handle subscription errors (skip callback parameter to match Supabase API)
-        channel.on('error', (error: any) => {
-            if (!mounted) return
-            
-            console.error('[Realtime] Subscription error:', error)
-            setRealtimeStatus('disconnected')
-            setupFallbackPolling()
-            
-            toast({
-              title: "Connection Issue",
-              description: "Live updates temporarily unavailable. Using fallback refresh.",
-              variant: "destructive",
-              duration: 5000
-            })
-          })
+        // Error handling is managed through subscription status callback
+        // Realtime errors will trigger fallback polling automatically
 
         channelRef.current = channel
 
