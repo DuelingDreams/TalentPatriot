@@ -2749,6 +2749,113 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // SendGrid email testing endpoint with ATS template testing
+  app.post('/api/test-sendgrid', async (req, res) => {
+    try {
+      const { sendEmail, ATSEmailService, atsEmailService } = await import('./emailService');
+      const { testType } = req.body;
+      
+      console.log('🔧 Testing SendGrid integration...');
+      
+      let result = false;
+      
+      // Test different email templates based on request
+      if (testType === 'application_notification') {
+        result = await atsEmailService.sendNewApplicationNotification(
+          'hiring-manager@example.com',
+          'John Doe',
+          'Senior Software Engineer',
+          'TalentPatriot Demo Company'
+        );
+      } else if (testType === 'interview_reminder') {
+        result = await atsEmailService.sendInterviewReminderToCandidate(
+          'candidate@example.com',
+          'Jane Smith', 
+          'Product Manager',
+          'Tomorrow, August 23rd at 2:00 PM EST',
+          'TalentPatriot Demo Company'
+        );
+      } else if (testType === 'status_update') {
+        result = await atsEmailService.sendStatusUpdateToCandidate(
+          'candidate@example.com',
+          'Jane Smith',
+          'Product Manager',
+          'Interview Scheduled',
+          'TalentPatriot Demo Company'
+        );
+      } else {
+        // Default basic integration test
+        result = await sendEmail({
+        to: 'test@example.com',
+        from: 'noreply@talentpatriot.com',
+        subject: 'TalentPatriot SendGrid Integration Test',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
+              <h1>TalentPatriot</h1>
+            </div>
+            <div style="padding: 30px; background: #f8fafc;">
+              <h2 style="color: #1e40af;">✅ SendGrid Integration Confirmed</h2>
+              <p>Your SendGrid domain verification is working perfectly!</p>
+              
+              <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #374151;">Email Notifications Now Active:</h3>
+                <ul style="color: #374151;">
+                  <li>✅ New job application alerts</li>
+                  <li>✅ Interview reminder notifications</li>
+                  <li>✅ Candidate status update emails</li>
+                  <li>✅ Hiring manager notifications</li>
+                </ul>
+              </div>
+              
+              <p><strong>Test completed:</strong> ${new Date().toLocaleString()}</p>
+              
+              <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+                This confirms TalentPatriot can send emails through your verified domain.
+              </p>
+            </div>
+          </div>
+        `,
+        text: 'TalentPatriot SendGrid integration test successful! All automated email notifications are now functional.'
+      });
+      }
+      
+      if (result) {
+        console.log('✅ SendGrid test email sent successfully');
+        const responseMessage = testType ? 
+          `${testType.replace('_', ' ')} email template test successful!` :
+          'SendGrid integration working perfectly!';
+          
+        res.json({ 
+          success: true, 
+          message: responseMessage,
+          testType: testType || 'basic_integration',
+          emailServiceStatus: 'active',
+          domainVerified: true,
+          notificationsReady: ['applications', 'interviews', 'status-updates', 'hiring-alerts'],
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        console.log('❌ SendGrid test failed');
+        res.status(500).json({ 
+          success: false, 
+          message: 'SendGrid test failed - check API key and domain verification',
+          emailServiceStatus: 'inactive',
+          timestamp: new Date().toISOString()
+        });
+      }
+    } catch (error: any) {
+      console.error('SendGrid test error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'SendGrid integration test failed',
+        error: error.message,
+        emailServiceStatus: 'error',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   console.log("📡 Registered all API routes");
