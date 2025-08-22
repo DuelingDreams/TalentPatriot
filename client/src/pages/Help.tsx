@@ -1,10 +1,10 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { HelpCenter } from '@/components/help/HelpCenter'
+import { SupportCenter } from '@/components/help/SupportCenter'
 
 export default function Help() {
   return (
-    <DashboardLayout pageTitle="Help Center">
-      <HelpCenter />
+    <DashboardLayout pageTitle="Help & Support">
+      <SupportCenter />
     </DashboardLayout>
   )
 }

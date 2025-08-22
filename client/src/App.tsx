@@ -54,6 +54,7 @@ const JobApplicationForm = lazy(() => import("@/pages/JobApplicationForm"));
 const Health = lazy(() => import("@/pages/health"));
 const TestFeatures = lazy(() => import("@/pages/TestFeatures"));
 const Help = lazy(() => import("@/pages/Help"));
+const Documentation = lazy(() => import("@/pages/Documentation"));
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -194,6 +195,12 @@ function Router() {
         <Route path="/help">
           <ProtectedRoute>
             <Help />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/docs">
+          <ProtectedRoute>
+            <Documentation />
           </ProtectedRoute>
         </Route>
         
