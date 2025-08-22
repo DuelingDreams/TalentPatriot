@@ -38,7 +38,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAYS = [500, 1500, 3000]; // exponential backoff in milliseconds
 
 export default function JobApplicationForm() {
-  const { slug } = useParams<{ slug: string }>()
+  const { slug, orgSlug } = useParams<{ slug: string; orgSlug?: string }>()
   const [, setLocation] = useLocation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -62,7 +62,7 @@ export default function JobApplicationForm() {
   const { toast } = useToast()
 
   // Use shared hook for consistent data fetching
-  const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug)
+  const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug, { orgSlug })
 
   // Validate file client-side
   const validateFile = (file: File): string | null => {
@@ -328,7 +328,10 @@ export default function JobApplicationForm() {
               : "We're having trouble loading this job. Please try again later."
             }
           </p>
-          <Button onClick={() => setLocation('/careers')}>
+          <Button onClick={() => {
+            const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
+            setLocation(careersPath);
+          }}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Careers
           </Button>
@@ -369,7 +372,10 @@ export default function JobApplicationForm() {
               Thank you for your interest. We'll review your application and be in touch soon.
             </p>
             <Button 
-              onClick={() => setLocation('/careers')}
+              onClick={() => {
+                const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
+                setLocation(careersPath);
+              }}
               variant="outline"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -390,7 +396,10 @@ export default function JobApplicationForm() {
             <div>
               <Button 
                 variant="ghost" 
-                onClick={() => setLocation('/careers')}
+                onClick={() => {
+                  const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
+                  setLocation(careersPath);
+                }}
                 className="mb-2"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

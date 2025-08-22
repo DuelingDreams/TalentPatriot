@@ -652,21 +652,27 @@ export async function getJobCandidatesByOrg(orgId: string) {
   return data;
 }
 
-export async function getPublicJobs() {
-  const { data, error } = await supabase
+export async function getPublicJobs(orgId?: string) {
+  let query = supabase
     .from('jobs')
     .select('*')
     .eq('status', 'open')
     .not('public_slug', 'is', null)
-    .eq('record_status', 'active')
-    .order('published_at', { ascending: false });
+    .eq('record_status', 'active');
+
+  // Filter by organization if orgId is provided
+  if (orgId) {
+    query = query.eq('org_id', orgId);
+  }
+
+  const { data, error } = await query.order('published_at', { ascending: false });
     
   if (error) {
     console.error('Public jobs fetch error:', error);
     throw new Error(`Failed to fetch public jobs: ${error.message}`);
   }
   
-  console.log(`[JobService] getPublicJobs found ${data?.length || 0} jobs`);
+  console.log(`[JobService] getPublicJobs found ${data?.length || 0} jobs${orgId ? ` for org ${orgId}` : ''}`);
   if (data?.length) {
     console.log(`[JobService] Job slugs: ${data.map(j => j.public_slug).join(', ')}`);
   }

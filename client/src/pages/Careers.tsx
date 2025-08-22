@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { useLocation } from 'wouter'
+import { useLocation, useParams } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,7 @@ import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX
 import type { Job } from '@shared/schema'
 
 export default function Careers() {
+  const { orgSlug } = useParams<{ orgSlug: string }>()
   const [searchTerm, setSearchTerm] = useState('')
   const [, setLocation] = useLocation()
   const { toast } = useToast()
@@ -24,7 +25,8 @@ export default function Careers() {
     error, 
     isEmpty 
   } = usePublicJobs({
-    q: debouncedSearchTerm || undefined
+    q: debouncedSearchTerm || undefined,
+    orgSlug
   })
 
   // Handle errors
@@ -57,15 +59,8 @@ export default function Careers() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                {/* Dynamic organization name from subdomain or fallback */}
-                Careers at {(() => {
-                  const hostname = window.location.hostname;
-                  if (hostname.includes('.') && !hostname.startsWith('localhost')) {
-                    const subdomain = hostname.split('.')[0];
-                    return subdomain.replace(/[-_]/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
-                  }
-                  return 'TalentPatriot';
-                })()}
+                {/* Dynamic organization name from orgSlug or fallback */}
+                Careers at {orgSlug ? orgSlug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'TalentPatriot'}
               </h1>
               <p className="mt-2 text-gray-600">Find your next opportunity</p>
             </div>
@@ -102,7 +97,12 @@ export default function Careers() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredJobs.map((job: Job) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => setLocation(`/careers/${job.publicSlug || job.id}`)}>
+                onClick={() => {
+                  const jobPath = orgSlug 
+                    ? `/org/${orgSlug}/careers/${job.publicSlug || job.id}`
+                    : `/careers/${job.publicSlug || job.id}`;
+                  setLocation(jobPath);
+                }}>
                 <CardHeader>
                   <CardTitle className="text-xl">{job.title}</CardTitle>
                   {job.department && (
@@ -136,7 +136,13 @@ export default function Careers() {
 
                   <Button 
                     className="w-full mt-4"
-                    onClick={() => window.location.href = `/careers/${job.publicSlug || job.id}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const jobPath = orgSlug 
+                        ? `/org/${orgSlug}/careers/${job.publicSlug || job.id}/apply`
+                        : `/careers/${job.publicSlug || job.id}/apply`;
+                      setLocation(jobPath);
+                    }}
                   >
                     View Details & Apply
                   </Button>

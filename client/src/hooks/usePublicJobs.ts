@@ -15,6 +15,7 @@ export interface PublicJobsParams {
 
 export interface UsePublicJobsOptions extends PublicJobsParams {
   enabled?: boolean;
+  orgSlug?: string;
 }
 
 export interface PublicJobsResponse {
@@ -36,7 +37,8 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
     page = 1,
     pageSize = 50,
     sort = 'created_desc',
-    enabled = true
+    enabled = true,
+    orgSlug
   } = options;
 
   const queryParams = new URLSearchParams();
@@ -47,6 +49,7 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
   if (page > 1) queryParams.append('page', page.toString());
   if (pageSize !== 50) queryParams.append('pageSize', pageSize.toString());
   if (sort !== 'created_desc') queryParams.append('sort', sort);
+  if (orgSlug) queryParams.append('orgSlug', orgSlug);
 
   const queryString = queryParams.toString();
   const endpoint = `/api/public/jobs${queryString ? `?${queryString}` : ''}`;
@@ -58,7 +61,7 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
     refetch,
     isFetching
   } = useQuery<Job[]>({
-    queryKey: ['/api/public/jobs', { q, filters, page, pageSize, sort }],
+    queryKey: ['/api/public/jobs', { q, filters, page, pageSize, sort, orgSlug }],
     queryFn: async () => {
       const response = await fetch(endpoint);
       if (!response.ok) {

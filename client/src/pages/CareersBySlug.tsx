@@ -119,7 +119,7 @@ export default function CareersBySlug() {
   const { toast } = useToast()
 
   // Use shared hook for consistent data fetching
-  const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug)
+  const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug, { orgSlug })
 
   const handleInputChange = (field: keyof ApplicationFormData, value: any) => {
     setApplicationData(prev => ({
@@ -311,7 +311,10 @@ export default function CareersBySlug() {
               : "We're having trouble loading this job. Please try again later."
             }
           </p>
-          <Button onClick={() => setLocation('/careers')}>
+          <Button onClick={() => {
+            const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
+            setLocation(careersPath);
+          }}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Jobs
           </Button>
@@ -344,7 +347,10 @@ export default function CareersBySlug() {
         <div className="max-w-4xl mx-auto px-6 py-4">
           <Button
             variant="ghost"
-            onClick={() => setLocation('/careers')}
+            onClick={() => {
+              const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
+              setLocation(careersPath);
+            }}
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

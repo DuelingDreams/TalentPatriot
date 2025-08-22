@@ -101,9 +101,9 @@ function Router() {
         <Route path="/careers/:slug/apply" component={JobApplicationForm} />
         
         {/* Organization-specific careers pages (path-based routing) */}
-        <Route path="/org/:orgSlug/careers" component={CareersBySlug} />
-        <Route path="/org/:orgSlug/careers/:jobSlug" component={lazy(() => import('@/pages/JobApplicationForm'))} />
-        <Route path="/org/:orgSlug/apply/:jobSlug" component={JobApplicationForm} />
+        <Route path="/org/:orgSlug/careers" component={Careers} />
+        <Route path="/org/:orgSlug/careers/:slug" component={CareersBySlug} />
+        <Route path="/org/:orgSlug/careers/:slug/apply" component={JobApplicationForm} />
         
         {/* Demo and test routes */}
         <Route path="/demo/resume-parsing" component={lazy(() => import('./pages/ResumeParsingDemo'))} />

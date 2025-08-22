@@ -1551,7 +1551,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     limit: z.string().optional().refine(val => !val || !isNaN(Number(val)), "Limit must be a number"),
     offset: z.string().optional().refine(val => !val || !isNaN(Number(val)), "Offset must be a number"),
     location: z.string().optional(),
-    search: z.string().optional()
+    search: z.string().optional(),
+    orgSlug: z.string().optional()
   });
 
   app.get("/api/public/jobs", async (req, res) => {
@@ -1564,8 +1565,31 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         });
       }
       
-      // Get all open jobs with public slugs using jobService
-      const openJobs = await jobService.getPublicJobs();
+      const { orgSlug } = queryParse.data;
+      let orgId: string | undefined;
+      
+      // If orgSlug is provided, look up the organization
+      if (orgSlug) {
+        try {
+          const organizations = await storage.getOrganizations();
+          const organization = organizations.find(org => 
+            org.slug === orgSlug || 
+            org.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === orgSlug
+          );
+          
+          if (organization) {
+            orgId = organization.id;
+          } else {
+            return res.status(404).json({ error: "Organization not found" });
+          }
+        } catch (orgError) {
+          console.error('Error looking up organization:', orgError);
+          return res.status(500).json({ error: "Failed to lookup organization" });
+        }
+      }
+      
+      // Get jobs with optional organization filtering
+      const openJobs = await jobService.getPublicJobs(orgId);
       res.json(openJobs);
     } catch (error) {
       console.error('Error fetching public jobs:', error);
@@ -1578,10 +1602,16 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   const jobSlugSchema = z.object({
     slug: z.string().min(1, "Job slug is required").max(100, "Job slug too long")
   });
+  
+  const jobSlugQuerySchema = z.object({
+    orgSlug: z.string().optional()
+  });
 
   app.get("/api/public/jobs/slug/:slug", async (req, res) => {
     try {
       const paramsParse = jobSlugSchema.safeParse({ slug: req.params.slug });
+      const queryParse = jobSlugQuerySchema.safeParse(req.query);
+      
       if (!paramsParse.success) {
         return res.status(400).json({ 
           error: "Invalid slug parameter", 
@@ -1589,11 +1619,41 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         });
       }
       
-      const { slug } = paramsParse.data;
-      console.log(`[API] GET /api/public/jobs/slug/${slug} | Looking for job with slug: ${slug}`);
+      if (!queryParse.success) {
+        return res.status(400).json({ 
+          error: "Invalid query parameters", 
+          details: queryParse.error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
       
-      // Use jobService instead of storage for consistency with other public job endpoints
-      const allJobs = await jobService.getPublicJobs();
+      const { slug } = paramsParse.data;
+      const { orgSlug } = queryParse.data;
+      let orgId: string | undefined;
+      
+      console.log(`[API] GET /api/public/jobs/slug/${slug} | Looking for job with slug: ${slug}, orgSlug: ${orgSlug}`);
+      
+      // If orgSlug is provided, look up the organization
+      if (orgSlug) {
+        try {
+          const organizations = await storage.getOrganizations();
+          const organization = organizations.find(org => 
+            org.slug === orgSlug || 
+            org.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === orgSlug
+          );
+          
+          if (organization) {
+            orgId = organization.id;
+          } else {
+            return res.status(404).json({ error: "Organization not found" });
+          }
+        } catch (orgError) {
+          console.error('Error looking up organization:', orgError);
+          return res.status(500).json({ error: "Failed to lookup organization" });
+        }
+      }
+      
+      // Get jobs with optional organization filtering
+      const allJobs = await jobService.getPublicJobs(orgId);
       const job = allJobs.find(job => job.public_slug === slug && job.status === 'open');
       
       console.log(`[API] Found jobs: ${allJobs.length}, Looking for slug: ${slug}`);

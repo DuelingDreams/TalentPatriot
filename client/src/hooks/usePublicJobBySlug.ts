@@ -3,6 +3,7 @@ import type { Job } from '@shared/schema';
 
 export interface UsePublicJobBySlugOptions {
   enabled?: boolean;
+  orgSlug?: string;
 }
 
 /**
@@ -13,7 +14,7 @@ export function usePublicJobBySlug(
   slug: string | undefined,
   options: UsePublicJobBySlugOptions = {}
 ) {
-  const { enabled = true } = options;
+  const { enabled = true, orgSlug } = options;
 
   const {
     data: job,
@@ -22,13 +23,16 @@ export function usePublicJobBySlug(
     refetch,
     isFetching
   } = useQuery<Job>({
-    queryKey: ['/api/public/jobs/slug', slug],
+    queryKey: ['/api/public/jobs/slug', slug, orgSlug],
     queryFn: async () => {
       if (!slug) {
         throw new Error('Job slug is required');
       }
 
-      const response = await fetch(`/api/public/jobs/slug/${slug}`);
+      const url = orgSlug 
+        ? `/api/public/jobs/slug/${slug}?orgSlug=${orgSlug}`
+        : `/api/public/jobs/slug/${slug}`;
+      const response = await fetch(url);
       
       if (!response.ok) {
         if (response.status === 404) {
