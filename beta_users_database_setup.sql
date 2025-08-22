@@ -56,7 +56,8 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_beta ON user_profiles(beta_user);
 ALTER TABLE beta_applications ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policy: Users can only see their own beta applications
-CREATE POLICY IF NOT EXISTS "Users can view own beta applications" ON beta_applications
+DROP POLICY IF EXISTS "Users can view own beta applications" ON beta_applications;
+CREATE POLICY "Users can view own beta applications" ON beta_applications
   FOR SELECT USING (
     auth.uid() = user_id OR 
     auth.uid() IN (
@@ -67,11 +68,13 @@ CREATE POLICY IF NOT EXISTS "Users can view own beta applications" ON beta_appli
   );
 
 -- RLS Policy: Insert applications (public - no auth required for initial submission)
-CREATE POLICY IF NOT EXISTS "Anyone can insert beta applications" ON beta_applications
+DROP POLICY IF EXISTS "Anyone can insert beta applications" ON beta_applications;
+CREATE POLICY "Anyone can insert beta applications" ON beta_applications
   FOR INSERT WITH CHECK (true);
 
 -- RLS Policy: Update applications (only by organization owners/admins)
-CREATE POLICY IF NOT EXISTS "Organization owners can update beta applications" ON beta_applications
+DROP POLICY IF EXISTS "Organization owners can update beta applications" ON beta_applications;
+CREATE POLICY "Organization owners can update beta applications" ON beta_applications
   FOR UPDATE USING (
     auth.uid() IN (
       SELECT uo.user_id FROM user_organizations uo 
@@ -87,7 +90,8 @@ CREATE POLICY IF NOT EXISTS "Organization owners can update beta applications" O
 ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view organizations they belong to
-CREATE POLICY IF NOT EXISTS "Users can view own organizations" ON organizations
+DROP POLICY IF EXISTS "Users can view own organizations" ON organizations;
+CREATE POLICY "Users can view own organizations" ON organizations
   FOR SELECT USING (
     auth.uid() = owner_id OR 
     auth.uid() IN (
@@ -97,11 +101,13 @@ CREATE POLICY IF NOT EXISTS "Users can view own organizations" ON organizations
   );
 
 -- Policy: Users can create organizations (for onboarding)
-CREATE POLICY IF NOT EXISTS "Authenticated users can create organizations" ON organizations
+DROP POLICY IF EXISTS "Authenticated users can create organizations" ON organizations;
+CREATE POLICY "Authenticated users can create organizations" ON organizations
   FOR INSERT WITH CHECK (auth.uid() = owner_id);
 
 -- Policy: Organization owners can update their organizations
-CREATE POLICY IF NOT EXISTS "Organization owners can update" ON organizations
+DROP POLICY IF EXISTS "Organization owners can update" ON organizations;
+CREATE POLICY "Organization owners can update" ON organizations
   FOR UPDATE USING (
     auth.uid() = owner_id OR 
     auth.uid() IN (
@@ -114,11 +120,13 @@ CREATE POLICY IF NOT EXISTS "Organization owners can update" ON organizations
 ALTER TABLE user_organizations ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view their organization memberships
-CREATE POLICY IF NOT EXISTS "Users can view own memberships" ON user_organizations
+DROP POLICY IF EXISTS "Users can view own memberships" ON user_organizations;
+CREATE POLICY "Users can view own memberships" ON user_organizations
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Policy: Organization owners can manage memberships
-CREATE POLICY IF NOT EXISTS "Organization owners can manage memberships" ON user_organizations
+DROP POLICY IF EXISTS "Organization owners can manage memberships" ON user_organizations;
+CREATE POLICY "Organization owners can manage memberships" ON user_organizations
   FOR ALL USING (
     auth.uid() IN (
       SELECT user_id FROM user_organizations uo2 
@@ -131,7 +139,8 @@ CREATE POLICY IF NOT EXISTS "Organization owners can manage memberships" ON user
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can view and manage their own profiles
-CREATE POLICY IF NOT EXISTS "Users can manage own profiles" ON user_profiles
+DROP POLICY IF EXISTS "Users can manage own profiles" ON user_profiles;
+CREATE POLICY "Users can manage own profiles" ON user_profiles
   FOR ALL USING (auth.uid() = id);
 
 -- Create a function to automatically create user profiles
@@ -266,11 +275,13 @@ CREATE INDEX IF NOT EXISTS idx_email_signups_source ON email_signups(source);
 ALTER TABLE email_signups ENABLE ROW LEVEL SECURITY;
 
 -- Allow anyone to insert email signups (for landing page form)
-CREATE POLICY IF NOT EXISTS "Anyone can sign up for emails" ON email_signups
+DROP POLICY IF EXISTS "Anyone can sign up for emails" ON email_signups;
+CREATE POLICY "Anyone can sign up for emails" ON email_signups
   FOR INSERT WITH CHECK (true);
 
 -- Only authenticated admin users can view email signups
-CREATE POLICY IF NOT EXISTS "Admins can view email signups" ON email_signups
+DROP POLICY IF EXISTS "Admins can view email signups" ON email_signups;
+CREATE POLICY "Admins can view email signups" ON email_signups
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM user_profiles 
