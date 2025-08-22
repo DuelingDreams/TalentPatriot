@@ -60,6 +60,18 @@ const ProfileSettings = lazy(() => import("@/pages/ProfileSettings"));
 const AccountSettings = lazy(() => import("@/pages/AccountSettings"));
 const BetaProgram = lazy(() => import("@/pages/BetaProgram"));
 
+function AppPrefetch() {
+  useEffect(() => {
+    // Prefetch high-traffic pages to reduce chunk fetch failures
+    import("@/pages/Dashboard");
+    import("@/pages/Jobs");
+    import("@/pages/Candidates");
+    import("@/pages/Clients");
+    import("@/pages/Reports");
+  }, []);
+  return null;
+}
+
 function Router() {
   const [location, setLocation] = useLocation();
   
@@ -234,6 +246,7 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <ToastProvider />
+            <AppPrefetch />
             <Router />
             <DemoToggleFooter />
           </TooltipProvider>
