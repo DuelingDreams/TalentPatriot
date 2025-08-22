@@ -2,6 +2,7 @@ import {
   organizations,
   userOrganizations,
   userProfiles,
+  userSettings,
   clients, 
   jobs, 
   candidates,
@@ -12,6 +13,7 @@ import {
   messages,
   messageRecipients,
   type UserProfile,
+  type UserSettings,
   type Organization,
   type UserOrganization,
   type Client, 
@@ -24,6 +26,7 @@ import {
   type Message,
   type MessageRecipient,
   type InsertUserProfile,
+  type InsertUserSettings,
   type InsertOrganization,
   type InsertUserOrganization,
   type InsertClient,
@@ -47,6 +50,10 @@ export interface IStorage {
   createUserProfile(userProfile: InsertUserProfile): Promise<UserProfile>;
   updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile>;
   ensureUserProfile(userId: string): Promise<UserProfile>;
+  
+  // User Settings
+  getUserSettings(userId: string): Promise<any>;
+  updateUserSettings(userId: string, settings: any): Promise<any>;
   
   // Performance-optimized methods
   getDashboardStats(orgId: string): Promise<any>;
@@ -275,6 +282,66 @@ export class DatabaseStorage implements IStorage {
       }
       
       throw new Error(`Failed to ensure user profile exists for user ${userId}: ${error?.message}`);
+    }
+  }
+
+  async getUserSettings(userId: string): Promise<UserSettings | null> {
+    try {
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // No settings found, create default settings
+          const defaultSettings = {
+            userId,
+            emailNotifications: true,
+            browserNotifications: true,
+            weeklyReports: false,
+            teamInvites: true,
+            publicProfile: false,
+          };
+          return await this.updateUserSettings(userId, defaultSettings);
+        }
+        throw new Error(error.message);
+      }
+
+      return data as UserSettings;
+    } catch (error) {
+      console.error('Error fetching user settings:', error);
+      return null;
+    }
+  }
+
+  async updateUserSettings(userId: string, settings: Partial<InsertUserSettings>): Promise<UserSettings> {
+    try {
+      const dbSettings = {
+        user_id: userId,
+        email_notifications: settings.emailNotifications,
+        browser_notifications: settings.browserNotifications,
+        weekly_reports: settings.weeklyReports,
+        team_invites: settings.teamInvites,
+        public_profile: settings.publicProfile,
+      };
+
+      const { data, error } = await supabase
+        .from('user_settings')
+        .upsert(dbSettings, { onConflict: 'user_id' })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database user settings update error:', error);
+        throw new Error(`Failed to update user settings: ${error.message}`);
+      }
+
+      return data as UserSettings;
+    } catch (error) {
+      console.error('Error updating user settings:', error);
+      throw error;
     }
   }
 

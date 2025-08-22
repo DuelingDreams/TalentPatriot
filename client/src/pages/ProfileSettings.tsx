@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,6 +12,8 @@ import { Separator } from '@/components/ui/separator'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiRequest } from '@/lib/queryClient'
 import { 
   User, 
   Mail, 
@@ -40,7 +42,6 @@ type ProfileForm = z.infer<typeof profileSchema>
 export default function ProfileSettings() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -60,25 +61,50 @@ export default function ProfileSettings() {
     return email.substring(0, 2).toUpperCase()
   }
 
-  const onSubmit = async (data: ProfileForm) => {
-    setIsLoading(true)
-    try {
-      // TODO: Implement profile update API call
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-      
+  // Fetch profile data
+  const { data: profileData, isLoading: profileLoading } = useQuery({
+    queryKey: ['/api/user/profile'],
+    enabled: !!user,
+  })
+
+  // Update profile mutation
+  const queryClient = useQueryClient()
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: ProfileForm) => apiRequest('/api/user/profile', 'PUT', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] })
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
       })
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to update profile. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
     }
+  })
+
+  // Update form values when profile data loads
+  useEffect(() => {
+    if (profileData) {
+      form.reset({
+        firstName: profileData.firstName || '',
+        lastName: profileData.lastName || '',
+        email: profileData.email || user?.email || '',
+        phone: profileData.phone || '',
+        jobTitle: profileData.jobTitle || '',
+        department: profileData.department || '',
+        location: profileData.location || '',
+        bio: profileData.bio || '',
+      })
+    }
+  }, [profileData, form, user])
+
+  const onSubmit = async (data: ProfileForm) => {
+    updateProfileMutation.mutate(data)
   }
 
   if (!user) return null
@@ -304,11 +330,11 @@ export default function ProfileSettings() {
                   <div className="flex justify-end pt-4">
                     <Button 
                       type="submit" 
-                      disabled={isLoading}
+                      disabled={updateProfileMutation.isPending || profileLoading}
                       className="bg-[#1F3A5F] hover:bg-[#264C99]"
                     >
                       <Save className="w-4 h-4 mr-2" />
-                      {isLoading ? 'Saving...' : 'Save Changes'}
+                      {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
                     </Button>
                   </div>
                 </form>

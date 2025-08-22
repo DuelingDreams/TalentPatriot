@@ -1049,6 +1049,137 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   })
 
+  // User Profile endpoints
+  app.get('/api/user/profile', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      if (!supabaseAdmin) {
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      
+      if (error || !user) {
+        return res.status(401).json({ error: 'Invalid authentication' });
+      }
+
+      const profile = await storage.getUserProfile(user.id);
+      
+      res.json({
+        id: user.id,
+        email: user.email,
+        ...profile
+      });
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({ error: 'Failed to fetch user profile' });
+    }
+  });
+
+  app.put('/api/user/profile', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      if (!supabaseAdmin) {
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      
+      if (error || !user) {
+        return res.status(401).json({ error: 'Invalid authentication' });
+      }
+
+      const profileData = {
+        id: user.id,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        phone: req.body.phone,
+        jobTitle: req.body.jobTitle,
+        department: req.body.department,
+        location: req.body.location,
+        bio: req.body.bio,
+      };
+
+      const updatedProfile = await storage.updateUserProfile(user.id, profileData);
+      res.json(updatedProfile);
+    } catch (error) {
+      console.error('Error updating user profile:', error);
+      res.status(500).json({ error: 'Failed to update user profile' });
+    }
+  });
+
+  // User Settings endpoints
+  app.get('/api/user/settings', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      if (!supabaseAdmin) {
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      
+      if (error || !user) {
+        return res.status(401).json({ error: 'Invalid authentication' });
+      }
+
+      const settings = await storage.getUserSettings(user.id);
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching user settings:', error);
+      res.status(500).json({ error: 'Failed to fetch user settings' });
+    }
+  });
+
+  app.put('/api/user/settings', async (req, res) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader?.startsWith('Bearer ') ) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      if (!supabaseAdmin) {
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
+
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      
+      if (error || !user) {
+        return res.status(401).json({ error: 'Invalid authentication' });
+      }
+
+      const settingsData = {
+        userId: user.id,
+        emailNotifications: req.body.emailNotifications,
+        browserNotifications: req.body.browserNotifications,
+        weeklyReports: req.body.weeklyReports,
+        teamInvites: req.body.teamInvites,
+        publicProfile: req.body.publicProfile,
+      };
+
+      const updatedSettings = await storage.updateUserSettings(user.id, settingsData);
+      res.json(updatedSettings);
+    } catch (error) {
+      console.error('Error updating user settings:', error);
+      res.status(500).json({ error: 'Failed to update user settings' });
+    }
+  });
+
   // Enhanced endpoint to remove user from organization
   app.delete('/api/organizations/:orgId/users/:userId', writeLimiter, async (req, res) => {
     const { orgId, userId } = req.params;

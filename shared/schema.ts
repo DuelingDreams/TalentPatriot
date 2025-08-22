@@ -32,9 +32,30 @@ export const organizations = pgTable("organizations", {
 export const userProfiles = pgTable("user_profiles", {
   id: uuid("id").primaryKey(), // references auth.users(id) 
   role: userRoleEnum("role").default('hiring_manager').notNull(),
+  firstName: varchar("first_name", { length: 255 }),
+  lastName: varchar("last_name", { length: 255 }),
+  phone: varchar("phone", { length: 50 }),
+  jobTitle: varchar("job_title", { length: 255 }),
+  department: varchar("department", { length: 255 }),
+  location: varchar("location", { length: 255 }),
+  bio: text("bio"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const userSettings = pgTable("user_settings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(), // references auth.users(id)
+  emailNotifications: boolean("email_notifications").default(true),
+  browserNotifications: boolean("browser_notifications").default(true),
+  weeklyReports: boolean("weekly_reports").default(false),
+  teamInvites: boolean("team_invites").default(true),
+  publicProfile: boolean("public_profile").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserSettings: uniqueIndex("unique_user_settings").on(table.userId),
+}));
 
 export const userOrganizations = pgTable("user_organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -294,10 +315,6 @@ export const messageRecipientsRelations = relations(messageRecipients, ({ one })
 }));
 
 // Insert schemas
-export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
-  createdAt: true,
-  updatedAt: true,
-});
 
 export const insertOrganizationSchema = createInsertSchema(organizations).omit({
   id: true,
@@ -360,6 +377,17 @@ export const insertMessageRecipientSchema = createInsertSchema(messageRecipients
   createdAt: true,
 });
 
+export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
@@ -396,3 +424,6 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export type MessageRecipient = typeof messageRecipients.$inferSelect;
 export type InsertMessageRecipient = z.infer<typeof insertMessageRecipientSchema>;
+
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;

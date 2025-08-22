@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/AuthContext'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiRequest } from '@/lib/queryClient'
 import { 
   Settings, 
   Shield, 
@@ -29,35 +31,61 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 export default function AccountSettings() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
   
-  // Settings state
+  // Fetch settings data
+  const { data: settingsData, isLoading: settingsLoading } = useQuery({
+    queryKey: ['/api/user/settings'],
+    enabled: !!user,
+  })
+
+  // Settings state - initialize with data from API
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [browserNotifications, setBrowserNotifications] = useState(true)
   const [weeklyReports, setWeeklyReports] = useState(false)
   const [teamInvites, setTeamInvites] = useState(true)
   const [publicProfile, setPublicProfile] = useState(false)
 
-  const handleSaveNotifications = async () => {
-    setIsLoading(true)
-    try {
-      // TODO: Implement notification settings API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
+  // Update settings state when data loads
+  useEffect(() => {
+    if (settingsData) {
+      setEmailNotifications(settingsData.emailNotifications ?? true)
+      setBrowserNotifications(settingsData.browserNotifications ?? true)
+      setWeeklyReports(settingsData.weeklyReports ?? false)
+      setTeamInvites(settingsData.teamInvites ?? true)
+      setPublicProfile(settingsData.publicProfile ?? false)
+    }
+  }, [settingsData])
+
+  // Update settings mutation
+  const queryClient = useQueryClient()
+  const updateSettingsMutation = useMutation({
+    mutationFn: (settings: any) => apiRequest('/api/user/settings', 'PUT', settings),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/settings'] })
       toast({
         title: "Settings saved",
         description: "Your notification preferences have been updated.",
       })
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to save settings. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      setIsLoading(false)
     }
+  })
+
+  const handleSaveNotifications = async () => {
+    const settingsData = {
+      emailNotifications,
+      browserNotifications,
+      weeklyReports,
+      teamInvites,
+      publicProfile,
+    }
+    updateSettingsMutation.mutate(settingsData)
   }
 
   const handleGenerateApiKey = async () => {
@@ -247,10 +275,10 @@ export default function AccountSettings() {
               <div className="flex justify-end">
                 <Button 
                   onClick={handleSaveNotifications} 
-                  disabled={isLoading}
+                  disabled={updateSettingsMutation.isPending || settingsLoading}
                   className="bg-[#1F3A5F] hover:bg-[#264C99]"
                 >
-                  {isLoading ? 'Saving...' : 'Save Preferences'}
+                  {updateSettingsMutation.isPending ? 'Saving...' : 'Save Preferences'}
                 </Button>
               </div>
             </CardContent>
