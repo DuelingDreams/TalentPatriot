@@ -50,7 +50,7 @@ export default function Landing() {
               </Link>
               <Link href="/beta">
                 <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white font-medium text-sm md:text-base px-3 md:px-4 py-2 transition-colors">
-                  Join Beta
+                  Beta Access
                 </Button>
               </Link>
               <Link href="/onboarding/step1">
@@ -77,23 +77,29 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link href="/beta">
               <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Join Free Beta Program
+                Apply for Beta Access
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/onboarding/step1">
               <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Start Free Trial
+                Quick Start
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
           </div>
 
-          {/* Beta Program Badge */}
-          <div className="mb-12">
-            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-              <Sparkles className="w-4 h-4" />
-              Free Beta Access Available - No Credit Card Required
+          {/* Clarification Text */}
+          <div className="mb-12 max-w-3xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-[#5C667B]">
+              <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="font-semibold text-green-800 mb-1">Beta Access</div>
+                <div>Application required. Free forever during beta. Direct feedback shapes the product.</div>
+              </div>
+              <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="font-semibold text-blue-800 mb-1">Quick Start</div>
+                <div>Immediate access. Self-service setup. Standard pricing applies after beta period.</div>
+              </div>
             </div>
           </div>
           
@@ -249,13 +255,13 @@ export default function Landing() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link href="/beta">
               <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Join Free Beta Program
+                Apply for Beta Access
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/onboarding/step1">
               <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Start Free Trial
+                Quick Start
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
