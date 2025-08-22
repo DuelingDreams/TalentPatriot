@@ -262,7 +262,7 @@ export default function Landing() {
             </div>
             
             <nav className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-[#5C667B] text-center font-[Inter,sans-serif]">
-              <a href="#" className="hover:text-[#1A1A1A] transition-colors px-2">About</a>
+              <Link href="/about" className="hover:text-[#1A1A1A] transition-colors px-2">About</Link>
               <Link href="/privacy" className="hover:text-[#1A1A1A] transition-colors px-2">Privacy</Link>
               <Link href="/terms" className="hover:text-[#1A1A1A] transition-colors px-2">Terms</Link>
               <a href="mailto:contact@talentpatriot.com" className="hover:text-[#1A1A1A] transition-colors px-2">Contact</a>
