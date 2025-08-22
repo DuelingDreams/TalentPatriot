@@ -40,7 +40,7 @@ const profileSchema = z.object({
 type ProfileForm = z.infer<typeof profileSchema>
 
 export default function ProfileSettings() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const { toast } = useToast()
 
   const form = useForm<ProfileForm>({
@@ -64,13 +64,33 @@ export default function ProfileSettings() {
   // Fetch profile data
   const { data: profileData, isLoading: profileLoading } = useQuery({
     queryKey: ['/api/user/profile'],
-    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch('/api/user/profile', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`
+        }
+      })
+      if (!response.ok) throw new Error('Failed to fetch profile')
+      return response.json()
+    },
+    enabled: !!user && !!session?.access_token,
   })
 
   // Update profile mutation
   const queryClient = useQueryClient()
   const updateProfileMutation = useMutation({
-    mutationFn: (data: ProfileForm) => apiRequest('/api/user/profile', 'PUT', data),
+    mutationFn: async (data: ProfileForm) => {
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`
+        },
+        body: JSON.stringify(data)
+      })
+      if (!response.ok) throw new Error('Failed to update profile')
+      return response.json()
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] })
       toast({
@@ -89,16 +109,16 @@ export default function ProfileSettings() {
 
   // Update form values when profile data loads
   useEffect(() => {
-    if (profileData) {
+    if (profileData && typeof profileData === 'object') {
       form.reset({
-        firstName: profileData.firstName || '',
-        lastName: profileData.lastName || '',
-        email: profileData.email || user?.email || '',
-        phone: profileData.phone || '',
-        jobTitle: profileData.jobTitle || '',
-        department: profileData.department || '',
-        location: profileData.location || '',
-        bio: profileData.bio || '',
+        firstName: (profileData as any).firstName || '',
+        lastName: (profileData as any).lastName || '',
+        email: (profileData as any).email || user?.email || '',
+        phone: (profileData as any).phone || '',
+        jobTitle: (profileData as any).jobTitle || '',
+        department: (profileData as any).department || '',
+        location: (profileData as any).location || '',
+        bio: (profileData as any).bio || '',
       })
     }
   }, [profileData, form, user])

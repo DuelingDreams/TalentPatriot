@@ -29,14 +29,23 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 
 export default function AccountSettings() {
-  const { user } = useAuth()
+  const { user, session } = useAuth()
   const { toast } = useToast()
   const [showApiKey, setShowApiKey] = useState(false)
   
   // Fetch settings data
   const { data: settingsData, isLoading: settingsLoading } = useQuery({
     queryKey: ['/api/user/settings'],
-    enabled: !!user,
+    queryFn: async () => {
+      const response = await fetch('/api/user/settings', {
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`
+        }
+      })
+      if (!response.ok) throw new Error('Failed to fetch settings')
+      return response.json()
+    },
+    enabled: !!user && !!session?.access_token,
   })
 
   // Settings state - initialize with data from API
@@ -48,19 +57,30 @@ export default function AccountSettings() {
 
   // Update settings state when data loads
   useEffect(() => {
-    if (settingsData) {
-      setEmailNotifications(settingsData.emailNotifications ?? true)
-      setBrowserNotifications(settingsData.browserNotifications ?? true)
-      setWeeklyReports(settingsData.weeklyReports ?? false)
-      setTeamInvites(settingsData.teamInvites ?? true)
-      setPublicProfile(settingsData.publicProfile ?? false)
+    if (settingsData && typeof settingsData === 'object') {
+      setEmailNotifications((settingsData as any).emailNotifications ?? true)
+      setBrowserNotifications((settingsData as any).browserNotifications ?? true)
+      setWeeklyReports((settingsData as any).weeklyReports ?? false)
+      setTeamInvites((settingsData as any).teamInvites ?? true)
+      setPublicProfile((settingsData as any).publicProfile ?? false)
     }
   }, [settingsData])
 
   // Update settings mutation
   const queryClient = useQueryClient()
   const updateSettingsMutation = useMutation({
-    mutationFn: (settings: any) => apiRequest('/api/user/settings', 'PUT', settings),
+    mutationFn: async (settings: any) => {
+      const response = await fetch('/api/user/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token || ''}`
+        },
+        body: JSON.stringify(settings)
+      })
+      if (!response.ok) throw new Error('Failed to update settings')
+      return response.json()
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/settings'] })
       toast({
