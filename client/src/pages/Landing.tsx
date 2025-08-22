@@ -273,10 +273,10 @@ export default function Landing() {
       <section className="py-16 bg-gradient-to-br from-[#1F3A5F] to-[#264C99] text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <Mail className="w-12 h-12 mx-auto mb-6 opacity-90" />
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white font-[Inter,sans-serif]">
             Get Early Access Updates
           </h2>
-          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
+          <p className="text-xl mb-8 text-white/95 max-w-2xl mx-auto font-[Inter,sans-serif] leading-relaxed">
             Not ready for the full beta application? Get notified about product updates, 
             new features, and early access opportunities.
           </p>
@@ -293,7 +293,7 @@ export default function Landing() {
             </Button>
           </div>
           
-          <p className="text-sm opacity-80 mt-6 font-[Inter,sans-serif]">
+          <p className="text-sm text-white/90 mt-6 font-[Inter,sans-serif]">
             No spam. Unsubscribe anytime. Updates about TalentPatriot's development only.
           </p>
         </div>
