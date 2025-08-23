@@ -1,7 +1,13 @@
--- TalentPatriot Database Schema Improvements
+-- TalentPatriot Database Schema Improvements for Supabase
 -- Phase 1: High-Impact Performance & Data Integrity Optimizations
--- Safe to run on existing production database
+-- Safe to run on existing Supabase database
+-- Project: https://qnofoqdiludymjcqppbi.supabase.co
 -- Date: August 23, 2025
+
+-- Instructions:
+-- 1. Go to Supabase Dashboard → SQL Editor
+-- 2. Copy and paste this entire script
+-- 3. Click "Run" to apply all improvements at once
 
 -- =============================================================================
 -- SECTION 1: CRITICAL PERFORMANCE INDEXES
