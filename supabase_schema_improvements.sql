@@ -93,7 +93,7 @@ END $$;
 -- Fix interview duration to be integer (minutes)
 DO $$
 BEGIN
-    -- First check if column is already integer type
+    -- First check if column is text type and needs conversion
     IF (SELECT data_type FROM information_schema.columns 
         WHERE table_name = 'interviews' AND column_name = 'duration') = 'text' THEN
         
@@ -105,26 +105,28 @@ BEGIN
         
         -- Set default value
         ALTER TABLE interviews ALTER COLUMN duration SET DEFAULT 60;
-        
-        -- Add constraint for reasonable duration range (15 minutes to 8 hours)
+    END IF;
+    
+    -- Add constraint for reasonable duration range (15 minutes to 8 hours)
+    -- Only if it doesn't already exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'chk_interviews_duration_range'
+        AND table_name = 'interviews'
+    ) THEN
         ALTER TABLE interviews ADD CONSTRAINT chk_interviews_duration_range 
         CHECK (duration >= 15 AND duration <= 480);
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        -- If conversion fails, just add the constraint if column is already integer
-        BEGIN
-            ALTER TABLE interviews ADD CONSTRAINT chk_interviews_duration_range 
-            CHECK (duration >= 15 AND duration <= 480);
-        EXCEPTION
-            WHEN duplicate_object THEN NULL;
-        END;
+        -- Log the error but continue
+        RAISE NOTICE 'Could not modify duration column: %', SQLERRM;
 END $$;
 
 -- Fix interview rating to be integer (1-10 scale)
 DO $$
 BEGIN
-    -- First check if column is already integer type
+    -- First check if column is text type and needs conversion
     IF (SELECT data_type FROM information_schema.columns 
         WHERE table_name = 'interviews' AND column_name = 'rating') = 'text' THEN
         
@@ -133,26 +135,28 @@ BEGIN
         
         -- Convert to integer type
         ALTER TABLE interviews ALTER COLUMN rating TYPE integer USING rating::integer;
-        
-        -- Add constraint for 1-10 rating scale
+    END IF;
+    
+    -- Add constraint for 1-10 rating scale
+    -- Only if it doesn't already exist
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'chk_interviews_rating_range'
+        AND table_name = 'interviews'
+    ) THEN
         ALTER TABLE interviews ADD CONSTRAINT chk_interviews_rating_range 
         CHECK (rating IS NULL OR (rating >= 1 AND rating <= 10));
     END IF;
 EXCEPTION
     WHEN OTHERS THEN
-        -- If conversion fails, just add the constraint if column is already integer
-        BEGIN
-            ALTER TABLE interviews ADD CONSTRAINT chk_interviews_rating_range 
-            CHECK (rating IS NULL OR (rating >= 1 AND rating <= 10));
-        EXCEPTION
-            WHEN duplicate_object THEN NULL;
-        END;
+        -- Log the error but continue
+        RAISE NOTICE 'Could not modify rating column: %', SQLERRM;
 END $$;
 
 -- Fix candidate notes is_private to be boolean
 DO $$
 BEGIN
-    -- First check if column is already boolean type
+    -- First check if column is not boolean type and needs conversion
     IF (SELECT data_type FROM information_schema.columns 
         WHERE table_name = 'candidate_notes' AND column_name = 'is_private') != 'boolean' THEN
         
@@ -168,7 +172,9 @@ BEGIN
         ALTER TABLE candidate_notes ALTER COLUMN is_private SET DEFAULT false;
     END IF;
 EXCEPTION
-    WHEN OTHERS THEN NULL;
+    WHEN OTHERS THEN 
+        -- Log the error but continue
+        RAISE NOTICE 'Could not modify is_private column: %', SQLERRM;
 END $$;
 
 -- =============================================================================
