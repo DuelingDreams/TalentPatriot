@@ -1690,7 +1690,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     phone: z.string().optional().refine(val => !val || val.length <= 20, "Phone number too long"),
     
     // Files
-    resumeUrl: z.string().url("Invalid resume URL").optional(),
+    resumeUrl: z.string().optional(),
     coverLetter: z.string().max(2000, "Cover letter too long").optional(),
     
     // Structured data (JSON strings from FormData)

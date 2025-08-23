@@ -82,8 +82,17 @@ function validateResumeUrl(resumeUrl: string): boolean {
       return true;
     }
     
+    // Check if it's a local file path (for development/uploads)
+    if (url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname.includes('replit'))) {
+      return true;
+    }
+    
     return false;
   } catch (error) {
+    // If URL parsing fails, check if it's a local file path
+    if (resumeUrl.startsWith('/uploads/') || resumeUrl.startsWith('uploads/')) {
+      return true;
+    }
     console.error('Invalid resume URL format:', resumeUrl);
     return false;
   }

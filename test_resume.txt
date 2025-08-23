@@ -1,0 +1,17 @@
+JOHN DOE
+Software Engineer
+Email: john.doe@example.com
+Phone: (555) 123-4567
+
+EXPERIENCE
+2020-2024: Senior Software Engineer at Tech Corp
+- Developed web applications using React and Node.js
+- Led team of 5 developers
+- Implemented CI/CD pipelines
+
+EDUCATION
+2016-2020: Computer Science, State University
+Bachelor of Science
+
+SKILLS
+JavaScript, React, Node.js, Python, Docker, AWS
