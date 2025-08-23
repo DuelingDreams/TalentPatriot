@@ -226,50 +226,87 @@ EXCEPTION
 END $$;
 
 -- =============================================================================
--- SECTION 6: CREATE MATERIALIZED VIEW FOR ANALYTICS
+-- SECTION 6: CREATE MATERIALIZED VIEW FOR ANALYTICS (CONDITIONAL)
 -- =============================================================================
 
--- Drop existing view if it exists
-DROP MATERIALIZED VIEW IF EXISTS recruitment_metrics;
+-- Only create materialized view if base tables exist
+DO $$
+BEGIN
+    -- Check if required tables exist before creating the view
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'jobs') 
+       AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'job_candidate') THEN
+        
+        -- Drop existing view if it exists
+        DROP MATERIALIZED VIEW IF EXISTS recruitment_metrics;
 
--- Create recruitment metrics materialized view
-CREATE MATERIALIZED VIEW recruitment_metrics AS
-SELECT 
-    j.org_id,
-    j.id as job_id,
-    j.title as job_title,
-    j.status as job_status,
-    COUNT(jc.id) as total_applications,
-    COUNT(CASE WHEN jc.stage = 'hired' THEN 1 END) as total_hires,
-    COUNT(CASE WHEN jc.stage = 'interview' THEN 1 END) as total_interviews,
-    COUNT(CASE WHEN jc.stage = 'offer' THEN 1 END) as total_offers,
-    COUNT(CASE WHEN jc.stage = 'rejected' THEN 1 END) as total_rejected,
-    ROUND(AVG(EXTRACT(days FROM COALESCE(jc.updated_at, jc.created_at) - jc.created_at))::numeric, 1) as avg_days_in_pipeline,
-    DATE_TRUNC('month', jc.created_at) as application_month,
-    MAX(jc.created_at) as last_application_date
-FROM jobs j
-LEFT JOIN job_candidate jc ON j.id = jc.job_id AND jc.status = 'active'
-WHERE j.record_status = 'active'
-GROUP BY j.org_id, j.id, j.title, j.status, DATE_TRUNC('month', jc.created_at);
+        -- Create recruitment metrics materialized view
+        CREATE MATERIALIZED VIEW recruitment_metrics AS
+        SELECT 
+            j.org_id,
+            j.id as job_id,
+            j.title as job_title,
+            j.status as job_status,
+            COUNT(jc.id) as total_applications,
+            COUNT(CASE WHEN jc.stage = 'hired' THEN 1 END) as total_hires,
+            COUNT(CASE WHEN jc.stage = 'interview' THEN 1 END) as total_interviews,
+            COUNT(CASE WHEN jc.stage = 'offer' THEN 1 END) as total_offers,
+            COUNT(CASE WHEN jc.stage = 'rejected' THEN 1 END) as total_rejected,
+            ROUND(AVG(EXTRACT(days FROM COALESCE(jc.updated_at, jc.created_at) - jc.created_at))::numeric, 1) as avg_days_in_pipeline,
+            DATE_TRUNC('month', jc.created_at) as application_month,
+            MAX(jc.created_at) as last_application_date
+        FROM jobs j
+        LEFT JOIN job_candidate jc ON j.id = jc.job_id AND jc.status = 'active'
+        WHERE j.record_status = 'active'
+        GROUP BY j.org_id, j.id, j.title, j.status, DATE_TRUNC('month', jc.created_at);
 
--- Create unique index on the materialized view
-CREATE UNIQUE INDEX idx_recruitment_metrics_unique ON recruitment_metrics(job_id, application_month);
+        -- Create unique index on the materialized view (handle NULL application_month)
+        CREATE UNIQUE INDEX idx_recruitment_metrics_unique ON recruitment_metrics(job_id, COALESCE(application_month, '1900-01-01'::timestamp));
 
--- Create additional indexes for common queries
-CREATE INDEX idx_recruitment_metrics_org ON recruitment_metrics(org_id, application_month);
-CREATE INDEX idx_recruitment_metrics_status ON recruitment_metrics(job_status, application_month);
+        -- Create additional indexes for common queries
+        CREATE INDEX idx_recruitment_metrics_org ON recruitment_metrics(org_id, application_month);
+        CREATE INDEX idx_recruitment_metrics_status ON recruitment_metrics(job_status, application_month);
+        
+        RAISE NOTICE 'Created recruitment_metrics materialized view successfully';
+    ELSE
+        RAISE NOTICE 'Skipped recruitment_metrics creation - required tables do not exist yet';
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Could not create recruitment_metrics materialized view: %', SQLERRM;
+END $$;
 
 -- =============================================================================
 -- SECTION 7: UTILITY FUNCTIONS
 -- =============================================================================
 
--- Create function to refresh recruitment metrics
-CREATE OR REPLACE FUNCTION refresh_recruitment_metrics()
-RETURNS void AS $$
+-- Create function to refresh recruitment metrics (conditional)
+DO $$
 BEGIN
-    REFRESH MATERIALIZED VIEW CONCURRENTLY recruitment_metrics;
-END;
-$$ LANGUAGE plpgsql;
+    -- Only create the function if the materialized view exists
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'recruitment_metrics') THEN
+        CREATE OR REPLACE FUNCTION refresh_recruitment_metrics()
+        RETURNS void AS $func$
+        BEGIN
+            REFRESH MATERIALIZED VIEW CONCURRENTLY recruitment_metrics;
+        END;
+        $func$ LANGUAGE plpgsql;
+        
+        RAISE NOTICE 'Created refresh_recruitment_metrics function';
+    ELSE
+        -- Create a placeholder function
+        CREATE OR REPLACE FUNCTION refresh_recruitment_metrics()
+        RETURNS void AS $func$
+        BEGIN
+            RAISE NOTICE 'recruitment_metrics view does not exist - skipping refresh';
+        END;
+        $func$ LANGUAGE plpgsql;
+        
+        RAISE NOTICE 'Created placeholder refresh_recruitment_metrics function';
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE 'Could not create refresh function: %', SQLERRM;
+END $$;
 
 -- Create function to get organization stats
 CREATE OR REPLACE FUNCTION get_org_stats(org_uuid uuid)
@@ -301,8 +338,15 @@ $$ LANGUAGE plpgsql;
 -- SECTION 8: COMMENTS AND DOCUMENTATION
 -- =============================================================================
 
--- Add table comments for better documentation
-COMMENT ON TABLE recruitment_metrics IS 'Materialized view containing pre-computed recruitment analytics for faster dashboard queries';
+-- Add table comments for better documentation (conditional)
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'recruitment_metrics') THEN
+        COMMENT ON TABLE recruitment_metrics IS 'Materialized view containing pre-computed recruitment analytics for faster dashboard queries';
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN NULL;
+END $$;
 COMMENT ON FUNCTION refresh_recruitment_metrics() IS 'Refreshes the recruitment_metrics materialized view with latest data';
 COMMENT ON FUNCTION get_org_stats(uuid) IS 'Returns key statistics for an organization including job, candidate, and application counts';
 
