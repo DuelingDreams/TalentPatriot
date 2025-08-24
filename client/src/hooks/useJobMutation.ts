@@ -84,9 +84,14 @@ export function useJobApplication() {
       return response.json()
     },
     onSuccess: (_, variables) => {
-      toast.success('Application submitted successfully!')
+      toast.success('Application submitted successfully! Your application will appear in the recruiter pipeline shortly.')
       queryClient.invalidateQueries({ queryKey: ['/api/job-candidates', variables.jobId] })
       queryClient.invalidateQueries({ queryKey: ['/api/candidates'] })
+      // Invalidate pipeline queries to show new applicant immediately in "Applied" stage
+      queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
+      queryClient.invalidateQueries({ queryKey: ['/api/jobs', variables.jobId, 'pipeline'] })
+      // Also invalidate organization pipeline for overall pipeline view
+      queryClient.invalidateQueries({ queryKey: ['pipeline'] })
     },
     onError: (err) => {
       toast.error(err.message || 'Failed to submit application')

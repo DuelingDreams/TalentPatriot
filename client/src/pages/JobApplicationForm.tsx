@@ -12,6 +12,7 @@ import { demoAdapter } from '@/lib/dataAdapter'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft, Send, Loader2, MapPin, Clock, DollarSign, Building2, Briefcase, Upload, CheckCircle2, AlertCircle, X, RefreshCw } from 'lucide-react'
 import type { Job } from '@shared/schema'
+import { useJobApplication } from '@/hooks/useJobMutation'
 
 interface ApplicationFormData {
   firstName: string
@@ -40,7 +41,7 @@ const RETRY_DELAYS = [500, 1500, 3000]; // exponential backoff in milliseconds
 export default function JobApplicationForm() {
   const { slug, orgSlug } = useParams<{ slug: string; orgSlug?: string }>()
   const [, setLocation] = useLocation()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  // isSubmitting is now handled by jobApplication.isPending
   const [submitted, setSubmitted] = useState(false)
   const [formData, setFormData] = useState<ApplicationFormData>({
     firstName: '',
@@ -60,6 +61,7 @@ export default function JobApplicationForm() {
   })
   
   const { toast } = useToast()
+  const jobApplication = useJobApplication()
 
   // Use shared hook for consistent data fetching
   const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug, { orgSlug })
@@ -244,11 +246,11 @@ export default function JobApplicationForm() {
       return
     }
 
-    // Check if resume is still uploading
-    if (uploadState.isUploading) {
+    // Check if resume is still uploading or application is in progress
+    if (uploadState.isUploading || jobApplication.isPending) {
       toast({
-        title: "Upload in Progress",
-        description: "Please wait for the resume upload to complete before submitting.",
+        title: uploadState.isUploading ? "Upload in Progress" : "Application in Progress",
+        description: uploadState.isUploading ? "Please wait for the resume upload to complete before submitting." : "Your application is being submitted.",
         variant: "destructive"
       })
       return
@@ -264,57 +266,25 @@ export default function JobApplicationForm() {
       return
     }
 
-    setIsSubmitting(true)
     try {
       // Prepare application data with resume URL
-      const applicationData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
+      const candidateData = {
+        name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         phone: formData.phone || undefined,
-        coverLetter: formData.coverLetter || undefined,
         resumeUrl: uploadState.uploadedUrl || undefined,
       }
 
-      const response = await fetch(`/api/jobs/${job.id}/apply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(applicationData)
+      await jobApplication.mutateAsync({
+        jobId: job.id,
+        candidateData
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        if (response.status === 409) {
-          toast({
-            title: "Already Applied",
-            description: "You have already applied to this job position.",
-            variant: "destructive"
-          })
-        } else {
-          throw new Error(errorData.error || 'Failed to submit application')
-        }
-        return
-      }
-
-      const result = await response.json()
-      console.log('Application submitted:', result)
       
       setSubmitted(true)
-      toast({
-        title: "Application Submitted!",
-        description: "Thank you for applying. We'll be in touch soon.",
-      })
+      // Success message is handled by the useJobApplication hook
     } catch (error) {
       console.error('Error submitting application:', error)
-      toast({
-        title: "Application Failed",
-        description: error instanceof Error ? error.message : "Failed to submit application. Please try again.",
-        variant: "destructive"
-      })
-    } finally {
-      setIsSubmitting(false)
+      // Error message is handled by the useJobApplication hook
     }
   }
 
@@ -641,9 +611,9 @@ export default function JobApplicationForm() {
               <Button 
                 type="submit" 
                 className="w-full"
-                disabled={isSubmitting || uploadState.isUploading || !!(formData.resume && uploadState.uploadError)}
+                disabled={jobApplication.isPending || uploadState.isUploading || !!(formData.resume && uploadState.uploadError)}
               >
-                {isSubmitting ? (
+                {jobApplication.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Submitting Application...
@@ -661,9 +631,9 @@ export default function JobApplicationForm() {
                 )}
               </Button>
               
-              {uploadState.isUploading && (
+              {(uploadState.isUploading || jobApplication.isPending) && (
                 <p className="text-xs text-center text-gray-500 mt-2">
-                  Please wait for the resume upload to complete before submitting
+                  {uploadState.isUploading ? 'Please wait for the resume upload to complete before submitting' : 'Submitting your application...'}
                 </p>
               )}
               
