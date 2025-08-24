@@ -1947,18 +1947,57 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/candidates/:id", async (req, res) => {
     try {
-      const orgId = req.query.orgId as string;
+      // Get organization ID from authenticated user context (header or query)
+      const orgId = req.headers['x-org-id'] as string || req.query.orgId as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization context required" });
+      }
+
+      console.log(`[API] Fetching candidate ${req.params.id} for orgId: ${orgId}`);
+      
       const candidate = await storage.getCandidate(req.params.id);
       if (!candidate) {
+        console.log(`[API] Candidate ${req.params.id} not found in database`);
         return res.status(404).json({ error: "Candidate not found" });
       }
+      
+      console.log(`[API] Found candidate: ${candidate.name} (orgId: ${candidate.orgId})`);
+      
+      // Handle candidates without orgId - update them with the requesting organization's ID
+      if (!candidate.orgId || candidate.orgId === null) {
+        console.log(`[API] Updating candidate ${candidate.id} with orgId: ${orgId}`);
+        try {
+          // Update the candidate's orgId in the database using supabaseAdmin
+          const { data, error } = await supabaseAdmin
+            .from('candidates')
+            .update({ org_id: orgId })
+            .eq('id', candidate.id)
+            .select()
+            .single();
+          
+          if (error) {
+            console.warn(`[API] Database update error:`, error);
+          } else {
+            candidate.orgId = orgId; // Update the local object
+            console.log(`[API] Successfully updated candidate ${candidate.id} with orgId: ${orgId}`);
+          }
+        } catch (updateError) {
+          console.warn(`[API] Failed to update candidate orgId:`, updateError);
+        }
+      }
+      
       // Ensure user can only access candidates from their organization
-      if (orgId && candidate.orgId !== orgId) {
+      if (candidate.orgId !== orgId) {
+        console.log(`[API] Organization mismatch: candidate orgId ${candidate.orgId} !== request orgId ${orgId}`);
         return res.status(404).json({ error: "Candidate not found" });
       }
+      
       res.json(candidate);
     } catch (error) {
-      res.status(500).json({ error: "Failed to fetch candidate" });
+      console.error('Candidate fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch candidate", details: errorMessage });
     }
   });
 
