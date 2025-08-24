@@ -55,18 +55,21 @@ const demoApplicationHistory: Record<string, ApplicationHistoryEntry[]> = {
 
 export function useCandidateApplicationHistory(candidateId: string) {
   return useQuery({
-    queryKey: ['/api/candidates', candidateId, 'application-history'],
+    queryKey: ['/api/candidates', candidateId, 'applications'],
     queryFn: async () => {
-      // For demo purposes, return demo data
-      if (candidateId && demoApplicationHistory[candidateId]) {
-        return demoApplicationHistory[candidateId]
+      if (!candidateId) return []
+      
+      const response = await fetch(`/api/candidates/${candidateId}/applications`, {
+        headers: {
+          'x-org-id': localStorage.getItem('current-org-id') || '',
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch candidate applications')
       }
       
-      // In real implementation, this would fetch from API
-      // const response = await fetch(`/api/candidates/${candidateId}/application-history`)
-      // return response.json()
-      
-      return []
+      return response.json() as ApplicationHistoryEntry[]
     },
     enabled: !!candidateId
   })

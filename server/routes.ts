@@ -2681,6 +2681,40 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // Get applications for a specific candidate
+  app.get("/api/candidates/:candidateId/applications", async (req, res) => {
+    try {
+      const { candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] || req.query.orgId as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Get all job candidates for this organization and filter by candidate ID
+      const allJobCandidates = await jobService.getJobCandidatesByOrg(orgId);
+      const candidateApplications = allJobCandidates.filter((jc: any) => jc.candidate_id === candidateId);
+      
+      // Transform to match ApplicationHistoryEntry interface
+      const formattedApplications = candidateApplications.map((jc: any) => ({
+        id: jc.id,
+        jobId: jc.job_id,
+        jobTitle: jc.job?.title || 'Unknown Job',
+        clientName: jc.job?.client?.name || 'Direct Application',
+        stage: jc.stage || 'applied',
+        dateApplied: jc.created_at,
+        dateUpdated: jc.updated_at,
+        notes: jc.notes,
+        status: jc.status || 'active'
+      }));
+      
+      res.json(formattedApplications);
+    } catch (error) {
+      console.error("Error fetching candidate applications:", error);
+      res.status(500).json({ error: "Failed to fetch candidate applications" });
+    }
+  });
+
   app.patch("/api/job-candidates/:id/stage", writeLimiter, async (req, res) => {
     try {
       const { id } = req.params;
