@@ -137,7 +137,7 @@ export default function CandidateProfile() {
                   )}
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    <span>Added {format(new Date(candidate.createdAt), 'MMM d, yyyy')}</span>
+                    <span>Added {candidate.created_at ? format(new Date(candidate.created_at), 'MMM d, yyyy') : 'Recently'}</span>
                   </div>
                 </div>
                 

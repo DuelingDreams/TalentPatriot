@@ -263,7 +263,11 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
             }
 
             // Handle actions with onClick
-            return content
+            return (
+              <div key={action.id}>
+                {content}
+              </div>
+            )
           })}
         </div>
         
