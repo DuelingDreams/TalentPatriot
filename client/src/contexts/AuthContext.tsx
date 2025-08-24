@@ -268,8 +268,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUp = async (
     email: string, 
     password: string, 
-    role = 'hiring_manager', 
-    orgId = DEMO_ORG_ID // Default to demo org for development, can be overridden
+    role = 'recruiter', 
+    orgId?: string // Allow caller to specify orgId, no default
   ) => {
     try {
       const { data: { user }, error: signUpError } = await supabase.auth.signUp({ 
@@ -282,8 +282,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: signUpError };
       }
 
-      // If user was created successfully, assign them to the organization
-      if (user?.id) {
+      // If user was created successfully and orgId is provided, assign them to the organization
+      if (user?.id && orgId) {
         try {
           const response = await fetch(`/api/organizations/${orgId}/users`, {
             method: 'POST',
@@ -294,15 +294,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!response.ok) {
             const errorData = await response.json();
             console.warn('Failed to assign user to organization:', errorData);
-            // Don't fail the entire signup if organization assignment fails
-            // The user can be assigned to an organization later
+            return { error: { message: `Sign up successful but failed to assign to organization: ${errorData.error}` } };
           } else {
             console.log('User successfully assigned to organization during signup');
+            
+            // Update the current user state to reflect the new organization
+            if (user) {
+              setUserRole(role);
+              setCurrentOrgIdState(orgId);
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', orgId);
+              });
+            }
           }
         } catch (assignmentError) {
           console.warn('Error during organization assignment:', assignmentError);
-          // Don't fail the entire signup process
+          return { error: { message: 'Sign up successful but organization assignment failed' } };
         }
+      } else if (!orgId) {
+        console.log('No organization ID provided - user will need to be assigned to an organization later');
       }
 
       return { error: null };

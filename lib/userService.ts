@@ -81,6 +81,29 @@ export async function addUserToOrganization(
       throw new Error(`Failed to add user to organization: ${insertError.message}`);
     }
 
+    // Update user metadata to include currentOrgId and role
+    try {
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        {
+          user_metadata: {
+            currentOrgId: orgId,
+            role: role
+          }
+        }
+      );
+
+      if (updateError) {
+        console.warn('Failed to update user metadata:', updateError);
+        // Don't fail the entire operation if metadata update fails
+      } else {
+        console.log('User metadata updated with currentOrgId:', orgId);
+      }
+    } catch (metadataError) {
+      console.warn('Error updating user metadata:', metadataError);
+      // Don't fail the entire operation if metadata update fails
+    }
+
     return {
       success: true,
       message: `User successfully added to organization "${orgExists.name}" with role: ${role}`
