@@ -1,0 +1,45 @@
+table_name,column_name,data_type,is_nullable
+identities,provider_id,text,NO
+identities,user_id,uuid,NO
+identities,identity_data,jsonb,NO
+identities,provider,text,NO
+identities,last_sign_in_at,timestamp with time zone,YES
+identities,created_at,timestamp with time zone,YES
+identities,updated_at,timestamp with time zone,YES
+identities,email,text,YES
+identities,id,uuid,NO
+users,instance_id,uuid,YES
+users,id,uuid,NO
+users,aud,character varying,YES
+users,role,character varying,YES
+users,email,character varying,YES
+users,encrypted_password,character varying,YES
+users,email_confirmed_at,timestamp with time zone,YES
+users,invited_at,timestamp with time zone,YES
+users,confirmation_token,character varying,YES
+users,confirmation_sent_at,timestamp with time zone,YES
+users,recovery_token,character varying,YES
+users,recovery_sent_at,timestamp with time zone,YES
+users,email_change_token_new,character varying,YES
+users,email_change,character varying,YES
+users,email_change_sent_at,timestamp with time zone,YES
+users,last_sign_in_at,timestamp with time zone,YES
+users,raw_app_meta_data,jsonb,YES
+users,raw_user_meta_data,jsonb,YES
+users,is_super_admin,boolean,YES
+users,created_at,timestamp with time zone,YES
+users,updated_at,timestamp with time zone,YES
+users,phone,text,YES
+users,phone_confirmed_at,timestamp with time zone,YES
+users,phone_change,text,YES
+users,phone_change_token,character varying,YES
+users,phone_change_sent_at,timestamp with time zone,YES
+users,confirmed_at,timestamp with time zone,YES
+users,email_change_token_current,character varying,YES
+users,email_change_confirm_status,smallint,YES
+users,banned_until,timestamp with time zone,YES
+users,reauthentication_token,character varying,YES
+users,reauthentication_sent_at,timestamp with time zone,YES
+users,is_sso_user,boolean,NO
+users,deleted_at,timestamp with time zone,YES
+users,is_anonymous,boolean,NO
