@@ -176,7 +176,13 @@ export default function Candidates() {
     if (activeTab === 'active') return matchesSearch && candidate.status === 'active'
     if (activeTab === 'new') {
       const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      return matchesSearch && new Date(candidate.createdAt) >= oneWeekAgo
+      try {
+        const candidateDate = new Date(candidate.createdAt)
+        if (isNaN(candidateDate.getTime())) return false
+        return matchesSearch && candidateDate >= oneWeekAgo
+      } catch {
+        return false
+      }
     }
     return matchesSearch
   }) || []
@@ -185,7 +191,14 @@ export default function Candidates() {
   const totalCandidates = candidates?.length || 0
   const activeCandidates = candidates?.filter((c: any) => c.status === 'active').length || 0
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  const newThisWeek = candidates?.filter((c: any) => new Date(c.createdAt) >= oneWeekAgo).length || 0
+  const newThisWeek = candidates?.filter((c: any) => {
+    try {
+      const candidateDate = new Date(c.createdAt)
+      return !isNaN(candidateDate.getTime()) && candidateDate >= oneWeekAgo
+    } catch {
+      return false
+    }
+  }).length || 0
   const favoriteCandidates = candidates?.filter((c: any) => c.status === 'favorite').length || 0
 
   return (
@@ -322,7 +335,15 @@ export default function Candidates() {
                       
                       <div className="flex items-center gap-2 text-[#5C667B]">
                         <Clock className="w-4 h-4" />
-                        <span>Added {formatDistanceToNow(new Date(candidate.createdAt), { addSuffix: true })}</span>
+                        <span>Added {(() => {
+                          try {
+                            const date = new Date(candidate.createdAt)
+                            if (isNaN(date.getTime())) return 'recently'
+                            return formatDistanceToNow(date, { addSuffix: true })
+                          } catch {
+                            return 'recently'
+                          }
+                        })()}</span>
                       </div>
 
                       {candidate.resumeUrl && (
