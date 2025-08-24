@@ -81,13 +81,13 @@ function getCurrentOrgId(): string | null {
         }
       }
       
-      // Fallback: use demo org ID if we're in development and no org is set
+      // Always use demo org ID in development as fallback
       const isDevelopment = window.location.hostname.includes('localhost') || 
                           window.location.hostname.includes('replit') ||
-                          process.env.NODE_ENV === 'development';
+                          import.meta.env.MODE === 'development';
       
       if (isDevelopment) {
-        console.warn('No orgId found in sessionStorage, using demo organization for development');
+        console.log('[queryClient] Using demo organization for development');
         // Set it in sessionStorage for next time
         if (window.sessionStorage) {
           sessionStorage.setItem('currentOrgId', '90531171-d56b-4732-baba-35be47b0cb08');

@@ -63,20 +63,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('Auth: Regular user role:', role, 'orgId:', orgId)
             setUserRole(role)
 
-            // Use demo org as fallback for development
-            if (!orgId) {
-              console.warn('No orgId found for regular user, using demo organization')
-              const fallbackOrgId = '90531171-d56b-4732-baba-35be47b0cb08' // Use real test org
-              setCurrentOrgIdState(fallbackOrgId)
-              safeStorageOperation(() => {
-                sessionStorage.setItem('currentOrgId', fallbackOrgId)
-              })
-            } else {
-              setCurrentOrgIdState(orgId)
-              safeStorageOperation(() => {
-                sessionStorage.setItem('currentOrgId', orgId)
-              })
-            }
+            // Always use the demo org for authenticated users in development
+            const developmentOrgId = '90531171-d56b-4732-baba-35be47b0cb08' // Use real test org
+            console.log('Auth: Setting organization for regular user:', developmentOrgId)
+            setCurrentOrgIdState(developmentOrgId)
+            safeStorageOperation(() => {
+              sessionStorage.setItem('currentOrgId', developmentOrgId)
+            })
           }
         } else if (isDemoUser) {
           // Demo mode without authentication

@@ -12,21 +12,27 @@ interface GenericCrudOptions<T, InsertT> {
 }
 
 export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
-  const { currentOrgId, userRole } = useAuth()
+  const { currentOrgId, userRole, loading } = useAuth()
   
   return useQuery({
     queryKey: [options.queryKey, { orgId: currentOrgId }],
     queryFn: () => {
+      // Demo users get demo data
       if (userRole === 'demo_viewer' && options.getDemoData) {
+        console.log(`[CRUD] Using demo data for ${options.endpoint}`)
         return options.getDemoData(userRole)
       }
+      
+      // For authenticated users, require organization context
       if (!currentOrgId) {
+        console.error(`[CRUD] No organization ID for ${options.endpoint}, userRole: ${userRole}`)
         throw new Error(`Organization context not loaded for user role: ${userRole}`)
       }
-      console.log(`Making API call to ${options.endpoint}?orgId=${currentOrgId}`)
+      
+      console.log(`[CRUD] API call: ${options.endpoint}?orgId=${currentOrgId}`)
       return apiRequest(`${options.endpoint}?orgId=${currentOrgId}`)
     },
-    enabled: userRole === 'demo_viewer' || !!currentOrgId, // Only enable when we have org context or are demo user
+    enabled: !loading && (userRole === 'demo_viewer' || !!currentOrgId), // Wait for auth to load and require org context
     refetchInterval: options.refetchInterval || false,
     staleTime: options.staleTime || 5 * 60 * 1000, // 5 minutes default
     gcTime: 10 * 60 * 1000, // 10 minutes
