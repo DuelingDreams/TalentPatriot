@@ -2608,10 +2608,27 @@ Expires: 2025-12-31T23:59:59.000Z
       const { applicationId } = req.params;
       const { columnId } = req.body;
       
-      const { moveApplication } = require('./lib/pipelineService');
-      await moveApplication(applicationId, columnId);
+      // Get organization ID from authenticated user context
+      const orgId = req.headers['x-org-id'] as string || req.query.orgId as string;
       
-      res.json({ message: "Application moved successfully" });
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization context required" });
+      }
+
+      if (!columnId) {
+        return res.status(400).json({ error: "Column ID is required" });
+      }
+
+      console.info('Moving application', applicationId, 'to column', columnId);
+      
+      // Use the storage method to move the job candidate
+      // The applicationId in the new pipeline system corresponds to jobCandidate.id
+      const updatedJobCandidate = await storage.moveJobCandidate(applicationId, columnId);
+      
+      res.json({ 
+        message: "Application moved successfully",
+        application: updatedJobCandidate
+      });
     } catch (error) {
       console.error("Error moving application:", error);
       res.status(500).json({ error: "Failed to move application" });

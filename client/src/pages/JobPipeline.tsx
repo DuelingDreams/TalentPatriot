@@ -775,7 +775,8 @@ export default function JobPipeline() {
         // Update the backend
         await moveApplication.mutateAsync({
           applicationId,
-          columnId: newColumnId
+          columnId: newColumnId,
+          jobId: jobId
         })
 
         // Show final success message
@@ -794,7 +795,7 @@ export default function JobPipeline() {
       return
     }
 
-    // FALLBACK: Old system for existing data
+    // FALLBACK: Old system for existing data - try new system first, then old
     const candidateId = active.id as string
     const newStage = over.id as string
 
@@ -803,14 +804,25 @@ export default function JobPipeline() {
 
     try {
       toast({
-        title: "Stage Updated",
+        title: "Stage Updated", 
         description: `Moving ${(candidate as any).candidate?.name || 'candidate'} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}...`,
       })
 
-      await updateCandidateStage.mutateAsync({
-        id: candidateId,
-        stage: newStage
-      })
+      // Try the new pipeline system first
+      try {
+        await moveApplication.mutateAsync({
+          applicationId: candidateId,
+          columnId: newStage,
+          jobId: jobId
+        })
+      } catch (newSystemError) {
+        console.warn('New system failed, falling back to old system:', newSystemError)
+        // Fall back to old system
+        await updateCandidateStage.mutateAsync({
+          id: candidateId,
+          stage: newStage
+        })
+      }
 
       toast({
         title: "Success",

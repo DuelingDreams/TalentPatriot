@@ -125,18 +125,23 @@ export function useMoveApplication() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
+    mutationFn: async ({ applicationId, columnId, jobId }: { applicationId: string; columnId: string; jobId?: string }) => {
       return apiRequest({
         url: `/api/applications/${applicationId}/move`,
         method: 'PATCH',
         body: JSON.stringify({ columnId })
       })
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate all pipeline-related queries
       queryClient.invalidateQueries({ queryKey: ['job-pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['applications'] })
+      // Invalidate specific job pipeline if jobId is provided
+      if (variables.jobId) {
+        queryClient.invalidateQueries({ queryKey: ['pipeline', variables.jobId] })
+        queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
+      }
     }
   })
 }
