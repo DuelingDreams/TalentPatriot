@@ -21,9 +21,10 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **API Structure**: Clean RESTful endpoints with comprehensive Zod validation
-- **Request Handling**: JSON and URL-encoded body parsing with strict input validation
+- **Request Handling**: JSON and URL-encoded body parsing with strict input validation, supporting both query parameters and header-based authentication
 - **Error Handling**: Centralized middleware with detailed Zod validation errors
 - **API Endpoints**: Support for a complete recruitment flow including job creation, publishing, public listings, application submission with file upload, and candidate management.
+- **Development Authentication**: Mock user system with proper organization linking for local testing, bypassing Supabase auth while maintaining authorization controls.
 
 ### Data Storage
 - **ORM**: Drizzle ORM
@@ -75,6 +76,13 @@ Preferred communication style: Simple, everyday language.
 - **AI**: OpenAI GPT-4o
 
 ## Recent Updates (August 2025)
+
+### Authorization System Resolution (August 24, 2025)
+- **Development Authentication Fixed**: Resolved critical authorization issues preventing job publishing by fixing user-organization relationship authentication.
+- **API Request Headers**: Updated `queryClient.ts` to properly send `x-org-id` and `x-user-id` headers for all API requests, ensuring proper authorization context.
+- **Server Route Updates**: Modified job endpoints to accept organization ID from both query parameters and headers, providing flexible authentication support.
+- **User-Organization Linking**: Confirmed proper database relationships exist between development users and MentalCastle organization for seamless local testing.
+- **Job Publishing Functionality**: Verified end-to-end job publishing workflow now works correctly, with jobs transitioning from draft to published status.
 
 ### System Stability & API Consistency (August 22, 2025)
 - **Critical Bug Fixes**: Resolved "Job Not Found" issue on careers pages by fixing field name mapping between database schema (`public_slug`) and frontend interface (`publicSlug`).
