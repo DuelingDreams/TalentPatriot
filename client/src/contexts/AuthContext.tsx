@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { safeStorageOperation } from '@/utils/errorHandler'
 import { DEMO_ORG_ID } from '@/lib/demo-data-consolidated'
 import { isDemoEnabled } from '@/lib/demoToggle'
+import { isDevelopment, setDevelopmentAuth, getDevelopmentAuth, DEV_ORG_ID } from '@/utils/devAuth'
 
 interface AuthContextType {
   user: User | null
@@ -31,10 +32,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true
 
-    // Simple auth initialization
+    // Enhanced auth initialization with development mode support
     const initAuth = async () => {
       try {
-        // Get initial session
+        // In development, check for dev auth first
+        if (isDevelopment()) {
+          const devAuth = getDevelopmentAuth()
+          if (devAuth && mounted) {
+            console.log('[Auth] Using development authentication')
+            setUser(devAuth.user as any) // Mock user for development
+            setUserRole(devAuth.userRole)
+            setCurrentOrgIdState(devAuth.orgId)
+            setLoading(false)
+            return
+          }
+        }
+
+        // Get initial session from Supabase
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!mounted) return
@@ -55,41 +69,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             safeStorageOperation(() => {
               sessionStorage.setItem('currentOrgId', DEMO_ORG_ID)
             })
-            console.log('Auth: Demo mode enabled')
+            console.log('[Auth] Demo mode enabled')
           } else {
             // Regular user: get role from user metadata
             const role = session.user.user_metadata?.role || 'hiring_manager'
-            const orgId = session.user.user_metadata?.currentOrgId
-            console.log('Auth: Regular user role:', role, 'orgId:', orgId)
+            console.log('[Auth] Regular user role:', role)
             setUserRole(role)
 
             // Always use the demo org for authenticated users in development
-            const developmentOrgId = '90531171-d56b-4732-baba-35be47b0cb08' // Use real test org
-            console.log('Auth: Setting organization for regular user:', developmentOrgId)
+            const developmentOrgId = DEV_ORG_ID
+            console.log('[Auth] Setting organization for regular user:', developmentOrgId)
             setCurrentOrgIdState(developmentOrgId)
             safeStorageOperation(() => {
               sessionStorage.setItem('currentOrgId', developmentOrgId)
             })
           }
-        } else if (isDemoUser) {
-          // Demo mode without authentication
-          setUserRole('demo_viewer')
-          setCurrentOrgIdState(DEMO_ORG_ID)
-          safeStorageOperation(() => {
-            sessionStorage.setItem('currentOrgId', DEMO_ORG_ID)
-          })
-          console.log('Auth: Demo mode enabled without authentication')
+        } else if (isDevelopment()) {
+          // Development mode: create mock auth when no Supabase session
+          console.log('[Auth] No Supabase session - setting up development auth')
+          setDevelopmentAuth()
+          const devAuth = getDevelopmentAuth()
+          if (devAuth) {
+            setUser(devAuth.user as any)
+            setUserRole(devAuth.userRole)
+            setCurrentOrgIdState(devAuth.orgId)
+          }
         } else {
           setUserRole(null)
           setCurrentOrgIdState(null)
         }
       } catch (error) {
-        console.warn('Auth initialization error:', error)
-        // Set safe defaults
-        setSession(null)
-        setUser(null)
-        setUserRole(null)
-        setCurrentOrgIdState(null)
+        console.warn('[Auth] Initialization error:', error)
+        
+        // Fallback to development auth if available
+        if (isDevelopment() && mounted) {
+          console.log('[Auth] Falling back to development auth due to error')
+          setDevelopmentAuth()
+          const devAuth = getDevelopmentAuth()
+          if (devAuth) {
+            setUser(devAuth.user as any)
+            setUserRole(devAuth.userRole)
+            setCurrentOrgIdState(devAuth.orgId)
+          }
+        } else {
+          // Set safe defaults
+          setSession(null)
+          setUser(null)
+          setUserRole(null)
+          setCurrentOrgIdState(null)
+        }
       } finally {
         if (mounted) {
           setLoading(false)
@@ -160,13 +188,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               console.log('Auth change: Regular user role:', role, 'orgId:', orgId)
               setUserRole(role)
 
-              // For regular users, set the orgId from metadata or leave null
-              if (orgId) {
-                setCurrentOrgIdState(orgId)
-              } else {
-                console.warn('No orgId found for regular user - organization selection needed')
-                setCurrentOrgIdState(null)
-              }
+              // Always use the demo org for authenticated users in development (consistent with initial load)
+              const developmentOrgId = '90531171-d56b-4732-baba-35be47b0cb08' // Use real test org
+              console.log('Auth change: Setting organization for regular user:', developmentOrgId)
+              setCurrentOrgIdState(developmentOrgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', developmentOrgId)
+              })
             }
           } else {
             setUserRole(null)
