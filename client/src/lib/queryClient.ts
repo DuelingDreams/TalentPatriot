@@ -31,9 +31,30 @@ export async function apiRequest(
   // Get organization ID from session storage
   const currentOrgId = getCurrentOrgId();
   
+  // Get development user ID
+  const getCurrentUserId = (): string | null => {
+    if (typeof window !== 'undefined') {
+      try {
+        const devUserStr = sessionStorage.getItem('dev_user');
+        if (devUserStr) {
+          const devUser = JSON.parse(devUserStr);
+          return devUser.id;
+        }
+      } catch (error) {
+        console.warn('Failed to get user ID:', error);
+      }
+    }
+    // Fallback to development user ID
+    return 'b67bf044-fa88-4579-9c06-03f3026bab95';
+  };
+  
+  const currentUserId = getCurrentUserId();
+  
   try {
     const headers: Record<string, string> = {
-      ...(body ? { "Content-Type": "application/json" } : {})
+      ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(currentOrgId ? { "x-org-id": currentOrgId } : {}),
+      ...(currentUserId ? { "x-user-id": currentUserId } : {})
     };
 
     // For POST/PUT/DELETE operations with JSON body, include orgId in the body
@@ -122,13 +143,38 @@ export const getQueryFn: <T>(options: {
       const currentOrgId = getCurrentOrgId();
       let url = queryKey.join("/") as string;
       
+      // Get development user ID for API calls
+      const getCurrentUserId = (): string | null => {
+        if (typeof window !== 'undefined') {
+          try {
+            const devUserStr = sessionStorage.getItem('dev_user');
+            if (devUserStr) {
+              const devUser = JSON.parse(devUserStr);
+              return devUser.id;
+            }
+          } catch (error) {
+            console.warn('Failed to get user ID:', error);
+          }
+        }
+        // Fallback to development user ID
+        return 'b67bf044-fa88-4579-9c06-03f3026bab95';
+      };
+      
+      const currentUserId = getCurrentUserId();
+      
       // Add organization ID as query parameter for data fetching operations
       if (currentOrgId && (url.includes('/api/jobs') || url.includes('/api/candidates') || url.includes('/api/clients'))) {
         const separator = url.includes('?') ? '&' : '?';
         url += `${separator}orgId=${currentOrgId}`;
       }
 
+      const headers: Record<string, string> = {
+        ...(currentOrgId ? { "x-org-id": currentOrgId } : {}),
+        ...(currentUserId ? { "x-user-id": currentUserId } : {})
+      };
+
       const res = await fetch(url, {
+        headers,
         credentials: "include",
       });
 

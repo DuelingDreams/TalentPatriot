@@ -1279,9 +1279,10 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   // Jobs routes
   app.get("/api/jobs", async (req, res) => {
-    console.info('[API]', req.method, req.url, '| orgId:', req.query.orgId);
     try {
-      const orgId = req.query.orgId as string;
+      // Support both query parameter and header for organization ID
+      const orgId = req.query.orgId as string || req.headers['x-org-id'] as string;
+      console.info('[API]', req.method, req.url, '| orgId from query:', req.query.orgId, '| orgId from header:', req.headers['x-org-id'], '| final orgId:', orgId);
       if (!orgId) {
         res.status(400).json({ error: "Organization ID is required" });
         return;
