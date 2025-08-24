@@ -181,6 +181,7 @@ export async function createJob(data: CreateJobData, userContext: UserContext) {
   }
   
   // Verify user has access to organization
+  // First check user_organizations table
   const { data: userOrg } = await supabase
     .from('user_organizations')
     .select('id')
@@ -188,8 +189,17 @@ export async function createJob(data: CreateJobData, userContext: UserContext) {
     .eq('org_id', data.orgId)
     .single();
   
+  // If not found, also check if user is the organization owner (fallback for development)
   if (!userOrg) {
-    throw new Error('Access denied: User not authorized for this organization');
+    const { data: orgOwner } = await supabase
+      .from('organizations')
+      .select('owner_id')
+      .eq('id', data.orgId)
+      .single();
+    
+    if (!orgOwner || orgOwner.owner_id !== userContext.userId) {
+      throw new Error('Access denied: User not authorized for this organization');
+    }
   }
   
   // Generate unique slug
@@ -248,6 +258,7 @@ export async function publishJob(jobId: string, userContext: UserContext) {
   }
   
   // Verify user has access to this job's organization
+  // In development, also check if user is the organization owner
   const { data: userOrg } = await supabase
     .from('user_organizations')
     .select('id')
@@ -255,8 +266,17 @@ export async function publishJob(jobId: string, userContext: UserContext) {
     .eq('org_id', job.org_id)
     .single();
   
+  // Also check if user is the organization owner (fallback for development)
   if (!userOrg) {
-    throw new Error('Access denied: User not authorized for this organization');
+    const { data: orgOwner } = await supabase
+      .from('organizations')
+      .select('owner_id')
+      .eq('id', job.org_id)
+      .single();
+    
+    if (!orgOwner || orgOwner.owner_id !== userContext.userId) {
+      throw new Error('Access denied: User not authorized for this organization');
+    }
   }
   
   // Validate required fields for publishing

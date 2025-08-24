@@ -1,9 +1,9 @@
 // Development authentication utilities
 // This creates a mock user session for development testing
 
-export const DEV_ORG_ID = '90531171-d56b-4732-baba-35be47b0cb08'
+export const DEV_ORG_ID = '90531171-d56b-4732-baba-35be47b0cb08' // MentalCastle
 export const DEV_USER = {
-  id: 'dev-user-123',
+  id: 'b67bf044-fa88-4579-9c06-03f3026bab95', // Owner of MentalCastle org
   email: 'dev@talentpatriot.com',
   name: 'Development User'
 }
