@@ -153,8 +153,8 @@ export default function CandidateProfile() {
             </div>
             
             <div className="flex gap-2">
-              {candidate.resumeUrl && (
-                <Button variant="outline">
+              {candidate.resume_url && (
+                <Button variant="outline" onClick={() => window.open(`http://localhost:5000${candidate.resume_url}`, '_blank')}>
                   <Download className="w-4 h-4 mr-2" />
                   Download Resume
                 </Button>
@@ -211,16 +211,16 @@ export default function CandidateProfile() {
               <div className="lg:col-span-2 space-y-4">
                 <ResumeUpload 
                   candidateId={id!}
-                  currentResumeUrl={candidate.resumeUrl}
+                  currentResumeUrl={candidate.resume_url}
                   onUploadSuccess={(resumeUrl) => {
                     // Trigger a refetch of candidate data
                     window.location.reload()
                   }}
                 />
                 
-                {candidate.resumeUrl && (
+                {candidate.resume_url && (
                   <ResumePreview 
-                    resumeUrl={candidate.resumeUrl}
+                    resumeUrl={candidate.resume_url}
                     candidateName={candidate.name}
                   />
                 )}
