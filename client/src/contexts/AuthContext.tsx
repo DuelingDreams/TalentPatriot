@@ -73,16 +73,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             // Regular user: get role from user metadata
             const role = session.user.user_metadata?.role || 'hiring_manager'
-            console.log('[Auth] Regular user role:', role)
+            const orgId = session.user.user_metadata?.currentOrgId
+            console.log('[Auth] Regular user role:', role, 'orgId:', orgId)
             setUserRole(role)
 
-            // Always use the demo org for authenticated users in development
-            const developmentOrgId = DEV_ORG_ID
-            console.log('[Auth] Setting organization for regular user:', developmentOrgId)
-            setCurrentOrgIdState(developmentOrgId)
-            safeStorageOperation(() => {
-              sessionStorage.setItem('currentOrgId', developmentOrgId)
-            })
+            // Use the user's actual organization ID from their metadata
+            if (orgId) {
+              console.log('[Auth] Setting user organization:', orgId)
+              setCurrentOrgIdState(orgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', orgId)
+              })
+            } else {
+              // If no orgId in metadata, fallback to development org for testing
+              const developmentOrgId = DEV_ORG_ID
+              console.log('[Auth] No orgId in metadata, using development org:', developmentOrgId)
+              setCurrentOrgIdState(developmentOrgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', developmentOrgId)
+              })
+            }
           }
         } else if (isDevelopment()) {
           // Development mode: create mock auth when no Supabase session
@@ -188,13 +198,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               console.log('Auth change: Regular user role:', role, 'orgId:', orgId)
               setUserRole(role)
 
-              // Always use the demo org for authenticated users in development (consistent with initial load)
-              const developmentOrgId = '90531171-d56b-4732-baba-35be47b0cb08' // Use real test org
-              console.log('Auth change: Setting organization for regular user:', developmentOrgId)
-              setCurrentOrgIdState(developmentOrgId)
-              safeStorageOperation(() => {
-                sessionStorage.setItem('currentOrgId', developmentOrgId)
-              })
+              // Use the user's actual organization ID from their metadata
+              if (orgId) {
+                console.log('Auth change: Setting user organization:', orgId)
+                setCurrentOrgIdState(orgId)
+                safeStorageOperation(() => {
+                  sessionStorage.setItem('currentOrgId', orgId)
+                })
+              } else {
+                // If no orgId in metadata, fallback to development org for testing
+                const developmentOrgId = '90531171-d56b-4732-baba-35be47b0cb08'
+                console.log('Auth change: No orgId in metadata, using development org:', developmentOrgId)
+                setCurrentOrgIdState(developmentOrgId)
+                safeStorageOperation(() => {
+                  sessionStorage.setItem('currentOrgId', developmentOrgId)
+                })
+              }
             }
           } else {
             setUserRole(null)
