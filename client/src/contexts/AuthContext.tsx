@@ -96,8 +96,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else if (isDevelopment()) {
           // Development mode: create mock auth when no Supabase session
-          console.log('[Auth] No Supabase session - setting up development auth')
-          setDevelopmentAuth()
+          console.log('[Auth] No Supabase session - setting up development auth for Hildebrand')
+          setDevelopmentAuth('hildebrand') // Use Hildebrand organization for Emily Wright testing
           const devAuth = getDevelopmentAuth()
           if (devAuth) {
             setUser(devAuth.user as any)
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Fallback to development auth if available
         if (isDevelopment() && mounted) {
           console.log('[Auth] Falling back to development auth due to error')
-          setDevelopmentAuth()
+          setDevelopmentAuth('hildebrand') // Use Hildebrand for Emily Wright testing
           const devAuth = getDevelopmentAuth()
           if (devAuth) {
             setUser(devAuth.user as any)

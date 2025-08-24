@@ -1,12 +1,26 @@
 // Development authentication utilities
 // This creates a mock user session for development testing
 
-export const DEV_ORG_ID = '90531171-d56b-4732-baba-35be47b0cb08' // MentalCastle
-export const DEV_USER = {
-  id: 'b67bf044-fa88-4579-9c06-03f3026bab95', // Owner of MentalCastle org
-  email: 'dev@talentpatriot.com',
-  name: 'Development User'
+export const DEV_ORG_ID = '90531171-d56b-4732-baba-35be47b0cb08' // MentalCastle (default)
+export const HILDEBRAND_ORG_ID = 'd0156d8c-939b-488d-b256-e3924349f427' // Hildebrand Enterprises
+
+// Multiple development users for testing different organizations
+export const DEV_USERS = {
+  mentalcastle: {
+    id: 'b67bf044-fa88-4579-9c06-03f3026bab95',
+    email: 'dev@mentalcastle.com',
+    name: 'MentalCastle User',
+    orgId: DEV_ORG_ID
+  },
+  hildebrand: {
+    id: '81a2aecb-4355-4b83-9b05-27ac4c3020ff',
+    email: 'mentalcastlecoach@gmail.com',
+    name: 'Hildebrand User',
+    orgId: HILDEBRAND_ORG_ID
+  }
 }
+
+export const DEV_USER = DEV_USERS.mentalcastle // Default user
 
 export function isDevelopment(): boolean {
   if (typeof window === 'undefined') return false
@@ -15,16 +29,17 @@ export function isDevelopment(): boolean {
          import.meta.env.MODE === 'development'
 }
 
-export function setDevelopmentAuth() {
+export function setDevelopmentAuth(userType: 'mentalcastle' | 'hildebrand' = 'hildebrand') {
   if (isDevelopment()) {
-    console.log('[DevAuth] Setting development authentication context')
+    const user = DEV_USERS[userType]
+    console.log('[DevAuth] Setting development authentication context for:', userType)
     
     // Set organization ID in session storage
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
-        sessionStorage.setItem('currentOrgId', DEV_ORG_ID)
-        sessionStorage.setItem('dev_user', JSON.stringify(DEV_USER))
-        console.log('[DevAuth] Set orgId:', DEV_ORG_ID)
+        sessionStorage.setItem('currentOrgId', user.orgId)
+        sessionStorage.setItem('dev_user', JSON.stringify(user))
+        console.log('[DevAuth] Set orgId:', user.orgId, 'for user:', user.email)
       }
     } catch (error) {
       console.warn('[DevAuth] Storage error:', error)
@@ -42,11 +57,11 @@ export function getDevelopmentAuth() {
     if (typeof window !== 'undefined' && window.sessionStorage) {
       const orgId = sessionStorage.getItem('currentOrgId')
       const userStr = sessionStorage.getItem('dev_user')
-      const user = userStr ? JSON.parse(userStr) : DEV_USER
+      const user = userStr ? JSON.parse(userStr) : DEV_USERS.hildebrand // Default to Hildebrand for testing Emily Wright
       
       return {
         user,
-        orgId: orgId || DEV_ORG_ID,
+        orgId: orgId || user.orgId || HILDEBRAND_ORG_ID,
         userRole: 'hiring_manager'
       }
     }
@@ -54,10 +69,10 @@ export function getDevelopmentAuth() {
     console.warn('[DevAuth] Error reading dev auth:', error)
   }
   
-  // Always return development auth in development
+  // Always return Hildebrand development auth for testing Emily Wright
   return {
-    user: DEV_USER,
-    orgId: DEV_ORG_ID,
+    user: DEV_USERS.hildebrand,
+    orgId: HILDEBRAND_ORG_ID,
     userRole: 'hiring_manager'
   }
 }
