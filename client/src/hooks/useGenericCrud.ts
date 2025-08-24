@@ -56,7 +56,7 @@ export function useGenericItem<T>(endpoint: string, id?: string, getDemoItem?: (
         // Return null if no demo item found rather than throwing error
         return null
       }
-      return apiRequest(`${endpoint}/${id}?orgId=${currentOrgId}`)
+      return apiRequest(`${endpoint}/${id}`)
     },
     enabled: !!id && (userRole === 'demo_viewer' || !!currentOrgId),
   })

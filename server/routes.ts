@@ -1933,14 +1933,23 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   // Candidates routes
   app.get("/api/candidates", async (req, res) => {
     try {
-      const orgId = req.query.orgId as string;
+      // Get organization ID from authenticated user context (header or query)
+      const orgId = req.headers['x-org-id'] as string || req.query.orgId as string;
+      
       if (!orgId) {
-        res.status(400).json({ error: "Organization ID is required" });
-        return;
+        return res.status(400).json({ error: "Organization ID is required" });
       }
+      
+      console.log(`[API] Fetching candidates for orgId: ${orgId}`);
+      console.log(`[API] Headers received:`, {
+        'x-org-id': req.headers['x-org-id'],
+        'x-user-id': req.headers['x-user-id'],
+        'orgId-query': req.query.orgId
+      });
       const candidates = await storage.getCandidatesByOrg(orgId);
       res.json(candidates);
     } catch (error) {
+      console.error('Error fetching candidates:', error);
       res.status(500).json({ error: "Failed to fetch candidates" });
     }
   });
