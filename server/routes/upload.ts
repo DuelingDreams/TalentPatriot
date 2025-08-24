@@ -60,12 +60,8 @@ router.post('/resume', upload.single('resume'), (req, res) => {
     }
 
     const { candidateId } = req.body
-    if (!candidateId) {
-      return res.status(400).json({ 
-        error: 'Missing candidate ID',
-        message: 'Candidate ID is required for file upload'
-      })
-    }
+    // For job applications, candidateId can be temporary
+    const finalCandidateId = candidateId || 'temp-job-application'
 
     // Generate file URL
     const fileUrl = `/uploads/resumes/${req.file.filename}`
@@ -77,7 +73,7 @@ router.post('/resume', upload.single('resume'), (req, res) => {
       originalName: req.file.originalname,
       size: req.file.size,
       mimetype: req.file.mimetype,
-      candidateId,
+      candidateId: finalCandidateId,
       message: 'Resume uploaded successfully'
     })
 

@@ -90,11 +90,9 @@ export default function JobApplicationForm() {
     return `resume_${timestamp}_${randomString}${extension}`;
   }
 
-  // Upload file to Supabase Storage with retry logic
+  // Upload file using backend API with retry logic
   const uploadFileWithRetry = async (file: File, retryCount = 0): Promise<string> => {
     try {
-      const fileName = generateFileName(file.name);
-      
       setUploadState(prev => ({
         ...prev,
         isUploading: true,
@@ -103,32 +101,43 @@ export default function JobApplicationForm() {
         retryCount
       }));
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('resumes')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      formData.append('resume', file);
+      formData.append('candidateId', 'temp-job-application'); // Temporary ID for job applications
 
-      if (error) {
-        throw new Error(error.message);
+      // Start progress simulation
+      const progressInterval = setInterval(() => {
+        setUploadState(prev => ({
+          ...prev,
+          progress: Math.min(prev.progress + 10, 90) // Max 90% until completion
+        }));
+      }, 200);
+
+      // Upload to backend API
+      const response = await fetch('/api/upload/resume', {
+        method: 'POST',
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Upload failed with status ${response.status}`);
       }
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName);
-
+      const result = await response.json();
+      
       setUploadState(prev => ({
         ...prev,
         isUploading: false,
         progress: 100,
-        uploadedUrl: publicUrl,
+        uploadedUrl: result.fileUrl,
         uploadError: null
       }));
 
-      return publicUrl;
+      return result.fileUrl;
 
     } catch (error) {
       console.error('Upload error:', error);
