@@ -77,6 +77,13 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Updates (August 2025)
 
+### Real-Time Pipeline Updates & Enhanced Application Flow (August 24, 2025)
+- **Immediate Pipeline Refresh**: Implemented automatic pipeline cache invalidation so new applicants appear instantly in the "Applied" stage without manual refresh.
+- **Enhanced Application Hook**: Updated `useJobApplication` to invalidate multiple pipeline query keys (`['job-pipeline', jobId]`, `['pipeline']`, and legacy endpoints).
+- **Improved JobApplicationForm**: Migrated from manual fetch calls to consistent `useJobApplication` hook usage for better error handling and state management.
+- **Better User Experience**: Updated application success messages to inform candidates their application will appear in the recruiter pipeline shortly.
+- **Comprehensive Query Invalidation**: Ensures both job-specific and organization-wide pipeline views refresh immediately after application submission.
+
 ### Deployment Preparation & Production Authentication (August 24, 2025)
 - **Production Authentication Verified**: Confirmed real Supabase authentication system is fully functional with multiple organizations (Hildebrand Enterprises, MentalCastle, Mountfort Corporation, XYZ Corporation).
 - **Organization Assignment Fixed**: Resolved authentication context issue where users were forced into demo organization instead of accessing their actual organizations.
