@@ -90,6 +90,7 @@ export function useJobApplication() {
       queryClient.invalidateQueries({ queryKey: ['/api/candidates'] })
       // Invalidate pipeline queries to show new applicant immediately in "Applied" stage
       queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
+      queryClient.invalidateQueries({ queryKey: ['pipeline', variables.jobId] })
       queryClient.invalidateQueries({ queryKey: ['/api/jobs', variables.jobId, 'pipeline'] })
       // Also invalidate organization pipeline for overall pipeline view
       queryClient.invalidateQueries({ queryKey: ['pipeline'] })
