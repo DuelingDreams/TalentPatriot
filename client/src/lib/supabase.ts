@@ -63,13 +63,8 @@ export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnon
   }
 })
 
-// Sanity check: Only test database connection in production with valid credentials
-if (typeof window !== 'undefined' && 
-    supabaseUrl && 
-    supabaseAnonKey && 
-    supabaseUrl !== 'https://placeholder.supabase.co' &&
-    !window.location.hostname.includes('localhost') &&
-    !window.location.hostname.includes('replit')) {
+// Sanity check: Test basic database connection
+if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey) {
   supabase.from('jobs').select('id').limit(1)
     .then(({ data, error }) => {
       console.info('[SUPABASE] Connection test →', { 
@@ -81,8 +76,6 @@ if (typeof window !== 'undefined' &&
         console.info('[SUPABASE] Connection test failed →', error.message)
       }
     })
-} else if (typeof window !== 'undefined') {
-  console.log('[SUPABASE] Skipping connection test - using development mode')
 }
 
 // Handle global auth errors to prevent refresh token errors from appearing in console

@@ -30,29 +30,6 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Handle case when resumeUrl is null or empty
-  if (!resumeUrl) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Resume Document
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="font-medium mb-2">No Resume Available</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              This candidate hasn't uploaded a resume yet.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages)
     setLoading(false)
@@ -82,7 +59,6 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
   }
 
   const downloadResume = () => {
-    if (!resumeUrl) return
     const link = document.createElement('a')
     link.href = resumeUrl
     link.download = `${candidateName.replace(/\s+/g, '_')}_Resume.pdf`
@@ -92,17 +68,11 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
   }
 
   const openInNewTab = () => {
-    if (!resumeUrl) return
     window.open(resumeUrl, '_blank')
   }
 
-  // Check if the file is a PDF - more comprehensive detection
-  const isPDF = resumeUrl && (
-    resumeUrl.toLowerCase().includes('.pdf') || 
-    resumeUrl.includes('application/pdf') ||
-    resumeUrl.startsWith('data:application/pdf') ||
-    resumeUrl.includes('Content-Type: application/pdf')
-  )
+  // Check if the file is a PDF
+  const isPDF = resumeUrl.toLowerCase().includes('.pdf') || resumeUrl.includes('application/pdf')
 
   if (!isPDF) {
     return (
@@ -118,7 +88,7 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
             <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
             <h3 className="font-medium mb-2">Document Preview Not Available</h3>
             <p className="text-sm text-gray-600 mb-4">
-              This resume appears to be in DOC/DOCX format. Preview is only available for PDF files. You can still download or view the file directly.
+              This resume appears to be in DOC/DOCX format. Preview is only available for PDF files.
             </p>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={downloadResume}>
