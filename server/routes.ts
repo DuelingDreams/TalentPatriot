@@ -1933,18 +1933,17 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   // Candidates routes
   app.get("/api/candidates", async (req, res) => {
     try {
-      // Get organization ID from authenticated user context (header or query)
-      const orgId = req.headers['x-org-id'] as string || req.query.orgId as string;
+      // Get organization ID from authenticated user context (header only)
+      const orgId = req.headers['x-org-id'] as string;
       
       if (!orgId) {
-        return res.status(400).json({ error: "Organization ID is required" });
+        return res.status(400).json({ error: "Organization context required" });
       }
       
       console.log(`[API] Fetching candidates for orgId: ${orgId}`);
       console.log(`[API] Headers received:`, {
         'x-org-id': req.headers['x-org-id'],
-        'x-user-id': req.headers['x-user-id'],
-        'orgId-query': req.query.orgId
+        'x-user-id': req.headers['x-user-id']
       });
       const candidates = await storage.getCandidatesByOrg(orgId);
       res.json(candidates);
@@ -1956,8 +1955,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/candidates/:id", async (req, res) => {
     try {
-      // Get organization ID from authenticated user context (header or query)
-      const orgId = req.headers['x-org-id'] as string || req.query.orgId as string;
+      // Get organization ID from authenticated user context (header only - no query fallback)
+      const orgId = req.headers['x-org-id'] as string;
       
       if (!orgId) {
         return res.status(400).json({ error: "Organization context required" });
@@ -1968,6 +1967,12 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const candidate = await storage.getCandidate(req.params.id);
       if (!candidate) {
         console.log(`[API] Candidate ${req.params.id} not found in database`);
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      // Check that the candidate belongs to the requesting organization
+      if (candidate.orgId && candidate.orgId !== orgId) {
+        console.log(`[API] Candidate ${req.params.id} belongs to different org: ${candidate.orgId} vs ${orgId}`);
         return res.status(404).json({ error: "Candidate not found" });
       }
       
@@ -2685,10 +2690,10 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get("/api/candidates/:candidateId/applications", async (req, res) => {
     try {
       const { candidateId } = req.params;
-      const orgId = req.headers['x-org-id'] || req.query.orgId as string;
+      const orgId = req.headers['x-org-id'] as string;
       
       if (!orgId) {
-        return res.status(400).json({ error: "Organization ID is required" });
+        return res.status(400).json({ error: "Organization context required" });
       }
 
       // Get all job candidates for this organization and filter by candidate ID

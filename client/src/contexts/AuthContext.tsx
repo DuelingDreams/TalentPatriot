@@ -298,6 +298,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             console.log('User successfully assigned to organization during signup');
             
+            // Update the user's auth metadata to include currentOrgId
+            try {
+              await supabase.auth.updateUser({ 
+                data: { 
+                  currentOrgId: orgId,
+                  role: role
+                } 
+              });
+              console.log('Auth metadata updated with organization ID');
+            } catch (metadataError) {
+              console.warn('Failed to update auth metadata:', metadataError);
+            }
+            
             // Update the current user state to reflect the new organization
             if (user) {
               setUserRole(role);
