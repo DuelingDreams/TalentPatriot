@@ -754,83 +754,38 @@ export default function JobPipeline() {
     const applicationId = active.id as string
     const newColumnId = over.id as string
 
-    // NEW PIPELINE SYSTEM: Use column-based movement
     if (jobPipelineData?.columns && jobPipelineData?.applications) {
       const application = jobPipelineData.applications?.find(app => app.id === applicationId)
       if (!application || application.columnId === newColumnId) return
 
       const newColumn = jobPipelineData.columns.find(col => col.id === newColumnId)
       
-      try {
-        // Show immediate success feedback
-        toast({
-          title: "Moving Application",
-          description: `Moving ${application.candidate?.name || 'candidate'} to ${newColumn?.title}...`,
-        })
+      if (application.id && newColumn?.id) {
+        try {
+          toast({
+            title: "Stage Updated",
+            description: `Moving ${application.candidate?.name || 'candidate'} to ${newColumn.title}...`,
+          })
 
-        // Update the backend
-        await moveApplication.mutateAsync({
-          applicationId,
-          columnId: newColumnId,
-          jobId: jobId
-        })
+          await moveApplication.mutateAsync({ 
+            applicationId: application.id, 
+            columnId: newColumn.id,
+            jobId: jobId
+          })
 
-        // Show final success message
-        toast({
-          title: "Success",
-          description: `${application.candidate?.name || 'Application'} moved to ${newColumn?.title}`,
-        })
-      } catch (error) {
-        console.error('Failed to move application:', error)
-        toast({
-          title: "Move Failed",
-          description: "Failed to move application. Please try again.",
-          variant: "destructive",
-        })
+          toast({
+            title: "Success",
+            description: `${application.candidate?.name || 'Application'} moved to ${newColumn.title}`,
+          })
+        } catch (error) {
+          console.error('Failed to move application:', error)
+          toast({
+            title: "Move Failed",
+            description: "Failed to move application. Please try again.",
+            variant: "destructive",
+          })
+        }
       }
-      return
-    }
-
-    // FALLBACK: Old system for existing data - try new system first, then old
-    const candidateId = active.id as string
-    const newStage = over.id as string
-
-    const candidate = jobCandidates?.find((c: any) => c.id === candidateId)
-    if (!candidate || (candidate as any).stage === newStage) return
-
-    try {
-      toast({
-        title: "Stage Updated", 
-        description: `Moving ${(candidate as any).candidate?.name || 'candidate'} to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}...`,
-      })
-
-      // Try the new pipeline system first
-      try {
-        await moveApplication.mutateAsync({
-          applicationId: candidateId,
-          columnId: newStage,
-          jobId: jobId
-        })
-      } catch (newSystemError) {
-        console.warn('New system failed, falling back to old system:', newSystemError)
-        // Fall back to old system
-        await updateCandidateStage.mutateAsync({
-          id: candidateId,
-          stage: newStage
-        })
-      }
-
-      toast({
-        title: "Success",
-        description: `${(candidate as any).candidate?.name || 'Candidate'} moved to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`,
-      })
-    } catch (error) {
-      console.error('Failed to update candidate stage:', error)
-      toast({
-        title: "Update Failed",
-        description: "Failed to update candidate stage. Please try again.",
-        variant: "destructive",
-      })
     }
   }
 

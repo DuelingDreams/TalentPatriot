@@ -137,33 +137,20 @@ export function useMoveApplication() {
 
   return useMutation({
     mutationFn: async ({ applicationId, columnId, jobId }: { applicationId: string; columnId: string; jobId?: string }) => {
-      return apiRequest({
+      await apiRequest({
         url: `/api/applications/${applicationId}/move`,
         method: 'PATCH',
         body: JSON.stringify({ columnId })
       })
     },
     onSuccess: (_, variables) => {
-      console.log('[useMoveApplication] Cache invalidation for jobId:', variables.jobId)
-      
-      // Clear all cache and force immediate refetch
+      // Invalidate the pipeline query for the specific job
       if (variables.jobId) {
-        // Remove from cache entirely and refetch
-        queryClient.removeQueries({ queryKey: ['job-pipeline', variables.jobId] })
-        queryClient.refetchQueries({ 
-          queryKey: ['job-pipeline', variables.jobId],
-          type: 'active'
-        })
+        queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
       }
       
-      // Also invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: ['job-pipeline'] })
+      // Also invalidate general pipeline queries
       queryClient.invalidateQueries({ queryKey: ['pipeline'] })
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.invalidateQueries({ queryKey: ['candidates'] })
-      queryClient.invalidateQueries({ queryKey: ['job-candidates'] })
-      
-      console.log('[useMoveApplication] Cache cleared and refetch triggered')
     }
   })
 }
