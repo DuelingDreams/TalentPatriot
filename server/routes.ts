@@ -2116,15 +2116,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      console.log('[Pipeline API] Raw applications data:', {
-        applications: applications?.map(app => ({
-          id: app.id,
-          candidate_id: app.candidate_id,
-          candidate: app.candidate,
-          candidateName: app.candidate?.name
-        })),
-        error: applicationsError
-      });
 
       // Transform data to match frontend interface
       const pipelineData = {
@@ -2150,15 +2141,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         })) || []
       };
 
-      console.log('[Pipeline API] Transformed pipeline data:', {
-        columnsCount: pipelineData.columns.length,
-        applicationsCount: pipelineData.applications.length,
-        applications: pipelineData.applications.map(app => ({
-          id: app.id,
-          candidateName: app.candidate?.name,
-          candidateEmail: app.candidate?.email
-        }))
-      });
 
       res.json(pipelineData);
     } catch (error) {

@@ -139,7 +139,7 @@ export function useMoveApplication(jobId: string) {
     mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
       await apiRequest(`/api/applications/${applicationId}/move`, {
         method: 'PATCH',
-        body: { columnId },
+        body: JSON.stringify({ columnId }),
       });
     },
     onSuccess: () => {
