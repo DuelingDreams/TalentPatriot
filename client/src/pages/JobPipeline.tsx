@@ -701,7 +701,7 @@ export default function JobPipeline() {
   // NEW PIPELINE SYSTEM: Get pipeline data for the specific job
   const { user } = useAuth()
   const { data: jobPipelineData, isLoading: pipelineLoading } = useJobPipeline(jobId)
-  const moveApplication = useMoveApplication()
+  const moveApplication = useMoveApplication(jobId || '')
 
   // NEW PIPELINE SYSTEM: Organize applications by columns
   const applicationsByColumn = useMemo(() => {
@@ -769,8 +769,7 @@ export default function JobPipeline() {
 
           await moveApplication.mutateAsync({ 
             applicationId: application.id, 
-            columnId: newColumn.id,
-            jobId: jobId
+            columnId: newColumn.id
           })
 
           toast({

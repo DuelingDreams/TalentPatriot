@@ -132,51 +132,21 @@ export function useJobPipelineColumns(jobId: string | undefined) {
 }
 
 // Move application to different pipeline column (drag and drop)
-export function useMoveApplication() {
+export function useMoveApplication(jobId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ applicationId, columnId, jobId }: { applicationId: string; columnId: string; jobId?: string }) => {
-      console.log('[useMoveApplication] Moving application:', applicationId, 'to column:', columnId, 'for job:', jobId)
-      
-      await apiRequest({
-        url: `/api/applications/${applicationId}/move`,
+    mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
+      await apiRequest(`/api/applications/${applicationId}/move`, {
         method: 'PATCH',
-        body: JSON.stringify({ columnId })
-      })
-      
-      console.log('[useMoveApplication] Move request completed successfully')
+        body: { columnId },
+      });
     },
-    onSuccess: async (_, variables) => {
-      console.log('[useMoveApplication] onSuccess called, invalidating queries for jobId:', variables.jobId)
-      
-      // Wait longer to ensure database transaction is committed
-      console.log('[useMoveApplication] Waiting for database transaction to complete...')
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Invalidate ALL related query patterns
-      if (variables.jobId) {
-        console.log('[useMoveApplication] Invalidating job-specific queries')
-        await queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
-        await queryClient.invalidateQueries({ queryKey: ['pipeline', variables.jobId] })
-      }
-      
-      // Also invalidate general pipeline queries  
-      console.log('[useMoveApplication] Invalidating general pipeline queries')
-      await queryClient.invalidateQueries({ queryKey: ['pipeline'] })
-      await queryClient.invalidateQueries({ queryKey: ['job-pipeline'] })
-      
-      // Force refetch the specific job pipeline
-      if (variables.jobId) {
-        console.log('[useMoveApplication] Force refetching job pipeline data')
-        await queryClient.refetchQueries({ queryKey: ['job-pipeline', variables.jobId] })
-      }
-      
-      console.log('[useMoveApplication] Cache invalidation complete')
+    onSuccess: () => {
+      // Invalidate the pipeline cache for this job so the board re-fetches updated data
+      queryClient.invalidateQueries({ queryKey: ['pipeline', jobId] });
+      queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
     },
-    onError: (error, variables) => {
-      console.error('[useMoveApplication] Mutation failed:', error, 'for variables:', variables)
-    }
   })
 }
 
