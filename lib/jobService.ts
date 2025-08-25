@@ -402,7 +402,21 @@ export async function applyToJob(
   
   // Server-side validation
   if (!applicant.firstName || !applicant.lastName || !applicant.email) {
+    console.error('[JobService] Missing required fields:', { 
+      firstName: applicant.firstName, 
+      lastName: applicant.lastName, 
+      email: applicant.email 
+    });
     throw new Error('Missing required fields: firstName, lastName, and email are required');
+  }
+  
+  // Validate that firstName and lastName are not just whitespace
+  if (!applicant.firstName.trim() || !applicant.lastName.trim()) {
+    console.error('[JobService] Empty name fields after trim:', { 
+      firstName: `"${applicant.firstName}"`, 
+      lastName: `"${applicant.lastName}"` 
+    });
+    throw new Error('First name and last name cannot be empty');
   }
   
   // Validate resume URL if provided
@@ -444,7 +458,14 @@ export async function applyToJob(
   try {
     // Step 1: Check if candidate already exists for this organization
     let candidateId: string;
-    const fullName = `${applicant.firstName} ${applicant.lastName}`.trim();
+    const fullName = `${applicant.firstName.trim()} ${applicant.lastName.trim()}`.trim();
+    
+    console.log('[JobService] Creating candidate with name:', {
+      firstName: applicant.firstName,
+      lastName: applicant.lastName,
+      fullName: fullName,
+      fullNameLength: fullName.length
+    });
 
     const { data: existingCandidate, error: candidateCheckError } = await supabase
       .from('candidates')
@@ -497,7 +518,11 @@ export async function applyToJob(
       }
 
       candidateId = newCandidate.id;
-      console.log('[JobService] Created new candidate:', candidateId);
+      console.log('[JobService] Created new candidate:', {
+        candidateId: candidateId,
+        nameSet: fullName,
+        email: applicant.email.toLowerCase()
+      });
     }
 
     // Step 2: Check if application already exists

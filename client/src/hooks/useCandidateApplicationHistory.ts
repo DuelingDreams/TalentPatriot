@@ -69,7 +69,7 @@ export function useCandidateApplicationHistory(candidateId: string) {
         throw new Error('Failed to fetch candidate applications')
       }
       
-      return response.json() as ApplicationHistoryEntry[]
+      return await response.json() as ApplicationHistoryEntry[]
     },
     enabled: !!candidateId
   })
