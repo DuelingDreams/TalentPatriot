@@ -16,7 +16,7 @@ import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useUpdateCandidateStage } from '@/hooks/useJobCandidates'
 import { useCandidatesForJob } from '@/hooks/useCandidatesForJob'
-import { usePipeline, usePipelineColumns, useMoveApplication, organizeApplicationsByColumn } from '@/hooks/usePipeline'
+import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, organizeApplicationsByColumn } from '@/hooks/usePipeline'
 import { ResumeUpload } from '@/components/candidates/ResumeUpload'
 import { CandidateNotes } from '@/components/candidates/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
@@ -698,22 +698,18 @@ export default function JobPipeline() {
   // Find the current job
   const currentJob = jobs?.find((job: any) => job.id === jobId)
 
-  // NEW PIPELINE SYSTEM: Get pipeline data for the current organization
+  // NEW PIPELINE SYSTEM: Get pipeline data for the specific job
   const { user } = useAuth()
-  const orgId = user?.user_metadata?.currentOrgId
-  const { data: pipelineData, isLoading: pipelineLoading } = usePipeline(orgId)
-  const { data: pipelineColumns } = usePipelineColumns(orgId)
+  const { data: jobPipelineData, isLoading: pipelineLoading } = useJobPipeline(jobId)
   const moveApplication = useMoveApplication()
 
   // NEW PIPELINE SYSTEM: Organize applications by columns
   const applicationsByColumn = useMemo(() => {
-    if (!pipelineData || !pipelineColumns) return new Map()
+    if (!jobPipelineData?.columns || !jobPipelineData?.applications) return new Map()
     
-    // Filter applications for the current job
-    const jobApplications = pipelineData.applications?.filter(app => app.jobId === jobId) || []
-    
-    return organizeApplicationsByColumn(jobApplications, pipelineColumns)
-  }, [pipelineData, pipelineColumns, jobId])
+    // Use job-specific pipeline data directly
+    return organizeApplicationsByColumn(jobPipelineData.applications, jobPipelineData.columns)
+  }, [jobPipelineData])
 
   // Group candidates by stage (OLD SYSTEM - fallback for existing data)
   const candidatesByStage = useMemo(() => {
