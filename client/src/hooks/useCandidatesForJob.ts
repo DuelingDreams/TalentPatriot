@@ -113,6 +113,10 @@ export function useCandidatesForJob(
       return
     }
 
+    // Temporarily disable realtime to fix subscription errors
+    setRealtimeStatus('disabled')
+    return
+
     let mounted = true
     setRealtimeStatus('connecting')
 
