@@ -48,8 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // Get initial session from Supabase
-        const { data: { session } } = await supabase.auth.getSession()
+        // In development mode, skip Supabase session check if no environment variables
+        let session = null
+        if (!isDevelopment() || (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)) {
+          const { data: { session: supabaseSession } } = await supabase.auth.getSession()
+          session = supabaseSession
+        }
 
         if (!mounted) return
 
