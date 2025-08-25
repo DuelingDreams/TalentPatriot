@@ -150,8 +150,9 @@ export function useMoveApplication() {
     onSuccess: async (_, variables) => {
       console.log('[useMoveApplication] onSuccess called, invalidating queries for jobId:', variables.jobId)
       
-      // Wait a brief moment to ensure server update is complete
-      await new Promise(resolve => setTimeout(resolve, 100))
+      // Wait longer to ensure database transaction is committed
+      console.log('[useMoveApplication] Waiting for database transaction to complete...')
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       // Invalidate ALL related query patterns
       if (variables.jobId) {

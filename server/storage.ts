@@ -998,6 +998,8 @@ export class DatabaseStorage implements IStorage {
 
 
   async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    console.log(`[moveJobCandidate] Starting move: jobCandidateId=${jobCandidateId}, newColumnId=${newColumnId}`);
+    
     // First get the column to determine the stage
     const { data: columnData, error: columnError } = await supabase
       .from('pipeline_columns')
@@ -1005,10 +1007,23 @@ export class DatabaseStorage implements IStorage {
       .eq('id', newColumnId)
       .single();
     
-    if (columnError) throw new Error(`Failed to get column info: ${columnError.message}`);
+    if (columnError) {
+      console.error(`[moveJobCandidate] Column lookup failed:`, columnError);
+      throw new Error(`Failed to get column info: ${columnError.message}`);
+    }
     
     // Map column title to stage (convert to lowercase and replace spaces)
     const stage = columnData.title.toLowerCase().replace(/\s+/g, '_');
+    console.log(`[moveJobCandidate] Column "${columnData.title}" mapped to stage "${stage}"`);
+    
+    // Check current state before update
+    const { data: beforeData } = await supabase
+      .from('job_candidate')
+      .select('id, pipeline_column_id, stage')
+      .eq('id', jobCandidateId)
+      .single();
+    
+    console.log(`[moveJobCandidate] Before update:`, beforeData);
     
     const { data, error } = await supabase
       .from('job_candidate')
@@ -1020,7 +1035,26 @@ export class DatabaseStorage implements IStorage {
       .select()
       .single();
     
-    if (error) throw new Error(`Failed to move job candidate: ${error.message}`);
+    if (error) {
+      console.error(`[moveJobCandidate] Update failed:`, error);
+      throw new Error(`Failed to move job candidate: ${error.message}`);
+    }
+    
+    console.log(`[moveJobCandidate] After update:`, {
+      id: data.id,
+      pipeline_column_id: data.pipeline_column_id,
+      stage: data.stage
+    });
+    
+    // Verify the update actually took effect
+    const { data: verifyData } = await supabase
+      .from('job_candidate')
+      .select('id, pipeline_column_id, stage')
+      .eq('id', jobCandidateId)
+      .single();
+    
+    console.log(`[moveJobCandidate] Verification query result:`, verifyData);
+    
     return data as JobCandidate;
   }
 
