@@ -52,6 +52,7 @@ export function useJobPipeline(jobId: string | undefined) {
   return useQuery({
     queryKey: ['job-pipeline', jobId],
     queryFn: async (): Promise<PipelineData> => {
+      console.log('[useJobPipeline] Fetching pipeline data for jobId:', jobId)
       if (!jobId) throw new Error('Job ID is required')
       
       if (isDemoUser) {
@@ -84,10 +85,20 @@ export function useJobPipeline(jobId: string | undefined) {
         }
       }
       
-      return apiRequest(`/api/jobs/${jobId}/pipeline`)
+      const result = await apiRequest(`/api/jobs/${jobId}/pipeline`)
+      console.log('[useJobPipeline] Fetched pipeline data:', {
+        columnsCount: result.columns?.length,
+        applicationsCount: result.applications?.length,
+        applications: result.applications?.map((app: any) => ({
+          id: app.id,
+          candidateName: app.candidate?.name,
+          columnId: app.columnId
+        }))
+      })
+      return result
     },
     enabled: !!jobId,
-    staleTime: isDemoUser ? 60000 : 2 * 60 * 1000, // 1 minute for demo, 2 minutes for live
+    staleTime: 0, // Always fetch fresh data for immediate updates
     gcTime: 5 * 60 * 1000  // 5 minutes
   })
 }
@@ -135,23 +146,24 @@ export function useMoveApplication() {
     onSuccess: (_, variables) => {
       console.log('[useMoveApplication] Cache invalidation for jobId:', variables.jobId)
       
-      // Invalidate all pipeline-related queries
+      // Clear all cache and force immediate refetch
+      if (variables.jobId) {
+        // Remove from cache entirely and refetch
+        queryClient.removeQueries({ queryKey: ['job-pipeline', variables.jobId] })
+        queryClient.refetchQueries({ 
+          queryKey: ['job-pipeline', variables.jobId],
+          type: 'active'
+        })
+      }
+      
+      // Also invalidate all related queries
       queryClient.invalidateQueries({ queryKey: ['job-pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['applications'] })
-      
-      // Invalidate specific job pipeline if jobId is provided
-      if (variables.jobId) {
-        queryClient.invalidateQueries({ queryKey: ['pipeline', variables.jobId] })
-        queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
-        
-        // Force refetch the specific job pipeline
-        queryClient.refetchQueries({ queryKey: ['job-pipeline', variables.jobId] })
-      }
-      
-      // Also invalidate candidates queries to ensure consistency
       queryClient.invalidateQueries({ queryKey: ['candidates'] })
       queryClient.invalidateQueries({ queryKey: ['job-candidates'] })
+      
+      console.log('[useMoveApplication] Cache cleared and refetch triggered')
     }
   })
 }
