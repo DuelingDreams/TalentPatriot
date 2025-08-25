@@ -397,7 +397,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                {candidateName?.split(' ').map(n => n[0]).join('') || 'N/A'}
+                {candidateName?.split(' ').map((n: string) => n[0]).join('') || 'N/A'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
@@ -458,15 +458,6 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
         </CardContent>
       </Card>
 
-      {/* Candidate Notes Dialog */}
-      {notesDialogOpen && (
-        <CandidateNotesDialog
-          candidateId={candidateId}
-          candidateName={candidateName}
-          open={notesDialogOpen}
-          onOpenChange={setNotesDialogOpen}
-        />
-      )}
     </div>
   )
 }

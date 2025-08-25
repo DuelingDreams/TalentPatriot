@@ -62,6 +62,9 @@ app.use(speedLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// Serve uploaded files (resumes) statically
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Enhanced performance optimizations and cache control headers
 app.use((req, res, next) => {
   // Performance optimizations
