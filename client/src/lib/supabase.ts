@@ -63,8 +63,13 @@ export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnon
   }
 })
 
-// Sanity check: Test basic database connection - skip in dev mode without proper env vars
-if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey && supabaseUrl !== 'https://placeholder.supabase.co') {
+// Sanity check: Only test database connection in production with valid credentials
+if (typeof window !== 'undefined' && 
+    supabaseUrl && 
+    supabaseAnonKey && 
+    supabaseUrl !== 'https://placeholder.supabase.co' &&
+    !window.location.hostname.includes('localhost') &&
+    !window.location.hostname.includes('replit')) {
   supabase.from('jobs').select('id').limit(1)
     .then(({ data, error }) => {
       console.info('[SUPABASE] Connection test →', { 

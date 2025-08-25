@@ -103,10 +103,6 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
     resumeUrl.startsWith('data:application/pdf') ||
     resumeUrl.includes('Content-Type: application/pdf')
   )
-  
-  // Log for debugging
-  console.log('Resume URL:', resumeUrl)
-  console.log('Is PDF:', isPDF)
 
   if (!isPDF) {
     return (

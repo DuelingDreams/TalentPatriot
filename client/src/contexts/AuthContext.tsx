@@ -35,11 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Enhanced auth initialization with development mode support
     const initAuth = async () => {
       try {
-        // In development, check for dev auth first
+        // In development, prioritize dev auth and skip Supabase
         if (isDevelopment()) {
+          console.log('[Auth] Development mode detected - initializing development authentication')
+          setDevelopmentAuth('hildebrand') // Initialize Hildebrand auth for Emily Wright testing
           const devAuth = getDevelopmentAuth()
           if (devAuth && mounted) {
-            console.log('[Auth] Using development authentication')
+            console.log('[Auth] Using development authentication for:', devAuth.user.email)
             setUser(devAuth.user as any) // Mock user for development
             setUserRole(devAuth.userRole)
             setCurrentOrgIdState(devAuth.orgId)
@@ -48,11 +50,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // In development mode, skip Supabase session check if no environment variables
+        // Skip Supabase completely in development mode
         let session = null
-        if (!isDevelopment() || (import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)) {
-          const { data: { session: supabaseSession } } = await supabase.auth.getSession()
-          session = supabaseSession
+        if (!isDevelopment() && import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+          try {
+            const { data: { session: supabaseSession } } = await supabase.auth.getSession()
+            session = supabaseSession
+          } catch (error) {
+            console.warn('[Auth] Supabase session check failed:', error)
+          }
         }
 
         if (!mounted) return
