@@ -755,11 +755,11 @@ export default function JobPipeline() {
     const newColumnId = over.id as string
 
     // NEW PIPELINE SYSTEM: Use column-based movement
-    if (pipelineColumns && pipelineData) {
-      const application = pipelineData.applications?.find(app => app.id === applicationId)
+    if (jobPipelineData?.columns && jobPipelineData?.applications) {
+      const application = jobPipelineData.applications?.find(app => app.id === applicationId)
       if (!application || application.columnId === newColumnId) return
 
-      const newColumn = pipelineColumns.find(col => col.id === newColumnId)
+      const newColumn = jobPipelineData.columns.find(col => col.id === newColumnId)
       
       try {
         // Show immediate success feedback
@@ -1033,8 +1033,8 @@ export default function JobPipeline() {
               >
                 <div className="flex gap-4 overflow-x-auto pb-4 px-2 md:px-0 -mx-2 md:mx-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                   {/* NEW PIPELINE SYSTEM: Use dynamic columns */}
-                  {pipelineColumns && applicationsByColumn ? (
-                    pipelineColumns.map(column => (
+                  {jobPipelineData?.columns && applicationsByColumn ? (
+                    jobPipelineData.columns.map(column => (
                       <NewPipelineColumn
                         key={column.id}
                         column={column}
