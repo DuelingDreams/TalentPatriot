@@ -27,25 +27,29 @@ import { Link } from 'wouter'
 
 // NEW APPLICATION CARD for the new pipeline system
 interface ApplicationCardProps {
-  application: {
-    id: string
-    jobId: string
-    candidateId: string
-    columnId: string | null
-    status: string
-    appliedAt: string
-    candidate: {
-      id: string
-      name: string
-      email: string
-      phone: string | null
-      resumeUrl: string | null
-    }
-  }
+  applicationId: string
+  candidateId: string
+  candidateName: string
+  candidateEmail: string
+  candidatePhone?: string | null
+  resumeUrl?: string | null
+  jobId: string
+  columnId: string | null
+  status: string
+  appliedAt: string
   isDragging?: boolean
 }
 
-function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
+function ApplicationCard({ 
+  applicationId, 
+  candidateId, 
+  candidateName, 
+  candidateEmail, 
+  candidatePhone,
+  resumeUrl,
+  jobId,
+  isDragging 
+}: ApplicationCardProps) {
   const {
     attributes,
     listeners,
@@ -53,7 +57,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
     transform,
     transition,
     isDragging: isSortableDragging,
-  } = useSortable({ id: application.id })
+  } = useSortable({ id: applicationId })
 
   const isCurrentlyDragging = isDragging || isSortableDragging
   const { toast } = useToast()
@@ -64,7 +68,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
   const { data: clients } = useClients()
   
   // Find job and client info
-  const jobInfo = jobs?.find((job: any) => job.id === application.jobId)
+  const jobInfo = jobs?.find((job: any) => job.id === jobId)
   const clientInfo = clients?.find((client: any) => client.id === jobInfo?.clientId)
 
   const style = {
@@ -79,7 +83,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
     e.stopPropagation()
     toast({
       title: "Schedule Interview",
-      description: `Opening scheduler for ${application.candidate?.name || 'candidate'}`,
+      description: `Opening scheduler for ${candidateName}`,
     })
   }
 
@@ -87,7 +91,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
     e.stopPropagation()
     toast({
       title: "Add Note",
-      description: `Adding note for ${application.candidate?.name || 'candidate'}`,
+      description: `Adding note for ${candidateName}`,
     })
   }
 
@@ -95,7 +99,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
     e.stopPropagation()
     toast({
       title: "Move Stage",
-      description: `Moving ${application.candidate?.name || 'candidate'} to next stage`,
+      description: `Moving ${candidateName} to next stage`,
     })
   }
 
@@ -103,7 +107,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
     e.stopPropagation()
     toast({
       title: "Share Profile",
-      description: `Sharing ${application.candidate?.name || 'candidate'}'s profile`,
+      description: `Sharing ${candidateName}'s profile`,
     })
   }
 
@@ -175,22 +179,22 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                {application.candidate?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
+                {candidateName?.split(' ').map((n: string) => n[0]).join('') || 'N/A'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-slate-900 truncate">
-                {application.candidate?.name || 'Unknown Candidate'}
+                {candidateName || 'Unknown Candidate'}
               </h4>
               <p className="text-xs text-slate-600 mt-1">{jobInfo?.title || 'Position Title'}</p>
               <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
                 <Mail className="w-3 h-3" />
-                <span className="truncate">{application.candidate?.email || 'No email'}</span>
+                <span className="truncate">{candidateEmail || 'No email'}</span>
               </div>
-              {application.candidate?.phone && (
+              {candidatePhone && (
                 <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
                   <Phone className="w-3 h-3" />
-                  <span>{application.candidate.phone}</span>
+                  <span>{candidatePhone}</span>
                 </div>
               )}
               <div className="mt-3 flex gap-2">
@@ -200,8 +204,8 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
                   className="text-xs h-7"
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (application.candidate?.resumeUrl) {
-                      window.open(application.candidate.resumeUrl, '_blank')
+                    if (resumeUrl) {
+                      window.open(resumeUrl, '_blank')
                     } else {
                       toast({
                         title: "No Resume",
@@ -231,7 +235,7 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
                 {clientInfo?.name || 'TechCorp Solutions'}
               </Badge>
               <div className="mt-1 text-xs text-slate-500">
-                Applied {new Date(application.appliedAt).toLocaleDateString()}
+                Applied {new Date(appliedAt).toLocaleDateString()}
               </div>
             </div>
           </div>
@@ -241,9 +245,9 @@ function ApplicationCard({ application, isDragging }: ApplicationCardProps) {
       <CandidateNotesDialog
         open={notesDialogOpen}
         onClose={() => setNotesDialogOpen(false)}
-        candidateId={application.candidateId}
-        jobCandidateId={application.id}
-        candidateName={application.candidate?.name}
+        candidateId={candidateId}
+        jobCandidateId={applicationId}
+        candidateName={candidateName}
       />
     </div>
   )
@@ -390,28 +394,24 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
               <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
-                {candidate.candidates?.name?.split(' ').map(n => n[0]).join('') || 'N/A'}
+                {candidateName?.split(' ').map(n => n[0]).join('') || 'N/A'}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-slate-900 truncate">
-                {candidate.candidates?.name || 'Unknown Candidate'}
+                {candidateName || 'Unknown Candidate'}
               </h4>
               <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
                 <Mail className="w-3 h-3" />
-                <span className="truncate">{candidate.candidates?.email || 'No email'}</span>
+                <span className="truncate">{candidateEmail || 'No email'}</span>
               </div>
-              {candidate.candidates?.phone && (
+              {candidatePhone && (
                 <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
                   <Phone className="w-3 h-3" />
-                  <span>{candidate.candidates.phone}</span>
+                  <span>{candidatePhone}</span>
                 </div>
               )}
-              {candidate.notes && (
-                <p className="text-xs text-slate-500 mt-2 line-clamp-2">
-                  {candidate.notes}
-                </p>
-              )}
+              {/* Notes can be added via separate component */}
               <div className="mt-3 flex gap-2">
                 <Button 
                   size="sm" 
@@ -419,8 +419,8 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                   className="text-xs h-7"
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (candidate.candidates?.resume_url) {
-                      window.open(candidate.candidates.resume_url, '_blank')
+                    if (resumeUrl) {
+                      window.open(resumeUrl, '_blank')
                     } else {
                       toast({
                         title: "No Resume",
@@ -441,7 +441,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                     e.stopPropagation()
                     toast({
                       title: "Notes",
-                      description: `Opening notes for ${candidate.candidates?.name}`,
+                      description: `Opening notes for ${candidateName}`,
                     })
                   }}
                 >
@@ -449,17 +449,21 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
                   Notes
                 </Button>
               </div>
-              {candidate.assigned_to && (
-                <div className="mt-2">
-                  <Badge variant="outline" className="text-xs">
-                    {candidate.assigned_to}
-                  </Badge>
-                </div>
-              )}
+              {/* Assigned to info can be added here if needed */}
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Candidate Notes Dialog */}
+      {notesDialogOpen && (
+        <CandidateNotesDialog
+          candidateId={candidateId}
+          candidateName={candidateName}
+          open={notesDialogOpen}
+          onOpenChange={setNotesDialogOpen}
+        />
+      )}
     </div>
   )
 }
@@ -517,7 +521,19 @@ function PipelineColumn({ column, applications }: PipelineColumnProps) {
       >
         <SortableContext items={applications.map(app => app.id)} strategy={verticalListSortingStrategy}>
           {applications.map((application) => (
-            <ApplicationCard key={application.id} application={application} />
+            <ApplicationCard 
+              key={application.id}
+              applicationId={application.id}
+              candidateId={application.candidate.id}
+              candidateName={application.candidate.name}
+              candidateEmail={application.candidate.email}
+              candidatePhone={application.candidate.phone}
+              resumeUrl={application.candidate.resumeUrl}
+              jobId={application.jobId}
+              columnId={application.columnId}
+              status={application.status}
+              appliedAt={application.appliedAt}
+            />
           ))}
         </SortableContext>
         {applications.length === 0 && (
@@ -686,7 +702,7 @@ export default function JobPipeline() {
         try {
           toast({
             title: "Stage Updated",
-            description: `Moving ${application.candidate?.name || 'candidate'} to ${newColumn.title}...`,
+            description: `Moving candidate to ${newColumn.title}...`,
           })
 
           await moveApplication.mutateAsync({ 
@@ -696,7 +712,7 @@ export default function JobPipeline() {
 
           toast({
             title: "Success",
-            description: `${application.candidate?.name || 'Application'} moved to ${newColumn.title}`,
+            description: `Application moved to ${newColumn.title}`,
           })
         } catch (error) {
           console.error('Failed to move application:', error)
