@@ -147,10 +147,12 @@ export function useMoveApplication() {
       // Invalidate the pipeline query for the specific job
       if (variables.jobId) {
         queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
+        queryClient.invalidateQueries({ queryKey: ['pipeline', variables.jobId] })
       }
       
       // Also invalidate general pipeline queries
       queryClient.invalidateQueries({ queryKey: ['pipeline'] })
+      queryClient.invalidateQueries({ queryKey: ['job-pipeline'] })
     }
   })
 }

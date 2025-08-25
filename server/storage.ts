@@ -998,10 +998,23 @@ export class DatabaseStorage implements IStorage {
 
 
   async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    // First get the column to determine the stage
+    const { data: columnData, error: columnError } = await supabase
+      .from('pipeline_columns')
+      .select('title')
+      .eq('id', newColumnId)
+      .single();
+    
+    if (columnError) throw new Error(`Failed to get column info: ${columnError.message}`);
+    
+    // Map column title to stage (convert to lowercase and replace spaces)
+    const stage = columnData.title.toLowerCase().replace(/\s+/g, '_');
+    
     const { data, error } = await supabase
       .from('job_candidate')
       .update({
-        pipeline_column_id: newColumnId
+        pipeline_column_id: newColumnId,
+        stage: stage
       })
       .eq('id', jobCandidateId)
       .select()
