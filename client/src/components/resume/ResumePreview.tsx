@@ -100,10 +100,13 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
   const isPDF = resumeUrl && (
     resumeUrl.toLowerCase().includes('.pdf') || 
     resumeUrl.includes('application/pdf') ||
-    resumeUrl.includes('pdf') ||
     resumeUrl.startsWith('data:application/pdf') ||
     resumeUrl.includes('Content-Type: application/pdf')
   )
+  
+  // Log for debugging
+  console.log('Resume URL:', resumeUrl)
+  console.log('Is PDF:', isPDF)
 
   if (!isPDF) {
     return (
