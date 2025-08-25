@@ -532,7 +532,7 @@ function PipelineColumn({ column, applications }: PipelineColumnProps) {
               jobId={application.jobId}
               columnId={application.columnId}
               status={application.status}
-              appliedAt={application.appliedAt}
+              appliedAt={application.appliedAt || application.created_at || new Date().toISOString()}
             />
           ))}
         </SortableContext>
