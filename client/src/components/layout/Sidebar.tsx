@@ -43,7 +43,7 @@ const secondaryItems = [
 
 export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const [location] = useLocation()
-  const { userRole } = useAuth()
+  const { user, userRole } = useAuth()
   const { data: currentOrganization } = useCurrentOrganization()
 
   const filteredNavigationItems = navigationItems.filter(item => 
@@ -177,8 +177,17 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                 <AvatarFallback>JD</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-900 truncate">John Doe</p>
-                <p className="text-xs text-slate-500 truncate">john@company.com</p>
+                {userRole === 'demo_viewer' ? (
+                  <>
+                    <p className="text-sm font-medium text-slate-900 truncate">John Doe</p>
+                    <p className="text-xs text-slate-500 truncate">john@company.com</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-slate-900 truncate">{user?.user_metadata?.name ?? user?.email ?? 'Unknown User'}</p>
+                    <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+                  </>
+                )}
               </div>
             </div>
           </div>
