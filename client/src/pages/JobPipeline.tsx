@@ -36,7 +36,7 @@ interface ApplicationCardProps {
   jobId: string
   columnId: string | null
   status: string
-  appliedAt: string
+  appliedAt?: string
   isDragging?: boolean
 }
 
@@ -48,6 +48,9 @@ function ApplicationCard({
   candidatePhone,
   resumeUrl,
   jobId,
+  columnId,
+  status,
+  appliedAt,
   isDragging 
 }: ApplicationCardProps) {
   const {
@@ -235,7 +238,7 @@ function ApplicationCard({
                 {clientInfo?.name || 'TechCorp Solutions'}
               </Badge>
               <div className="mt-1 text-xs text-slate-500">
-                Applied {new Date(appliedAt).toLocaleDateString()}
+                Applied {appliedAt ? new Date(appliedAt).toLocaleDateString() : 'Recently'}
               </div>
             </div>
           </div>
