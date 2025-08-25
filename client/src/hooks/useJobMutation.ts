@@ -58,7 +58,8 @@ export function useJobApplication() {
     mutationFn: async ({ jobId, candidateData }: { 
       jobId: string, 
       candidateData: { 
-        name: string, 
+        firstName: string,
+        lastName: string,
         email: string, 
         phone?: string,
         resumeUrl?: string 

@@ -267,9 +267,10 @@ export default function JobApplicationForm() {
     }
 
     try {
-      // Prepare application data with resume URL
+      // Prepare application data with resume URL (using firstName/lastName)
       const candidateData = {
-        name: `${formData.firstName} ${formData.lastName}`,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone || undefined,
         resumeUrl: uploadState.uploadedUrl || undefined,

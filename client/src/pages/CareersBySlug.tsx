@@ -230,55 +230,74 @@ export default function CareersBySlug() {
 
     setIsApplying(true)
     try {
-      // Create FormData for file upload
-      const formData = new FormData()
-      formData.append('name', `${applicationData.firstName} ${applicationData.lastName}`.trim())
-      formData.append('firstName', applicationData.firstName)
-      formData.append('lastName', applicationData.lastName)
-      formData.append('email', applicationData.email)
-      formData.append('phone', applicationData.phone)
-      
-      // Files
-      if (applicationData.resume) formData.append('resume', applicationData.resume)
-      if (applicationData.coverLetter) formData.append('coverLetter', applicationData.coverLetter)
-      
-      // Structured data as JSON
-      formData.append('education', JSON.stringify(applicationData.education))
-      formData.append('employment', JSON.stringify(applicationData.employment))
-      formData.append('linkedinUrl', applicationData.linkedinUrl)
-      if (applicationData.portfolioUrl) formData.append('portfolioUrl', applicationData.portfolioUrl)
-      
-      // Legal/Eligibility
-      formData.append('workAuthorization', applicationData.workAuthorization)
-      formData.append('visaSponsorship', applicationData.visaSponsorship)
-      formData.append('ageConfirmation', applicationData.ageConfirmation)
-      formData.append('previousEmployee', applicationData.previousEmployee)
-      
-      // Outreach
-      formData.append('referralSource', applicationData.referralSource)
-      
-      // Acknowledgments
-      formData.append('dataPrivacyAck', applicationData.dataPrivacyAck.toString())
-      formData.append('aiAcknowledgment', applicationData.aiAcknowledgment.toString())
-      
-      // Diversity (Optional)
-      if (applicationData.gender) formData.append('gender', applicationData.gender)
-      if (applicationData.raceEthnicity) formData.append('raceEthnicity', applicationData.raceEthnicity)
-      if (applicationData.veteranStatus) formData.append('veteranStatus', applicationData.veteranStatus)
-      if (applicationData.disabilityStatus) formData.append('disabilityStatus', applicationData.disabilityStatus)
+      // Handle file uploads first if present
+      let resumeUrl = ''
+      let coverLetterText = ''
+
+      if (applicationData.resume) {
+        const resumeFormData = new FormData()
+        resumeFormData.append('resume', applicationData.resume)
+        
+        const uploadResponse = await fetch('/api/upload/resume', {
+          method: 'POST',
+          body: resumeFormData
+        })
+        
+        if (uploadResponse.ok) {
+          const uploadResult = await uploadResponse.json()
+          resumeUrl = uploadResult.url || uploadResult.path || ''
+        }
+      }
+
+      // Prepare JSON payload (no "name" field)
+      const jsonData = {
+        firstName: applicationData.firstName,
+        lastName: applicationData.lastName,
+        email: applicationData.email,
+        phone: applicationData.phone,
+        resumeUrl,
+        coverLetter: coverLetterText,
+        education: JSON.stringify(applicationData.education),
+        employment: JSON.stringify(applicationData.employment),
+        linkedinUrl: applicationData.linkedinUrl,
+        portfolioUrl: applicationData.portfolioUrl,
+        workAuthorization: applicationData.workAuthorization,
+        visaSponsorship: applicationData.visaSponsorship,
+        ageConfirmation: applicationData.ageConfirmation,
+        previousEmployee: applicationData.previousEmployee,
+        referralSource: applicationData.referralSource,
+        dataPrivacyAck: applicationData.dataPrivacyAck.toString(),
+        aiAcknowledgment: applicationData.aiAcknowledgment.toString(),
+        ...(applicationData.gender && { gender: applicationData.gender }),
+        ...(applicationData.raceEthnicity && { raceEthnicity: applicationData.raceEthnicity }),
+        ...(applicationData.veteranStatus && { veteranStatus: applicationData.veteranStatus }),
+        ...(applicationData.disabilityStatus && { disabilityStatus: applicationData.disabilityStatus })
+      }
 
       const response = await fetch(`/api/jobs/${job.id}/apply`, {
         method: 'POST',
-        body: formData  // No Content-Type header for FormData
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData)
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        // Handle validation errors from new Zod validation
-        if (error.details && Array.isArray(error.details)) {
-          throw new Error(`${error.error}: ${error.details.join(', ')}`)
+        const errorData = await response.json()
+        
+        // Handle specific error cases
+        if (response.status === 400) {
+          if (errorData.details && Array.isArray(errorData.details)) {
+            throw new Error(errorData.details.join(', '))
+          }
+          throw new Error(errorData.error || 'Invalid application data')
+        } else if (response.status === 409) {
+          throw new Error('You have already applied to this position')
+        } else if (response.status === 404) {
+          throw new Error('This job posting is no longer available')
+        } else {
+          throw new Error(errorData.error || 'Application submission failed')
         }
-        throw new Error(error.error || 'Failed to submit application')
       }
 
       setApplicationSubmitted(true)
