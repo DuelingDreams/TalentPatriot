@@ -133,15 +133,25 @@ export function useMoveApplication() {
       })
     },
     onSuccess: (_, variables) => {
+      console.log('[useMoveApplication] Cache invalidation for jobId:', variables.jobId)
+      
       // Invalidate all pipeline-related queries
       queryClient.invalidateQueries({ queryKey: ['job-pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['pipeline'] })
       queryClient.invalidateQueries({ queryKey: ['applications'] })
+      
       // Invalidate specific job pipeline if jobId is provided
       if (variables.jobId) {
         queryClient.invalidateQueries({ queryKey: ['pipeline', variables.jobId] })
         queryClient.invalidateQueries({ queryKey: ['job-pipeline', variables.jobId] })
+        
+        // Force refetch the specific job pipeline
+        queryClient.refetchQueries({ queryKey: ['job-pipeline', variables.jobId] })
       }
+      
+      // Also invalidate candidates queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['candidates'] })
+      queryClient.invalidateQueries({ queryKey: ['job-candidates'] })
     }
   })
 }
