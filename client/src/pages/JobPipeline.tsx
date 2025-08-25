@@ -14,7 +14,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
-import { useUpdateCandidateStage } from '@/hooks/useJobCandidates'
 import { useCandidatesForJob } from '@/hooks/useCandidatesForJob'
 import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, organizeApplicationsByColumn } from '@/hooks/usePipeline'
 import { ResumeUpload } from '@/components/candidates/ResumeUpload'
@@ -25,16 +24,6 @@ import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText
 import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
 import { Link } from 'wouter'
 
-// Define the pipeline stages
-const PIPELINE_STAGES = [
-  { id: 'applied', label: 'Applied', color: 'bg-[#F0F4F8] border-gray-200' },
-  { id: 'screening', label: 'Phone Screen', color: 'bg-[#E6F0FF] border-[#264C99]/20' },
-  { id: 'interview', label: 'Interview', color: 'bg-yellow-100 border-yellow-200' },
-  { id: 'technical', label: 'Technical', color: 'bg-orange-100 border-orange-200' },
-  { id: 'offer', label: 'Offer', color: 'bg-purple-100 border-purple-200' },
-  { id: 'hired', label: 'Hired', color: 'bg-green-100 border-green-200' },
-  { id: 'rejected', label: 'Rejected', color: 'bg-red-100 border-red-200' }
-]
 
 // NEW APPLICATION CARD for the new pipeline system
 interface ApplicationCardProps {
@@ -475,18 +464,13 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
   )
 }
 
+// PIPELINE COLUMN for the system
 interface PipelineColumnProps {
-  stage: typeof PIPELINE_STAGES[0]
-  candidates: CandidateCardProps['candidate'][]
-}
-
-// NEW PIPELINE COLUMN for the new system
-interface NewPipelineColumnProps {
   column: { id: string; title: string; position: string }
   applications: any[]
 }
 
-function NewPipelineColumn({ column, applications }: NewPipelineColumnProps) {
+function PipelineColumn({ column, applications }: PipelineColumnProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
   })
@@ -549,53 +533,6 @@ function NewPipelineColumn({ column, applications }: NewPipelineColumnProps) {
   )
 }
 
-// OLD PIPELINE COLUMN for fallback
-function PipelineColumn({ stage, candidates }: PipelineColumnProps) {
-  const { isOver, setNodeRef } = useDroppable({
-    id: stage.id,
-  })
-
-  return (
-    <div className="flex-1 min-w-[280px] md:min-w-[300px]">
-      <div className={`p-4 rounded-t-lg border-2 ${stage.color} ${
-        isOver ? 'border-blue-500 shadow-lg' : ''
-      }`}>
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-slate-900">{stage.label}</h3>
-          <Badge variant="secondary" className={`text-xs transition-all ${
-            isOver ? 'bg-blue-500 text-white scale-110' : ''
-          }`}>
-            {candidates.length}
-          </Badge>
-        </div>
-      </div>
-      <div 
-        ref={setNodeRef}
-        className={`min-h-[400px] p-4 border-2 border-t-0 rounded-b-lg transition-all duration-200 ${
-          stage.color
-        } ${
-          isOver 
-            ? 'bg-opacity-60 border-blue-500 shadow-inner scale-[1.02]' 
-            : 'bg-opacity-20'
-        }`}
-      >
-        <SortableContext items={candidates.map((c: any) => c.id)} strategy={verticalListSortingStrategy}>
-          {candidates.map((candidate) => (
-            <CandidateCard key={candidate.id} candidate={candidate} />
-          ))}
-        </SortableContext>
-        {candidates.length === 0 && (
-          <div className="flex items-center justify-center h-32 text-slate-400">
-            <div className="text-center">
-              <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No candidates</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
 // Component for individual job cards in pipeline overview
 function JobPipelineCard({ job }: { job: any }) {
@@ -678,8 +615,6 @@ export default function JobPipeline() {
     enableRealtime: true, 
     pollingInterval: 30 
   })
-  const updateCandidateStage = useUpdateCandidateStage()
-
   // Show demo kanban board for demo viewers
   if (userRole === 'demo_viewer') {
     return (
@@ -711,19 +646,6 @@ export default function JobPipeline() {
     return organizeApplicationsByColumn(jobPipelineData.applications, jobPipelineData.columns)
   }, [jobPipelineData])
 
-  // Group candidates by stage (OLD SYSTEM - fallback for existing data)
-  const candidatesByStage = useMemo(() => {
-    if (!jobCandidates) return {}
-    
-    return jobCandidates.reduce((acc: any, candidate: any) => {
-      const stage = candidate.stage
-      if (!acc[stage]) {
-        acc[stage] = []
-      }
-      acc[stage].push(candidate)
-      return acc
-    }, {} as Record<string, typeof jobCandidates>)
-  }, [jobCandidates])
 
   // DnD sensors - support both mouse and touch
   const sensors = useSensors(
@@ -956,15 +878,15 @@ export default function JobPipeline() {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {candidatesByStage['hired']?.length || 0}
+                      {jobPipelineData?.applications?.length || 0}
                     </div>
-                    <div className="text-sm text-slate-600">Hired</div>
+                    <div className="text-sm text-slate-600">Applications</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-orange-600">
-                      {candidatesByStage['offer']?.length || 0}
+                      {jobPipelineData?.columns?.length || 0}
                     </div>
-                    <div className="text-sm text-slate-600">Active Offers</div>
+                    <div className="text-sm text-slate-600">Pipeline Stages</div>
                   </div>
                 </div>
               </CardContent>
@@ -986,24 +908,19 @@ export default function JobPipeline() {
                 onDragEnd={handleDragEnd}
               >
                 <div className="flex gap-4 overflow-x-auto pb-4 px-2 md:px-0 -mx-2 md:mx-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
-                  {/* NEW PIPELINE SYSTEM: Use dynamic columns */}
+                  {/* PIPELINE SYSTEM: Use dynamic columns */}
                   {jobPipelineData?.columns && applicationsByColumn ? (
                     jobPipelineData.columns.map(column => (
-                      <NewPipelineColumn
+                      <PipelineColumn
                         key={column.id}
                         column={column}
                         applications={applicationsByColumn.get(column.id) || []}
                       />
                     ))
                   ) : (
-                    // FALLBACK: Old system for existing data
-                    PIPELINE_STAGES.map(stage => (
-                      <PipelineColumn
-                        key={stage.id}
-                        stage={stage}
-                        candidates={candidatesByStage[stage.id] || []}
-                      />
-                    ))
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-slate-600">No pipeline data available</div>
+                    </div>
                   )}
                 </div>
                 
