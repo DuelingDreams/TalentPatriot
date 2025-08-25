@@ -2654,15 +2654,35 @@ Expires: 2025-12-31T23:59:59.000Z
       }
 
       console.info('Moving application', applicationId, 'to column', columnId);
-      
-      // Use the storage method to move the job candidate
-      // The applicationId in the new pipeline system corresponds to jobCandidate.id
-      const updatedJobCandidate = await storage.moveJobCandidate(applicationId, columnId);
-      
-      res.json({ 
-        message: "Application moved successfully",
-        application: updatedJobCandidate
-      });
+
+      // Get the column info to determine the new stage
+      const { data: column, error: columnError } = await supabaseAdmin
+        .from('pipeline_columns')
+        .select('id, title')
+        .eq('id', columnId)
+        .single();
+
+      if (columnError) {
+        return res.status(400).json({ error: `Invalid column: ${columnError.message}` });
+      }
+
+      // Map column title to stage (e.g. "Phone Screen" -> "phone_screen")
+      const newStage = column?.title?.toLowerCase().replace(/\s+/g, '_');
+
+      // Update both pipeline_column_id and stage in job_candidate table
+      const { error } = await supabaseAdmin
+        .from('job_candidate')
+        .update({ 
+          pipeline_column_id: columnId, 
+          stage: newStage 
+        })
+        .eq('id', applicationId);
+
+      if (error) {
+        return res.status(400).json({ error: error.message });
+      }
+
+      res.status(200).json({ success: true });
     } catch (error) {
       console.error("Error moving application:", error);
       res.status(500).json({ error: "Failed to move application" });
