@@ -1849,9 +1849,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       if (orgSlug) {
         try {
           const organizations = await storage.getOrganizations();
-          console.log(`[API] Looking for org with slug: ${orgSlug}`);
-          console.log(`[API] Available orgs:`, organizations.map(org => ({ name: org.name, slug: org.slug })));
-          
           const organization = organizations.find(org => 
             org.slug === orgSlug || 
             org.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === orgSlug ||
@@ -1860,10 +1857,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           
           if (organization) {
             orgId = organization.id;
-            console.log(`[API] Found organization: ${organization.name} (${organization.id})`);
-          } else {
-            console.log(`[API] Organization '${orgSlug}' not found. Falling back to all jobs.`);
-            // In development, continue without organization filter instead of failing
           }
         } catch (orgError) {
           console.error('Error looking up organization:', orgError);
