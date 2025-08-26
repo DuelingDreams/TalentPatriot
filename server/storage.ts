@@ -792,8 +792,11 @@ export class DatabaseStorage implements IStorage {
 
   async getPublicJobs(): Promise<Job[]> {
     const { data, error } = await supabase
-      .from('public_jobs')
+      .from('jobs')
       .select('*')
+      .eq('status', 'open')
+      .not('published_at', 'is', null)
+      .eq('record_status', 'active')
       .order('created_at', { ascending: false })
     
     if (error) {

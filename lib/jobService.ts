@@ -708,8 +708,10 @@ export async function getJobCandidatesByOrg(orgId: string) {
 
 export async function getPublicJobs(orgId?: string) {
   let query = supabase
-    .from('public_jobs')
-    .select('*');
+    .from('jobs')
+    .select('*')
+    .eq('status', 'open')
+    .not('published_at', 'is', null);
 
   // Filter by organization if orgId is provided
   if (orgId) {
@@ -724,6 +726,7 @@ export async function getPublicJobs(orgId?: string) {
   }
   
   console.log(`[JobService] getPublicJobs found ${data?.length || 0} jobs${orgId ? ` for org ${orgId}` : ''}`);
+  console.log(`[JobService] Query filters: status=open, published_at IS NOT NULL, record_status=active${orgId ? `, org_id=${orgId}` : ''}`);
   if (data?.length) {
     console.log(`[JobService] Job slugs: ${data.map(j => j.public_slug).join(', ')}`);
   }
