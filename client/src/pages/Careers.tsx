@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast'
 import { PageErrorBoundary } from '@/components/ui/page-error-boundary'
 import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX, Calendar, AlertCircle } from 'lucide-react'
 import type { Job } from '@shared/schema'
+import { supabase } from '@/lib/supabase'
 
 export default function Careers() {
   const { orgSlug } = useParams<{ orgSlug: string }>()
@@ -17,25 +18,36 @@ export default function Careers() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch jobs directly
+  // Fetch jobs directly from Supabase
   useEffect(() => {
     const fetchJobs = async () => {
       try {
         setLoading(true)
         setError(null)
         
-        const queryParams = new URLSearchParams()
-        if (orgSlug) queryParams.append('orgSlug', orgSlug)
+        let query = supabase.from("public_jobs").select("*")
         
-        const url = `/api/public/jobs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-        const response = await fetch(url)
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch jobs: ${response.status}`)
+        // Filter by organization if orgSlug is provided
+        if (orgSlug) {
+          // First get the organization ID from the slug
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('id')
+            .eq('slug', orgSlug)
+            .single()
+          
+          if (org) {
+            query = query.eq('org_id', org.id)
+          }
         }
         
-        const jobsData = await response.json()
-        setJobs(Array.isArray(jobsData) ? jobsData : [])
+        const { data: jobsData, error } = await query.order('created_at', { ascending: false })
+        
+        if (error) {
+          throw new Error(error.message)
+        }
+        
+        setJobs(jobsData || [])
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load jobs')
         console.error('Error fetching jobs:', err)
