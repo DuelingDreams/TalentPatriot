@@ -67,11 +67,11 @@ export default function Landing() {
       <section className="pt-32 py-16 bg-[#F7F9FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1A1A1A] mb-6 tracking-tight font-[Inter,sans-serif]">
-            The Simple ATS + CRM Built for Growing Teams
+            SMB-First ATS with Built-In AI & Fair Pricing
           </h1>
           
           <p className="text-lg md:text-xl lg:text-2xl text-[#1F3A5F] font-medium mb-8 max-w-4xl mx-auto font-[Inter,sans-serif]">
-            Stop losing track of candidates and start hiring smarter.
+            Post jobs, parse resumes automatically, and launch your branded careers page in under a day—pay only for recruiter seats, while collaborators are always free.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -81,13 +81,20 @@ export default function Landing() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link href="/onboarding/step1">
-              <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Quick Start
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto"
+              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              See It in Action
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </div>
+
+          {/* Trust Note */}
+          <p className="text-sm text-[#5C667B] mb-8 font-[Inter,sans-serif]">
+            Trusted by growing SMB teams & boutique agencies. Free during private beta.
+          </p>
 
           {/* Clarification Text */}
           <div className="mb-12 max-w-4xl mx-auto">
@@ -115,23 +122,23 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Who It's For Section */}
+      {/* Why TalentPatriot Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
-            Built for Busy Recruiters, Founders, and Hiring Managers
+            Why TalentPatriot
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <CardContent className="p-8 text-center relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
-                  <UserCheck className="w-10 h-10 text-[#1F3A5F]" />
+                  <Zap className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Recruiters</h3>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Built-in AI for parsing & matching</h3>
                 <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Track candidates and communication in one place.
+                  Find qualified candidates fast
                 </p>
               </CardContent>
             </Card>
@@ -140,11 +147,11 @@ export default function Landing() {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <CardContent className="p-8 text-center relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
-                  <Rocket className="w-10 h-10 text-[#1F3A5F]" />
+                  <DollarSign className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Founders</h3>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Only recruiter seats cost</h3>
                 <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Stay in the loop — even if you don't have a hiring team.
+                  Add unlimited hiring managers & viewers for free
                 </p>
               </CardContent>
             </Card>
@@ -153,11 +160,37 @@ export default function Landing() {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <CardContent className="p-8 text-center relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
-                  <Target className="w-10 h-10 text-[#1F3A5F]" />
+                  <Building2 className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Hiring Managers</h3>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Multi-client pipelines</h3>
                 <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Ditch the spreadsheet. See the pipeline at a glance.
+                  Great for small staffing firms and internal HR
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-8 text-center relative">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Shield className="w-10 h-10 text-[#1F3A5F]" />
+                </div>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Accessibility-first (WCAG-minded)</h3>
+                <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
+                  Inclusive by design
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-8 text-center relative">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Rocket className="w-10 h-10 text-[#1F3A5F]" />
+                </div>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Launch in under a day</h3>
+                <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
+                  5-step onboarding + branded careers page
                 </p>
               </CardContent>
             </Card>
@@ -165,23 +198,61 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* How It Works Section */}
       <section className="py-16 bg-[#F7F9FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
-            Everything You Need — Nothing You Don't
+            How It Works
           </h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#E6F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl font-bold text-[#1F3A5F]">1</span>
+              </div>
+              <h3 className="text-xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">Post a job on your branded page</h3>
+              <p className="text-[#5C667B] leading-relaxed">
+                Create job listings and publish them on your custom careers page
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#E6F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl font-bold text-[#1F3A5F]">2</span>
+              </div>
+              <h3 className="text-xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">AI auto-parses resumes & surfaces strong fits</h3>
+              <p className="text-[#5C667B] leading-relaxed">
+                Our AI automatically extracts key information and highlights top candidates
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#E6F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <span className="text-2xl font-bold text-[#1F3A5F]">3</span>
+              </div>
+              <h3 className="text-xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">Drag-and-drop candidates through your pipeline, collaborate freely</h3>
+              <p className="text-[#5C667B] leading-relaxed">
+                Move candidates through stages and collaborate with your team
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
+            Features
+          </h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
                   <Sparkles className="w-8 h-8 text-[#1F3A5F]" />
                 </div>
                 <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Drag-and-drop pipelines</h3>
-                <p className="text-sm text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Move candidates through stages with simple drag and drop
-                </p>
               </CardContent>
             </Card>
             
@@ -190,10 +261,7 @@ export default function Landing() {
                 <div className="w-16 h-16 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
                   <Users className="w-8 h-8 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Candidate profiles</h3>
-                <p className="text-sm text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  All candidate information in one searchable place
-                </p>
+                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Candidate profiles & advanced search</h3>
               </CardContent>
             </Card>
             
@@ -202,54 +270,116 @@ export default function Landing() {
                 <div className="w-16 h-16 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
                   <FileText className="w-8 h-8 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Notes and reminders</h3>
-                <p className="text-sm text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Track every interaction and never miss follow-ups
-                </p>
+                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Notes, mentions, reminders</h3>
               </CardContent>
             </Card>
             
             <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
+                  <Bell className="w-8 h-8 text-[#1F3A5F]" />
+                </div>
+                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Interview scheduling & email notifications</h3>
+              </CardContent>
+            </Card>
+
+            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
+                  <BarChart3 className="w-8 h-8 text-[#1F3A5F]" />
+                </div>
+                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Dashboards & job performance analytics</h3>
+              </CardContent>
+            </Card>
+
+            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1">
+              <CardContent className="p-6 text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
                   <Building2 className="w-8 h-8 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">CRM-lite for contacts</h3>
-                <p className="text-sm text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Build talent pools for future opportunities
-                </p>
+                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">CRM-lite for contacts (talent pools)</h3>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Screenshot/Video Section */}
-      <section className="py-16 bg-white">
+      {/* Demo Video Section */}
+      <section id="demo" className="py-16 bg-[#F7F9FC]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-12">
-          <div className="relative">
-            <div className="bg-white p-3 md:p-4 rounded-xl shadow-lg border border-gray-200">
-              <img 
-                src="/job-pipeline-screenshot.png"
-                alt="TalentPatriot Job Pipeline - Kanban view showing candidates moving through Applied, Phone Screen, Interview, Technical, Offer, Hired, and Rejected stages"
-                className="w-full h-auto max-h-[500px] md:max-h-[600px] rounded-lg object-cover"
-                loading="lazy"
-              />
-            </div>
-            <div className="text-center mt-6">
-              <p className="text-[#1A1A1A] text-base md:text-lg font-medium font-[Inter,sans-serif]">
-                See your entire hiring pipeline at a glance
-              </p>
-            </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
+            See TalentPatriot in Action
+          </h2>
+          
+          <div className="relative w-full max-w-4xl mx-auto aspect-video">
+            <video 
+              controls 
+              preload="metadata" 
+              poster="/video-tour.jpg"
+              className="w-full h-full rounded-lg shadow-lg border border-gray-200 bg-white"
+            >
+              <source src="/video-tour.webm" type="video/webm" />
+              <source src="/video-tour.mp4" type="video/mp4" />
+              <track src="/video-tour.vtt" kind="captions" srcLang="en" label="English" default />
+              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-6 md:p-8 rounded-lg flex items-center justify-center h-full">
+                <div className="text-center">
+                  <BarChart3 className="w-12 h-12 md:w-16 md:h-16 text-[#5C667B] mx-auto mb-4" />
+                  <p className="text-[#1A1A1A] text-base md:text-lg font-medium font-[Inter,sans-serif]">2-minute tour coming soon</p>
+                </div>
+              </div>
+            </video>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Social Proof Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="border border-[#D1E7FF] shadow-sm p-8">
+              <CardContent className="p-0">
+                <p className="text-lg text-[#1A1A1A] mb-4 font-[Inter,sans-serif] leading-relaxed">
+                  "We filled roles faster, and didn't pay for hiring manager logins."
+                </p>
+                <p className="text-sm text-[#5C667B] font-medium">— SMB Recruiter</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border border-[#D1E7FF] shadow-sm p-8">
+              <CardContent className="p-0">
+                <p className="text-lg text-[#1A1A1A] mb-4 font-[Inter,sans-serif] leading-relaxed">
+                  "Multi-client pipelines = less chaos for our boutique agency."
+                </p>
+                <p className="text-sm text-[#5C667B] font-medium">— Agency Owner</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Teaser Section */}
       <section className="py-16 bg-[#F7F9FC]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-6 font-[Inter,sans-serif]">
+            Pricing Designed for SMBs
+          </h2>
+          <p className="text-lg md:text-xl text-[#5C667B] mb-8 font-[Inter,sans-serif]">
+            From $129/month for 3 recruiter seats, unlimited collaborators included.
+          </p>
+          <Link href="/pricing">
+            <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors">
+              View Pricing
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </Link>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-16 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] mb-8 font-[Inter,sans-serif]">
-            Start Hiring Smarter Today
+            Ready to Hire Smarter?
           </h2>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -259,12 +389,14 @@ export default function Landing() {
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
-            <Link href="/onboarding/step1">
-              <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Quick Start
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto"
+              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Watch a 2-min Tour
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
           </div>
         </div>
       </section>
