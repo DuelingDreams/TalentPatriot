@@ -792,10 +792,8 @@ export class DatabaseStorage implements IStorage {
 
   async getPublicJobs(): Promise<Job[]> {
     const { data, error } = await supabase
-      .from('jobs')
+      .from('public_jobs')
       .select('*')
-      .eq('record_status', 'active')
-      .eq('status', 'open')
       .order('created_at', { ascending: false })
     
     if (error) {
@@ -807,10 +805,8 @@ export class DatabaseStorage implements IStorage {
 
   async getPublicJobsByOrg(orgId: string): Promise<Job[]> {
     const { data, error } = await supabase
-      .from('jobs')
+      .from('public_jobs')
       .select('*')
-      .eq('record_status', 'active')
-      .eq('status', 'open')
       .eq('org_id', orgId)
       .order('created_at', { ascending: false })
     
@@ -823,11 +819,9 @@ export class DatabaseStorage implements IStorage {
 
   async getPublicJob(id: string): Promise<Job | undefined> {
     const { data, error } = await supabase
-      .from('jobs')
+      .from('public_jobs')
       .select('*')
       .eq('id', id)
-      .eq('record_status', 'active')
-      .eq('status', 'open')
       .single()
     
     if (error) {

@@ -708,11 +708,8 @@ export async function getJobCandidatesByOrg(orgId: string) {
 
 export async function getPublicJobs(orgId?: string) {
   let query = supabase
-    .from('jobs')
-    .select('*')
-    .eq('status', 'open')
-    .not('public_slug', 'is', null)
-    .eq('record_status', 'active');
+    .from('public_jobs')
+    .select('*');
 
   // Filter by organization if orgId is provided
   if (orgId) {
