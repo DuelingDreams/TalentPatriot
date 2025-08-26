@@ -13,25 +13,23 @@ import { createClient } from '@supabase/supabase-js';
 import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 
-// Map database row to camelCase for frontend compatibility
 function mapPublicJobRow(row: any) {
   return {
     id: row.id,
+    orgId: row.org_id,
+    publicSlug: row.public_slug,
     title: row.title,
     description: row.description,
     location: row.location,
     department: row.department,
-    salaryRange: row.salary_range,
     jobType: row.job_type,
-    experienceLevel: row.experience_level,
-    remote: row.remote,
     status: row.status,
-    publicSlug: row.public_slug,
-    orgId: row.org_id,
-    clientId: row.client_id,
+    recordStatus: row.record_status,
+    experienceLevel: row.experience_level,
+    remoteOption: row.remote_option,
+    salaryRange: row.salary_range,
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    publishedAt: row.published_at
+    updatedAt: row.updated_at ?? null,
   };
 }
 
