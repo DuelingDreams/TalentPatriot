@@ -15,6 +15,7 @@ import { useCreateJob } from '@/hooks/useJobMutation'
 import { useClients } from '@/hooks/useClients'
 import { Plus, Loader2, Globe, Building2, Users, Briefcase, HelpCircle } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { flags } from '@/lib/flags'
 
 // Form validation schema - always creates drafts, slug is generated server-side
 const jobSchema = z.object({
@@ -26,8 +27,10 @@ const jobSchema = z.object({
   salaryRange: z.string().optional(),
   experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).default('mid'),
   jobType: z.enum(['full-time', 'part-time', 'contract', 'internship']).default('full-time'),
-  postingTargets: z.array(z.string()).default([]),
-  autoPost: z.boolean().default(false)
+  ...(flags.jobBoardDistribution && {
+    postingTargets: z.array(z.string()).default([]),
+    autoPost: z.boolean().default(false)
+  })
 })
 
 type JobFormData = z.infer<typeof jobSchema>
@@ -102,8 +105,10 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       salaryRange: '',
       experienceLevel: 'mid',
       jobType: 'full-time',
-      postingTargets: [],
-      autoPost: false
+      ...(flags.jobBoardDistribution && {
+        postingTargets: [],
+        autoPost: false
+      })
     }
   })
 
@@ -128,8 +133,10 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
         salaryRange: data.salaryRange || undefined,
         experienceLevel: data.experienceLevel,
         jobType: data.jobType,
-        postingTargets: data.postingTargets,
-        autoPost: data.autoPost
+        ...(flags.jobBoardDistribution && {
+          postingTargets: data.postingTargets,
+          autoPost: data.autoPost
+        })
       }
       
       createJobMutation.mutate(values)
@@ -380,89 +387,94 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
             />
 
 
-            {/* Job Board Selection Section */}
-            <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
-              <div className="flex items-center gap-2 mb-2">
-                <Globe className="w-4 h-4 text-blue-600" />
-                <span className="text-sm font-medium text-slate-700">Distribution Settings</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium">Job Board Distribution</h4>
-                  <p className="text-xs text-slate-600">Select where to post this job</p>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="autoPost"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-xs">Auto-post to selected boards</FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <FormField
-                control={form.control}
-                name="postingTargets"
-                render={() => (
-                  <FormItem>
-                    <div className="grid grid-cols-1 gap-3">
-                      {jobBoards.map((board) => {
-                        const IconComponent = board.icon
-                        return (
-                          <FormField
-                            key={board.id}
-                            control={form.control}
-                            name="postingTargets"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={board.id}
-                                  className="flex items-start space-x-3 space-y-0 p-3 border rounded-md hover:bg-white transition-colors"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(board.id)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value, board.id])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== board.id
-                                              )
-                                            )
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <div className="flex items-center space-x-3 flex-1">
-                                    <IconComponent className="h-5 w-5 text-blue-600" />
-                                    <div className="flex-1">
-                                      <FormLabel className="text-sm font-medium">
-                                        {board.name}
-                                      </FormLabel>
-                                      <p className="text-xs text-slate-600">{board.description}</p>
-                                      <p className="text-xs text-green-600 font-medium">{board.pricing}</p>
-                                    </div>
-                                  </div>
-                                </FormItem>
-                              )
-                            }}
-                          />
-                        )
-                      })}
+            {flags.jobBoardDistribution && (
+              <>
+                {/* Job Board Selection Section */}
+                <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Globe className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-slate-700">Distribution Settings</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-medium">Job Board Distribution</h4>
+                      <p className="text-xs text-slate-600">Select where to post this job</p>
                     </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <FormField
+                      control={form.control}
+                      name="autoPost"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center space-x-2">
+                          <FormControl>
+                            <Checkbox
+                              checked={Boolean(field.value)}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                          <FormLabel className="text-xs">Auto-post to selected boards</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="postingTargets"
+                    render={() => (
+                      <FormItem>
+                        <div className="grid grid-cols-1 gap-3">
+                          {jobBoards.map((board) => {
+                            const IconComponent = board.icon
+                            return (
+                              <FormField
+                                key={board.id}
+                                control={form.control}
+                                name="postingTargets"
+                                render={({ field }) => {
+                                  return (
+                                    <FormItem
+                                      key={board.id}
+                                      className="flex items-start space-x-3 space-y-0 p-3 border rounded-md hover:bg-white transition-colors"
+                                    >
+                                      <FormControl>
+                                        <Checkbox
+                                          checked={Array.isArray(field.value) && field.value.includes(board.id)}
+                                          onCheckedChange={(checked) => {
+                                            const currentValue = Array.isArray(field.value) ? field.value : [];
+                                            return checked
+                                              ? field.onChange([...currentValue, board.id])
+                                              : field.onChange(
+                                                  currentValue.filter(
+                                                    (value: string) => value !== board.id
+                                                  )
+                                                )
+                                          }}
+                                        />
+                                      </FormControl>
+                                      <div className="flex items-center space-x-3 flex-1">
+                                        <IconComponent className="h-5 w-5 text-blue-600" />
+                                        <div className="flex-1">
+                                          <FormLabel className="text-sm font-medium">
+                                            {board.name}
+                                          </FormLabel>
+                                          <p className="text-xs text-slate-600">{board.description}</p>
+                                          <p className="text-xs text-green-600 font-medium">{board.pricing}</p>
+                                        </div>
+                                      </div>
+                                    </FormItem>
+                                  )
+                                }}
+                              />
+                            )
+                          })}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="flex justify-end gap-3 pt-4">
               <Button
