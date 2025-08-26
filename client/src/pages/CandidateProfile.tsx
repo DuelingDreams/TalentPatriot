@@ -145,7 +145,7 @@ export default function CandidateProfile() {
                 <div className="flex flex-wrap gap-2">
                   {applications?.map((app: any) => (
                     <Badge key={app.id} className={getStageColor(app.stage)}>
-                      {app.job?.title}: {formatStageLabel(app.stage)}
+                      {app.jobTitle}: {formatStageLabel(app.stage)}
                     </Badge>
                   ))}
                 </div>
@@ -199,6 +199,10 @@ export default function CandidateProfile() {
                     <span className="font-semibold">{notes?.length || 0}</span>
                   </div>
                   <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Applications</span>
+                    <span className="font-semibold">{applications?.length || 0}</span>
+                  </div>
+                  <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Last Activity</span>
                     <span className="font-semibold text-sm">
                       {applications?.[0] ? formatDistanceToNow(new Date(applications[0].dateUpdated), { addSuffix: true }) : 'None'}
@@ -249,15 +253,15 @@ export default function CandidateProfile() {
                       <div key={app.id} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div>
-                            <h3 className="font-semibold text-lg">{app.job?.title}</h3>
-                            <p className="text-sm text-gray-600">{app.job?.client?.name}</p>
+                            <h3 className="font-semibold text-lg">{app.jobTitle || 'Unknown Job'}</h3>
+                            <p className="text-sm text-gray-600">{app.clientName}</p>
                           </div>
                           <div className="text-right">
                             <Badge className={getStageColor(app.stage)}>
                               {formatStageLabel(app.stage)}
                             </Badge>
                             <p className="text-xs text-gray-500 mt-1">
-                              Updated {formatDistanceToNow(new Date(app.updatedAt), { addSuffix: true })}
+                              Updated {formatDistanceToNow(new Date(app.dateUpdated), { addSuffix: true })}
                             </p>
                           </div>
                         </div>
@@ -269,7 +273,7 @@ export default function CandidateProfile() {
                         )}
                         
                         <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
-                          <span>Applied {format(new Date(app.createdAt), 'MMM d, yyyy')}</span>
+                          <span>Applied {format(new Date(app.dateApplied), 'MMM d, yyyy')}</span>
                           {app.assignedTo && <span>Assigned to recruiter</span>}
                         </div>
                       </div>
