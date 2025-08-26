@@ -2558,31 +2558,7 @@ Expires: 2025-12-31T23:59:59.000Z
 
 
   // PUBLIC ROUTES - No authentication required
-
-  // Public job listings
-  app.get("/api/public/jobs", async (req, res) => {
-    try {
-      const jobs = await storage.getPublicJobs();
-      res.json(jobs);
-    } catch (error) {
-      console.error("Error fetching public jobs:", error);
-      res.status(500).json({ error: "Failed to fetch jobs" });
-    }
-  });
-
-  // Public single job details
-  app.get("/api/public/jobs/:id", async (req, res) => {
-    try {
-      const job = await storage.getPublicJob(req.params.id);
-      if (!job) {
-        return res.status(404).json({ error: "Job not found" });
-      }
-      res.json(job);
-    } catch (error) {
-      console.error("Error fetching public job:", error);
-      res.status(500).json({ error: "Failed to fetch job" });
-    }
-  });
+  // (These routes are moved to the main section above to avoid duplicates)
 
 
 
@@ -2819,33 +2795,7 @@ Expires: 2025-12-31T23:59:59.000Z
   // Add subdomain middleware for public routes
   app.use(subdomainResolver);
 
-  // GET /api/public/jobs - Get published jobs for careers page (organization-specific via subdomain)
-  app.get('/api/public/jobs', async (req, res) => {
-    console.info('[API]', req.method, req.url);
-    try {
-      let jobs;
-      
-      // If we have organization context from subdomain, filter by org
-      if (req.organization) {
-        jobs = await storage.getPublicJobsByOrg(req.organization.id);
-        console.info('[API] GET /api/public/jobs →', { 
-          success: true, 
-          count: jobs?.length || 0, 
-          org: req.organization.name,
-          subdomain: req.organization.slug 
-        });
-      } else {
-        // Fallback to all jobs (for development or when no subdomain)
-        jobs = await storage.getPublicJobs();
-        console.info('[API] GET /api/public/jobs →', { success: true, count: jobs?.length || 0, context: 'all-orgs' });
-      }
-      
-      res.json(jobs);
-    } catch (error: any) {
-      console.error('Error fetching public jobs:', error);
-      res.status(500).json({ error: error.message });
-    }
-  });
+  // (Duplicate public jobs endpoint removed - using main implementation above)
 
 
 
