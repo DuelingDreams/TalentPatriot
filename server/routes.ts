@@ -13,6 +13,27 @@ import { createClient } from '@supabase/supabase-js';
 import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 
+// Map database row to camelCase for frontend compatibility
+function mapPublicJobRow(row: any) {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    location: row.location,
+    department: row.department,
+    salaryRange: row.salary_range,
+    jobType: row.job_type,
+    experienceLevel: row.experience_level,
+    remote: row.remote,
+    status: row.status,
+    publicSlug: row.public_slug,
+    orgId: row.org_id,
+    clientId: row.client_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    publishedAt: row.published_at
+  };
+}
 
 // Write operation rate limiter
 const writeLimiter = rateLimit({
@@ -1848,7 +1869,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       // Get jobs with optional organization filtering
       const openJobs = await jobService.getPublicJobs(orgId);
-      res.json(openJobs);
+      res.json(openJobs.map(mapPublicJobRow));
     } catch (error) {
       console.error('Error fetching public jobs:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -1922,7 +1943,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       console.log(`[API] Job found: ${job.title} (ID: ${job.id})`);
-      res.json(job);
+      res.json(mapPublicJobRow(job));
     } catch (error) {
       console.error('Error fetching job by slug:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
