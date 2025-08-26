@@ -61,26 +61,10 @@ export default function Landing() {
                 </Button>
               </Link>
               <Link href="/beta">
-                <Button variant="outline" className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white font-medium text-sm md:text-base px-3 md:px-4 py-2 transition-colors">
+                <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
                   Beta Access
                 </Button>
               </Link>
-              {flags.showStartFree ? (
-                <Link href="/onboarding/step1">
-                  <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
-                    Start Free
-                  </Button>
-                </Link>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <Link href="/beta">
-                    <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
-                      Start Free
-                    </Button>
-                  </Link>
-                  <span className="text-xs text-[#5C667B] mt-1">Private beta only</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
