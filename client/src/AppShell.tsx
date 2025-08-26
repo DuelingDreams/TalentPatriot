@@ -32,7 +32,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isPublicPath = PUBLIC_PATHS.some(path => location.startsWith(path));
   
   useEffect(() => {
-    console.log('AppShell: location =', location, 'isPublicPath =', isPublicPath);
+    // console.log('AppShell: location =', location, 'isPublicPath =', isPublicPath);
     if (isPublicPath) {
       // Public paths render immediately
       setReady(true);
