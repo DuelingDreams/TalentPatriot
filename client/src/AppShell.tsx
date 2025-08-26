@@ -4,6 +4,7 @@ import { waitForSession } from "./hooks/useAuthSession";
 
 // Public paths that don't require authentication
 const PUBLIC_PATHS = [
+  '/',
   '/careers',
   '/org',
   '/public',
@@ -12,10 +13,14 @@ const PUBLIC_PATHS = [
   '/forgot-password',
   '/reset-password',
   '/auth/callback',
-  '/privacy-policy',
-  '/terms-of-service',
+  '/onboarding',
+  '/unauthorized',
+  '/privacy',
+  '/terms',
   '/about',
   '/health',
+  '/beta',
+  '/demo',
   '/.well-known'
 ];
 
@@ -24,14 +29,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   
   // Check if current path is public
-  const isPublicPath = PUBLIC_PATHS.some(path => 
-    location.startsWith(path) || 
-    location.includes('/careers') ||
-    location.includes('/org/') ||
-    location.includes('/public/')
-  );
+  const isPublicPath = PUBLIC_PATHS.some(path => location.startsWith(path));
   
   useEffect(() => {
+    console.log('AppShell: location =', location, 'isPublicPath =', isPublicPath);
     if (isPublicPath) {
       // Public paths render immediately
       setReady(true);
@@ -39,7 +40,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       // Protected paths wait for auth session
       void waitForSession().finally(() => setReady(true));
     }
-  }, [isPublicPath]);
+  }, [isPublicPath, location]);
   
   if (!ready) return <div className="p-6">Loading…</div>;
   return <>{children}</>;
