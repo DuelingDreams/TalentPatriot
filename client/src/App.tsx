@@ -57,6 +57,7 @@ const TestFeatures = lazy(() => import("@/pages/TestFeatures"));
 const Help = lazy(() => import("@/pages/Help"));
 const Documentation = lazy(() => import("@/pages/Documentation"));
 const About = lazy(() => import("@/pages/About"));
+const Pricing = lazy(() => import("@/pages/Pricing"));
 const ProfileSettings = lazy(() => import("@/pages/ProfileSettings"));
 const AccountSettings = lazy(() => import("@/pages/AccountSettings"));
 const BetaProgram = lazy(() => import("@/pages/BetaProgram"));
@@ -112,6 +113,7 @@ function Router() {
         <Route path="/onboarding/checklist" component={OnboardingChecklist} />
         <Route path="/unauthorized" component={Unauthorized} />
         <Route path="/about" component={About} />
+        <Route path="/pricing" component={Pricing} />
         <Route path="/beta" component={BetaProgram} />
 
         <Route path="/privacy" component={PrivacyPolicy} />
