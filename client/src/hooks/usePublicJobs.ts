@@ -78,7 +78,8 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
           };
         }
         const jobsData = await response.json();
-        return { data: jobsData, error: null };
+        // API returns jobs array directly, not wrapped in an object
+        return { data: Array.isArray(jobsData) ? jobsData : [], error: null };
       } catch (networkError) {
         return { 
           data: null, 
