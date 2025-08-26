@@ -61,32 +61,28 @@ const Pricing = lazy(() => import("@/pages/Pricing"));
 const ProfileSettings = lazy(() => import("@/pages/ProfileSettings"));
 const AccountSettings = lazy(() => import("@/pages/AccountSettings"));
 const BetaProgram = lazy(() => import("@/pages/BetaProgram"));
+const ResumeParsingDemo = lazy(() => import("@/pages/ResumeParsingDemo"));
 
 function AppPrefetch() {
   useEffect(() => {
     // Prefetch high-traffic pages to reduce chunk fetch failures
     // Add retry logic for SSL certificate issues
-    const prefetchWithRetry = async (modulePath: string, retries = 3) => {
-      for (let i = 0; i < retries; i++) {
-        try {
-          await import(modulePath);
-          break;
-        } catch (error) {
-          if (i === retries - 1) {
-            console.warn(`Failed to prefetch ${modulePath} after ${retries} attempts:`, error);
-          } else {
-            // Wait briefly before retry
-            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-          }
-        }
+    // Prefetch critical pages for performance, but don't break on failures
+    const prefetchPage = async (moduleFactory: () => Promise<any>) => {
+      try {
+        await moduleFactory();
+      } catch (error) {
+        // Silently ignore prefetch failures to avoid console spam
+        // These are performance optimizations, not critical for functionality
       }
     };
 
-    prefetchWithRetry("@/pages/Dashboard");
-    prefetchWithRetry("@/pages/Jobs");
-    prefetchWithRetry("@/pages/Candidates");
-    prefetchWithRetry("@/pages/Clients");
-    prefetchWithRetry("@/pages/Reports");
+    // Use proper imports instead of string paths
+    prefetchPage(() => import("@/pages/Dashboard"));
+    prefetchPage(() => import("@/pages/Jobs"));
+    prefetchPage(() => import("@/pages/Candidates"));
+    prefetchPage(() => import("@/pages/Clients"));
+    prefetchPage(() => import("@/pages/Reports"));
   }, []);
   return null;
 }
@@ -94,36 +90,31 @@ function AppPrefetch() {
 // Global error handler for SSL and network issues
 function GlobalErrorHandlerSetup() {
   useEffect(() => {
-    // Handle chunk load failures (common with SSL issues)
+    // Handle only critical chunk load failures that prevent app startup
     const handleChunkLoadError = (event: ErrorEvent) => {
       if (
-        event.message.includes('Loading chunk') ||
-        event.message.includes('SSL') ||
-        event.message.includes('ERR_SSL') ||
-        event.message.includes('ERR_CERT') ||
-        event.message.includes('ERR_ECDH_FALLBACK_CERTIFICATE_INVALID')
+        event.message.includes('Loading chunk') &&
+        event.message.includes('failed')
       ) {
-        console.warn('SSL/Certificate error detected, attempting page reload...');
+        console.warn('Critical chunk load failure detected, attempting page reload...');
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 2000);
       }
     };
 
-    // Handle unhandled promise rejections (like SSL fetch errors)
+    // Handle only SSL certificate errors during initial load
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const reason = event.reason?.toString() || '';
       if (
-        reason.includes('SSL') ||
-        reason.includes('ERR_SSL') ||
-        reason.includes('ERR_CERT') ||
-        reason.includes('certificate')
+        reason.includes('ERR_ECDH_FALLBACK_CERTIFICATE_INVALID') ||
+        (reason.includes('SSL') && reason.includes('CERT'))
       ) {
-        console.warn('SSL promise rejection detected, attempting page reload...');
+        console.warn('SSL certificate error detected, attempting page reload...');
         event.preventDefault();
         setTimeout(() => {
           window.location.reload();
-        }, 1000);
+        }, 3000);
       }
     };
 
@@ -195,7 +186,7 @@ function Router() {
         <Route path="/org/:orgSlug/careers/:slug/apply" component={JobApplicationForm} />
         
         {/* Demo and test routes */}
-        <Route path="/demo/resume-parsing" component={lazy(() => import('./pages/ResumeParsingDemo'))} />
+        <Route path="/demo/resume-parsing" component={ResumeParsingDemo} />
         
         {/* Legacy redirect support */}
         <Route path="/public/careers" component={Careers} />
