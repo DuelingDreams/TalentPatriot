@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AppErrorBoundary } from "@/utils/appErrorBoundary";
 import { DemoToggleFooter } from "@/components/DemoToggleFooter";
 import { supabase } from "@/lib/supabase";
+import AppShell from "./AppShell";
 
 // Loading component for suspense fallback
 const PageLoader = () => (
@@ -257,9 +258,11 @@ function App() {
           <TooltipProvider>
             <Toaster />
             <ToastProvider />
-            <AppPrefetch />
-            <Router />
-            <DemoToggleFooter />
+            <AppShell>
+              <AppPrefetch />
+              <Router />
+              <DemoToggleFooter />
+            </AppShell>
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>
