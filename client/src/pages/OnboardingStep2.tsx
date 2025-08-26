@@ -41,6 +41,26 @@ export default function OnboardingStep2() {
   const { toast } = useToast()
   const { isDemoUser } = useDemoFlag()
 
+  // Pre-populate with beta application data if available
+  useEffect(() => {
+    const betaData = sessionStorage.getItem('betaApplicationData')
+    if (betaData) {
+      try {
+        const parsedData = JSON.parse(betaData)
+        if (parsedData.companyName) {
+          setCompanyName(parsedData.companyName)
+        }
+        if (parsedData.companySize) {
+          setCompanySize(parsedData.companySize)
+        }
+        // Clear the data after using it
+        sessionStorage.removeItem('betaApplicationData')
+      } catch (error) {
+        console.warn('Failed to parse beta application data:', error)
+      }
+    }
+  }, [])
+
   // Clear demo mode for real users during onboarding
   useEffect(() => {
     clearDemoModeForRealUsers()

@@ -25,7 +25,7 @@ import {
   Phone,
   Globe
 } from 'lucide-react'
-import { Link } from 'wouter'
+import { Link, useLocation } from 'wouter'
 
 const betaApplicationSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),
@@ -43,6 +43,7 @@ type BetaApplicationForm = z.infer<typeof betaApplicationSchema>
 
 export default function BetaProgram() {
   const { toast } = useToast()
+  const [, setLocation] = useLocation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
@@ -64,14 +65,23 @@ export default function BetaProgram() {
   const onSubmit = async (data: BetaApplicationForm) => {
     setIsSubmitting(true)
     try {
+      // Store beta application data in sessionStorage for later use
+      sessionStorage.setItem('betaApplicationData', JSON.stringify(data))
+      
       // TODO: Implement beta application submission API
       await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
       
       setSubmitted(true)
       toast({
         title: "Application submitted!",
-        description: "We'll review your application and get back to you within 24 hours.",
+        description: "Please create your account to complete the beta access process.",
       })
+      
+      // Redirect to signup after a brief delay
+      setTimeout(() => {
+        setLocation('/onboarding/step1')
+      }, 2000)
+      
     } catch (error) {
       toast({
         title: "Error",
@@ -93,14 +103,13 @@ export default function BetaProgram() {
             </div>
             <h1 className="text-4xl font-bold text-[#1A1A1A] mb-4">Application Submitted!</h1>
             <p className="text-lg text-[#5C667B] mb-8 max-w-2xl mx-auto">
-              Thank you for your interest in our beta program. We'll review your application and 
-              get back to you within 24 hours with next steps.
+              Thank you for your interest in our beta program. You're being redirected to create your account and 
+              complete the setup process.
             </p>
-            <Link href="/">
-              <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4">
-                Back to Home
-              </Button>
-            </Link>
+            <div className="flex items-center justify-center gap-2 text-[#5C667B]">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#1F3A5F]"></div>
+              <span>Redirecting to account setup...</span>
+            </div>
           </div>
         </div>
       </div>
