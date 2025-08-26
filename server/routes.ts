@@ -2707,30 +2707,36 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get("/api/candidates/:candidateId/applications", async (req, res) => {
     try {
       const { candidateId } = req.params;
-      const orgId = req.headers['x-org-id'] as string;
+      const orgId = req.query.orgId || req.userContext?.orgId;
       
       if (!orgId) {
-        return res.status(400).json({ error: "Organization context required" });
+        return res.status(400).json({ error: 'Organization ID is required' });
       }
 
-      // Get all job candidates for this organization and filter by candidate ID
-      const allJobCandidates = await jobService.getJobCandidatesByOrg(orgId);
-      const candidateApplications = allJobCandidates.filter((jc: any) => jc.candidate_id === candidateId);
-      
+      const { data, error } = await supabaseAdmin
+        .from('job_candidate')
+        .select('id, job_id, stage, created_at, updated_at, notes, status, jobs(title)')
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId);
+
+      if (error) {
+        return res.status(400).json({ error: error.message });
+      }
+
       // Transform to match ApplicationHistoryEntry interface
-      const formattedApplications = candidateApplications.map((jc: any) => ({
+      const formattedApplications = data.map((jc: any) => ({
         id: jc.id,
         jobId: jc.job_id,
-        jobTitle: jc.job?.title || 'Unknown Job',
-        clientName: jc.job?.client?.name || 'Direct Application',
+        jobTitle: jc.jobs?.title || 'Unknown Job',
+        clientName: 'Direct Application', // Could be enhanced with client join if needed
         stage: jc.stage || 'applied',
         dateApplied: jc.created_at,
         dateUpdated: jc.updated_at,
         notes: jc.notes,
         status: jc.status || 'active'
       }));
-      
-      res.json(formattedApplications);
+
+      res.status(200).json(formattedApplications);
     } catch (error) {
       console.error("Error fetching candidate applications:", error);
       res.status(500).json({ error: "Failed to fetch candidate applications" });
