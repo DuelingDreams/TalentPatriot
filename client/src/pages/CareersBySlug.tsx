@@ -1,7 +1,7 @@
+import { useState, useEffect } from 'react'
 import { useParams, useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug'
 import { PageErrorBoundary } from '@/components/ui/page-error-boundary'
 import { MapPin, Clock, Briefcase, Building2, ArrowLeft, AlertCircle, Loader2 } from 'lucide-react'
 import type { Job } from '@shared/schema'
@@ -9,9 +9,48 @@ import type { Job } from '@shared/schema'
 export default function CareersBySlug() {
   const { slug, orgSlug } = useParams<{ slug: string; orgSlug?: string }>()
   const [, setLocation] = useLocation()
+  const [job, setJob] = useState<Job | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
 
-  // Use shared hook for consistent data fetching
-  const { job, isLoading: loading, error, notFound } = usePublicJobBySlug(slug, { orgSlug })
+  // Fetch job from backend API
+  useEffect(() => {
+    const fetchJob = async () => {
+      if (!slug) return;
+      
+      try {
+        setLoading(true)
+        setError(null)
+        setNotFound(false)
+        
+        const queryParams = new URLSearchParams()
+        if (orgSlug) queryParams.append('orgSlug', orgSlug)
+        
+        const url = `/api/public/jobs/slug/${slug}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await fetch(url)
+        
+        if (response.status === 404) {
+          setNotFound(true)
+          return
+        }
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch job: ${response.status}`)
+        }
+        
+        const jobData = await response.json()
+        setJob(jobData)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load job')
+        console.error('Error fetching job:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchJob()
+  }, [slug, orgSlug])
 
   // Error state
   if (error && !loading) {
