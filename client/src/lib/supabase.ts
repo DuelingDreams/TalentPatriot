@@ -76,6 +76,9 @@ if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey) {
         console.info('[SUPABASE] Connection test failed →', error.message)
       }
     })
+    .catch((err) => {
+      console.warn('[SUPABASE] Connection test exception:', err.message || err)
+    })
 }
 
 // Handle global auth errors to prevent refresh token errors from appearing in console
