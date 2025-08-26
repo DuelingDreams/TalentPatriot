@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@/contexts/AuthContext'
 
 export interface ApplicationHistoryEntry {
   id: string
@@ -54,16 +55,14 @@ const demoApplicationHistory: Record<string, ApplicationHistoryEntry[]> = {
 }
 
 export function useCandidateApplicationHistory(candidateId: string) {
+  const { currentOrgId } = useAuth()
+  
   return useQuery({
-    queryKey: ['/api/candidates', candidateId, 'applications'],
+    queryKey: ['candidate-applications', candidateId, currentOrgId],
     queryFn: async () => {
-      if (!candidateId) return []
+      if (!candidateId || !currentOrgId) return []
       
-      const response = await fetch(`/api/candidates/${candidateId}/applications`, {
-        headers: {
-          'x-org-id': localStorage.getItem('current-org-id') || '',
-        }
-      })
+      const response = await fetch(`/api/candidates/${candidateId}/applications?orgId=${currentOrgId}`)
       
       if (!response.ok) {
         throw new Error('Failed to fetch candidate applications')
@@ -71,6 +70,6 @@ export function useCandidateApplicationHistory(candidateId: string) {
       
       return await response.json() as ApplicationHistoryEntry[]
     },
-    enabled: !!candidateId
+    enabled: !!candidateId && !!currentOrgId
   })
 }
