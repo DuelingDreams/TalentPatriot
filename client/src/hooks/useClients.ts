@@ -13,10 +13,18 @@ export function useClients(options: { refetchInterval?: number } = {}) {
   
   return useQuery({
     queryKey: ['/api/clients', currentOrgId],
-    queryFn: () => {
+    queryFn: async () => {
       if (isDemoUser) return demoAdapter.getClients()
       if (!currentOrgId) throw new Error('Organization context required')
-      return apiRequest(`/api/clients?orgId=${currentOrgId}`)
+      
+      const result = await apiRequest(`/api/clients?orgId=${currentOrgId}`)
+      
+      // Handle auth-required state gracefully
+      if (result?.authRequired) {
+        return { authRequired: true, data: [] }
+      }
+      
+      return result
     },
     enabled: isDemoUser || !!currentOrgId,
     refetchInterval: isDemoUser ? false : options.refetchInterval,

@@ -20,6 +20,7 @@ import { QuickActions } from '@/components/dashboard/QuickActions'
 import { AIInsights } from '@/components/ai/AIInsights'
 import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator'
 import { useRealTimeRefresh } from '@/hooks/useRealTimeRefresh'
+import { AuthRequired, hasAuthRequired } from '@/components/AuthRequired'
 
 import { 
   Briefcase, 
@@ -81,6 +82,19 @@ export default function Dashboard() {
   const { data: clients, isLoading: clientsLoading } = useClients()
   const { data: candidates, isLoading: candidatesLoading } = useCandidates()
   const { data: jobCandidates, isLoading: jobCandidatesLoading } = useJobCandidates()
+
+  // Check for auth-required state from any of the data hooks
+  if (hasAuthRequired(jobs) || hasAuthRequired(clients) || hasAuthRequired(candidates)) {
+    return (
+      <DashboardLayout pageTitle="Dashboard">
+        <AuthRequired 
+          title="Sign in to view dashboard"
+          message="Please sign in to access your dashboard data and analytics."
+          onSignIn={() => setLocation('/auth/signin')}
+        />
+      </DashboardLayout>
+    )
+  }
 
   // Check if user has an organization after hooks - only for non-demo users
   React.useEffect(() => {

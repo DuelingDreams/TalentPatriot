@@ -1,10 +1,20 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { isPermissionError } from "./db";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const error = new Error(`${res.status}: ${text}`);
+    (error as any).status = res.status;
+    
+    // Handle permission errors gracefully
+    if (isPermissionError(error)) {
+      return { authRequired: true, error: 'Authentication required' };
+    }
+    
+    throw error;
   }
+  return null;
 }
 
 export async function apiRequest(
@@ -77,7 +87,10 @@ export async function apiRequest(
       credentials: "include",
     });
 
-    await throwIfResNotOk(res);
+    const authCheck = await throwIfResNotOk(res);
+    if (authCheck?.authRequired) {
+      return authCheck; // Return auth-required state instead of throwing
+    }
     return await res.json();
   } catch (error) {
     // Handle network errors, CORS issues, and DOM exceptions

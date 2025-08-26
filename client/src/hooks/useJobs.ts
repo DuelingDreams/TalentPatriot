@@ -13,10 +13,18 @@ export function useJobs(options: { refetchInterval?: number } = {}) {
   
   return useQuery({
     queryKey: ['/api/jobs'],
-    queryFn: () => {
+    queryFn: async () => {
       if (isDemoUser) return demoAdapter.getJobs()
       if (!currentOrgId) throw new Error('Organization context required')
-      return apiRequest(`/api/jobs?orgId=${currentOrgId}`)
+      
+      const result = await apiRequest(`/api/jobs?orgId=${currentOrgId}`)
+      
+      // Handle auth-required state gracefully
+      if (result?.authRequired) {
+        return { authRequired: true, data: [] }
+      }
+      
+      return result
     },
     enabled: isDemoUser || !!currentOrgId, // Only fetch when we have org context
     refetchInterval: isDemoUser ? false : (options.refetchInterval || 60000), // 1 minute for performance
