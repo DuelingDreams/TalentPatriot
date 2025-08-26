@@ -65,19 +65,16 @@ export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnon
 
 // Sanity check: Test basic database connection
 if (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey) {
-  supabase.from('jobs').select('id').limit(1)
+  Promise.resolve(supabase.from('jobs').select('id').limit(1))
     .then(({ data, error }) => {
       console.info('[SUPABASE] Connection test →', { 
         success: !error, 
         data: data?.length, 
         error: error?.message || 'none' 
       })
-      if (error) {
-        console.info('[SUPABASE] Connection test failed →', error.message)
-      }
     })
-    .catch((err) => {
-      console.warn('[SUPABASE] Connection test exception:', err.message || err)
+    .catch((err: any) => {
+      console.warn('[SUPABASE] Connection test exception:', err?.message || err)
     })
 }
 

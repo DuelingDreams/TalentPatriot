@@ -1,11 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useLocation, useParams } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { useDebounce } from '@/hooks/useDebounce'
-import { usePublicJobs } from '@/hooks/usePublicJobs'
 import { PageErrorBoundary } from '@/components/ui/page-error-boundary'
 import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX, Calendar, AlertCircle } from 'lucide-react'
 import type { Job } from '@shared/schema'
@@ -15,20 +13,39 @@ export default function Careers() {
   const [searchTerm, setSearchTerm] = useState('')
   const [, setLocation] = useLocation()
   const { toast } = useToast()
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Debounce search term to prevent excessive API calls
-  const debouncedSearchTerm = useDebounce(searchTerm, 400)
+  // Fetch jobs directly
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        const queryParams = new URLSearchParams()
+        if (orgSlug) queryParams.append('orgSlug', orgSlug)
+        
+        const url = `/api/public/jobs${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await fetch(url)
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch jobs: ${response.status}`)
+        }
+        
+        const jobsData = await response.json()
+        setJobs(Array.isArray(jobsData) ? jobsData : [])
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load jobs')
+        console.error('Error fetching jobs:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  // Use shared hook for consistent data fetching with caching
-  const { 
-    jobs, 
-    isLoading: loading, 
-    error, 
-    isEmpty 
-  } = usePublicJobs({
-    q: debouncedSearchTerm || undefined,
-    orgSlug
-  })
+    fetchJobs()
+  }, [orgSlug])
 
   // Show user-friendly error message instead of toast for better UX
   const hasError = !!error;
@@ -43,6 +60,8 @@ export default function Careers() {
       (job.location && job.location.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [jobs, searchTerm])
+
+  const isEmpty = !loading && jobs.length === 0
 
 
 
