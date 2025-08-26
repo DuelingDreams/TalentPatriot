@@ -7,6 +7,16 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { serveDualPathStatic } from "./staticServer.js";
 import { ensureResumesBucket, testStorageConnection } from "./lib/storageSetup.js";
+import { createClient } from "@supabase/supabase-js";
+
+// Extend Express Request to include per-request Supabase client
+declare global {
+  namespace Express {
+    interface Request {
+      supabase?: any;
+    }
+  }
+}
 
 const app = express();
 
@@ -190,6 +200,15 @@ app.use((req, res, next) => {
     }
   });
 
+  next();
+});
+
+// Forward Authorization header in Supabase client for user-specific queries
+app.use("/api", (req, res, next) => {
+  const supa = createClient(process.env.VITE_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    global: { headers: { Authorization: req.headers.authorization ?? "" } },
+  });
+  (req as any).supabase = supa;
   next();
 });
 
