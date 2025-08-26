@@ -60,32 +60,21 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
   const endpoint = `/api/public/jobs${queryString ? `?${queryString}` : ''}`;
 
   const {
-    data,
+    data: jobsData,
     isLoading,
     error,
     refetch,
     isFetching
-  } = useQuery<PublicJobsResult>({
+  } = useQuery<Job[]>({
     queryKey: ['/api/public/jobs', { q, filters, page, pageSize, sort, orgSlug }],
     queryFn: async () => {
-      try {
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          return { 
-            data: null, 
-            error: errorData.error || `Failed to fetch jobs: ${response.status} ${response.statusText}` 
-          };
-        }
-        const jobsData = await response.json();
-        // API returns jobs array directly, not wrapped in an object
-        return { data: Array.isArray(jobsData) ? jobsData : [], error: null };
-      } catch (networkError) {
-        return { 
-          data: null, 
-          error: networkError instanceof Error ? networkError.message : 'Network error occurred' 
-        };
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch jobs: ${response.status} ${response.statusText}`);
       }
+      const jobsData = await response.json();
+      // API returns jobs array directly
+      return Array.isArray(jobsData) ? jobsData : [];
     },
     enabled,
     staleTime: 60000, // 60 seconds
@@ -95,9 +84,9 @@ export function usePublicJobs(options: UsePublicJobsOptions = {}) {
   });
 
   // Transform data to consistent format
-  const jobs = data?.data || [];
+  const jobs = jobsData || [];
   const total = jobs.length;
-  const fetchError = error || data?.error;
+  const fetchError = error;
 
   return {
     jobs,
