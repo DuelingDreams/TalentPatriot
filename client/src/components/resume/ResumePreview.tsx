@@ -61,7 +61,13 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
   const downloadResume = () => {
     const link = document.createElement('a')
     link.href = resumeUrl
-    link.download = `${candidateName.replace(/\s+/g, '_')}_Resume.pdf`
+    // Extract file extension from URL or default to generic name
+    const urlParts = resumeUrl.split('.')
+    const extension = urlParts.length > 1 ? urlParts.pop() : ''
+    const fileName = extension ? 
+      `${candidateName.replace(/\s+/g, '_')}_Resume.${extension}` : 
+      `${candidateName.replace(/\s+/g, '_')}_Resume`
+    link.download = fileName
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -86,10 +92,10 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
         <CardContent>
           <div className="text-center py-8">
             <FileText className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="font-medium mb-2">Document Preview Not Available</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              This resume appears to be in DOC/DOCX format. Preview is only available for PDF files.
-            </p>
+            <div className="space-y-2 mb-4">
+              <p className="text-sm text-gray-600">Preview available only for PDF files.</p>
+              <p className="text-sm text-gray-600">You can download the resume or open it in a new tab.</p>
+            </div>
             <div className="flex gap-2 justify-center">
               <Button variant="outline" onClick={downloadResume}>
                 <Download className="w-4 h-4 mr-2" />
