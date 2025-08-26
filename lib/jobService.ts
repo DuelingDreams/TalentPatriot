@@ -716,7 +716,7 @@ export async function getPublicJobs(orgId?: string) {
     query = query.eq('org_id', orgId);
   }
 
-  const { data, error } = await query.order('published_at', { ascending: false });
+  const { data, error } = await query.order('created_at', { ascending: false });
     
   if (error) {
     console.error('Public jobs fetch error:', error);
