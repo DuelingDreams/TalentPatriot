@@ -152,7 +152,10 @@ export default function CareersBySlug() {
                 )}
                 <div className="flex items-center gap-1">
                   <Clock className="w-4 h-4" />
-                  Posted {new Date(job.createdAt).toLocaleDateString()}
+                  Posted {(() => {
+                    const created = job.createdAt;
+                    return created ? new Date(created).toLocaleDateString() : '—';
+                  })()}
                 </div>
               </div>
             </div>
