@@ -19,15 +19,26 @@ import {
   Shield,
   ChevronRight,
   DollarSign,
-  Mail
+  Mail,
+  ChevronDown
 } from 'lucide-react'
 import { Link } from 'wouter'
+import { flags } from '@/lib/flags'
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-[#F7F9FC] font-[Inter,sans-serif]">
+      {/* Skip to Content Link */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-[#1F3A5F] focus:text-white focus:rounded-md focus:shadow-lg focus:font-medium"
+      >
+        Skip to main content
+      </a>
+
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 fixed w-full z-50 shadow-sm">
+      <header>
+        <nav className="bg-white border-b border-gray-200 fixed w-full z-50 shadow-sm" role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
@@ -36,6 +47,7 @@ export default function Landing() {
                   src="/talentpatriot-logo.png" 
                   alt="TalentPatriot Logo" 
                   className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                  loading="eager"
                 />
               </div>
               <h1 className="text-xl md:text-2xl font-bold text-[#1A1A1A] tracking-tight">
@@ -53,18 +65,32 @@ export default function Landing() {
                   Beta Access
                 </Button>
               </Link>
-              <Link href="/onboarding/step1">
-                <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
-                  Start Free
-                </Button>
-              </Link>
+              {flags.showStartFree ? (
+                <Link href="/onboarding/step1">
+                  <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
+                    Start Free
+                  </Button>
+                </Link>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <Link href="/beta">
+                    <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 whitespace-nowrap transition-colors">
+                      Start Free
+                    </Button>
+                  </Link>
+                  <span className="text-xs text-[#5C667B] mt-1">Private beta only</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </nav>
+        </nav>
+      </header>
 
-      {/* Hero Section */}
-      <section className="pt-32 py-16 bg-[#F7F9FC]">
+      {/* Main Content */}
+      <main id="main-content">
+        {/* Hero Section */}
+        <section className="pt-32 py-16 bg-[#F7F9FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1A1A1A] mb-6 tracking-tight font-[Inter,sans-serif]">
             SMB-First ATS with Built-In AI & Fair Pricing
@@ -111,7 +137,7 @@ export default function Landing() {
           </div>
           
           {/* Responsive Placeholder Image/Video Section */}
-          <div className="mb-8 relative max-w-5xl mx-auto">
+          <div className="mb-12 relative max-w-5xl mx-auto">
             <div className="rounded-xl shadow-xl border overflow-hidden bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-6 md:p-8 aspect-video flex items-center justify-center">
               <div className="text-center">
                 <BarChart3 className="w-12 h-12 md:w-16 md:h-16 text-[#5C667B] mx-auto mb-4" />
@@ -119,11 +145,23 @@ export default function Landing() {
               </div>
             </div>
           </div>
+
+          {/* Scroll Affordance */}
+          <div className="flex flex-col items-center">
+            <p className="text-sm text-[#5C667B] mb-2 font-[Inter,sans-serif]">Discover more</p>
+            <button 
+              onClick={() => document.querySelector('#why-talentpatriot')?.scrollIntoView({ behavior: 'smooth' })}
+              className="animate-bounce p-2 rounded-full hover:bg-white/50 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] focus:ring-offset-2"
+              aria-label="Scroll to learn more about TalentPatriot"
+            >
+              <ChevronDown className="w-6 h-6 text-[#5C667B]" />
+            </button>
+          </div>
         </div>
       </section>
 
       {/* Why TalentPatriot Section */}
-      <section className="py-16 bg-white">
+      <section id="why-talentpatriot" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
             Why TalentPatriot
@@ -305,30 +343,42 @@ export default function Landing() {
       </section>
 
       {/* Demo Video Section */}
-      <section id="demo" className="py-16 bg-[#F7F9FC]">
+      <section id="demo" aria-label="Product demo" className="py-16 bg-[#F7F9FC]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
             See TalentPatriot in Action
           </h2>
           
-          <div className="relative w-full max-w-4xl mx-auto aspect-video">
+          <div className="relative w-full max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-lg">
             <video 
               controls 
               preload="metadata" 
               poster="/video-tour.jpg"
-              className="w-full h-full rounded-lg shadow-lg border border-gray-200 bg-white"
+              className="w-full h-full bg-white"
+              aria-describedby="video-description"
             >
               <source src="/video-tour.webm" type="video/webm" />
               <source src="/video-tour.mp4" type="video/mp4" />
-              <track src="/video-tour.vtt" kind="captions" srcLang="en" label="English" default />
-              <div className="bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] p-6 md:p-8 rounded-lg flex items-center justify-center h-full">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 md:w-16 md:h-16 text-[#5C667B] mx-auto mb-4" />
-                  <p className="text-[#1A1A1A] text-base md:text-lg font-medium font-[Inter,sans-serif]">2-minute tour coming soon</p>
-                </div>
-              </div>
+              <track kind="captions" src="/video-tour.vtt" srcLang="en" label="English" default />
+              Your browser does not support the video tag. Please <a href="/video-tour.mp4" className="text-[#1F3A5F] underline">download the video</a> to watch.
             </video>
           </div>
+          
+          <div className="text-center mt-6">
+            <p id="video-description" className="text-sm text-[#5C667B] mb-2 font-[Inter,sans-serif]">
+              Two-minute product tour with captions available
+            </p>
+            <a 
+              href="/video-transcript.txt" 
+              className="text-sm text-[#1F3A5F] hover:text-[#264C99] underline font-[Inter,sans-serif] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] focus:ring-offset-2 rounded"
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              View transcript
+            </a>
+          </div>
+          
+          <p className="sr-only">Two-minute tour with captions available.</p>
         </div>
       </section>
 
@@ -430,6 +480,7 @@ export default function Landing() {
           </p>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <footer className="bg-white py-12 border-t border-gray-200">
@@ -441,6 +492,7 @@ export default function Landing() {
                   src="/talentpatriot-logo.png" 
                   alt="TalentPatriot Logo" 
                   className="w-8 h-8 object-contain"
+                  loading="lazy"
                 />
               </div>
               <span className="text-lg font-semibold text-[#1A1A1A] font-[Inter,sans-serif]">TalentPatriot</span>
