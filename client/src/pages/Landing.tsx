@@ -227,36 +227,51 @@ export default function Landing() {
             How It Works
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#E6F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl font-bold text-[#1F3A5F]">1</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">Post a job on your branded page</h3>
-              <p className="text-[#5C667B] leading-relaxed">
-                Create job listings and publish them on your custom careers page
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 min-h-[280px] sm:min-h-[320px]">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#E6F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
+                  <span className="text-3xl font-bold text-[#1F3A5F] font-[Inter,sans-serif]">1</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300 leading-tight">
+                  Post a job on your branded page
+                </h3>
+                <p className="text-base text-[#5C667B] leading-relaxed font-[Inter,sans-serif] flex-grow">
+                  Create job listings and publish them on your custom careers page with full branding control
+                </p>
+              </CardContent>
+            </Card>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#E6F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl font-bold text-[#1F3A5F]">2</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">AI auto-parses resumes & surfaces strong fits</h3>
-              <p className="text-[#5C667B] leading-relaxed">
-                Our AI automatically extracts key information and highlights top candidates
-              </p>
-            </div>
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1 min-h-[280px] sm:min-h-[320px]">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E6F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
+                  <span className="text-3xl font-bold text-[#1F3A5F] font-[Inter,sans-serif]">2</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300 leading-tight">
+                  AI auto-parses resumes & surfaces strong fits
+                </h3>
+                <p className="text-base text-[#5C667B] leading-relaxed font-[Inter,sans-serif] flex-grow">
+                  Our AI automatically extracts key information and highlights top candidates for faster screening
+                </p>
+              </CardContent>
+            </Card>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#E6F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <span className="text-2xl font-bold text-[#1F3A5F]">3</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif]">Drag-and-drop candidates through your pipeline, collaborate freely</h3>
-              <p className="text-[#5C667B] leading-relaxed">
-                Move candidates through stages and collaborate with your team
-              </p>
-            </div>
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 min-h-[280px] sm:min-h-[320px] md:col-span-1">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#E6F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
+                  <span className="text-3xl font-bold text-[#1F3A5F] font-[Inter,sans-serif]">3</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#1A1A1A] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300 leading-tight">
+                  Drag-and-drop candidates through your pipeline
+                </h3>
+                <p className="text-base text-[#5C667B] leading-relaxed font-[Inter,sans-serif] flex-grow">
+                  Move candidates through stages and collaborate with your team seamlessly
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
