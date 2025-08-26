@@ -1,7 +1,8 @@
-import { pgTable, text, uuid, timestamp, varchar, pgEnum, uniqueIndex, boolean, integer, index } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, varchar, pgEnum, uniqueIndex, boolean, integer, index, pgView } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 // Enums
 export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'on_hold', 'filled']);
