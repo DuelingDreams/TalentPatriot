@@ -283,58 +283,70 @@ export default function Landing() {
             Features
           </h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
-                  <Sparkles className="w-8 h-8 text-[#1F3A5F]" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 min-h-[200px] focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Sparkles className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Drag-and-drop pipelines</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300 leading-tight">Drag-and-drop pipelines</h3>
+                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Visual Kanban boards for seamless candidate management</p>
               </CardContent>
             </Card>
             
-            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
-                  <Users className="w-8 h-8 text-[#1F3A5F]" />
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1 min-h-[200px] focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Users className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Candidate profiles & advanced search</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300 leading-tight">Candidate profiles & advanced search</h3>
+                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Comprehensive profiles with powerful filtering</p>
               </CardContent>
             </Card>
             
-            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
-                  <FileText className="w-8 h-8 text-[#1F3A5F]" />
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 min-h-[200px] focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <FileText className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Notes, mentions, reminders</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300 leading-tight">Notes, mentions, reminders</h3>
+                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Team collaboration with smart notifications</p>
               </CardContent>
             </Card>
             
-            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
-                  <Bell className="w-8 h-8 text-[#1F3A5F]" />
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1 min-h-[200px] focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Bell className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Interview scheduling & email notifications</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300 leading-tight">Interview scheduling & email notifications</h3>
+                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Automated workflows for seamless coordination</p>
               </CardContent>
             </Card>
 
-            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
-                  <BarChart3 className="w-8 h-8 text-[#1F3A5F]" />
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 min-h-[200px] focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <BarChart3 className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Dashboards & job performance analytics</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300 leading-tight">Dashboards & job performance analytics</h3>
+                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Data-driven insights for better hiring decisions</p>
               </CardContent>
             </Card>
 
-            <Card className="group bg-white border border-[#D1E7FF] shadow-sm hover:shadow-lg hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-105 transition-transform duration-300 shadow-md border border-[#B8D4FF]">
-                  <Building2 className="w-8 h-8 text-[#1F3A5F]" />
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1 min-h-[200px] focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 sm:p-8 text-center h-full flex flex-col justify-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Building2 className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">CRM-lite for contacts (talent pools)</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300 leading-tight">CRM-lite for contacts (talent pools)</h3>
+                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Organize and nurture your talent network</p>
               </CardContent>
             </Card>
           </div>
@@ -384,22 +396,48 @@ export default function Landing() {
       {/* Social Proof Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="border border-[#D1E7FF] shadow-sm p-8">
-              <CardContent className="p-0">
-                <p className="text-lg text-[#1A1A1A] mb-4 font-[Inter,sans-serif] leading-relaxed">
-                  "We filled roles faster, and didn't pay for hiring manager logins."
-                </p>
-                <p className="text-sm text-[#5C667B] font-medium">— SMB Recruiter</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-8 sm:p-10 relative">
+                <div className="absolute top-6 left-6 w-8 h-8 bg-gradient-to-br from-[#E6F2FF] to-[#D1E7FF] rounded-full flex items-center justify-center shadow-md border border-[#B8D4FF]">
+                  <span className="text-2xl text-[#1F3A5F] font-serif leading-none">"</span>
+                </div>
+                <blockquote className="mt-6">
+                  <p className="text-lg sm:text-xl text-[#1A1A1A] mb-6 font-[Inter,sans-serif] leading-relaxed italic group-hover:text-[#0F1419] transition-colors duration-300">
+                    We filled roles faster, and didn't pay for hiring manager logins.
+                  </p>
+                  <footer className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#D1E7FF] to-[#E6F2FF] rounded-full flex items-center justify-center border border-[#B8D4FF]">
+                      <UserCheck className="w-5 h-5 text-[#1F3A5F]" />
+                    </div>
+                    <cite className="text-sm text-[#5C667B] font-medium not-italic font-[Inter,sans-serif]">
+                      SMB Recruiter
+                    </cite>
+                  </footer>
+                </blockquote>
               </CardContent>
             </Card>
             
-            <Card className="border border-[#D1E7FF] shadow-sm p-8">
-              <CardContent className="p-0">
-                <p className="text-lg text-[#1A1A1A] mb-4 font-[Inter,sans-serif] leading-relaxed">
-                  "Multi-client pipelines = less chaos for our boutique agency."
-                </p>
-                <p className="text-sm text-[#5C667B] font-medium">— Agency Owner</p>
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-8 sm:p-10 relative">
+                <div className="absolute top-6 left-6 w-8 h-8 bg-gradient-to-br from-[#E6F2FF] to-[#D1E7FF] rounded-full flex items-center justify-center shadow-md border border-[#B8D4FF]">
+                  <span className="text-2xl text-[#1F3A5F] font-serif leading-none">"</span>
+                </div>
+                <blockquote className="mt-6">
+                  <p className="text-lg sm:text-xl text-[#1A1A1A] mb-6 font-[Inter,sans-serif] leading-relaxed italic group-hover:text-[#0F1419] transition-colors duration-300">
+                    Multi-client pipelines = less chaos for our boutique agency.
+                  </p>
+                  <footer className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#D1E7FF] to-[#E6F2FF] rounded-full flex items-center justify-center border border-[#B8D4FF]">
+                      <Building2 className="w-5 h-5 text-[#1F3A5F]" />
+                    </div>
+                    <cite className="text-sm text-[#5C667B] font-medium not-italic font-[Inter,sans-serif]">
+                      Agency Owner
+                    </cite>
+                  </footer>
+                </blockquote>
               </CardContent>
             </Card>
           </div>
