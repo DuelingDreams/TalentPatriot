@@ -1,7 +1,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "./bootstrap";
 import "./utils/errorHandler"; // Import error handler to initialize it
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Auto-reload on chunk load errors (once per session)
 let __tpReloadedForChunkError = false;
@@ -17,5 +19,5 @@ window.addEventListener("error", (e: ErrorEvent) => {
 
 const root = document.getElementById("root");
 if (root) {
-  createRoot(root).render(<App />);
+  createRoot(root).render(<ErrorBoundary><App /></ErrorBoundary>);
 }
