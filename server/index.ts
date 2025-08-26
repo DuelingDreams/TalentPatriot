@@ -112,8 +112,12 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
   
-  // Strict Transport Security for HTTPS
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  // Conditional Strict Transport Security - more graceful during deployment
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction && req.secure) {
+    // Only set HSTS if we're actually using HTTPS successfully
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
   
   // Enhanced Content Security Policy
   res.setHeader('Content-Security-Policy', 
@@ -122,11 +126,11 @@ app.use((req, res, next) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https: blob:; " +
-    "connect-src 'self' https://*.supabase.co https://*.supabase.com https://talentpatriot.com; " +
+    "connect-src 'self' https://*.supabase.co https://*.supabase.com; " +
     "frame-ancestors 'none'; " +
     "base-uri 'self'; " +
-    "form-action 'self'; " +
-    "upgrade-insecure-requests;"
+    "form-action 'self';" +
+    (isProduction && req.secure ? " upgrade-insecure-requests;" : "")
   );
   
   // BUSINESS LEGITIMACY HEADERS TO PREVENT FALSE POSITIVES

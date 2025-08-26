@@ -65,12 +65,77 @@ const BetaProgram = lazy(() => import("@/pages/BetaProgram"));
 function AppPrefetch() {
   useEffect(() => {
     // Prefetch high-traffic pages to reduce chunk fetch failures
-    import("@/pages/Dashboard");
-    import("@/pages/Jobs");
-    import("@/pages/Candidates");
-    import("@/pages/Clients");
-    import("@/pages/Reports");
+    // Add retry logic for SSL certificate issues
+    const prefetchWithRetry = async (modulePath: string, retries = 3) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          await import(modulePath);
+          break;
+        } catch (error) {
+          if (i === retries - 1) {
+            console.warn(`Failed to prefetch ${modulePath} after ${retries} attempts:`, error);
+          } else {
+            // Wait briefly before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
+          }
+        }
+      }
+    };
+
+    prefetchWithRetry("@/pages/Dashboard");
+    prefetchWithRetry("@/pages/Jobs");
+    prefetchWithRetry("@/pages/Candidates");
+    prefetchWithRetry("@/pages/Clients");
+    prefetchWithRetry("@/pages/Reports");
   }, []);
+  return null;
+}
+
+// Global error handler for SSL and network issues
+function GlobalErrorHandlerSetup() {
+  useEffect(() => {
+    // Handle chunk load failures (common with SSL issues)
+    const handleChunkLoadError = (event: ErrorEvent) => {
+      if (
+        event.message.includes('Loading chunk') ||
+        event.message.includes('SSL') ||
+        event.message.includes('ERR_SSL') ||
+        event.message.includes('ERR_CERT') ||
+        event.message.includes('ERR_ECDH_FALLBACK_CERTIFICATE_INVALID')
+      ) {
+        console.warn('SSL/Certificate error detected, attempting page reload...');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    };
+
+    // Handle unhandled promise rejections (like SSL fetch errors)
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = event.reason?.toString() || '';
+      if (
+        reason.includes('SSL') ||
+        reason.includes('ERR_SSL') ||
+        reason.includes('ERR_CERT') ||
+        reason.includes('certificate')
+      ) {
+        console.warn('SSL promise rejection detected, attempting page reload...');
+        event.preventDefault();
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      }
+    };
+
+    window.addEventListener('error', handleChunkLoadError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleChunkLoadError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+  
   return null;
 }
 
@@ -258,6 +323,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
+            <GlobalErrorHandlerSetup />
             <Toaster />
             <ToastProvider />
             <AppShell>
