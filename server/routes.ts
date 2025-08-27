@@ -17,7 +17,7 @@ function mapPublicJobRow(row: any) {
   return {
     id: row.id,
     orgId: row.org_id,
-    publicSlug: row.public_slug,
+    public_slug: row.public_slug,
     title: row.title,
     description: row.description,
     location: row.location,
