@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, XCircle, Clock, MessageSquare, Calendar, Upload } from 'lucide-react'
 import { CandidateNotes } from '@/components/CandidateNotes'
-import { ResumeUpload } from '@/components/ResumeUpload'
+import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { useAuth } from '@/hooks/useAuth'
 import { useMessages, useCreateMessage } from '@/hooks/useMessages'
 import { useInterviews, useCreateInterview } from '@/hooks/useInterviews'
@@ -274,7 +274,7 @@ export function TestFeatures() {
           </h2>
           <ResumeUpload 
             candidateId="test-candidate-1"
-            onUploadComplete={(fileUrl) => {
+            onUploadSuccess={(fileUrl: string) => {
               toast({
                 title: "Upload Complete",
                 description: `Resume uploaded: ${fileUrl}`

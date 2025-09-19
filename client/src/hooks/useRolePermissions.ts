@@ -148,7 +148,13 @@ export function useRolePermissions(): RolePermissions {
   return rolePermissionsMap[userRole] || rolePermissionsMap.interviewer // Default to most restrictive
 }
 
-export function useCanAccess(permission: keyof RolePermissions): boolean {
+export function useCanAccess(permission?: keyof RolePermissions): boolean {
   const permissions = useRolePermissions()
+  
+  // If no permission is specified, allow access (no permission check needed)
+  if (!permission) {
+    return true
+  }
+  
   return permissions[permission]
 }

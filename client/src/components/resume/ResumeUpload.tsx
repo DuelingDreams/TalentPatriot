@@ -1,51 +1,143 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Upload, X, FileText, CheckCircle, AlertCircle } from 'lucide-react'
+import { Upload, X, FileText, CheckCircle, AlertCircle, Eye, Download, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { apiRequest } from '@/lib/queryClient'
+import { supabase } from '@/lib/supabase'
+import { cn } from '@/lib/utils'
 
 interface ResumeUploadProps {
   candidateId: string
   onUploadSuccess: (resumeUrl: string) => void
   currentResumeUrl?: string
+  // Additional props for enhanced functionality
+  candidateName?: string
+  onResumeUploaded?: (url: string) => void
+  className?: string
+  // Support different upload modes
+  uploadMode?: 'api' | 'supabase'
+  // Allow customization of accepted file types
+  acceptedFileTypes?: string[]
+  maxFileSize?: number
+  // UI mode: 'full' (card with drag/drop), 'compact' (button only)
+  variant?: 'full' | 'compact'
 }
 
-export function ResumeUpload({ candidateId, onUploadSuccess, currentResumeUrl }: ResumeUploadProps) {
+export function ResumeUpload({
+  candidateId,
+  onUploadSuccess,
+  currentResumeUrl,
+  candidateName = 'Candidate',
+  onResumeUploaded,
+  className,
+  uploadMode = 'api',
+  acceptedFileTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+  maxFileSize = 10 * 1024 * 1024, // 10MB
+  variant = 'full'
+}: ResumeUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<string | null>(currentResumeUrl || null)
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const { isDemoUser } = useDemoFlag()
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0]
-    if (!file) return
+  const validateFile = (file: File): string | null => {
+    if (!acceptedFileTypes.includes(file.type)) {
+      const typeNames = acceptedFileTypes.map(type => {
+        switch(type) {
+          case 'application/pdf': return 'PDF'
+          case 'application/msword': return 'DOC'
+          case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': return 'DOCX'
+          default: return type.split('/')[1]?.toUpperCase()
+        }
+      }).join(', ')
+      return `Only ${typeNames} files are allowed`
+    }
+    if (file.size > maxFileSize) {
+      const sizeMB = Math.round(maxFileSize / (1024 * 1024))
+      return `File size must be less than ${sizeMB}MB`
+    }
+    return null
+  }
 
-    // Validate file size (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size must be less than 10MB')
-      return
+  const uploadToSupabase = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop() || 'pdf'
+    const fileName = `${candidateId}-${Date.now()}.${fileExt}`
+    const filePath = fileName
+
+    const { data, error } = await supabase.storage
+      .from('resumes')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) {
+      if (error.message.includes('Bucket not found')) {
+        throw new Error('Storage setup required. Please ask your administrator to set up the resume storage bucket.')
+      }
+      throw error
     }
 
-    // Validate file type
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ]
+    const { data: urlData } = supabase.storage
+      .from('resumes')
+      .getPublicUrl(filePath)
+
+    if (!urlData.publicUrl) {
+      throw new Error('Failed to get public URL')
+    }
+
+    // Update candidate record with resume URL
+    const { error: updateError } = await supabase
+      .from('candidates')
+      .update({ resume_url: urlData.publicUrl })
+      .eq('id', candidateId)
+
+    if (updateError) {
+      throw updateError
+    }
+
+    return urlData.publicUrl
+  }
+
+  const uploadToAPI = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('resume', file)
+    formData.append('candidateId', candidateId)
+
+    const response = await fetch('/api/upload/resume', {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Upload failed')
+    }
+
+    const result = await response.json()
     
-    if (!allowedTypes.includes(file.type)) {
-      setError('Only PDF, DOC, and DOCX files are allowed')
-      return
-    }
+    // Update candidate record with new resume URL
+    await apiRequest(`/api/candidates/${candidateId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ resumeUrl: result.fileUrl }),
+    })
+    
+    return result.fileUrl
+  }
 
-    setError(null)
+  const uploadFile = async (file: File) => {
     setUploading(true)
+    setError(null)
     setUploadProgress(0)
 
     // Demo protection: prevent server writes in demo mode
@@ -60,153 +152,293 @@ export function ResumeUpload({ candidateId, onUploadSuccess, currentResumeUrl }:
     }
 
     try {
-      const formData = new FormData()
-      formData.append('resume', file)
-      formData.append('candidateId', candidateId)
-
       // Simulate upload progress
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval)
-            return prev
-          }
-          return prev + 10
-        })
-      }, 100)
+        setUploadProgress(prev => Math.min(prev + 10, 90))
+      }, 200)
 
-      const response = await fetch('/api/upload/resume', {
-        method: 'POST',
-        body: formData,
-      })
+      let fileUrl: string
+      if (uploadMode === 'supabase') {
+        fileUrl = await uploadToSupabase(file)
+      } else {
+        fileUrl = await uploadToAPI(file)
+      }
 
       clearInterval(progressInterval)
       setUploadProgress(100)
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Upload failed')
-      }
-
-      const result = await response.json()
       
-      // Update candidate record with new resume URL
-      await apiRequest(`/api/candidates/${candidateId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ resumeUrl: result.fileUrl }),
-      })
-
-      onUploadSuccess(result.fileUrl)
+      setUploadedFile(fileUrl)
+      onUploadSuccess?.(fileUrl)
+      onResumeUploaded?.(fileUrl)
       
       toast({
         title: "Resume uploaded successfully",
-        description: `${file.name} has been uploaded and attached to the candidate profile.`,
+        description: `${file.name} has been uploaded for ${candidateName}.`
       })
-      
-      setTimeout(() => {
-        setUploadProgress(0)
-        setUploading(false)
-      }, 1000)
 
-    } catch (error) {
-      console.error('Upload failed:', error)
-      setError(error instanceof Error ? error.message : 'Upload failed')
-      setUploading(false)
-      setUploadProgress(0)
-      
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Upload failed'
+      setError(errorMessage)
       toast({
         title: "Upload failed",
-        description: error instanceof Error ? error.message : 'Failed to upload resume',
-        variant: "destructive",
+        description: errorMessage,
+        variant: "destructive"
+      })
+    } finally {
+      setUploading(false)
+      setTimeout(() => setUploadProgress(0), 1000)
+    }
+  }
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0]
+    if (!file) return
+
+    const validationError = validateFile(file)
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
+    await uploadFile(file)
+  }, [candidateId, onUploadSuccess, toast, isDemoUser, uploadMode, acceptedFileTypes, maxFileSize])
+
+  const handleFileSelect = (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    const file = files[0]
+    const validationError = validateFile(file)
+    
+    if (validationError) {
+      setError(validationError)
+      return
+    }
+
+    uploadFile(file)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragActive(false)
+    handleFileSelect(e.dataTransfer.files)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragActive(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragActive(false)
+  }
+
+  const handleRemoveFile = async () => {
+    if (!uploadedFile) return
+
+    try {
+      if (uploadMode === 'supabase') {
+        // For Supabase, we don't need to delete from storage, just update the record
+        const { error } = await supabase
+          .from('candidates')
+          .update({ resume_url: null })
+          .eq('id', candidateId)
+          
+        if (error) throw error
+      } else {
+        await apiRequest(`/api/candidates/${candidateId}`, {
+          method: 'PUT',
+          body: JSON.stringify({ resumeUrl: null }),
+        })
+      }
+
+      setUploadedFile(null)
+      onUploadSuccess?.('')
+      onResumeUploaded?.('')
+      toast({
+        title: "Resume removed",
+        description: "The resume has been removed successfully."
+      })
+    } catch (err) {
+      toast({
+        title: "Remove failed",
+        description: "Failed to remove the resume file.",
+        variant: "destructive"
       })
     }
-  }, [candidateId, onUploadSuccess, toast])
+  }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const handleViewResume = () => {
+    if (uploadedFile) {
+      window.open(uploadedFile, '_blank')
+    }
+  }
+
+  const handleDownloadResume = () => {
+    if (uploadedFile) {
+      const link = document.createElement('a')
+      link.href = uploadedFile
+      link.download = uploadedFile.split('/').pop() || `${candidateName}_Resume`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+  }
+
+  const { getRootProps, getInputProps, isDragActive: dropzoneActive } = useDropzone({ 
     onDrop,
-    accept: {
-      'application/pdf': ['.pdf'],
-      'application/msword': ['.doc'],
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx']
-    },
-    maxFiles: 1,
+    accept: acceptedFileTypes.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
+    maxSize: maxFileSize,
+    multiple: false,
     disabled: uploading
   })
 
-  const removeResume = async () => {
-    try {
-      await apiRequest(`/api/candidates/${candidateId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ resumeUrl: null }),
-      })
-      
-      onUploadSuccess('')
-      
-      toast({
-        title: "Resume removed",
-        description: "The resume has been removed from the candidate profile.",
-      })
-    } catch (error) {
-      toast({
-        title: "Failed to remove resume",
-        description: "There was an error removing the resume.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  if (currentResumeUrl && !uploading) {
+  // Compact variant for inline use
+  if (variant === 'compact') {
     return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <FileText className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <p className="font-medium">Resume uploaded</p>
-                <p className="text-sm text-gray-500">PDF document available for viewing</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => window.open(currentResumeUrl, '_blank')}>
-                View Resume
-              </Button>
-              <Button variant="outline" size="sm" onClick={removeResume}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+      <div className={cn("space-y-2", className)}>
+        <div className="flex items-center gap-2">
+          {uploadedFile ? (
+            <Button size="sm" variant="outline" onClick={handleViewResume} className="text-xs">
+              <Eye className="w-3 h-3 mr-1" />
+              View Resume
+            </Button>
+          ) : (
+            <span className="text-xs text-slate-500">No resume uploaded</span>
+          )}
+        </div>
+
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={acceptedFileTypes.join(',')}
+            onChange={(e) => handleFileSelect(e.target.files)}
+            className="hidden"
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="text-xs"
+            data-testid="button-upload-resume"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="w-3 h-3 mr-1" />
+                {uploadedFile ? 'Replace Resume' : 'Upload Resume'}
+              </>
+            )}
+          </Button>
+        </div>
+
+        {uploading && (
+          <div className="space-y-2">
+            <Progress value={uploadProgress} className="h-2" />
+            <p className="text-xs text-slate-600">Uploading resume...</p>
           </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-xs">{error}</AlertDescription>
+          </Alert>
+        )}
+      </div>
     )
   }
 
+  // Full variant with card and drag/drop
   return (
-    <Card>
-      <CardContent className="p-6">
+    <Card className={cn("", className)}>
+      <CardContent className="pt-6">
+        {/* Error Display */}
         {error && (
-          <Alert className="mb-4" variant="destructive">
+          <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
+        {/* Current Resume Display */}
+        {uploadedFile && !uploading && (
+          <div className="mb-4 p-4 border rounded-lg bg-green-50 border-green-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <FileText className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="font-medium text-green-800">Resume uploaded</p>
+                  <p className="text-sm text-green-600">
+                    {uploadedFile.split('/').pop() || 'resume.pdf'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleViewResume}
+                  data-testid="button-view-resume"
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  View
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadResume}
+                  data-testid="button-download-resume"
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Download
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemoveFile}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  data-testid="button-remove-resume"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Upload Area */}
         <div
           {...getRootProps()}
-          className={`
-            border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-            ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-            ${uploading ? 'cursor-not-allowed opacity-50' : ''}
-          `}
+          className={cn(
+            "border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer",
+            (dropzoneActive || dragActive) ? "border-blue-400 bg-blue-50" : "border-gray-300 hover:border-gray-400",
+            uploading && "opacity-50 pointer-events-none cursor-not-allowed"
+          )}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          data-testid="dropzone-resume-upload"
         >
           <input {...getInputProps()} />
           
           {uploading ? (
             <div className="space-y-4">
               <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Upload className="w-6 h-6 text-blue-600 animate-pulse" />
+                <Upload className="w-6 w-6 text-blue-600 animate-pulse" />
               </div>
               <div>
                 <p className="font-medium">Uploading resume...</p>
@@ -219,20 +451,44 @@ export function ResumeUpload({ candidateId, onUploadSuccess, currentResumeUrl }:
               <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
                 <Upload className="w-6 h-6 text-gray-600" />
               </div>
+              
               <div>
                 <p className="font-medium">
-                  {isDragActive ? 'Drop the resume here' : 'Upload candidate resume'}
+                  {dropzoneActive || dragActive ? 'Drop the resume here' : uploadedFile ? 'Replace Resume' : 'Upload candidate resume'}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Drag and drop a PDF, DOC, or DOCX file, or click to select
+                  Drag and drop your resume here, or click to browse
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Maximum file size: 10MB
-                </p>
+                
+                <Button 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  variant="outline"
+                  className="mt-4"
+                  data-testid="button-choose-file"
+                >
+                  Choose File
+                </Button>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  className="hidden"
+                  accept={acceptedFileTypes.join(',')}
+                  onChange={(e) => handleFileSelect(e.target.files)}
+                />
               </div>
-              <Button variant="outline" type="button">
-                Choose File
-              </Button>
+              
+              <div className="text-xs text-gray-500">
+                Supported formats: {acceptedFileTypes.map(type => {
+                  switch(type) {
+                    case 'application/pdf': return 'PDF'
+                    case 'application/msword': return 'DOC'
+                    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': return 'DOCX'
+                    default: return type.split('/')[1]?.toUpperCase()
+                  }
+                }).join(', ')} (max {Math.round(maxFileSize / (1024 * 1024))}MB)
+              </div>
             </div>
           )}
         </div>
@@ -240,3 +496,6 @@ export function ResumeUpload({ candidateId, onUploadSuccess, currentResumeUrl }:
     </Card>
   )
 }
+
+// Backward compatibility exports
+export default ResumeUpload
