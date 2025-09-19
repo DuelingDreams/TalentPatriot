@@ -1121,8 +1121,23 @@ export class DatabaseStorage implements IStorage {
 
 
 
-  async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
-    console.log(`[moveJobCandidate] Starting move: jobCandidateId=${jobCandidateId}, newColumnId=${newColumnId}`);
+  async moveJobCandidate(candidateId: string, newColumnId: string): Promise<JobCandidate> {
+    console.log(`[moveJobCandidate] Starting move: candidateId=${candidateId}, newColumnId=${newColumnId}`);
+    
+    // First find the job_candidate record by candidate_id
+    const { data: jobCandidateData, error: findError } = await supabase
+      .from('job_candidate')
+      .select('id, pipeline_column_id, stage, candidate_id')
+      .eq('candidate_id', candidateId)
+      .single();
+    
+    if (findError || !jobCandidateData) {
+      console.error(`[moveJobCandidate] Job candidate lookup failed:`, findError);
+      throw new Error(`Job candidate not found for candidate ID: ${candidateId}`);
+    }
+    
+    const jobCandidateId = jobCandidateData.id;
+    console.log(`[moveJobCandidate] Found job_candidate ID: ${jobCandidateId} for candidate ID: ${candidateId}`);
     
     // First get the column to determine the stage
     const { data: columnData, error: columnError } = await supabase
@@ -1163,14 +1178,7 @@ export class DatabaseStorage implements IStorage {
     
     console.log(`[moveJobCandidate] Column "${columnData.title}" (normalized: "${normalizedTitle}", direct: "${directTitle}") mapped to stage "${stage}"`);
     
-    // Check current state before update
-    const { data: beforeData } = await supabase
-      .from('job_candidate')
-      .select('id, pipeline_column_id, stage')
-      .eq('id', jobCandidateId)
-      .single();
-    
-    console.log(`[moveJobCandidate] Before update:`, beforeData);
+    console.log(`[moveJobCandidate] Before update:`, jobCandidateData);
     
     const { data, error } = await supabase
       .from('job_candidate')
