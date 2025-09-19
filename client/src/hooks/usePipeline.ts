@@ -161,7 +161,18 @@ export function useMoveApplication(jobId: string) {
         if (!old || !old.applications) return old;
         
         const updatedApplications = old.applications.map((app: any) => {
-          if (app.candidateId === candidateId) {
+          // Try multiple ways to match the candidate - the data structure might vary
+          const matches = app.candidateId === candidateId || 
+                         app.candidate?.id === candidateId ||
+                         (app as any).candidate_id === candidateId;
+          
+          if (matches) {
+            console.log('[Optimistic Update] Found matching application:', { 
+              appId: app.id, 
+              candidateId, 
+              oldColumnId: app.columnId, 
+              newColumnId: columnId 
+            });
             return { ...app, columnId: columnId };
           }
           return app;
