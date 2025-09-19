@@ -1012,9 +1012,32 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`Failed to get column info: ${columnError.message}`);
     }
     
-    // Map column title to stage (convert to lowercase and replace spaces)
-    const stage = columnData.title.toLowerCase().replace(/\s+/g, '_');
-    console.log(`[moveJobCandidate] Column "${columnData.title}" mapped to stage "${stage}"`);
+    // Map column title to stage with correct enum values
+    // Valid enum values: ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']
+    const stageMapping: Record<string, string> = {
+      'applied': 'applied',
+      'screen': 'screening', // Map "Screen" column to 'screening' enum
+      'screening': 'screening', // Direct mapping for 'screening'
+      'interview': 'interview',
+      'technical': 'technical', // Use correct enum value
+      'final': 'final', // Use correct enum value
+      'offer': 'offer',
+      'hired': 'hired',
+      'rejected': 'rejected'
+    };
+    
+    const normalizedTitle = columnData.title.toLowerCase().replace(/\s+/g, '_');
+    const directTitle = columnData.title.toLowerCase();
+    const stage = stageMapping[normalizedTitle] || stageMapping[directTitle] || 'applied';
+    
+    // Validate the stage is a valid enum value
+    const validStages = ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected'];
+    if (!validStages.includes(stage)) {
+      console.error(`[moveJobCandidate] Invalid stage mapping: "${stage}" for column "${columnData.title}"`);
+      throw new Error(`Invalid stage value: ${stage}. Valid stages are: ${validStages.join(', ')}`);
+    }
+    
+    console.log(`[moveJobCandidate] Column "${columnData.title}" (normalized: "${normalizedTitle}", direct: "${directTitle}") mapped to stage "${stage}"`);
     
     // Check current state before update
     const { data: beforeData } = await supabase
@@ -1037,7 +1060,17 @@ export class DatabaseStorage implements IStorage {
     
     if (error) {
       console.error(`[moveJobCandidate] Update failed:`, error);
-      throw new Error(`Failed to move job candidate: ${error.message}`);
+      
+      // Provide specific error messages for common issues
+      if (error.message?.includes('invalid input value for enum')) {
+        throw new Error(`Invalid stage value. Please contact support if this error persists.`);
+      } else if (error.message?.includes('foreign key')) {
+        throw new Error(`Invalid column reference. The pipeline column may have been deleted.`);
+      } else if (error.message?.includes('not found')) {
+        throw new Error(`Application not found. It may have been removed or archived.`);
+      } else {
+        throw new Error(`Failed to move application: ${error.message}`);
+      }
     }
     
     console.log(`[moveJobCandidate] After update:`, {

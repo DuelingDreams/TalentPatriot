@@ -60,7 +60,7 @@ export function useJobPipeline(jobId: string | undefined) {
         return {
           columns: [
             { id: 'applied', title: 'Applied', position: '1' },
-            { id: 'screen', title: 'Screen', position: '2' },
+            { id: 'screening', title: 'Screen', position: '2' }, // Fixed: use 'screening' ID to match enum
             { id: 'interview', title: 'Interview', position: '3' },
             { id: 'offer', title: 'Offer', position: '4' },
             { id: 'hired', title: 'Hired', position: '5' },
@@ -70,7 +70,7 @@ export function useJobPipeline(jobId: string | undefined) {
               id: c.id,
               jobId: jobId,
               candidateId: c.id,
-              columnId: 'applied', // Default demo candidates to applied stage
+              columnId: 'applied', // Default demo candidates to applied stage (matches enum)
               status: 'active',
               appliedAt: c.createdAt || new Date().toISOString(),
               candidate: {
@@ -137,16 +137,67 @@ export function useMoveApplication(jobId: string) {
 
   return useMutation({
     mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
-      await apiRequest(`/api/applications/${applicationId}/move`, {
+      console.log('Moving application', applicationId, 'to column', columnId);
+      
+      // Validate required parameters
+      if (!applicationId || !columnId || !jobId) {
+        throw new Error('Missing required parameters for moving application');
+      }
+      
+      // Use the correct API endpoint that matches the server route
+      await apiRequest(`/api/jobs/${jobId}/candidates/${applicationId}/move`, {
         method: 'PATCH',
         body: JSON.stringify({ columnId }),
       });
     },
+    
+    // Optimistic update: immediately update UI before API call completes
+    onMutate: async ({ applicationId, columnId }) => {
+      console.log('[useMoveApplication] Starting optimistic update:', { applicationId, columnId });
+      
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['job-pipeline', jobId] });
+      
+      // Snapshot the previous value for rollback
+      const previousData = queryClient.getQueryData(['job-pipeline', jobId]);
+      
+      // Optimistically update the data
+      queryClient.setQueryData(['job-pipeline', jobId], (old: any) => {
+        if (!old || !old.applications) return old;
+        
+        const updatedApplications = old.applications.map((app: any) => {
+          if (app.id === applicationId) {
+            return { ...app, columnId: columnId };
+          }
+          return app;
+        });
+        
+        return { ...old, applications: updatedApplications };
+      });
+      
+      // Return context object with the snapshotted value
+      return { previousData };
+    },
+    
     onSuccess: () => {
-      // Invalidate the pipeline cache for this job so the board re-fetches updated data
+      console.log('[useMoveApplication] Move successful, invalidating queries');
+      // Invalidate and refetch to ensure we have the latest server state
       queryClient.invalidateQueries({ queryKey: ['pipeline', jobId] });
       queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
     },
+    
+    onError: (error, { applicationId }, context) => {
+      console.error('[useMoveApplication] Move failed:', error);
+      
+      // Rollback optimistic update
+      if (context?.previousData) {
+        console.log('[useMoveApplication] Rolling back optimistic update');
+        queryClient.setQueryData(['job-pipeline', jobId], context.previousData);
+      }
+      
+      // Re-throw error for the component to handle with user-friendly messages
+      throw error;
+    }
   })
 }
 
