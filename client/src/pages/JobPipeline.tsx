@@ -958,10 +958,10 @@ export default function JobPipeline() {
   }
 
   // Retry mechanism for failed moves with exponential backoff
-  const retryMove = async (applicationId: string, columnId: string, attempts = 3): Promise<boolean> => {
+  const retryMove = async (candidateId: string, columnId: string, attempts = 3): Promise<boolean> => {
     for (let i = 0; i < attempts; i++) {
       try {
-        await moveApplication.mutateAsync({ applicationId, columnId })
+        await moveApplication.mutateAsync({ candidateId, columnId })
         return true
       } catch (error) {
         console.error(`Move attempt ${i + 1} failed:`, error)
@@ -1097,7 +1097,15 @@ export default function JobPipeline() {
 
       // Enhanced move operation with retry mechanism
       try {
-        const success = await retryMove(application.id, newColumn.id)
+        // Extract candidateId from application data - handle different data structures
+        const candidateId = application.candidateId || application.candidate?.id || 
+                            (application as any).candidate_id
+        
+        if (!candidateId) {
+          throw new Error('Cannot move application: candidateId not found')
+        }
+        
+        const success = await retryMove(candidateId, newColumn.id)
         if (success) {
           toast({
             title: "Success",

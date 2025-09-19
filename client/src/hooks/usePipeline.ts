@@ -132,23 +132,23 @@ export function useMoveApplication(jobId: string) {
   const { currentOrgId } = useAuth()
 
   return useMutation({
-    mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
+    mutationFn: async ({ candidateId, columnId }: { candidateId: string; columnId: string }) => {
       
       // Validate required parameters
-      if (!applicationId || !columnId || !jobId) {
+      if (!candidateId || !columnId || !jobId) {
         throw new Error('Missing required parameters for moving application');
       }
       
       // Use the correct API endpoint that matches the server route
-      await apiRequest(`/api/jobs/${jobId}/candidates/${applicationId}/move`, {
+      await apiRequest(`/api/jobs/${jobId}/candidates/${candidateId}/move`, {
         method: 'PATCH',
         body: JSON.stringify({ columnId }),
       });
     },
     
     // Optimistic update: immediately update UI before API call completes
-    onMutate: async ({ applicationId, columnId }) => {
-      console.log('[useMoveApplication] Starting optimistic update:', { applicationId, columnId });
+    onMutate: async ({ candidateId, columnId }) => {
+      console.log('[useMoveApplication] Starting optimistic update:', { candidateId, columnId });
       
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ['job-pipeline', jobId] });
@@ -161,7 +161,7 @@ export function useMoveApplication(jobId: string) {
         if (!old || !old.applications) return old;
         
         const updatedApplications = old.applications.map((app: any) => {
-          if (app.id === applicationId) {
+          if (app.candidateId === candidateId) {
             return { ...app, columnId: columnId };
           }
           return app;
@@ -184,7 +184,7 @@ export function useMoveApplication(jobId: string) {
       queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
     },
     
-    onError: (error, { applicationId }, context) => {
+    onError: (error, { candidateId }, context) => {
       console.error('[useMoveApplication] Move failed:', error);
       
       // Rollback optimistic update
