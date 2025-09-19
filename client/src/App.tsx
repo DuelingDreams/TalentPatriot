@@ -20,7 +20,7 @@ const PageLoader = () => (
 );
 
 // Lazy load all pages for better performance
-const NotFound = lazy(() => import("@/pages/not-found"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Jobs = lazy(() => import("@/pages/Jobs"));
 const JobPipeline = lazy(() => import("@/pages/JobPipeline"));
@@ -52,7 +52,7 @@ const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 const Careers = lazy(() => import("@/pages/Careers"));
 const CareersBySlug = lazy(() => import("@/pages/CareersBySlug"));
 const JobApplicationForm = lazy(() => import("@/pages/JobApplicationForm"));
-const Health = lazy(() => import("@/pages/health"));
+const Health = lazy(() => import("@/pages/Health"));
 const TestFeatures = lazy(() => import("@/pages/TestFeatures"));
 const Help = lazy(() => import("@/pages/Help"));
 const Documentation = lazy(() => import("@/pages/Documentation"));

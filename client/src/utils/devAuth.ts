@@ -32,14 +32,12 @@ export function isDevelopment(): boolean {
 export function setDevelopmentAuth(userType: 'mentalcastle' | 'hildebrand' = 'hildebrand') {
   if (isDevelopment()) {
     const user = DEV_USERS[userType]
-    console.log('[DevAuth] Setting development authentication context for:', userType)
     
     // Set organization ID in session storage
     try {
       if (typeof window !== 'undefined' && window.sessionStorage) {
         sessionStorage.setItem('currentOrgId', user.orgId)
         sessionStorage.setItem('dev_user', JSON.stringify(user))
-        console.log('[DevAuth] Set orgId:', user.orgId, 'for user:', user.email)
       }
     } catch (error) {
       console.warn('[DevAuth] Storage error:', error)

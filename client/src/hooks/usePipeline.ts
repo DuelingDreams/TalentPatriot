@@ -53,7 +53,6 @@ export function useJobPipeline(jobId: string | undefined, options?: { enableReal
   return useQuery({
     queryKey: ['job-pipeline', jobId],
     queryFn: async (): Promise<PipelineData> => {
-      console.log('[useJobPipeline] Fetching pipeline data for jobId:', jobId)
       if (!jobId) throw new Error('Job ID is required')
       
       if (isDemoUser) {
@@ -87,15 +86,6 @@ export function useJobPipeline(jobId: string | undefined, options?: { enableReal
       }
       
       const result = await apiRequest(`/api/jobs/${jobId}/pipeline`)
-      console.log('[useJobPipeline] Fetched pipeline data:', {
-        columnsCount: result.columns?.length,
-        applicationsCount: result.applications?.length,
-        applications: result.applications?.map((app: any) => ({
-          id: app.id,
-          candidateName: app.candidate?.name,
-          columnId: app.columnId
-        }))
-      })
       return result
     },
     enabled: !!jobId,
@@ -143,7 +133,6 @@ export function useMoveApplication(jobId: string) {
 
   return useMutation({
     mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
-      console.log('Moving application', applicationId, 'to column', columnId);
       
       // Validate required parameters
       if (!applicationId || !columnId || !jobId) {

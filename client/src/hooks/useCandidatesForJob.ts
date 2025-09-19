@@ -142,7 +142,6 @@ export function useCandidatesForJob(
             (payload) => {
               if (!mounted) return
               
-              console.log('[Realtime] Job candidates change:', payload)
               setLastRealtimeEvent(new Date())
               
               // Invalidate and refetch the query
@@ -169,7 +168,6 @@ export function useCandidatesForJob(
             (payload) => {
               if (!mounted) return
               
-              console.log('[Realtime] Pipeline columns change:', payload)
               setLastRealtimeEvent(new Date())
               
               // Invalidate related pipeline queries
@@ -182,7 +180,6 @@ export function useCandidatesForJob(
         await channel.subscribe((status: string, _err?: any, _callback?: () => void) => {
             if (!mounted) return
             
-            console.log('[Realtime] Subscription status:', status)
             if (status === 'SUBSCRIBED') {
               setRealtimeStatus('connected')
               // Clear any existing polling when realtime connects
@@ -216,7 +213,6 @@ export function useCandidatesForJob(
       pollingIntervalRef.current = setInterval(() => {
         if (!mounted || realtimeStatus === 'connected') return
         
-        console.log('[Polling] Fallback refresh for job candidates')
         queryClient.invalidateQueries({ queryKey })
       }, pollingInterval * 1000)
     }

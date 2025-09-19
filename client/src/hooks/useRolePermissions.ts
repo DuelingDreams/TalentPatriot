@@ -120,7 +120,15 @@ const rolePermissionsMap: Record<string, RolePermissions> = {
 }
 
 export function useRolePermissions(): RolePermissions {
-  const { userRole } = useAuth()
+  // Safe error handling when AuthContext isn't ready
+  let userRole: string | null = null
+  try {
+    const auth = useAuth()
+    userRole = auth.userRole
+  } catch {
+    // AuthProvider not ready yet, use default permissions
+    userRole = null
+  }
   
   if (!userRole) {
     // Default permissions for unauthenticated users

@@ -854,17 +854,14 @@ export default function JobPipeline() {
   const applicationsByColumn = useMemo(() => {
     // Defensive validation of pipeline data with detailed logging
     if (!jobPipelineData) {
-      console.log('[Pipeline Debug] No pipeline data available')
       return new Map()
     }
     
     if (!jobPipelineData.columns || !Array.isArray(jobPipelineData.columns)) {
-      console.warn('[Pipeline Debug] Invalid columns structure:', jobPipelineData.columns)
       return new Map()
     }
     
     if (!jobPipelineData.applications || !Array.isArray(jobPipelineData.applications)) {
-      console.warn('[Pipeline Debug] Invalid applications structure:', jobPipelineData.applications)
       return new Map()
     }
     
@@ -873,11 +870,9 @@ export default function JobPipeline() {
       const validApplications = jobPipelineData.applications.filter(
         app => {
           if (!app || !app.id) {
-            console.warn('[Pipeline Debug] Application missing ID:', app)
             return false
           }
           if (!app.candidate) {
-            console.warn('[Pipeline Debug] Application missing candidate data:', app)
             return false
           }
           return true
@@ -886,7 +881,6 @@ export default function JobPipeline() {
       const validColumns = jobPipelineData.columns.filter(
         col => {
           if (!col || !col.id || !col.title) {
-            console.warn('[Pipeline Debug] Invalid column:', col)
             return false
           }
           return true

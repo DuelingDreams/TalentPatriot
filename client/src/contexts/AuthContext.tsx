@@ -39,7 +39,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isDevelopment()) {
           const devAuth = getDevelopmentAuth()
           if (devAuth && mounted) {
-            console.log('[Auth] Using development authentication')
             setUser(devAuth.user as any) // Mock user for development
             setUserRole(devAuth.userRole)
             setCurrentOrgIdState(devAuth.orgId)
@@ -69,17 +68,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             safeStorageOperation(() => {
               sessionStorage.setItem('currentOrgId', DEMO_ORG_ID)
             })
-            console.log('[Auth] Demo mode enabled')
           } else {
             // Regular user: get role from user metadata
             const role = session.user.user_metadata?.role || 'hiring_manager'
             const orgId = session.user.user_metadata?.currentOrgId
-            console.log('[Auth] Regular user role:', role, 'orgId:', orgId)
             setUserRole(role)
 
             // Use the user's actual organization ID from their metadata
             if (orgId) {
-              console.log('[Auth] Setting user organization:', orgId)
               setCurrentOrgIdState(orgId)
               safeStorageOperation(() => {
                 sessionStorage.setItem('currentOrgId', orgId)
@@ -87,7 +83,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               // If no orgId in metadata, fallback to development org for testing
               const developmentOrgId = DEV_ORG_ID
-              console.log('[Auth] No orgId in metadata, using development org:', developmentOrgId)
               setCurrentOrgIdState(developmentOrgId)
               safeStorageOperation(() => {
                 sessionStorage.setItem('currentOrgId', developmentOrgId)
@@ -96,7 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } else if (isDevelopment()) {
           // Development mode: create mock auth when no Supabase session
-          console.log('[Auth] No Supabase session - setting up development auth for Hildebrand')
           setDevelopmentAuth('hildebrand') // Use Hildebrand organization for Emily Wright testing
           const devAuth = getDevelopmentAuth()
           if (devAuth) {
@@ -113,7 +107,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Fallback to development auth if available
         if (isDevelopment() && mounted) {
-          console.log('[Auth] Falling back to development auth due to error')
           setDevelopmentAuth('hildebrand') // Use Hildebrand for Emily Wright testing
           const devAuth = getDevelopmentAuth()
           if (devAuth) {
@@ -172,7 +165,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed successfully')
         }
 
         // Wrap all auth state changes in try-catch to prevent DOM exceptions
@@ -195,12 +187,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               // For regular users, get role from user metadata
               const role = session.user.user_metadata?.role || 'hiring_manager'
               const orgId = session.user.user_metadata?.currentOrgId
-              console.log('Auth change: Regular user role:', role, 'orgId:', orgId)
               setUserRole(role)
 
               // Use the user's actual organization ID from their metadata
               if (orgId) {
-                console.log('Auth change: Setting user organization:', orgId)
                 setCurrentOrgIdState(orgId)
                 safeStorageOperation(() => {
                   sessionStorage.setItem('currentOrgId', orgId)
@@ -208,7 +198,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               } else {
                 // If no orgId in metadata, fallback to development org for testing
                 const developmentOrgId = '90531171-d56b-4732-baba-35be47b0cb08'
-                console.log('Auth change: No orgId in metadata, using development org:', developmentOrgId)
                 setCurrentOrgIdState(developmentOrgId)
                 safeStorageOperation(() => {
                   sessionStorage.setItem('currentOrgId', developmentOrgId)
@@ -296,7 +285,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.warn('Failed to assign user to organization:', errorData);
             return { error: { message: `Sign up successful but failed to assign to organization: ${errorData.error}` } };
           } else {
-            console.log('User successfully assigned to organization during signup');
             
             // Update the user's auth metadata to include currentOrgId
             try {
@@ -306,7 +294,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   role: role
                 } 
               });
-              console.log('Auth metadata updated with organization ID');
             } catch (metadataError) {
               console.warn('Failed to update auth metadata:', metadataError);
             }
@@ -325,7 +312,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { error: { message: 'Sign up successful but organization assignment failed' } };
         }
       } else if (!orgId) {
-        console.log('No organization ID provided - user will need to be assigned to an organization later');
       }
 
       return { error: null };

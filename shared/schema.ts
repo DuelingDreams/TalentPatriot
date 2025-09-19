@@ -7,7 +7,6 @@ import { sql } from "drizzle-orm";
 // Enums
 export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'on_hold', 'filled']);
 export const jobTypeEnum = pgEnum('job_type', ['full-time', 'part-time', 'contract', 'internship']);
-export const applicationStatusEnum = pgEnum('application_status', ['applied', 'in_review', 'interview', 'offer', 'hired', 'rejected']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
 export const userRoleEnum = pgEnum('user_role', ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer']);
@@ -235,103 +234,11 @@ export const messageRecipients = pgTable("message_recipients", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Relations
-export const clientsRelations = relations(clients, ({ many }) => ({
-  jobs: many(jobs),
-}));
-
-export const jobsRelations = relations(jobs, ({ one, many }) => ({
-  client: one(clients, {
-    fields: [jobs.clientId],
-    references: [clients.id],
-  }),
-  jobCandidates: many(jobCandidate),
-}));
-
-export const candidatesRelations = relations(candidates, ({ many }) => ({
-  jobCandidates: many(jobCandidate),
-}));
-
-export const pipelineColumnsRelations = relations(pipelineColumns, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [pipelineColumns.orgId],
-    references: [organizations.id],
-  }),
-}));
-
-
-
-export const jobCandidateRelations = relations(jobCandidate, ({ one, many }) => ({
-  job: one(jobs, {
-    fields: [jobCandidate.jobId],
-    references: [jobs.id],
-  }),
-  candidate: one(candidates, {
-    fields: [jobCandidate.candidateId],
-    references: [candidates.id],
-  }),
-  notes: many(candidateNotes),
-  interviews: many(interviews),
-}));
-
-export const candidateNotesRelations = relations(candidateNotes, ({ one }) => ({
-  jobCandidate: one(jobCandidate, {
-    fields: [candidateNotes.jobCandidateId],
-    references: [jobCandidate.id],
-  }),
-}));
-
-export const interviewsRelations = relations(interviews, ({ one }) => ({
-  jobCandidate: one(jobCandidate, {
-    fields: [interviews.jobCandidateId],
-    references: [jobCandidate.id],
-  }),
-}));
-
-export const messagesRelations = relations(messages, ({ one, many }) => ({
-  client: one(clients, {
-    fields: [messages.clientId],
-    references: [clients.id],
-  }),
-  job: one(jobs, {
-    fields: [messages.jobId],
-    references: [jobs.id],
-  }),
-  candidate: one(candidates, {
-    fields: [messages.candidateId],
-    references: [candidates.id],
-  }),
-  jobCandidate: one(jobCandidate, {
-    fields: [messages.jobCandidateId],
-    references: [jobCandidate.id],
-  }),
-  recipients: many(messageRecipients),
-}));
-
-export const messageRecipientsRelations = relations(messageRecipients, ({ one }) => ({
-  message: one(messages, {
-    fields: [messageRecipients.messageId],
-    references: [messages.id],
-  }),
-}));
 
 // Insert schemas
 
-export const insertOrganizationSchema = createInsertSchema(organizations).omit({
-  id: true,
-  createdAt: true,
-});
 
-export const insertUserOrganizationSchema = createInsertSchema(userOrganizations).omit({
-  id: true,
-  joinedAt: true,
-});
 
-export const insertClientSchema = createInsertSchema(clients).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
 export const insertJobSchema = createInsertSchema(jobs).omit({
   id: true,
@@ -349,58 +256,23 @@ export const insertJobCandidateSchema = createInsertSchema(jobCandidate).omit({
   updatedAt: true,
 });
 
-export const insertPipelineColumnSchema = createInsertSchema(pipelineColumns).omit({
-  id: true,
-  createdAt: true,
-});
 
 
 
-export const insertCandidateNotesSchema = createInsertSchema(candidateNotes).omit({
-  id: true,
-  createdAt: true,
-});
 
-export const insertInterviewSchema = createInsertSchema(interviews).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
-export const insertMessageSchema = createInsertSchema(messages).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
-export const insertMessageRecipientSchema = createInsertSchema(messageRecipients).omit({
-  id: true,
-  createdAt: true,
-});
 
-export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
-  createdAt: true,
-  updatedAt: true,
-});
 
-export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
 
 // Types
 export type UserProfile = typeof userProfiles.$inferSelect;
-export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
 
 export type Organization = typeof organizations.$inferSelect;
-export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
 
 export type UserOrganization = typeof userOrganizations.$inferSelect;
-export type InsertUserOrganization = z.infer<typeof insertUserOrganizationSchema>;
 
 export type Client = typeof clients.$inferSelect;
-export type InsertClient = z.infer<typeof insertClientSchema>;
 
 export type Job = typeof jobs.$inferSelect;
 export type InsertJob = z.infer<typeof insertJobSchema>;
@@ -409,32 +281,21 @@ export type Candidate = typeof candidates.$inferSelect;
 export type InsertCandidate = z.infer<typeof insertCandidateSchema>;
 
 export type PipelineColumn = typeof pipelineColumns.$inferSelect;
-export type InsertPipelineColumn = z.infer<typeof insertPipelineColumnSchema>;
 
 export type JobCandidate = typeof jobCandidate.$inferSelect;
 export type InsertJobCandidate = z.infer<typeof insertJobCandidateSchema>;
 
 export type CandidateNotes = typeof candidateNotes.$inferSelect;
-export type InsertCandidateNotes = z.infer<typeof insertCandidateNotesSchema>;
 
 export type Interview = typeof interviews.$inferSelect;
-export type InsertInterview = z.infer<typeof insertInterviewSchema>;
 
 export type Message = typeof messages.$inferSelect;
-export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export type MessageRecipient = typeof messageRecipients.$inferSelect;
-export type InsertMessageRecipient = z.infer<typeof insertMessageRecipientSchema>;
 
 export type UserSettings = typeof userSettings.$inferSelect;
-export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 
 // Pagination Types
-export interface PaginationParams {
-  limit?: number;
-  cursor?: string;
-  include?: string;
-}
 
 export interface PaginationMetadata {
   hasMore: boolean;
