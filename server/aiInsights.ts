@@ -1,4 +1,5 @@
 import OpenAI from 'openai'
+import { z } from 'zod'
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({
@@ -15,6 +16,23 @@ interface RecruitmentData {
   pipelineStages: Array<{ stage: string; count: number }>
   recentActivity: Array<{ type: string; count: number; date: string }>
 }
+
+// Zod schema for AI response validation
+const AIRecommendationSchema = z.object({
+  id: z.string().optional(),
+  type: z.enum(['optimization', 'risk', 'opportunity', 'action']),
+  priority: z.enum(['high', 'medium', 'low']),
+  title: z.string(),
+  description: z.string(),
+  impact: z.string(),
+  actionItems: z.array(z.string()),
+  confidence: z.number()
+})
+
+const AIInsightResponseSchema = z.object({
+  summary: z.string(),
+  recommendations: z.array(AIRecommendationSchema)
+})
 
 interface AIInsightResponse {
   summary: string
@@ -85,13 +103,27 @@ Generate 3-5 recommendations covering different aspects like sourcing strategy, 
       max_tokens: 2000,
     })
 
-    const aiOutput = JSON.parse(response.choices[0].message.content || '{}')
+    const rawOutput = JSON.parse(response.choices[0].message.content || '{}')
+    
+    // Parse and validate the AI response using Zod schema
+    const parsedResponse = AIInsightResponseSchema.parse(rawOutput)
 
-    // Add unique IDs to recommendations if missing
-    aiOutput.recommendations = aiOutput.recommendations.map((rec: any, index: number) => ({
-      ...rec,
+    // Add unique IDs to recommendations if missing - now type-safe
+    const recommendationsWithIds = parsedResponse.recommendations.map((rec, index: number) => ({
       id: rec.id || `rec-${Date.now()}-${index}`,
+      type: rec.type,
+      priority: rec.priority,
+      title: rec.title,
+      description: rec.description,
+      impact: rec.impact,
+      actionItems: rec.actionItems,
+      confidence: rec.confidence,
     }))
+    
+    const aiOutput = {
+      summary: parsedResponse.summary,
+      recommendations: recommendationsWithIds
+    }
 
     return {
       summary: aiOutput.summary,

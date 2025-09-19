@@ -1,7 +1,8 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import express from "express";
 import rateLimit from "express-rate-limit";
 import { createServer, type Server } from "http";
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { storage } from "./storage";
 import * as jobService from "../lib/jobService";
@@ -20,7 +21,10 @@ import {
   messageFieldsPresets,
   type PaginatedJobs,
   type PaginatedCandidates,
-  type PaginatedMessages
+  type PaginatedMessages,
+  type Job,
+  type Candidate,
+  type JobCandidate
 } from "../shared/schema";
 import { createClient } from '@supabase/supabase-js';
 import { subdomainResolver } from './middleware/subdomainResolver';
@@ -28,11 +32,11 @@ import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers
 import crypto from "crypto";
 
 // Utility functions for ETag generation and caching
-function generateETag(data: any): string {
+function generateETag(data: unknown): string {
   return crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
 }
 
-function setResponseCaching(res: any, options: {
+function setResponseCaching(res: Response, options: {
   etag?: string;
   cacheControl?: string;
   lastModified?: Date;
@@ -55,7 +59,42 @@ function setResponseCaching(res: any, options: {
   res.setHeader('Vary', 'Accept-Encoding, Authorization, X-Org-Id');
 }
 
-function mapPublicJobRow(row: any) {
+// Database row type for jobs (from Supabase/Postgres)
+type JobDatabaseRow = {
+  id: string;
+  org_id: string;
+  public_slug: string | null;
+  title: string;
+  description: string | null;
+  location: string | null;
+  department: string | null;
+  job_type: string;
+  status: string;
+  record_status: string;
+  experience_level: string | null;
+  remote_option: string | null;
+  salary_range: string | null;
+  created_at: string;
+  updated_at: string | null;
+};
+
+// Application type (from database)
+type ApplicationRow = {
+  id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  source?: string;
+  job?: {
+    org_id: string;
+  };
+  candidate?: {
+    id: string;
+    name: string;
+  };
+};
+
+function mapPublicJobRow(row: JobDatabaseRow) {
   return {
     id: row.id,
     orgId: row.org_id,
@@ -91,7 +130,7 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Create service role client for server-side auth operations
-let supabaseAdmin: any = null;
+let supabaseAdmin: SupabaseClient | null = null;
 if (supabaseUrl && supabaseServiceKey) {
   supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
@@ -415,7 +454,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       try {
         await storage.ensureUserProfile(ownerId);
         console.log('User profile ensured for:', ownerId);
-      } catch (userError: any) {
+      } catch (userError: unknown) {
         console.error('Failed to ensure user profile:', userError?.message);
         return res.status(500).json({ 
           error: "Failed to setup user profile",
@@ -451,7 +490,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       res.status(201).json(organization);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating organization:", error);
       res.status(400).json({ 
         error: "Failed to create organization",
@@ -537,7 +576,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.log(`Updated auth metadata for user ${userId} with orgId: ${orgId}, role: ${role}`);
 
       res.status(201).json({ success: true });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error assigning user to organization:', err);
       return res.status(400).json({ error: err.message || 'Failed to assign user' });
     }
@@ -675,7 +714,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           code: result.error
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error in user-organization assignment endpoint:', error);
       return res.status(500).json({ 
         error: 'Failed to assign user to organization',
@@ -705,7 +744,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           error: result.error
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error fetching organization users:', error);
       return res.status(500).json({ 
         error: 'Failed to fetch organization users',
@@ -757,17 +796,17 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           `)
           .eq('jobs.org_id', orgId)
           .gte('created_at', startDate.toISOString())
-          .then(({ data }: any) => data || [])
+          .then(({ data }: { data: ApplicationRow[] | null }) => data || [])
       ])
 
       // Filter jobs and candidates by date range
-      const periodJobs = jobs.filter((job: any) => new Date(job.createdAt) >= startDate)
-      const periodCandidates = candidates.filter((candidate: any) => new Date(candidate.createdAt) >= startDate)
+      const periodJobs = jobs.filter((job: Job) => new Date(job.createdAt) >= startDate)
+      const periodCandidates = candidates.filter((candidate: Candidate) => new Date(candidate.createdAt) >= startDate)
 
       console.log(`[REPORTS] Found ${periodJobs.length} jobs, ${periodCandidates.length} candidates, ${applications.length} applications for org ${orgId}`)
 
       // Calculate time to hire metrics
-      const hiredApplications = applications.filter((app: any) => app.status === 'hired')
+      const hiredApplications = applications.filter((app: ApplicationRow) => app.status === 'hired')
       let timeToHireMetrics = {
         average: 0,
         median: 0,
@@ -776,7 +815,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       if (hiredApplications.length > 0) {
-        const hireTimes = hiredApplications.map((app: any) => {
+        const hireTimes = hiredApplications.map((app: ApplicationRow) => {
           const applied = new Date(app.created_at)
           const hired = new Date(app.updated_at)
           return Math.ceil((hired.getTime() - applied.getTime()) / (1000 * 60 * 60 * 24))
@@ -788,7 +827,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         timeToHireMetrics.median = sortedTimes[Math.floor(sortedTimes.length / 2)] || 0
 
         // Calculate monthly breakdown
-        const monthlyHires = hiredApplications.reduce((acc: Record<string, number[]>, app: any) => {
+        const monthlyHires = hiredApplications.reduce((acc: Record<string, number[]>, app: ApplicationRow) => {
           const month = new Date(app.updated_at).toLocaleDateString('en-US', { month: 'short' })
           if (!acc[month]) acc[month] = []
           
@@ -807,7 +846,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Calculate source of hire
-      const sourceOfHire = applications.reduce((acc: Record<string, number>, app: any) => {
+      const sourceOfHire = applications.reduce((acc: Record<string, number>, app: ApplicationRow) => {
         const source = app.source || 'Company Website'
         acc[source] = (acc[source] || 0) + 1
         return acc
@@ -822,10 +861,10 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       // Calculate pipeline conversion
       const appliedCount = applications.length
-      const screenedCount = applications.filter((app: any) => ['screened', 'interviewed', 'offered', 'hired'].includes(app.status)).length
-      const interviewedCount = applications.filter((app: any) => ['interviewed', 'offered', 'hired'].includes(app.status)).length
-      const offeredCount = applications.filter((app: any) => ['offered', 'hired'].includes(app.status)).length
-      const hiredCount = applications.filter((app: any) => app.status === 'hired').length
+      const screenedCount = applications.filter((app: ApplicationRow) => ['screened', 'interviewed', 'offered', 'hired'].includes(app.status)).length
+      const interviewedCount = applications.filter((app: ApplicationRow) => ['interviewed', 'offered', 'hired'].includes(app.status)).length
+      const offeredCount = applications.filter((app: ApplicationRow) => ['offered', 'hired'].includes(app.status)).length
+      const hiredCount = applications.filter((app: ApplicationRow) => app.status === 'hired').length
 
       const pipelineConversion = {
         applied: appliedCount,
@@ -852,14 +891,14 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         for (const orgUser of orgUsers) {
           if (!orgUser.users) continue
           
-          const userJobs = periodJobs.filter((job: any) => job.createdBy === orgUser.user_id)
-          const userApplications = applications.filter((app: any) => 
-            userJobs.some((job: any) => job.id === app.job_id)
+          const userJobs = periodJobs.filter((job: Job) => job.createdBy === orgUser.user_id)
+          const userApplications = applications.filter((app: ApplicationRow) => 
+            userJobs.some((job: Job) => job.id === app.job_id)
           )
-          const userHires = userApplications.filter((app: any) => app.status === 'hired')
+          const userHires = userApplications.filter((app: ApplicationRow) => app.status === 'hired')
           
           if (userJobs.length > 0 || userApplications.length > 0) {
-            const userHireTimes = userHires.map((app: any) => {
+            const userHireTimes = userHires.map((app: ApplicationRow) => {
               const applied = new Date(app.created_at)
               const hired = new Date(app.updated_at)
               return Math.ceil((hired.getTime() - applied.getTime()) / (1000 * 60 * 60 * 24))
@@ -883,12 +922,12 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         const nextMonthDate = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
         const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' })
         
-        const monthApplications = applications.filter((app: any) => {
+        const monthApplications = applications.filter((app: ApplicationRow) => {
           const appDate = new Date(app.created_at)
           return appDate >= monthDate && appDate < nextMonthDate
         })
         
-        const monthHires = monthApplications.filter((app: any) => app.status === 'hired')
+        const monthHires = monthApplications.filter((app: ApplicationRow) => app.status === 'hired')
         
         monthlyTrends.push({
           month: monthName,
@@ -960,7 +999,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       ])
       
       // Get applications if method exists, otherwise use empty array
-      let applications: any[] = []
+      let applications: ApplicationRow[] = []
       try {
         // Applications aren't critical for AI insights, so we'll use job candidates as a proxy
         applications = candidates || []
@@ -1269,7 +1308,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           code: result.error
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error removing user from organization:', error);
       return res.status(500).json({ 
         error: 'Failed to remove user from organization',
@@ -1729,7 +1768,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     try {
       const validatedData = candidateSearchSchema.parse(req.body);
       
-      const filters: any = {
+      const filters: Partial<Record<string, unknown>> = {
         orgId: validatedData.orgId,
         searchTerm: validatedData.searchTerm,
         jobId: validatedData.jobId,
@@ -2328,7 +2367,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Access org_id from raw data
-      const orgId = (job as any).org_id;
+      const orgId = (job as { org_id: string }).org_id;
       console.log('[Pipeline Route] Job orgId extracted:', orgId);
 
       // Import pipeline service
@@ -2377,7 +2416,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { ensureDefaultPipelineForJob } = await import('./lib/pipelineService');
 
       // Access org_id from raw data
-      const orgId = (job as any).org_id;
+      const orgId = (job as { org_id: string }).org_id;
 
       // Ensure pipeline exists for this job
       await ensureDefaultPipelineForJob({ 
@@ -2399,7 +2438,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Transform data to match frontend interface
-      const pipelineColumns = columns?.map((col: any) => ({
+      const pipelineColumns = columns?.map((col: unknown) => ({
         id: col.id,
         title: col.title,
         position: col.position.toString()
@@ -2455,7 +2494,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const note = await storage.createCandidateNote(req.body);
       console.log('[NOTES_API] Note created successfully:', { id: note.id, orgId: note.orgId });
       res.status(201).json(note);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('[NOTES_API] Error creating candidate note:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       res.status(400).json({ 
@@ -3037,7 +3076,7 @@ Expires: 2025-12-31T23:59:59.000Z
       }
 
       // Transform to match ApplicationHistoryEntry interface
-      const formattedApplications = data.map((jc: any) => ({
+      const formattedApplications = data.map((jc: unknown) => ({
         id: jc.id,
         jobId: jc.job_id,
         jobTitle: jc.jobs?.title || 'Unknown Job',
@@ -3095,7 +3134,7 @@ Expires: 2025-12-31T23:59:59.000Z
       
       const candidate = await storage.createCandidate(validatedData);
       res.status(201).json(candidate);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating candidate:", error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
@@ -3158,7 +3197,7 @@ Expires: 2025-12-31T23:59:59.000Z
         message: 'If that email is registered, you\'ll receive a password reset link shortly.' 
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Forgot password error:', error);
       res.status(500).json({ error: 'Failed to send reset email' });
     }
@@ -3259,7 +3298,7 @@ Expires: 2025-12-31T23:59:59.000Z
           timestamp: new Date().toISOString()
         });
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('SendGrid test error:', error);
       res.status(500).json({ 
         success: false, 

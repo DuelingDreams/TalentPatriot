@@ -13,7 +13,7 @@ import { createClient } from "@supabase/supabase-js";
 declare global {
   namespace Express {
     interface Request {
-      supabase?: any;
+      supabase?: import('@supabase/supabase-js').SupabaseClient;
     }
   }
 }
@@ -180,7 +180,7 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  let capturedJsonResponse: Record<string, unknown> | undefined = undefined;
 
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
@@ -212,7 +212,7 @@ app.use("/api", (req, res, next) => {
   const supa = createClient(process.env.VITE_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
     global: { headers: { Authorization: req.headers.authorization ?? "" } },
   });
-  (req as any).supabase = supa;
+  (req as Request & { supabase?: import('@supabase/supabase-js').SupabaseClient }).supabase = supa;
   next();
 });
 

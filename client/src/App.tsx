@@ -194,109 +194,109 @@ function Router() {
         
         {/* Protected routes */}
         <Route path="/settings/organization">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <OrganizationSetup />
           </ProtectedRoute>
         </Route>
         <Route path="/dashboard">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Dashboard />
           </ProtectedRoute>
         </Route>
         
         <Route path="/jobs">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Jobs />
           </ProtectedRoute>
         </Route>
         
         <Route path="/jobs/:id">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <JobPipeline />
           </ProtectedRoute>
         </Route>
         
         <Route path="/pipeline">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <JobPipeline />
           </ProtectedRoute>
         </Route>
         
         <Route path="/pipeline/:id">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <JobPipeline />
           </ProtectedRoute>
         </Route>
         
         <Route path="/clients">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Clients />
           </ProtectedRoute>
         </Route>
         
         <Route path="/clients/:id">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <ClientDetail />
           </ProtectedRoute>
         </Route>
         
         <Route path="/candidates">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Candidates />
           </ProtectedRoute>
         </Route>
         
         <Route path="/candidates/:id">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <CandidateProfile />
           </ProtectedRoute>
         </Route>
         
         <Route path="/calendar">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Calendar />
           </ProtectedRoute>
         </Route>
         
         <Route path="/messages">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Messages />
           </ProtectedRoute>
         </Route>
         
         <Route path="/reports">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Reports />
           </ProtectedRoute>
         </Route>
         
         <Route path="/help">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Help />
           </ProtectedRoute>
         </Route>
         
         <Route path="/docs">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <Documentation />
           </ProtectedRoute>
         </Route>
         
         <Route path="/profile-settings">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <ProfileSettings />
           </ProtectedRoute>
         </Route>
         
         <Route path="/account-settings">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <AccountSettings />
           </ProtectedRoute>
         </Route>
         
         {/* Feature testing route */}
         <Route path="/test-features">
-          <ProtectedRoute>
+          <ProtectedRoute type="route">
             <TestFeatures />
           </ProtectedRoute>
         </Route>

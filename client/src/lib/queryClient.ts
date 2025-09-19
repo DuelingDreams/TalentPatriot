@@ -1,11 +1,16 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { isPermissionError } from "./db";
 
+// Type guard for HTTP errors
+function isHttpError(error: unknown): error is Error & { status?: number, message: string } {
+  return error instanceof Error && 'message' in error;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
     const error = new Error(`${res.status}: ${text}`);
-    (error as any).status = res.status;
+    (error as Error & { status?: number }).status = res.status;
     
     // Handle permission errors gracefully
     if (isPermissionError(error)) {
@@ -17,10 +22,10 @@ async function throwIfResNotOk(res: Response) {
   return null;
 }
 
-export async function apiRequest(
+export async function apiRequest<T = unknown>(
   urlOrOptions: string | { method: string; url: string; body?: string },
   options?: { method?: string; body?: string }
-): Promise<any> {
+): Promise<T> {
   let url: string;
   let method: string = 'GET';
   let body: string | undefined;
@@ -89,9 +94,9 @@ export async function apiRequest(
 
     const authCheck = await throwIfResNotOk(res);
     if (authCheck?.authRequired) {
-      return authCheck; // Return auth-required state instead of throwing
+      return authCheck as T; // Return auth-required state instead of throwing
     }
-    return await res.json();
+    return await res.json() as T;
   } catch (error) {
     // Handle network errors, CORS issues, and DOM exceptions
     if (error instanceof DOMException) {
@@ -147,11 +152,11 @@ function getCurrentOrgId(): string | null {
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
-export const getQueryFn: <T>(options: {
+export const getQueryFn = <T = unknown>(options: {
   on401: UnauthorizedBehavior;
-}) => QueryFunction<T> =
-  ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
+}): QueryFunction<T> => {
+  const { on401: unauthorizedBehavior } = options;
+  return async ({ queryKey }) => {
     try {
       const currentOrgId = getCurrentOrgId();
       let url = queryKey.join("/") as string;
@@ -196,7 +201,7 @@ export const getQueryFn: <T>(options: {
       }
 
       await throwIfResNotOk(res);
-      return await res.json();
+      return await res.json() as T;
     } catch (error) {
       // Handle network errors and DOM exceptions in query functions
       if (error instanceof DOMException) {
@@ -206,6 +211,7 @@ export const getQueryFn: <T>(options: {
       throw error;
     }
   };
+};
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -221,30 +227,47 @@ export const queryClient = new QueryClient({
       // Extended cache time to keep data in memory longer (30 minutes as requested)
       gcTime: 30 * 60 * 1000, // 30 minutes (renamed from cacheTime in v5)
       // Smart retry strategy with exponential backoff
-      retry: (failureCount, error: any) => {
-        // Don't retry on authentication or authorization errors
-        if (error?.message?.includes('401') || error?.message?.includes('403') || 
-            error?.message?.includes('Unauthorized') || error?.message?.includes('Forbidden')) {
-          return false;
+      retry: (failureCount, error: unknown) => {
+        // Use type guard for safe error property access
+        if (isHttpError(error)) {
+          // Don't retry on authentication or authorization errors
+          if (error.status === 401 || error.status === 403 ||
+              error.message.includes('401') || error.message.includes('403') || 
+              error.message.includes('Unauthorized') || error.message.includes('Forbidden')) {
+            return false;
+          }
+          // Don't retry on client errors (4xx) except for rate limits
+          if (error.status === 400 || error.status === 404 || error.status === 422 ||
+              error.message.includes('400') || error.message.includes('404') || 
+              error.message.includes('422')) {
+            return false;
+          }
+          // Retry server errors (5xx)
+          if (error.status && error.status >= 500) {
+            return failureCount < 3;
+          }
         }
-        // Don't retry on client errors (4xx) except for rate limits
-        if (error?.message?.includes('400') || error?.message?.includes('404') || 
-            error?.message?.includes('422')) {
-          return false;
-        }
-        // Retry up to 2 times for network errors and 5xx errors
+        // Retry up to 2 times for network errors and unknown errors
         return failureCount < 2;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 8000), // Exponential backoff up to 8s
     },
     mutations: {
-      retry: (failureCount, error: any) => {
-        // Don't retry mutations on client errors
-        if (error?.message?.includes('400') || error?.message?.includes('401') || 
-            error?.message?.includes('403') || error?.message?.includes('422')) {
-          return false;
+      retry: (failureCount, error: unknown) => {
+        // Use type guard for safe error property access
+        if (isHttpError(error)) {
+          // Don't retry mutations on client errors
+          if (error.status === 400 || error.status === 401 || error.status === 403 || error.status === 422 ||
+              error.message.includes('400') || error.message.includes('401') || 
+              error.message.includes('403') || error.message.includes('422')) {
+            return false;
+          }
+          // Retry server errors (5xx)
+          if (error.status && error.status >= 500) {
+            return failureCount < 1;
+          }
         }
-        // Retry once on network errors or 5xx errors
+        // Retry once on network errors or unknown errors
         return failureCount < 1;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),

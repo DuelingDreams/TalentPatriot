@@ -43,6 +43,39 @@ import { createClient } from '@supabase/supabase-js';
 import { atsEmailService } from './emailService';
 import { resumeParsingService, type ParsedResumeData } from './resumeParser';
 
+// Dashboard stats return type
+type DashboardStats = {
+  totalJobs: number;
+  totalCandidates: number;
+  totalApplications: number;
+  totalHires: number;
+  jobsThisMonth: number;
+  candidatesThisMonth: number;
+  applicationsThisMonth: number;
+  hiresThisMonth: number;
+  averageTimeToHire?: number;
+  conversionRate?: number;
+  topSources?: Array<{ source: string; count: number }>;
+  recentActivity?: Array<{ type: string; description: string; timestamp: Date }>;
+};
+
+// Pipeline candidate return type
+type PipelineCandidate = {
+  id: string;
+  candidateId: string;
+  candidateName: string;
+  candidateEmail: string;
+  jobId: string;
+  columnId: string;
+  status: string;
+  appliedAt: Date;
+  resume?: {
+    url: string;
+    skills?: string[];
+    experienceLevel?: string;
+  };
+};
+
 // Storage interface for ATS system
 export interface IStorage {
   // User Profiles
@@ -52,12 +85,12 @@ export interface IStorage {
   ensureUserProfile(userId: string): Promise<UserProfile>;
   
   // User Settings
-  getUserSettings(userId: string): Promise<any>;
-  updateUserSettings(userId: string, settings: any): Promise<any>;
+  getUserSettings(userId: string): Promise<UserSettings | undefined>;
+  updateUserSettings(userId: string, settings: Partial<InsertUserSettings>): Promise<UserSettings>;
   
   // Performance-optimized methods
-  getDashboardStats(orgId: string): Promise<any>;
-  getPipelineCandidates(jobId: string, orgId: string): Promise<any[]>;
+  getDashboardStats(orgId: string): Promise<DashboardStats>;
+  getPipelineCandidates(jobId: string, orgId: string): Promise<PipelineCandidate[]>;
   searchClients(searchTerm: string, orgId: string): Promise<Client[]>;
   searchJobs(searchTerm: string, orgId: string): Promise<Job[]>;
   searchCandidates(searchTerm: string, orgId: string): Promise<Candidate[]>;
@@ -346,7 +379,7 @@ export class DatabaseStorage implements IStorage {
         id: userId,
         role: 'hiring_manager'
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.warn('Failed to create user profile:', error?.message);
       
       // If it's a foreign key constraint error, the user doesn't exist in auth.users
@@ -425,11 +458,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Performance methods
-  async getDashboardStats(orgId: string): Promise<any> {
-    return {};
+  async getDashboardStats(orgId: string): Promise<DashboardStats> {
+    // For now return empty stats, should be implemented with real data later
+    return {
+      totalJobs: 0,
+      totalCandidates: 0, 
+      totalApplications: 0,
+      totalHires: 0,
+      jobsThisMonth: 0,
+      candidatesThisMonth: 0,
+      applicationsThisMonth: 0,
+      hiresThisMonth: 0
+    };
   }
 
-  async getPipelineCandidates(jobId: string, orgId: string): Promise<any[]> {
+  async getPipelineCandidates(jobId: string, orgId: string): Promise<PipelineCandidate[]> {
+    // For now return empty array, should be implemented with real data later
+    console.log(`Getting pipeline candidates for job ${jobId} in org ${orgId}`);
     return [];
   }
 
@@ -529,7 +574,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateOrganization(id: string, updateData: Partial<InsertOrganization>): Promise<Organization> {
     try {
-      const dbUpdate: any = {}
+      const dbUpdate: Partial<Record<string, unknown>> = {}
       if (updateData.name !== undefined) dbUpdate.name = updateData.name
       if (updateData.ownerId !== undefined) dbUpdate.owner_id = updateData.ownerId
       if (updateData.slug !== undefined) dbUpdate.slug = updateData.slug
@@ -669,7 +714,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserOrganization(id: string, updateData: Partial<InsertUserOrganization>): Promise<UserOrganization> {
     try {
-      const dbUpdate: any = {}
+      const dbUpdate: Partial<Record<string, unknown>> = {}
       if (updateData.role !== undefined) dbUpdate.role = updateData.role
       
       const { data, error } = await supabase
@@ -800,7 +845,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateClient(id: string, updateData: Partial<InsertClient>): Promise<Client> {
     try {
-      const dbUpdate: any = {}
+      const dbUpdate: Partial<Record<string, unknown>> = {}
       if (updateData.name !== undefined) dbUpdate.name = updateData.name
       if (updateData.industry !== undefined) dbUpdate.industry = updateData.industry
       if (updateData.location !== undefined) dbUpdate.location = updateData.location
@@ -988,7 +1033,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateJob(id: string, updateData: Partial<InsertJob>): Promise<Job> {
     try {
-      const dbUpdate: any = {}
+      const dbUpdate: Partial<Record<string, unknown>> = {}
       if (updateData.title !== undefined) dbUpdate.title = updateData.title
       if (updateData.description !== undefined) dbUpdate.description = updateData.description
       if (updateData.status !== undefined) dbUpdate.status = updateData.status
@@ -1218,7 +1263,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateCandidate(id: string, updateData: Partial<InsertCandidate>): Promise<Candidate> {
     try {
-      const dbUpdate: any = {}
+      const dbUpdate: Partial<Record<string, unknown>> = {}
       if (updateData.name !== undefined) dbUpdate.name = updateData.name
       if (updateData.email !== undefined) dbUpdate.email = updateData.email
       if (updateData.phone !== undefined) dbUpdate.phone = updateData.phone
@@ -1354,7 +1399,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateJobCandidate(id: string, updateData: Partial<InsertJobCandidate>): Promise<JobCandidate> {
     try {
-      const dbUpdate: any = {}
+      const dbUpdate: Partial<Record<string, unknown>> = {}
       if (updateData.stage !== undefined) dbUpdate.stage = updateData.stage
       if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
       if (updateData.assignedTo !== undefined) dbUpdate.assigned_to = updateData.assignedTo
@@ -1715,7 +1760,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateInterview(id: string, interview: Partial<InsertInterview>): Promise<Interview> {
     try {
-      const updateData: any = {
+      const updateData: Partial<Record<string, unknown>> = {
         updated_at: new Date().toISOString()
       }
 
@@ -2039,7 +2084,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message> {
     try {
-      const updateData: any = {
+      const updateData: Partial<Record<string, unknown>> = {
         updated_at: new Date().toISOString()
       }
 
@@ -2296,18 +2341,18 @@ export class DatabaseStorage implements IStorage {
       console.log(`[getJobPipelineData] Found ${columns?.length || 0} columns and ${applications?.length || 0} applications`);
       
       // Log applications for debugging
-      applications?.forEach((app: any) => {
+      applications?.forEach((app: unknown) => {
         console.log(`[getJobPipelineData] Application ${app.id}: candidateName="${app.candidate?.name}", columnId="${app.pipeline_column_id}"`);
       });
 
       // Transform data to match frontend interface
       const pipelineData = {
-        columns: columns?.map((col: any) => ({
+        columns: columns?.map((col: unknown) => ({
           id: col.id,
           title: col.title,
           position: col.position.toString()
         })) || [],
-        applications: applications?.map((app: any) => ({
+        applications: applications?.map((app: unknown) => ({
           id: app.id,
           jobId: app.job_id,
           candidateId: app.candidate_id,
@@ -2462,7 +2507,7 @@ export class DatabaseStorage implements IStorage {
         if (organization) {
           // Get team members who should be notified (hiring managers, recruiters, admins)
           const teamMembers = await this.getUserOrganizations(job.orgId);
-          const notificationRecipients = teamMembers.filter((member: any) => 
+          const notificationRecipients = teamMembers.filter((member: unknown) => 
             ['hiring_manager', 'recruiter', 'admin'].includes(member.role || '')
           );
 
@@ -2666,7 +2711,7 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Update candidate with parsed data
-      const updateData: any = {
+      const updateData: Partial<Record<string, unknown>> = {
         updated_at: new Date().toISOString(),
       };
 
