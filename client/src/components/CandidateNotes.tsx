@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Plus, MessageSquare, Lock, Globe, X, Check } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useCandidateNotes, useCreateCandidateNote } from '@/hooks/useCandidateNotes'
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -35,6 +35,8 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
   const [isPrivate, setIsPrivate] = useState(false)
 
   const handleAddNote = async () => {
+    console.log('[CandidateNotes] Authentication state:', { user: user?.id, currentOrgId, jobCandidateId })
+    
     if (!newNote.trim()) {
       toast({
         title: "Error",
@@ -45,6 +47,7 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
     }
 
     if (!user?.id || !currentOrgId) {
+      console.error('[CandidateNotes] Authentication failed:', { userId: user?.id, currentOrgId })
       toast({
         title: "Error",
         description: "User authentication required to add notes.",
