@@ -18,6 +18,12 @@ interface CandidateNotesProps {
   className?: string
 }
 
+// UUID validation helper
+const isValidUUID = (uuid: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegex.test(uuid)
+}
+
 export function CandidateNotes({ candidateId, jobCandidateId, className }: CandidateNotesProps) {
   const { user, currentOrgId } = useAuth()
   const { toast } = useToast()
@@ -47,10 +53,10 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
       return
     }
 
-    if (!jobCandidateId) {
+    if (!jobCandidateId || !isValidUUID(jobCandidateId)) {
       toast({
         title: "Error",
-        description: "No job application selected. Notes are tied to specific job applications.",
+        description: "Invalid job application ID. Notes are tied to specific job applications.",
         variant: "destructive"
       })
       return
@@ -104,6 +110,27 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
             <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <p className="text-lg font-medium">No Application Selected</p>
             <p className="text-sm">Notes are tied to specific job applications. Select an application to view notes.</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Guard: Validate UUID format
+  if (!isValidUUID(jobCandidateId)) {
+    return (
+      <Card className={cn("", className)}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Notes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-red-500">
+            <MessageSquare className="h-12 w-12 mx-auto mb-4 text-red-300" />
+            <p className="text-lg font-medium">Invalid Application ID</p>
+            <p className="text-sm">The application ID format is invalid. Please refresh the page or contact support.</p>
           </div>
         </CardContent>
       </Card>
