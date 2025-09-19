@@ -17,7 +17,7 @@ import { useClients } from '@/hooks/useClients'
 import { useCandidatesForJob } from '@/hooks/useCandidatesForJob'
 import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, organizeApplicationsByColumn } from '@/hooks/usePipeline'
 import { ResumeUpload } from '@/components/candidates/ResumeUpload'
-import { CandidateNotes } from '@/components/candidates/CandidateNotes'
+import { CandidateNotes } from '@/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical } from 'lucide-react'
@@ -87,8 +87,8 @@ function ApplicationCard({
     )
   }
   
-  // Fetch job and client data
-  const { data: jobs } = useJobs()
+  // Fetch job and client data with real-time updates for pipeline
+  const { data: jobs } = useJobs({ enableRealTime: true })
   const { data: clients } = useClients()
   
   // Find job and client info with defensive checks
@@ -809,8 +809,8 @@ export default function JobPipeline() {
   const { toast } = useToast()
   const { userRole } = useAuth()
   
-  // Fetch data - must be called before any conditional returns
-  const { data: jobs } = useJobs()
+  // Fetch data - must be called before any conditional returns (with real-time updates)
+  const { data: jobs } = useJobs({ enableRealTime: true })
   const { 
     data: jobCandidates, 
     isLoading: candidatesLoading,
@@ -845,9 +845,9 @@ export default function JobPipeline() {
     return jobs.find((job: any) => job?.id === jobId) || null
   }, [jobs, jobId])
 
-  // NEW PIPELINE SYSTEM: Get pipeline data for the specific job
+  // NEW PIPELINE SYSTEM: Get pipeline data for the specific job with real-time updates
   const { user } = useAuth()
-  const { data: jobPipelineData, isLoading: pipelineLoading } = useJobPipeline(jobId)
+  const { data: jobPipelineData, isLoading: pipelineLoading } = useJobPipeline(jobId, { enableRealTime: true })
   const moveApplication = useMoveApplication(jobId || '')
 
   // NEW PIPELINE SYSTEM: Organize applications by columns with defensive coding

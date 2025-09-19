@@ -212,25 +212,42 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      // Aggressive caching for performance - data is fresh for 2 minutes
-      staleTime: 2 * 60 * 1000, // 2 minutes  
-      // Keep data in cache for 15 minutes
-      gcTime: 15 * 60 * 1000, // 15 minutes (renamed from cacheTime in v5)
-      // Retry once on failure with exponential backoff
+      // Smart refetch on window focus - enabled for most data, but can be overridden per query
+      refetchOnWindowFocus: true,
+      // Enable refetch on reconnect for better UX after network issues
+      refetchOnReconnect: true,
+      // Optimized caching strategy: stable data (jobs, candidates, clients) stays fresh longer
+      staleTime: 10 * 60 * 1000, // 10 minutes - stable data like jobs and candidates
+      // Extended cache time to keep data in memory longer (30 minutes as requested)
+      gcTime: 30 * 60 * 1000, // 30 minutes (renamed from cacheTime in v5)
+      // Smart retry strategy with exponential backoff
       retry: (failureCount, error: any) => {
         // Don't retry on authentication or authorization errors
         if (error?.message?.includes('401') || error?.message?.includes('403') || 
             error?.message?.includes('Unauthorized') || error?.message?.includes('Forbidden')) {
           return false;
         }
-        // Only retry once for other errors
-        return failureCount < 1;
+        // Don't retry on client errors (4xx) except for rate limits
+        if (error?.message?.includes('400') || error?.message?.includes('404') || 
+            error?.message?.includes('422')) {
+          return false;
+        }
+        // Retry up to 2 times for network errors and 5xx errors
+        return failureCount < 2;
       },
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Shorter retry delays
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 8000), // Exponential backoff up to 8s
     },
     mutations: {
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        // Don't retry mutations on client errors
+        if (error?.message?.includes('400') || error?.message?.includes('401') || 
+            error?.message?.includes('403') || error?.message?.includes('422')) {
+          return false;
+        }
+        // Retry once on network errors or 5xx errors
+        return failureCount < 1;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
       onError: (error) => {
         console.error('Mutation error:', error);
       },

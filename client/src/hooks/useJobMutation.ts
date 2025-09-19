@@ -42,10 +42,18 @@ export function useCreateJob() {
       }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success('Job saved as draft')
-      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+      // Selective invalidation - invalidate jobs list for the organization
+      qc.invalidateQueries({ 
+        queryKey: ['/api/jobs'], 
+        exact: false // Allow matching with orgId variations
+      })
       qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
+      // Also invalidate specific job query if it exists
+      if (data?.id) {
+        qc.invalidateQueries({ queryKey: ['/api/jobs', data.id] })
+      }
     },
     onError: (e: any) => toast.error(e?.message || 'Failed to create job'),
   })
@@ -153,9 +161,18 @@ export function useUpdateJob() {
       }
       return res.json()
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['/api/jobs'] })
+    onSuccess: (data, variables) => {
+      // Selective invalidation for job updates
+      qc.invalidateQueries({ 
+        queryKey: ['/api/jobs'], 
+        exact: false // Allow matching with orgId variations
+      })
       qc.invalidateQueries({ queryKey: ['/api/public/jobs'] })
+      // Invalidate the specific job that was updated
+      qc.invalidateQueries({ queryKey: ['/api/jobs', variables.id] })
+      // Invalidate related pipeline data for this job
+      qc.invalidateQueries({ queryKey: ['job-pipeline', variables.id] })
+      qc.invalidateQueries({ queryKey: ['/api/jobs', variables.id, 'candidates'] })
     },
     onError: (e: any) => toast.error(e?.message || 'Failed to update job'),
   })

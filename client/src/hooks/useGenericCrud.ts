@@ -80,8 +80,16 @@ export function useGenericCreate<T, InsertT>(
           ...additionalData,
         }),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] })
+    onSuccess: (newItem) => {
+      // More selective invalidation - invalidate list queries with orgId context
+      queryClient.invalidateQueries({ 
+        queryKey: [queryKey], 
+        exact: false // Allow matching with orgId variations
+      })
+      // If the new item has an ID, set up the specific item query cache
+      if (newItem?.id) {
+        queryClient.setQueryData([queryKey, newItem.id, { orgId: currentOrgId }], newItem)
+      }
     },
   })
 }
@@ -91,6 +99,7 @@ export function useGenericUpdate<T, UpdateT>(
   queryKey: string
 ) {
   const queryClient = useQueryClient()
+  const { currentOrgId } = useAuth()
   
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateT }) =>
@@ -98,22 +107,40 @@ export function useGenericUpdate<T, UpdateT>(
         method: 'PUT',
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] })
+    onSuccess: (updatedItem, variables) => {
+      // Invalidate list queries
+      queryClient.invalidateQueries({ 
+        queryKey: [queryKey], 
+        exact: false // Allow matching with orgId variations
+      })
+      // Invalidate and update the specific item query
+      queryClient.invalidateQueries({ queryKey: [queryKey, variables.id] })
+      // Optimistically update the specific item cache if we have the updated data
+      if (updatedItem) {
+        queryClient.setQueryData([queryKey, variables.id, { orgId: currentOrgId }], updatedItem)
+      }
     },
   })
 }
 
 export function useGenericDelete(endpoint: string, queryKey: string) {
   const queryClient = useQueryClient()
+  const { currentOrgId } = useAuth()
   
   return useMutation({
     mutationFn: (id: string) =>
       apiRequest(`${endpoint}/${id}`, {
         method: 'DELETE',
       }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKey] })
+    onSuccess: (_, deletedId) => {
+      // Invalidate list queries to remove the deleted item
+      queryClient.invalidateQueries({ 
+        queryKey: [queryKey], 
+        exact: false // Allow matching with orgId variations
+      })
+      // Remove the specific item from cache
+      queryClient.removeQueries({ queryKey: [queryKey, deletedId] })
+      queryClient.removeQueries({ queryKey: [queryKey, deletedId, { orgId: currentOrgId }] })
     },
   })
 }

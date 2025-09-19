@@ -7,12 +7,12 @@ import { demoAdapter } from '@/lib/dataAdapter'
 import { useAuth } from '@/contexts/AuthContext'
 import type { Job, InsertJob } from '@/../../shared/schema'
 
-export function useJobs(options: { refetchInterval?: number } = {}) {
+export function useJobs(options: { refetchInterval?: number; enableRealTime?: boolean } = {}) {
   const { isDemoUser } = useDemoFlag()
   const { currentOrgId } = useAuth()
   
   return useQuery({
-    queryKey: ['/api/jobs'],
+    queryKey: ['/api/jobs', { orgId: currentOrgId }],
     queryFn: async () => {
       if (isDemoUser) return demoAdapter.getJobs()
       if (!currentOrgId) throw new Error('Organization context required')
@@ -27,9 +27,14 @@ export function useJobs(options: { refetchInterval?: number } = {}) {
       return result
     },
     enabled: isDemoUser || !!currentOrgId, // Only fetch when we have org context
-    refetchInterval: isDemoUser ? false : (options.refetchInterval || 60000), // 1 minute for performance
-    staleTime: isDemoUser ? 120000 : (3 * 60 * 1000), // 3 minutes for better performance
-    refetchOnWindowFocus: false, // Disable for better performance
+    // Optimized refetch intervals based on usage
+    refetchInterval: isDemoUser ? false : (
+      options.enableRealTime ? 30000 : // 30 seconds for real-time features
+      options.refetchInterval || 120000 // 2 minutes default for better performance
+    ),
+    staleTime: isDemoUser ? 120000 : (10 * 60 * 1000), // 10 minutes - jobs are relatively stable
+    refetchOnWindowFocus: !isDemoUser, // Enable for non-demo users to get fresh data
+    refetchOnReconnect: true, // Always refetch when reconnecting
   })
 }
 

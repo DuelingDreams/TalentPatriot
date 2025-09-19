@@ -3,6 +3,7 @@ import { apiRequest } from '@/lib/queryClient'
 import type { JobCandidate } from '@shared/schema'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
+import { useAuth } from '@/contexts/AuthContext'
 
 export interface PipelineColumn {
   id: string
@@ -46,7 +47,7 @@ export function usePipeline(orgId: string | undefined) {
 }
 
 // Get pipeline data for a specific job
-export function useJobPipeline(jobId: string | undefined) {
+export function useJobPipeline(jobId: string | undefined, options?: { enableRealTime?: boolean }) {
   const { isDemoUser } = useDemoFlag()
 
   return useQuery({
@@ -98,7 +99,11 @@ export function useJobPipeline(jobId: string | undefined) {
       return result
     },
     enabled: !!jobId,
-    staleTime: 0, // Always fetch fresh data for immediate updates
+    // Optimized for real-time pipeline updates
+    staleTime: options?.enableRealTime ? 1000 : (2 * 60 * 1000), // 1 second for real-time, 2 minutes otherwise
+    refetchInterval: isDemoUser ? false : (options?.enableRealTime ? 10000 : false), // 10 seconds for real-time updates
+    refetchOnWindowFocus: !isDemoUser,
+    refetchOnReconnect: true,
     gcTime: 5 * 60 * 1000  // 5 minutes
   })
 }
@@ -134,6 +139,7 @@ export function useJobPipelineColumns(jobId: string | undefined) {
 // Move application to different pipeline column (drag and drop)
 export function useMoveApplication(jobId: string) {
   const queryClient = useQueryClient()
+  const { currentOrgId } = useAuth()
 
   return useMutation({
     mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
@@ -182,7 +188,10 @@ export function useMoveApplication(jobId: string) {
     onSuccess: () => {
       console.log('[useMoveApplication] Move successful, invalidating queries');
       // Invalidate and refetch to ensure we have the latest server state
-      queryClient.invalidateQueries({ queryKey: ['pipeline', jobId] });
+      // CRITICAL FIX: Use orgId for pipeline query, not jobId
+      if (currentOrgId) {
+        queryClient.invalidateQueries({ queryKey: ['pipeline', currentOrgId] });
+      }
       queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
     },
     
