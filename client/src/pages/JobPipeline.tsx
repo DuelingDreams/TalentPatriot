@@ -847,8 +847,22 @@ export default function JobPipeline() {
 
   // NEW PIPELINE SYSTEM: Get pipeline data for the specific job with real-time updates
   const { user } = useAuth()
-  const { data: jobPipelineData, isLoading: pipelineLoading } = useJobPipeline(jobId, { enableRealTime: true })
+  const { 
+    data: jobPipelineData, 
+    isLoading: pipelineLoading, 
+    error: pipelineError,
+    isSuccess: pipelineSuccess 
+  } = useJobPipeline(jobId, { enableRealTime: true })
   const moveApplication = useMoveApplication(jobId || '')
+
+  // Enhanced loading state validation - prevents drag operations during loading
+  const isPipelineReady = pipelineSuccess && 
+                           jobPipelineData && 
+                           jobPipelineData.columns && 
+                           Array.isArray(jobPipelineData.columns) && 
+                           jobPipelineData.columns.length > 0 && 
+                           jobPipelineData.applications &&
+                           Array.isArray(jobPipelineData.applications)
 
   // NEW PIPELINE SYSTEM: Organize applications by columns with defensive coding
   const applicationsByColumn = useMemo(() => {
@@ -943,9 +957,44 @@ export default function JobPipeline() {
     }
   }
 
+  // Retry mechanism for failed moves with exponential backoff
+  const retryMove = async (applicationId: string, columnId: string, attempts = 3): Promise<boolean> => {
+    for (let i = 0; i < attempts; i++) {
+      try {
+        await moveApplication.mutateAsync({ applicationId, columnId })
+        return true
+      } catch (error) {
+        console.error(`Move attempt ${i + 1} failed:`, error)
+        if (i === attempts - 1) throw error
+        // Exponential backoff: wait 1s, 2s, 4s
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)))
+      }
+    }
+    return false
+  }
+
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     setActiveCandidate(null)
+
+    // CRITICAL: Prevent drag operations when data isn't ready
+    if (!isPipelineReady) {
+      console.warn('Drag operation blocked - pipeline data not ready:', {
+        pipelineLoading,
+        pipelineError,
+        hasData: !!jobPipelineData,
+        hasColumns: !!jobPipelineData?.columns,
+        columnsCount: jobPipelineData?.columns?.length || 0,
+        hasApplications: !!jobPipelineData?.applications,
+        applicationsCount: jobPipelineData?.applications?.length || 0
+      })
+      toast({
+        title: "Move Not Available",
+        description: "Pipeline data is still loading. Please wait a moment and try again.",
+        variant: "destructive",
+      })
+      return
+    }
 
     // Defensive validation of drag event
     if (!over || !active) {
@@ -956,12 +1005,15 @@ export default function JobPipeline() {
     const applicationId = active.id as string
     const newColumnId = over.id as string
 
-    // Comprehensive validation of required data
-    if (!applicationId || !newColumnId || 
-        !jobPipelineData?.columns || !jobPipelineData?.applications) {
+    // Enhanced validation with detailed logging
+    if (!applicationId || !newColumnId) {
+      console.error('Drag validation failed:', {
+        applicationId: applicationId || 'missing',
+        newColumnId: newColumnId || 'missing'
+      })
       toast({
         title: "Move Failed",
-        description: "Missing required data for move operation",
+        description: "Invalid drag operation - missing identifiers",
         variant: "destructive",
       })
       return
@@ -970,9 +1022,16 @@ export default function JobPipeline() {
     try {
       const application = jobPipelineData.applications.find(app => app?.id === applicationId)
       if (!application) {
+        console.error('Application not found:', {
+          searchId: applicationId,
+          availableApplications: jobPipelineData.applications.map(app => ({
+            id: app?.id || 'no-id',
+            candidateName: (app as any)?.candidate?.name || (app as any)?.candidateName || 'no-name'
+          }))
+        })
         toast({
           title: "Move Failed",
-          description: "Application not found",
+          description: `Application ${applicationId} not found in pipeline data`,
           variant: "destructive",
         })
         return
@@ -983,11 +1042,30 @@ export default function JobPipeline() {
         return
       }
 
+      // Enhanced column validation with comprehensive logging
       const newColumn = jobPipelineData.columns.find(col => col?.id === newColumnId)
       if (!newColumn) {
+        console.error('Column validation failed:', {
+          targetColumnId: newColumnId,
+          availableColumns: jobPipelineData.columns.map(c => ({ 
+            id: c?.id || 'no-id', 
+            title: c?.title || 'no-title'
+          })),
+          totalColumns: jobPipelineData.columns.length,
+          pipelineDataStructure: {
+            columnsType: Array.isArray(jobPipelineData.columns) ? 'array' : typeof jobPipelineData.columns,
+            applicationsType: Array.isArray(jobPipelineData.applications) ? 'array' : typeof jobPipelineData.applications
+          }
+        })
+        
+        const availableColumnTitles = jobPipelineData.columns
+          .filter(c => c && c.title)
+          .map(c => c.title)
+          .join(', ')
+          
         toast({
-          title: "Move Failed",
-          description: "Target column not found",
+          title: "Move Failed - Column Not Found",
+          description: `Target column "${newColumnId}" not found. Available columns: ${availableColumnTitles}`,
           variant: "destructive",
         })
         return
@@ -995,6 +1073,10 @@ export default function JobPipeline() {
       
       // Additional validation for required IDs
       if (!application.id || !newColumn.id) {
+        console.error('Invalid IDs:', {
+          applicationId: application.id || 'missing',
+          newColumnId: newColumn.id || 'missing'
+        })
         toast({
           title: "Move Failed",
           description: "Invalid application or column ID",
@@ -1009,19 +1091,28 @@ export default function JobPipeline() {
                            'Unknown Candidate'
       
       toast({
-        title: "Stage Updated",
+        title: "Moving Candidate",
         description: `Moving ${candidateName} to ${newColumn.title}...`,
       })
 
-      await moveApplication.mutateAsync({ 
-        applicationId: application.id, 
-        columnId: newColumn.id
-      })
-
-      toast({
-        title: "Success",
-        description: `${candidateName} moved to ${newColumn.title}`,
-      })
+      // Enhanced move operation with retry mechanism
+      try {
+        const success = await retryMove(application.id, newColumn.id)
+        if (success) {
+          toast({
+            title: "Success",
+            description: `${candidateName} moved to ${newColumn.title}`,
+          })
+        }
+      } catch (retryError) {
+        // Final fallback error handling
+        console.error('All retry attempts failed:', retryError)
+        toast({
+          title: "Move Failed After Retries",
+          description: `Failed to move ${candidateName} after multiple attempts. Please try again or refresh the page.`,
+          variant: "destructive",
+        })
+      }
     } catch (error) {
       console.error('Failed to move application:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -1217,11 +1308,18 @@ export default function JobPipeline() {
           </TabsContent>
 
           <TabsContent value="candidates" className="mt-6">
-            {(candidatesLoading || pipelineLoading) ? (
+            {(candidatesLoading || pipelineLoading || !isPipelineReady) ? (
               <div className="flex items-center justify-center py-12">
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Loading pipeline...
+                <div className="flex flex-col items-center gap-3 text-slate-600">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <div className="text-center">
+                    <div className="font-medium">Loading pipeline...</div>
+                    <div className="text-sm text-slate-500 mt-1">
+                      {pipelineLoading ? 'Fetching pipeline data' : 
+                       candidatesLoading ? 'Loading candidates' : 
+                       !isPipelineReady ? 'Preparing pipeline structure' : 'Almost ready'}
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
