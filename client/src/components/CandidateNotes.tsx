@@ -9,6 +9,7 @@ import { Plus, MessageSquare, Lock, Globe, X, Check } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { useCandidateNotes, useCreateCandidateNote } from '@/hooks/useCandidateNotes'
 import { useAuth } from '@/hooks/useAuth'
+import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
 interface CandidateNotesProps {
@@ -19,7 +20,8 @@ interface CandidateNotesProps {
 
 export function CandidateNotes({ candidateId, jobCandidateId, className }: CandidateNotesProps) {
   const { user, currentOrgId } = useAuth()
-  const { data: notes = [], isLoading } = useCandidateNotes(candidateId)
+  const { toast } = useToast()
+  const { data: notes = [], isLoading, error } = useCandidateNotes(jobCandidateId || '')
   const createNoteMutation = useCreateCandidateNote()
   
   const [showAddForm, setShowAddForm] = useState(false)
@@ -27,7 +29,32 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
   const [isPrivate, setIsPrivate] = useState(false)
 
   const handleAddNote = async () => {
-    if (!newNote.trim() || !user?.id || !currentOrgId || !jobCandidateId) return
+    if (!newNote.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a note before saving.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!user?.id || !currentOrgId) {
+      toast({
+        title: "Error",
+        description: "User authentication required to add notes.",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!jobCandidateId) {
+      toast({
+        title: "Error",
+        description: "No job application selected. Notes are tied to specific job applications.",
+        variant: "destructive"
+      })
+      return
+    }
 
     try {
       await createNoteMutation.mutateAsync({
@@ -38,18 +65,49 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
         isPrivate: isPrivate ? 'true' : 'false'
       })
       
+      toast({
+        title: "Success",
+        description: "Note added successfully."
+      })
+      
       // Reset form
       setNewNote('')
       setIsPrivate(false)
       setShowAddForm(false)
     } catch (error) {
       console.error('Failed to add note:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add note. Please try again.",
+        variant: "destructive"
+      })
     }
   }
 
   const getUserInitials = (authorEmail?: string) => {
     if (!authorEmail) return 'U'
     return authorEmail.split('@')[0].slice(0, 2).toUpperCase()
+  }
+
+  // Guard: Show error if no jobCandidateId provided
+  if (!jobCandidateId) {
+    return (
+      <Card className={cn("", className)}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Notes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-gray-500">
+            <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">No Application Selected</p>
+            <p className="text-sm">Notes are tied to specific job applications. Select an application to view notes.</p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (isLoading) {
@@ -69,6 +127,27 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
                 <div className="h-3 bg-gray-200 rounded w-1/2"></div>
               </div>
             ))}
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Show error state if query failed
+  if (error) {
+    return (
+      <Card className={cn("", className)}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Notes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-red-500">
+            <MessageSquare className="h-12 w-12 mx-auto mb-4 text-red-300" />
+            <p className="text-lg font-medium">Failed to Load Notes</p>
+            <p className="text-sm">Please try refreshing the page or contact support if the issue persists.</p>
           </div>
         </CardContent>
       </Card>

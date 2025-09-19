@@ -1,17 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { CandidateNotes, InsertCandidateNotes } from '@shared/schema'
 
-export function useCandidateNotes(candidateId: string) {
+export function useCandidateNotes(jobCandidateId: string) {
   return useQuery({
-    queryKey: ['/api/candidate-notes', candidateId],
+    queryKey: ['/api/candidate-notes', jobCandidateId],
     queryFn: async () => {
-      const response = await fetch(`/api/candidate-notes?candidateId=${candidateId}`)
+      const response = await fetch(`/api/candidate-notes?jobCandidateId=${jobCandidateId}`)
       if (!response.ok) {
         throw new Error('Failed to fetch candidate notes')
       }
       return response.json() as Promise<CandidateNotes[]>
     },
-    enabled: !!candidateId,
+    enabled: !!jobCandidateId,
   })
 }
 

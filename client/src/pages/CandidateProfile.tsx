@@ -29,11 +29,11 @@ import { Link } from 'wouter'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useCandidate } from '@/hooks/useCandidates'
 import { useCandidateApplicationHistory } from '@/hooks/useCandidateApplicationHistory'
-import { useCandidateNotes } from '@/hooks/useCandidateNotes'
 import { useCandidateInterviews } from '@/hooks/useCandidateInterviews'
 import { useAuth } from '@/contexts/AuthContext'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { ResumePreview } from '@/components/resume/ResumePreview'
+import { CandidateNotes } from '@/components/CandidateNotes'
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>()
@@ -42,7 +42,6 @@ export default function CandidateProfile() {
   
   const { data: candidate, isLoading: candidateLoading } = useCandidate(id)
   const { data: applications, isLoading: applicationsLoading } = useCandidateApplicationHistory(id)
-  const { data: notes, isLoading: notesLoading } = useCandidateNotes(id)
   const { data: interviews, isLoading: interviewsLoading } = useCandidateInterviews(id)
 
   if (candidateLoading) {
@@ -195,10 +194,6 @@ export default function CandidateProfile() {
                     <span className="font-semibold">{interviews?.length || 0}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Notes</span>
-                    <span className="font-semibold">{notes?.length || 0}</span>
-                  </div>
-                  <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Applications</span>
                     <span className="font-semibold">{applications?.length || 0}</span>
                   </div>
@@ -349,48 +344,32 @@ export default function CandidateProfile() {
 
           {/* Notes Tab */}
           <TabsContent value="notes" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Notes & Comments</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {notesLoading ? (
-                  <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="h-16 bg-gray-200 rounded"></div>
-                      </div>
-                    ))}
+            {applications && applications.length > 0 ? (
+              <div className="space-y-6">
+                {applications.map((app: any) => (
+                  <div key={app.id}>
+                    <div className="mb-4">
+                      <h3 className="text-lg font-semibold">{app.jobTitle}</h3>
+                      <p className="text-sm text-gray-600">{app.clientName}</p>
+                    </div>
+                    <CandidateNotes
+                      candidateId={id!}
+                      jobCandidateId={app.id}
+                    />
                   </div>
-                ) : notes?.length ? (
-                  <div className="space-y-4">
-                    {notes.map((note: any) => (
-                      <div key={note.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="text-sm font-medium">
-                            {note.authorId === 'current-user' ? 'You' : note.authorEmail || 'Team member'}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })}
-                          </div>
-                        </div>
-                        <p className="text-sm">{note.content}</p>
-                        {note.isPrivate === 'true' && (
-                          <Badge variant="outline" className="mt-2 text-xs">
-                            Private
-                          </Badge>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                    <p>No notes added yet</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <h3 className="font-semibold text-lg mb-2">No Applications Found</h3>
+                  <p className="text-muted-foreground">
+                    Notes are tied to specific job applications. Once this candidate applies to a job, you'll be able to add notes.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Communication Tab */}
