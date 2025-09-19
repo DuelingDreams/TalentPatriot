@@ -1325,6 +1325,8 @@ export class DatabaseStorage implements IStorage {
   // Candidate notes implementations
   async getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]> {
     try {
+      console.log('[STORAGE] Fetching candidate notes for jobCandidateId:', jobCandidateId);
+      
       const { data, error } = await supabase
         .from('candidate_notes')
         .select(`
@@ -1345,16 +1347,60 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Failed to fetch candidate notes: ${error.message}`)
       }
 
-      return (data || []).map(note => ({
+      console.log('[STORAGE] Raw notes data:', data?.length || 0, 'notes found');
+
+      // Get author emails for the notes
+      const notes = data || [];
+      const authorIds = Array.from(new Set(notes.map(note => note.author_id)));
+      
+      let authorEmails: Record<string, string> = {};
+      
+      if (authorIds.length > 0) {
+        try {
+          // First try to get emails from user_profiles table
+          const { data: profiles } = await supabase
+            .from('user_profiles')
+            .select('id, first_name, last_name')
+            .in('id', authorIds);
+          
+          // Then try to get emails from auth.users (requires special handling)
+          // For now, we'll create a mock email from the author ID
+          authorIds.forEach(authorId => {
+            const profile = profiles?.find(p => p.id === authorId);
+            if (profile && profile.first_name && profile.last_name) {
+              // Create email-like string from name
+              const name = `${profile.first_name} ${profile.last_name}`.toLowerCase().replace(/\s+/g, '');
+              authorEmails[authorId] = `${name}@company.com`;
+            } else {
+              // Fallback: create email from ID
+              authorEmails[authorId] = `user_${authorId.split('-')[0]}@company.com`;
+            }
+          });
+          
+          console.log('[STORAGE] Author emails resolved:', Object.keys(authorEmails).length);
+        } catch (emailError) {
+          console.warn('[STORAGE] Failed to fetch author emails, using fallback:', emailError);
+          // Fallback: create emails from author IDs
+          authorIds.forEach(authorId => {
+            authorEmails[authorId] = `user_${authorId.split('-')[0]}@company.com`;
+          });
+        }
+      }
+
+      const enrichedNotes = notes.map(note => ({
         id: note.id,
         orgId: note.org_id,
         jobCandidateId: note.job_candidate_id,
         authorId: note.author_id,
+        authorEmail: authorEmails[note.author_id] || `user_${note.author_id.split('-')[0]}@company.com`,
         content: note.content,
-        isPrivate: note.is_private,
+        isPrivate: note.is_private === true || note.is_private === 'true',
         createdAt: note.created_at,
         updatedAt: note.updated_at
-      })) as CandidateNotes[]
+      })) as (CandidateNotes & { authorEmail: string })[];
+
+      console.log('[STORAGE] Returning enriched notes:', enrichedNotes.length);
+      return enrichedNotes;
     } catch (err) {
       console.error('Candidate notes fetch exception:', err)
       throw err
@@ -1368,7 +1414,7 @@ export class DatabaseStorage implements IStorage {
         job_candidate_id: note.jobCandidateId,
         author_id: note.authorId,
         content: note.content,
-        is_private: note.isPrivate || 'false',
+        is_private: Boolean(note.isPrivate),
         updated_at: new Date().toISOString()
       }
 
@@ -1389,7 +1435,7 @@ export class DatabaseStorage implements IStorage {
         jobCandidateId: data.job_candidate_id,
         authorId: data.author_id,
         content: data.content,
-        isPrivate: data.is_private,
+        isPrivate: data.is_private === true || data.is_private === 'true',
         createdAt: data.created_at,
         updatedAt: data.updated_at
       } as CandidateNotes

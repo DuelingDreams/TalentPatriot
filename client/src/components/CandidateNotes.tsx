@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Plus, MessageSquare, Lock, Globe, X, Check } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { useCandidateNotes, useCreateCandidateNote } from '@/hooks/useCandidateNotes'
+import { useCandidateNotes, useCreateCandidateNote, type EnrichedCandidateNotes } from '@/hooks/useCandidateNotes'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -71,7 +71,7 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
         jobCandidateId,
         authorId: user.id,
         content: newNote.trim(),
-        isPrivate: isPrivate ? 'true' : 'false'
+        isPrivate: isPrivate
       })
       
       toast({
@@ -288,10 +288,10 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
                   
                   <div className="flex items-center gap-2">
                     <Badge
-                      variant={note.isPrivate === 'true' ? 'secondary' : 'outline'}
+                      variant={note.isPrivate ? 'secondary' : 'outline'}
                       className="text-xs"
                     >
-                      {note.isPrivate === 'true' ? (
+                      {note.isPrivate ? (
                         <>
                           <Lock className="h-3 w-3 mr-1" />
                           Private

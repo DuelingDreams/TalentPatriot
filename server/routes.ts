@@ -2384,57 +2384,29 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const candidateId = req.query.candidateId as string;
       const jobCandidateId = req.query.jobCandidateId as string;
       
+      console.log('[NOTES_API] GET /api/candidate-notes - Query params:', { candidateId, jobCandidateId });
+      
       if (jobCandidateId) {
+        console.log('[NOTES_API] Fetching notes for jobCandidateId:', jobCandidateId);
         const notes = await storage.getCandidateNotes(jobCandidateId);
+        console.log('[NOTES_API] Found notes:', notes?.length || 0);
         res.json(notes);
       } else if (candidateId) {
         // Fallback for candidate-based lookup
+        console.log('[NOTES_API] Fetching notes for candidateId:', candidateId);
         const notes = await storage.getCandidateNotes(candidateId);
+        console.log('[NOTES_API] Found notes:', notes?.length || 0);
         res.json(notes);
       } else {
+        console.error('[NOTES_API] Missing required parameters');
         res.status(400).json({ error: "candidateId or jobCandidateId is required" });
       }
     } catch (error) {
-      console.error("Error fetching candidate notes:", error);
+      console.error("[NOTES_API] Error fetching candidate notes:", error);
       res.status(500).json({ error: "Failed to fetch candidate notes" });
     }
   });
 
-  app.post("/api/candidate-notes", writeLimiter, async (req, res) => {
-    try {
-      console.log('[NOTES_API_V2] POST /api/candidate-notes - Request received (second endpoint)');
-      console.log('[NOTES_API_V2] Headers:', {
-        'x-user-id': req.headers['x-user-id'],
-        'x-org-id': req.headers['x-org-id'],
-        'content-type': req.headers['content-type']
-      });
-      console.log('[NOTES_API_V2] Request body:', req.body);
-      
-      // Validate required fields
-      const { orgId, jobCandidateId, authorId, content } = req.body;
-      if (!orgId || !jobCandidateId || !authorId || !content) {
-        console.error('[NOTES_API_V2] Missing required fields:', { orgId, jobCandidateId, authorId, content: !!content });
-        return res.status(400).json({ 
-          error: "User authentication required to add notes", 
-          details: "Missing required authentication or note data",
-          received: { orgId: !!orgId, jobCandidateId: !!jobCandidateId, authorId: !!authorId, content: !!content }
-        });
-      }
-      
-      console.log('[NOTES_API_V2] All required fields present, creating note...');
-      const note = await storage.createCandidateNote(req.body);
-      console.log('[NOTES_API_V2] Note created successfully:', { id: note.id, orgId: note.orgId });
-      res.status(201).json(note);
-    } catch (error: any) {
-      console.error('[NOTES_API_V2] Error creating candidate note:', error);
-      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ 
-        error: "Failed to create candidate note", 
-        details: errorMsg,
-        message: error?.message || "Unknown error occurred"
-      });
-    }
-  });
 
   // Messages routes
   app.get("/api/messages", async (req, res) => {

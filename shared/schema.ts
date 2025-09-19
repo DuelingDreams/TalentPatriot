@@ -168,7 +168,7 @@ export const candidateNotes = pgTable("candidate_notes", {
   jobCandidateId: uuid("job_candidate_id").references(() => jobCandidate.id).notNull(),
   authorId: uuid("author_id").notNull(),
   content: text("content").notNull(),
-  isPrivate: varchar("is_private", { length: 10 }).default('false').notNull(),
+  isPrivate: boolean("is_private").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
