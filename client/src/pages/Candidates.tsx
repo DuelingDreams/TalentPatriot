@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { VirtualizedCandidatesList } from '@/components/performance/VirtualizedCandidatesList'
 import { useAuth } from '@/contexts/AuthContext'
 import { DemoCandidates } from '@/components/demo/DemoCandidates'
 import { useCandidates } from '@/hooks/useCandidates'
@@ -302,71 +303,81 @@ export default function Candidates() {
             ))}
           </div>
         ) : filteredCandidates.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCandidates.map((candidate: any) => (
-              <Link key={candidate.id} href={`/candidates/${candidate.id}`}>
-                <Card className="card hover:shadow-lg transition-all duration-200 cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={""} alt={candidate.name} />
-                          <AvatarFallback className="bg-[#264C99] text-white">
-                            {candidate.name.split(' ').map((n: string) => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-[#1A1A1A]">{candidate.name}</h3>
-                          <p className="text-sm text-[#5C667B]">{candidate.email}</p>
+          // Use virtualization for larger datasets (>12 candidates) to improve performance
+          filteredCandidates.length > 12 ? (
+            <VirtualizedCandidatesList
+              candidates={filteredCandidates}
+              containerHeight={Math.max(320, Math.min(800, typeof window !== 'undefined' ? window.innerHeight - 200 : 600))}
+            />
+          ) : (
+            // Use regular grid layout for smaller datasets
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="candidates-list-regular">
+              {filteredCandidates.map((candidate: any) => (
+                <Link key={candidate.id} href={`/candidates/${candidate.id}`}>
+                  <Card className="card hover:shadow-lg transition-all duration-200 cursor-pointer" data-testid={`candidate-card-${candidate.id}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={""} alt={candidate.name} />
+                            <AvatarFallback className="bg-[#264C99] text-white">
+                              {candidate.name.split(' ').map((n: string) => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h3 className="font-semibold text-[#1A1A1A]" data-testid={`candidate-name-${candidate.id}`}>{candidate.name}</h3>
+                            <p className="text-sm text-[#5C667B]" data-testid={`candidate-email-${candidate.id}`}>{candidate.email}</p>
+                          </div>
                         </div>
-                      </div>
-                      {candidate.status === 'favorite' && (
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                      )}
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      {candidate.phone && (
-                        <div className="flex items-center gap-2 text-[#5C667B]">
-                          <Phone className="w-4 h-4" />
-                          <span>{candidate.phone}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 text-[#5C667B]">
-                        <Clock className="w-4 h-4" />
-                        <span>Added {(() => {
-                          try {
-                            const date = new Date(candidate.createdAt)
-                            if (isNaN(date.getTime())) return 'recently'
-                            return formatDistanceToNow(date, { addSuffix: true })
-                          } catch {
-                            return 'recently'
-                          }
-                        })()}</span>
+                        {candidate.status === 'favorite' && (
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" data-testid={`candidate-favorite-${candidate.id}`} />
+                        )}
                       </div>
 
-                      {candidate.resumeUrl && (
+                      <div className="space-y-2 text-sm">
+                        {candidate.phone && (
+                          <div className="flex items-center gap-2 text-[#5C667B]">
+                            <Phone className="w-4 h-4" />
+                            <span data-testid={`candidate-phone-${candidate.id}`}>{candidate.phone}</span>
+                          </div>
+                        )}
+                        
                         <div className="flex items-center gap-2 text-[#5C667B]">
-                          <Briefcase className="w-4 h-4" />
-                          <span>Resume uploaded</span>
+                          <Clock className="w-4 h-4" />
+                          <span data-testid={`candidate-created-${candidate.id}`}>Added {(() => {
+                            try {
+                              const date = new Date(candidate.createdAt)
+                              if (isNaN(date.getTime())) return 'recently'
+                              return formatDistanceToNow(date, { addSuffix: true })
+                            } catch {
+                              return 'recently'
+                            }
+                          })()}</span>
                         </div>
-                      )}
-                    </div>
 
-                    <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
-                      <Badge 
-                        variant={candidate.status === 'active' ? 'default' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {candidate.status}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                        {candidate.resumeUrl && (
+                          <div className="flex items-center gap-2 text-[#5C667B]">
+                            <Briefcase className="w-4 h-4" />
+                            <span data-testid={`candidate-resume-${candidate.id}`}>Resume uploaded</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
+                        <Badge 
+                          variant={candidate.status === 'active' ? 'default' : 'secondary'}
+                          className="text-xs"
+                          data-testid={`candidate-status-${candidate.id}`}
+                        >
+                          {candidate.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )
         ) : (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto">

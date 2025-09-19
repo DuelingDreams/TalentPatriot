@@ -49,6 +49,7 @@
     "@sendgrid/mail": "^8.1.5",
     "@supabase/supabase-js": "^2.54.0",
     "@tanstack/react-query": "^5.60.5",
+    "@tanstack/react-virtual": "^3.13.12",
     "@types/compression": "^1.8.1",
     "@types/memoizee": "^0.4.12",
     "@types/multer": "^2.0.0",

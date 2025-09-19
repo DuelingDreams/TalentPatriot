@@ -1,5 +1,6 @@
 import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 import { EditJobDialog } from '@/components/dialogs/EditJobDialog'
+import { VirtualizedJobsList } from '@/components/performance/VirtualizedJobsList'
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -246,88 +247,106 @@ export default function Jobs() {
                 }}
               />
             ) : (
-              <div className="grid gap-6">
-                {displayJobs.map((job: any) => (
-                  <Card key={job.id} className="rounded-2xl shadow-sm hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-xl font-semibold text-gray-900">{job.title}</h3>
-                            <Badge className={getStatusColor(job.status)}>
-                              {job.status}
-                            </Badge>
-                          </div>
-                          
-                          <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                            <div className="flex items-center gap-1">
-                              <Building2 className="w-4 h-4" />
-                              {job.client?.name || 'No client assigned'}
+              // Use virtualization for larger datasets (>10 jobs) to improve performance
+              displayJobs.length > 10 ? (
+                <VirtualizedJobsList
+                  jobs={displayJobs}
+                  onPublish={handlePublish}
+                  isPublishing={publishJob.isPending}
+                  isDemoMode={isDemoMode}
+                  containerHeight={Math.min(800, typeof window !== 'undefined' ? window.innerHeight - 300 : 600)}
+                />
+              ) : (
+                // Use regular rendering for smaller datasets
+                <div className="grid gap-6" data-testid="jobs-list-regular">
+                  {displayJobs.map((job: any) => (
+                    <Card key={job.id} className="rounded-2xl shadow-sm hover:shadow-lg transition-shadow" data-testid={`job-card-${job.id}`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="text-xl font-semibold text-gray-900" data-testid={`job-title-${job.id}`}>{job.title}</h3>
+                              <Badge className={getStatusColor(job.status)} data-testid={`job-status-${job.id}`}>
+                                {job.status}
+                              </Badge>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              Created {new Date(job.createdAt).toLocaleDateString()}
-                            </div>
-                            {job.publicSlug && (
+                            
+                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
                               <div className="flex items-center gap-1">
-                                <Globe className="w-4 h-4" />
-                                <a 
-                                  href={`/careers/${job.publicSlug}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                                >
-                                  Public URL
-                                  <ExternalLink className="w-3 h-3" />
-                                </a>
+                                <Building2 className="w-4 h-4" />
+                                <span data-testid={`job-client-${job.id}`}>
+                                  {job.client?.name || 'No client assigned'}
+                                </span>
                               </div>
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                <span data-testid={`job-created-${job.id}`}>
+                                  Created {new Date(job.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              {job.publicSlug && (
+                                <div className="flex items-center gap-1">
+                                  <Globe className="w-4 h-4" />
+                                  <a 
+                                    href={`/careers/${job.publicSlug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                    data-testid={`job-public-url-${job.id}`}
+                                  >
+                                    Public URL
+                                    <ExternalLink className="w-3 h-3" />
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {job.description && (
+                              <p className="text-gray-600 text-sm mb-4 line-clamp-2" data-testid={`job-description-${job.id}`}>
+                                {job.description}
+                              </p>
                             )}
                           </div>
                           
-                          {job.description && (
-                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                              {job.description}
-                            </p>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-2 ml-6">
-                          {job.status === 'draft' && !isDemoMode && (
-                            <>
-                              <EditJobDialog 
-                                job={job}
-                                onJobUpdated={() => {
-                                  // Refresh jobs data after update
-                                  // The hook will automatically invalidate queries
-                                }}
-                              />
-                              <Button
-                                onClick={() => handlePublish(job.id)}
-                                disabled={publishJob.isPending}
-                                variant="outline"
-                                size="sm"
-                                className="flex items-center gap-1"
-                              >
-                                {publishJob.isPending ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <Globe className="w-4 h-4" />
-                                )}
-                                {publishJob.isPending ? 'Publishing...' : 'Publish'}
+                          <div className="flex items-center gap-2 ml-6">
+                            {job.status === 'draft' && !isDemoMode && (
+                              <>
+                                <EditJobDialog 
+                                  job={job}
+                                  onJobUpdated={() => {
+                                    // Refresh jobs data after update
+                                    // The hook will automatically invalidate queries
+                                  }}
+                                />
+                                <Button
+                                  onClick={() => handlePublish(job.id)}
+                                  disabled={publishJob.isPending}
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex items-center gap-1"
+                                  data-testid={`job-publish-${job.id}`}
+                                >
+                                  {publishJob.isPending ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Globe className="w-4 h-4" />
+                                  )}
+                                  {publishJob.isPending ? 'Publishing...' : 'Publish'}
+                                </Button>
+                              </>
+                            )}
+                            <Link href={`/pipeline/${job.id}`}>
+                              <Button variant="outline" size="sm" data-testid={`job-pipeline-${job.id}`}>
+                                View Pipeline
                               </Button>
-                            </>
-                          )}
-                          <Link href={`/pipeline/${job.id}`}>
-                            <Button variant="outline" size="sm">
-                              View Pipeline
-                            </Button>
-                          </Link>
+                            </Link>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )
             )}
           </div>
         )}

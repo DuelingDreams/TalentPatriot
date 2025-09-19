@@ -8,6 +8,7 @@ import { useMessages, useMarkMessageAsRead, useArchiveMessage } from '@/hooks/us
 import { useAuth } from '@/contexts/AuthContext'
 import { format } from 'date-fns'
 import type { Message } from '@/../../shared/schema'
+import { VirtualizedMessagesList } from '@/components/performance/VirtualizedMessagesList'
 
 interface MessagesListProps {
   selectedMessage?: Message
@@ -123,82 +124,100 @@ export function MessagesList({ selectedMessage, onMessageSelect, filterContext }
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <ScrollArea className="h-[600px]">
-          {sortedMessages.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground">
-              No messages found
-            </div>
+        {sortedMessages.length === 0 ? (
+          <div className="p-6 text-center text-muted-foreground">
+            No messages found
+          </div>
+        ) : (
+          // Use virtualization for larger datasets (>15 messages) to improve performance
+          sortedMessages.length > 15 ? (
+            <VirtualizedMessagesList
+              messages={sortedMessages}
+              selectedMessage={selectedMessage}
+              onMessageSelect={onMessageSelect}
+              onMarkAsRead={handleMarkAsRead}
+              onArchive={handleArchive}
+              containerHeight={600}
+            />
           ) : (
-            <div className="space-y-2 p-4">
-              {sortedMessages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
-                    selectedMessage?.id === message.id ? 'bg-muted border-primary' : ''
-                  } ${!message.isRead ? 'bg-blue-50 border-blue-200' : ''}`}
-                  onClick={() => onMessageSelect?.(message)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className="text-muted-foreground mt-1">
-                        {getTypeIcon(message.type)}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className={`font-medium text-sm truncate ${!message.isRead ? 'font-semibold' : ''}`}>
-                            {message.subject}
-                          </h4>
-                          <Badge className={`text-xs ${getPriorityColor(message.priority)}`}>
-                            {message.priority}
-                          </Badge>
-                          {!message.isRead && (
-                            <Badge variant="secondary" className="text-xs">
-                              New
+            // Use regular scrollable list for smaller datasets
+            <ScrollArea className="h-[600px]" data-testid="messages-list-regular">
+              <div className="space-y-2 p-4">
+                {sortedMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
+                      selectedMessage?.id === message.id ? 'bg-muted border-primary' : ''
+                    } ${!message.isRead ? 'bg-blue-50 border-blue-200' : ''}`}
+                    onClick={() => onMessageSelect?.(message)}
+                    data-testid={`message-card-${message.id}`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3 flex-1">
+                        <div className="text-muted-foreground mt-1">
+                          {getTypeIcon(message.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className={`font-medium text-sm truncate ${!message.isRead ? 'font-semibold' : ''}`} data-testid={`message-subject-${message.id}`}>
+                              {message.subject}
+                            </h4>
+                            <Badge className={`text-xs ${getPriorityColor(message.priority)}`} data-testid={`message-priority-${message.id}`}>
+                              {message.priority}
                             </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate mb-2">
-                          {message.content}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {format(new Date(message.createdAt), 'MMM dd, HH:mm')}
-                          </span>
-                          <Badge variant="outline" className="text-xs">
-                            {message.type}
-                          </Badge>
+                            {!message.isRead && (
+                              <Badge variant="secondary" className="text-xs" data-testid={`message-unread-${message.id}`}>
+                                New
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate mb-2" data-testid={`message-content-${message.id}`}>
+                            {message.content}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span data-testid={`message-date-${message.id}`}>
+                                {format(new Date(message.createdAt), 'MMM dd, HH:mm')}
+                              </span>
+                            </span>
+                            <Badge variant="outline" className="text-xs" data-testid={`message-type-${message.id}`}>
+                              {message.type}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {!message.isRead && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleMarkAsRead(message.id, e)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {!message.isArchived && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => handleArchive(message.id, e)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Archive className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {!message.isRead && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleMarkAsRead(message.id, e)}
+                            className="h-8 w-8 p-0"
+                            data-testid={`message-mark-read-${message.id}`}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {!message.isArchived && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleArchive(message.id, e)}
+                            className="h-8 w-8 p-0"
+                            data-testid={`message-archive-${message.id}`}
+                          >
+                            <Archive className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+                ))}
+              </div>
+            </ScrollArea>
+          )
+        )}
       </CardContent>
     </Card>
   )
