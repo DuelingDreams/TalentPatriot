@@ -203,6 +203,65 @@ export interface IStorage {
   // Resume parsing functionality
   parseAndUpdateCandidate(candidateId: string, resumeText?: string): Promise<Candidate>;
   searchCandidatesBySkills(orgId: string, skills: string[]): Promise<Candidate[]>;
+  
+  // Paginated methods with field selection support
+  getJobsPaginated(params: {
+    orgId: string;
+    limit?: number;
+    cursor?: string;
+    fields?: string[];
+    status?: string;
+    jobType?: string;
+    search?: string;
+  }): Promise<{
+    data: Job[];
+    pagination: {
+      hasMore: boolean;
+      nextCursor?: string;
+      totalCount?: number;
+      limit: number;
+    };
+  }>;
+  
+  getCandidatesPaginated(params: {
+    orgId: string;
+    limit?: number;
+    cursor?: string;
+    fields?: string[];
+    jobId?: string;
+    stage?: string;
+    status?: string;
+    search?: string;
+  }): Promise<{
+    data: Candidate[];
+    pagination: {
+      hasMore: boolean;
+      nextCursor?: string;
+      totalCount?: number;
+      limit: number;
+    };
+  }>;
+  
+  getMessagesPaginated(params: {
+    userId?: string;
+    limit?: number;
+    cursor?: string;
+    fields?: string[];
+    threadId?: string;
+    type?: string;
+    priority?: string;
+    clientId?: string;
+    jobId?: string;
+    candidateId?: string;
+  }): Promise<{
+    data: Message[];
+    pagination: {
+      hasMore: boolean;
+      nextCursor?: string;
+      totalCount?: number;
+      limit: number;
+    };
+  }>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -2691,6 +2750,403 @@ export class DatabaseStorage implements IStorage {
       return (data || []) as Candidate[];
     } catch (error) {
       console.error('Error in searchCandidatesBySkills:', error);
+      throw error;
+    }
+  }
+
+  // Paginated methods implementation
+  async getJobsPaginated(params: {
+    orgId: string;
+    limit?: number;
+    cursor?: string;
+    fields?: string[];
+    status?: string;
+    jobType?: string;
+    search?: string;
+  }): Promise<{
+    data: Job[];
+    pagination: {
+      hasMore: boolean;
+      nextCursor?: string;
+      totalCount?: number;
+      limit: number;
+    };
+  }> {
+    try {
+      const limit = Math.min(params.limit || 50, 100);
+      const selectFields = params.fields?.join(', ') || '*';
+      
+      let query = supabase
+        .from('jobs')
+        .select(selectFields)
+        .eq('org_id', params.orgId)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(limit + 1); // Get one extra to check if there are more
+
+      // Add filters
+      if (params.status) {
+        query = query.eq('status', params.status);
+      }
+      if (params.jobType) {
+        query = query.eq('job_type', params.jobType);
+      }
+      if (params.search) {
+        query = query.or(`title.ilike.%${params.search}%,description.ilike.%${params.search}%`);
+      }
+
+      // Cursor-based pagination with deterministic ordering
+      if (params.cursor) {
+        try {
+          const decodedCursor = JSON.parse(Buffer.from(params.cursor, 'base64').toString('utf8'));
+          if (decodedCursor.id) {
+            // Use composite cursor for deterministic ordering
+            query = query.or(`created_at.lt.${decodedCursor.created_at},and(created_at.eq.${decodedCursor.created_at},id.lt.${decodedCursor.id})`);
+          } else {
+            // Fallback for old cursor format
+            query = query.lt('created_at', decodedCursor.created_at);
+          }
+        } catch (e) {
+          console.warn('Invalid cursor format, ignoring:', e instanceof Error ? e.message : 'unknown error');
+        }
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error in getJobsPaginated:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.warn('No data returned from getJobsPaginated query');
+        return {
+          data: [],
+          pagination: {
+            hasMore: false,
+            totalCount: count || 0,
+            limit
+          }
+        };
+      }
+
+      // Type guard to ensure data is valid Job array
+      if (!Array.isArray(data) || (data.length > 0 && typeof data[0] !== 'object')) {
+        console.warn('Invalid data format returned from jobs query');
+        return {
+          data: [],
+          pagination: {
+            hasMore: false,
+            totalCount: count || 0,
+            limit
+          }
+        };
+      }
+      
+      const jobs = (data as unknown) as Job[];
+      const hasMore = jobs.length > limit;
+      
+      // Remove the extra item if present
+      if (hasMore) {
+        jobs.pop();
+      }
+
+      // Generate next cursor with composite key for deterministic ordering
+      let nextCursor: string | undefined;
+      if (hasMore && jobs.length > 0) {
+        const lastJob = jobs[jobs.length - 1];
+        nextCursor = Buffer.from(JSON.stringify({
+          created_at: lastJob.createdAt,
+          id: lastJob.id
+        })).toString('base64');
+      }
+
+      return {
+        data: jobs,
+        pagination: {
+          hasMore,
+          nextCursor,
+          totalCount: count || undefined,
+          limit
+        }
+      };
+    } catch (error) {
+      console.error('Error in getJobsPaginated:', error);
+      throw error;
+    }
+  }
+
+  async getCandidatesPaginated(params: {
+    orgId: string;
+    limit?: number;
+    cursor?: string;
+    fields?: string[];
+    jobId?: string;
+    stage?: string;
+    status?: string;
+    search?: string;
+  }): Promise<{
+    data: Candidate[];
+    pagination: {
+      hasMore: boolean;
+      nextCursor?: string;
+      totalCount?: number;
+      limit: number;
+    };
+  }> {
+    try {
+      const limit = Math.min(params.limit || 50, 100);
+      const selectFields = params.fields?.join(', ') || '*';
+      
+      let query = supabase
+        .from('candidates')
+        .select(selectFields)
+        .eq('org_id', params.orgId)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(limit + 1);
+
+      // Add filters
+      if (params.stage) {
+        query = query.eq('stage', params.stage);
+      }
+      if (params.status) {
+        query = query.eq('status', params.status);
+      }
+      if (params.search) {
+        query = query.or(`name.ilike.%${params.search}%,email.ilike.%${params.search}%`);
+      }
+
+      // If jobId is provided, filter through job_candidate junction
+      if (params.jobId) {
+        const { data: jobCandidates } = await supabase
+          .from('job_candidate')
+          .select('candidate_id')
+          .eq('job_id', params.jobId);
+        
+        if (jobCandidates && jobCandidates.length > 0) {
+          const candidateIds = jobCandidates.map(jc => jc.candidate_id);
+          query = query.in('id', candidateIds);
+        } else {
+          // No candidates for this job
+          return {
+            data: [],
+            pagination: { hasMore: false, limit, totalCount: 0 }
+          };
+        }
+      }
+
+      // Cursor-based pagination with deterministic ordering
+      if (params.cursor) {
+        try {
+          const decodedCursor = JSON.parse(Buffer.from(params.cursor, 'base64').toString('utf8'));
+          if (decodedCursor.id) {
+            // Use composite cursor for deterministic ordering
+            query = query.or(`created_at.lt.${decodedCursor.created_at},and(created_at.eq.${decodedCursor.created_at},id.lt.${decodedCursor.id})`);
+          } else {
+            // Fallback for old cursor format
+            query = query.lt('created_at', decodedCursor.created_at);
+          }
+        } catch (e) {
+          console.warn('Invalid cursor format, ignoring:', e instanceof Error ? e.message : 'unknown error');
+        }
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error in getCandidatesPaginated:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.warn('No data returned from getCandidatesPaginated query');
+        return {
+          data: [],
+          pagination: {
+            hasMore: false,
+            totalCount: count || 0,
+            limit
+          }
+        };
+      }
+
+      // Type guard to ensure data is valid Candidate array
+      if (!Array.isArray(data) || (data.length > 0 && typeof data[0] !== 'object')) {
+        console.warn('Invalid data format returned from candidates query');
+        return {
+          data: [],
+          pagination: {
+            hasMore: false,
+            totalCount: count || 0,
+            limit
+          }
+        };
+      }
+      
+      const candidates = (data as unknown) as Candidate[];
+      const hasMore = candidates.length > limit;
+      
+      if (hasMore) {
+        candidates.pop();
+      }
+
+      // Generate next cursor with composite key for deterministic ordering
+      let nextCursor: string | undefined;
+      if (hasMore && candidates.length > 0) {
+        const lastCandidate = candidates[candidates.length - 1];
+        nextCursor = Buffer.from(JSON.stringify({
+          created_at: lastCandidate.createdAt,
+          id: lastCandidate.id
+        })).toString('base64');
+      }
+
+      return {
+        data: candidates,
+        pagination: {
+          hasMore,
+          nextCursor,
+          totalCount: count || undefined,
+          limit
+        }
+      };
+    } catch (error) {
+      console.error('Error in getCandidatesPaginated:', error);
+      throw error;
+    }
+  }
+
+  async getMessagesPaginated(params: {
+    userId?: string;
+    limit?: number;
+    cursor?: string;
+    fields?: string[];
+    threadId?: string;
+    type?: string;
+    priority?: string;
+    clientId?: string;
+    jobId?: string;
+    candidateId?: string;
+  }): Promise<{
+    data: Message[];
+    pagination: {
+      hasMore: boolean;
+      nextCursor?: string;
+      totalCount?: number;
+      limit: number;
+    };
+  }> {
+    try {
+      const limit = Math.min(params.limit || 50, 100);
+      const selectFields = params.fields?.join(', ') || '*';
+      
+      let query = supabase
+        .from('messages')
+        .select(selectFields)
+        .eq('record_status', 'active')
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(limit + 1);
+
+      // Add filters
+      if (params.userId) {
+        query = query.or(`sender_id.eq.${params.userId},recipient_id.eq.${params.userId}`);
+      }
+      if (params.threadId) {
+        query = query.eq('thread_id', params.threadId);
+      }
+      if (params.type) {
+        query = query.eq('type', params.type);
+      }
+      if (params.priority) {
+        query = query.eq('priority', params.priority);
+      }
+      if (params.clientId) {
+        query = query.eq('client_id', params.clientId);
+      }
+      if (params.jobId) {
+        query = query.eq('job_id', params.jobId);
+      }
+      if (params.candidateId) {
+        query = query.eq('candidate_id', params.candidateId);
+      }
+
+      // Cursor-based pagination with deterministic ordering
+      if (params.cursor) {
+        try {
+          const decodedCursor = JSON.parse(Buffer.from(params.cursor, 'base64').toString('utf8'));
+          if (decodedCursor.id) {
+            // Use composite cursor for deterministic ordering
+            query = query.or(`created_at.lt.${decodedCursor.created_at},and(created_at.eq.${decodedCursor.created_at},id.lt.${decodedCursor.id})`);
+          } else {
+            // Fallback for old cursor format
+            query = query.lt('created_at', decodedCursor.created_at);
+          }
+        } catch (e) {
+          console.warn('Invalid cursor format, ignoring:', e instanceof Error ? e.message : 'unknown error');
+        }
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error in getMessagesPaginated:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.warn('No data returned from getMessagesPaginated query');
+        return {
+          data: [],
+          pagination: {
+            hasMore: false,
+            totalCount: count || 0,
+            limit
+          }
+        };
+      }
+
+      // Type guard to ensure data is valid Message array
+      if (!Array.isArray(data) || (data.length > 0 && typeof data[0] !== 'object')) {
+        console.warn('Invalid data format returned from messages query');
+        return {
+          data: [],
+          pagination: {
+            hasMore: false,
+            totalCount: count || 0,
+            limit
+          }
+        };
+      }
+      
+      const messages = (data as unknown) as Message[];
+      const hasMore = messages.length > limit;
+      
+      if (hasMore) {
+        messages.pop();
+      }
+
+      // Generate next cursor with composite key for deterministic ordering
+      let nextCursor: string | undefined;
+      if (hasMore && messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        nextCursor = Buffer.from(JSON.stringify({
+          created_at: lastMessage.createdAt,
+          id: lastMessage.id
+        })).toString('base64');
+      }
+
+      return {
+        data: messages,
+        pagination: {
+          hasMore,
+          nextCursor,
+          totalCount: count || undefined,
+          limit
+        }
+      };
+    } catch (error) {
+      console.error('Error in getMessagesPaginated:', error);
       throw error;
     }
   }

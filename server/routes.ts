@@ -8,10 +8,52 @@ import * as jobService from "../lib/jobService";
 import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
 import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineService";
-import { insertCandidateSchema, insertJobSchema, insertJobCandidateSchema } from "../shared/schema";
+import { 
+  insertCandidateSchema, 
+  insertJobSchema, 
+  insertJobCandidateSchema,
+  jobsQuerySchema,
+  candidatesQuerySchema,
+  messagesQuerySchema,
+  jobFieldsPresets,
+  candidateFieldsPresets,
+  messageFieldsPresets,
+  type PaginatedJobs,
+  type PaginatedCandidates,
+  type PaginatedMessages
+} from "../shared/schema";
 import { createClient } from '@supabase/supabase-js';
 import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
+import crypto from "crypto";
+
+// Utility functions for ETag generation and caching
+function generateETag(data: any): string {
+  return crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
+}
+
+function setResponseCaching(res: any, options: {
+  etag?: string;
+  cacheControl?: string;
+  lastModified?: Date;
+} = {}) {
+  if (options.etag) {
+    res.setHeader('ETag', `"${options.etag}"`);
+  }
+  
+  if (options.cacheControl) {
+    res.setHeader('Cache-Control', options.cacheControl);
+  } else {
+    // Default cache control for private authenticated data
+    res.setHeader('Cache-Control', 'private, max-age=60, must-revalidate');
+  }
+  
+  if (options.lastModified) {
+    res.setHeader('Last-Modified', options.lastModified.toUTCString());
+  }
+  
+  res.setHeader('Vary', 'Accept-Encoding, Authorization, X-Org-Id');
+}
 
 function mapPublicJobRow(row: any) {
   return {
@@ -196,8 +238,9 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       // Use optimized single-query function
       const stats = await storage.getDashboardStats(orgId);
       
-      // Cache for 5 minutes
-      res.setHeader('Cache-Control', 'public, max-age=300');
+      // Cache for 1 minute (private for security)
+      res.setHeader('Cache-Control', 'private, max-age=60, must-revalidate');
+      res.setHeader('Vary', 'X-Org-Id');
       res.json(stats);
     } catch (error) {
       console.error("Error fetching dashboard stats:", error);
@@ -1296,20 +1339,116 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Jobs routes
+  // Enhanced Jobs routes with pagination support
   app.get("/api/jobs", async (req, res) => {
     try {
       // Support both query parameter and header for organization ID
       const orgId = req.query.orgId as string || req.headers['x-org-id'] as string;
       console.info('[API]', req.method, req.url, '| orgId from query:', req.query.orgId, '| orgId from header:', req.headers['x-org-id'], '| final orgId:', orgId);
+      
       if (!orgId) {
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const jobs = await storage.getJobsByOrg(orgId);
-      console.info('[API] GET /api/jobs →', { success: true, count: jobs?.length || 0 });
-      res.json(jobs);
+
+      // Add orgId to query for validation
+      const queryWithOrgId = { ...req.query, orgId };
+      
+      // Check if this is a paginated request by looking for pagination parameters
+      const isPaginatedRequest = 'limit' in req.query || 'cursor' in req.query || 'include' in req.query;
+      
+      if (isPaginatedRequest) {
+        // Validate query parameters for paginated request
+        const validationResult = jobsQuerySchema.safeParse(queryWithOrgId);
+        
+        if (!validationResult.success) {
+          return res.status(400).json({
+            error: "Invalid query parameters",
+            details: validationResult.error.errors
+          });
+        }
+
+        const {
+          limit,
+          cursor,
+          include,
+          status,
+          jobType,
+          search
+        } = validationResult.data;
+
+        // Handle field selection
+        let fields: string[] | undefined;
+        if (include) {
+          if (include === 'list') {
+            fields = [...jobFieldsPresets.list];
+          } else if (include === 'detail') {
+            fields = [...jobFieldsPresets.detail];
+          } else {
+            fields = include.split(',').map(f => f.trim());
+          }
+        }
+
+        // Get paginated results
+        const result = await storage.getJobsPaginated({
+          orgId,
+          limit,
+          cursor,
+          fields,
+          status,
+          jobType,
+          search
+        });
+
+        // Generate ETag for response
+        const etag = generateETag(result);
+        
+        // Check If-None-Match header for 304 Not Modified
+        const clientETag = req.headers['if-none-match'];
+        if (clientETag && clientETag === `"${etag}"`) {
+          return res.status(304).end();
+        }
+
+        // Set caching headers for private data
+        setResponseCaching(res, {
+          etag,
+          cacheControl: 'private, max-age=180, must-revalidate', // 3 minutes for jobs data
+          lastModified: result.data.length > 0 ? new Date(result.data[0].createdAt) : undefined
+        });
+
+        console.info('[API] GET /api/jobs (paginated) →', { 
+          success: true, 
+          count: result.data.length,
+          hasMore: result.pagination.hasMore,
+          totalCount: result.pagination.totalCount
+        });
+
+        res.json(result);
+      } else {
+        // Backward compatibility: return non-paginated results
+        const jobs = await storage.getJobsByOrg(orgId);
+        
+        // Generate ETag for response
+        const etag = generateETag(jobs);
+        
+        // Check If-None-Match header for 304 Not Modified
+        const clientETag = req.headers['if-none-match'];
+        if (clientETag && clientETag === `"${etag}"`) {
+          return res.status(304).end();
+        }
+
+        // Set caching headers
+        setResponseCaching(res, {
+          etag,
+          cacheControl: 'private, max-age=180, must-revalidate',
+          lastModified: jobs.length > 0 ? new Date(jobs[0].createdAt) : undefined
+        });
+
+        console.info('[API] GET /api/jobs (legacy) →', { success: true, count: jobs?.length || 0 });
+        res.json(jobs);
+      }
     } catch (error) {
+      console.error('Error in GET /api/jobs:', error);
       res.status(500).json({ error: "Failed to fetch jobs" });
     }
   });
@@ -1949,7 +2088,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Candidates routes
+  // Enhanced Candidates routes with pagination support
   app.get("/api/candidates", async (req, res) => {
     try {
       // Get organization ID from authenticated user context (header only)
@@ -1964,8 +2103,105 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         'x-org-id': req.headers['x-org-id'],
         'x-user-id': req.headers['x-user-id']
       });
-      const candidates = await storage.getCandidatesByOrg(orgId);
-      res.json(candidates);
+
+      // Add orgId to query for validation
+      const queryWithOrgId = { ...req.query, orgId };
+      
+      // Check if this is a paginated request by looking for pagination parameters
+      const isPaginatedRequest = 'limit' in req.query || 'cursor' in req.query || 'include' in req.query;
+      
+      if (isPaginatedRequest) {
+        // Validate query parameters for paginated request
+        const validationResult = candidatesQuerySchema.safeParse(queryWithOrgId);
+        
+        if (!validationResult.success) {
+          return res.status(400).json({
+            error: "Invalid query parameters",
+            details: validationResult.error.errors
+          });
+        }
+
+        const {
+          limit,
+          cursor,
+          include,
+          jobId,
+          stage,
+          status,
+          search
+        } = validationResult.data;
+
+        // Handle field selection
+        let fields: string[] | undefined;
+        if (include) {
+          if (include === 'list') {
+            fields = [...candidateFieldsPresets.list];
+          } else if (include === 'detail') {
+            fields = [...candidateFieldsPresets.detail];
+          } else {
+            fields = include.split(',').map(f => f.trim());
+          }
+        }
+
+        // Get paginated results
+        const result = await storage.getCandidatesPaginated({
+          orgId,
+          limit,
+          cursor,
+          fields,
+          jobId,
+          stage,
+          status,
+          search
+        });
+
+        // Generate ETag for response
+        const etag = generateETag(result);
+        
+        // Check If-None-Match header for 304 Not Modified
+        const clientETag = req.headers['if-none-match'];
+        if (clientETag && clientETag === `"${etag}"`) {
+          return res.status(304).end();
+        }
+
+        // Set caching headers for private data
+        setResponseCaching(res, {
+          etag,
+          cacheControl: 'private, max-age=120, must-revalidate', // 2 minutes for candidates data
+          lastModified: result.data.length > 0 ? new Date(result.data[0].createdAt) : undefined
+        });
+
+        console.info('[API] GET /api/candidates (paginated) →', { 
+          success: true, 
+          count: result.data.length,
+          hasMore: result.pagination.hasMore,
+          totalCount: result.pagination.totalCount
+        });
+
+        res.json(result);
+      } else {
+        // Backward compatibility: return non-paginated results
+        const candidates = await storage.getCandidatesByOrg(orgId);
+        
+        // Generate ETag for response
+        const etag = generateETag(candidates);
+        
+        // Check If-None-Match header for 304 Not Modified
+        const clientETag = req.headers['if-none-match'];
+        if (clientETag && clientETag === `"${etag}"`) {
+          return res.status(304).end();
+        }
+
+        // Set caching headers
+        setResponseCaching(res, {
+          etag,
+          cacheControl: 'private, max-age=120, must-revalidate',
+          lastModified: candidates.length > 0 ? new Date(candidates[0].createdAt) : undefined
+        });
+
+        console.info('[API] GET /api/candidates (legacy) →', { success: true, count: candidates?.length || 0 });
+        res.json(candidates);
+      }
     } catch (error) {
       console.error('Error fetching candidates:', error);
       res.status(500).json({ error: "Failed to fetch candidates" });
@@ -2230,13 +2466,112 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Messages routes
+  // Enhanced Messages routes with pagination support
   app.get("/api/messages", async (req, res) => {
     try {
-      const userId = req.query.userId as string;
-      const messages = await storage.getMessages(userId);
-      res.json(messages);
+      // Check if this is a paginated request by looking for pagination parameters
+      const isPaginatedRequest = 'limit' in req.query || 'cursor' in req.query || 'include' in req.query;
+      
+      if (isPaginatedRequest) {
+        // Validate query parameters for paginated request
+        const validationResult = messagesQuerySchema.safeParse(req.query);
+        
+        if (!validationResult.success) {
+          return res.status(400).json({
+            error: "Invalid query parameters",
+            details: validationResult.error.errors
+          });
+        }
+
+        const {
+          userId,
+          limit,
+          cursor,
+          include,
+          threadId,
+          type,
+          priority,
+          clientId,
+          jobId,
+          candidateId
+        } = validationResult.data;
+
+        // Handle field selection
+        let fields: string[] | undefined;
+        if (include) {
+          if (include === 'list') {
+            fields = [...messageFieldsPresets.list];
+          } else if (include === 'detail') {
+            fields = [...messageFieldsPresets.detail];
+          } else {
+            fields = include.split(',').map(f => f.trim());
+          }
+        }
+
+        // Get paginated results
+        const result = await storage.getMessagesPaginated({
+          userId,
+          limit,
+          cursor,
+          fields,
+          threadId,
+          type,
+          priority,
+          clientId,
+          jobId,
+          candidateId
+        });
+
+        // Generate ETag for response
+        const etag = generateETag(result);
+        
+        // Check If-None-Match header for 304 Not Modified
+        const clientETag = req.headers['if-none-match'];
+        if (clientETag && clientETag === `"${etag}"`) {
+          return res.status(304).end();
+        }
+
+        // Set caching headers for private data
+        setResponseCaching(res, {
+          etag,
+          cacheControl: 'private, max-age=60, must-revalidate', // 1 minute for messages data
+          lastModified: result.data.length > 0 ? new Date(result.data[0].createdAt) : undefined
+        });
+
+        console.info('[API] GET /api/messages (paginated) →', { 
+          success: true, 
+          count: result.data.length,
+          hasMore: result.pagination.hasMore,
+          totalCount: result.pagination.totalCount
+        });
+
+        res.json(result);
+      } else {
+        // Backward compatibility: return non-paginated results
+        const userId = req.query.userId as string;
+        const messages = await storage.getMessages(userId);
+        
+        // Generate ETag for response
+        const etag = generateETag(messages);
+        
+        // Check If-None-Match header for 304 Not Modified
+        const clientETag = req.headers['if-none-match'];
+        if (clientETag && clientETag === `"${etag}"`) {
+          return res.status(304).end();
+        }
+
+        // Set caching headers
+        setResponseCaching(res, {
+          etag,
+          cacheControl: 'private, max-age=60, must-revalidate',
+          lastModified: messages.length > 0 ? new Date(messages[0].createdAt) : undefined
+        });
+
+        console.info('[API] GET /api/messages (legacy) →', { success: true, count: messages?.length || 0 });
+        res.json(messages);
+      }
     } catch (error) {
+      console.error('Error fetching messages:', error);
       res.status(500).json({ error: "Failed to fetch messages" });
     }
   });
