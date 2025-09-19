@@ -2196,14 +2196,37 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/candidate-notes", writeLimiter, async (req, res) => {
     try {
-      console.log('Creating candidate note:', req.body);
+      console.log('[NOTES_API] POST /api/candidate-notes - Request received');
+      console.log('[NOTES_API] Headers:', {
+        'x-user-id': req.headers['x-user-id'],
+        'x-org-id': req.headers['x-org-id'],
+        'content-type': req.headers['content-type']
+      });
+      console.log('[NOTES_API] Request body:', req.body);
+      
+      // Validate required fields
+      const { orgId, jobCandidateId, authorId, content } = req.body;
+      if (!orgId || !jobCandidateId || !authorId || !content) {
+        console.error('[NOTES_API] Missing required fields:', { orgId, jobCandidateId, authorId, content: !!content });
+        return res.status(400).json({ 
+          error: "Missing required fields", 
+          details: "orgId, jobCandidateId, authorId, and content are required",
+          received: { orgId: !!orgId, jobCandidateId: !!jobCandidateId, authorId: !!authorId, content: !!content }
+        });
+      }
+      
+      console.log('[NOTES_API] All required fields present, creating note...');
       const note = await storage.createCandidateNote(req.body);
-      console.log('Created note:', note);
+      console.log('[NOTES_API] Note created successfully:', { id: note.id, orgId: note.orgId });
       res.status(201).json(note);
-    } catch (error) {
-      console.error('Error creating candidate note:', error);
+    } catch (error: any) {
+      console.error('[NOTES_API] Error creating candidate note:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-      res.status(400).json({ error: "Failed to create candidate note", details: errorMsg });
+      res.status(400).json({ 
+        error: "Failed to create candidate note", 
+        details: errorMsg,
+        message: error?.message || "Unknown error occurred"
+      });
     }
   });
 
@@ -2379,11 +2402,37 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/candidate-notes", writeLimiter, async (req, res) => {
     try {
+      console.log('[NOTES_API_V2] POST /api/candidate-notes - Request received (second endpoint)');
+      console.log('[NOTES_API_V2] Headers:', {
+        'x-user-id': req.headers['x-user-id'],
+        'x-org-id': req.headers['x-org-id'],
+        'content-type': req.headers['content-type']
+      });
+      console.log('[NOTES_API_V2] Request body:', req.body);
+      
+      // Validate required fields
+      const { orgId, jobCandidateId, authorId, content } = req.body;
+      if (!orgId || !jobCandidateId || !authorId || !content) {
+        console.error('[NOTES_API_V2] Missing required fields:', { orgId, jobCandidateId, authorId, content: !!content });
+        return res.status(400).json({ 
+          error: "User authentication required to add notes", 
+          details: "Missing required authentication or note data",
+          received: { orgId: !!orgId, jobCandidateId: !!jobCandidateId, authorId: !!authorId, content: !!content }
+        });
+      }
+      
+      console.log('[NOTES_API_V2] All required fields present, creating note...');
       const note = await storage.createCandidateNote(req.body);
+      console.log('[NOTES_API_V2] Note created successfully:', { id: note.id, orgId: note.orgId });
       res.status(201).json(note);
-    } catch (error) {
-      console.error("Error creating candidate note:", error);
-      res.status(500).json({ error: "Failed to create candidate note" });
+    } catch (error: any) {
+      console.error('[NOTES_API_V2] Error creating candidate note:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ 
+        error: "Failed to create candidate note", 
+        details: errorMsg,
+        message: error?.message || "Unknown error occurred"
+      });
     }
   });
 

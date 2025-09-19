@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { CandidateNotes, InsertCandidateNotes } from '@shared/schema'
+import { apiRequest } from '@/lib/queryClient'
 
 export function useCandidateNotes(jobCandidateId: string) {
   return useQuery({
@@ -20,22 +21,23 @@ export function useCreateCandidateNote() {
   
   return useMutation({
     mutationFn: async (note: InsertCandidateNotes) => {
-      const response = await fetch('/api/candidate-notes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(note),
-      })
+      console.log('[useCandidateNotes] Creating note with data:', note)
       
-      if (!response.ok) {
-        const error = await response.json()
+      try {
+        const result = await apiRequest('/api/candidate-notes', {
+          method: 'POST',
+          body: JSON.stringify(note),
+        })
+        
+        console.log('[useCandidateNotes] Note created successfully:', result)
+        return result as CandidateNotes
+      } catch (error: any) {
+        console.error('[useCandidateNotes] Error creating note:', error)
         throw new Error(error.message || 'Failed to create candidate note')
       }
-      
-      return response.json() as Promise<CandidateNotes>
     },
     onSuccess: (data) => {
+      console.log('[useCandidateNotes] Note creation success, invalidating cache for:', data.jobCandidateId)
       // Invalidate and refetch candidate notes
       queryClient.invalidateQueries({ 
         queryKey: ['/api/candidate-notes', data.jobCandidateId] 
@@ -49,22 +51,23 @@ export function useUpdateCandidateNote() {
   
   return useMutation({
     mutationFn: async ({ id, note }: { id: string; note: Partial<InsertCandidateNotes> }) => {
-      const response = await fetch(`/api/candidate-notes/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(note),
-      })
+      console.log('[useCandidateNotes] Updating note:', id, note)
       
-      if (!response.ok) {
-        const error = await response.json()
+      try {
+        const result = await apiRequest(`/api/candidate-notes/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify(note),
+        })
+        
+        console.log('[useCandidateNotes] Note updated successfully:', result)
+        return result as CandidateNotes
+      } catch (error: any) {
+        console.error('[useCandidateNotes] Error updating note:', error)
         throw new Error(error.message || 'Failed to update candidate note')
       }
-      
-      return response.json() as Promise<CandidateNotes>
     },
     onSuccess: (data) => {
+      console.log('[useCandidateNotes] Note update success, invalidating cache for:', data.jobCandidateId)
       // Invalidate and refetch candidate notes
       queryClient.invalidateQueries({ 
         queryKey: ['/api/candidate-notes', data.jobCandidateId] 
