@@ -32,7 +32,7 @@ import { useCandidateApplicationHistory } from '@/hooks/useCandidateApplicationH
 import { useCandidateInterviews } from '@/hooks/useCandidateInterviews'
 import { useAuth } from '@/contexts/AuthContext'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
-import { ResumePreview } from '@/components/resume/ResumePreview'
+import { ResumePreview } from '@/components/resume/LazyResumePreview'
 import { CandidateNotes } from '@/components/CandidateNotes'
 
 export default function CandidateProfile() {
@@ -40,7 +40,10 @@ export default function CandidateProfile() {
   const [activeTab, setActiveTab] = useState('overview')
   const { userRole } = useAuth()
   
-  const { data: candidate, isLoading: candidateLoading } = useCandidate(id)
+  const { data: candidateData, isLoading: candidateLoading } = useCandidate(id)
+  
+  // Type guard for candidate data with proper fallback
+  const candidate = candidateData && typeof candidateData === 'object' && 'name' in candidateData ? candidateData as any : null
   const { data: applications, isLoading: applicationsLoading } = useCandidateApplicationHistory(id)
   const { data: interviews, isLoading: interviewsLoading } = useCandidateInterviews(id)
 
@@ -101,7 +104,7 @@ export default function CandidateProfile() {
   }
 
   return (
-    <DashboardLayout pageTitle={candidate.name}>
+    <DashboardLayout pageTitle={candidate?.name || 'Candidate Profile'}>
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -115,20 +118,20 @@ export default function CandidateProfile() {
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-6">
               <Avatar className="w-20 h-20">
-                <AvatarImage src={`https://i.pravatar.cc/150?u=${candidate.email}`} />
+                <AvatarImage src={`https://i.pravatar.cc/150?u=${candidate?.email || 'default'}`} />
                 <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
-                  {candidate.name.split(' ').map((n: string) => n[0]).join('')}
+                  {candidate?.name ? candidate.name.split(' ').map((n: string) => n[0]).join('') : 'N/A'}
                 </AvatarFallback>
               </Avatar>
               
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{candidate.name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{candidate?.name || 'Unknown Candidate'}</h1>
                 <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
                   <div className="flex items-center gap-1">
                     <Mail className="w-4 h-4" />
-                    <span>{candidate.email}</span>
+                    <span>{candidate?.email || 'No email'}</span>
                   </div>
-                  {candidate.phone && (
+                  {candidate?.phone && (
                     <div className="flex items-center gap-1">
                       <Phone className="w-4 h-4" />
                       <span>{candidate.phone}</span>
@@ -136,7 +139,7 @@ export default function CandidateProfile() {
                   )}
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    <span>Added {candidate.created_at ? format(new Date(candidate.created_at), 'MMM d, yyyy') : 'Recently'}</span>
+                    <span>Added {candidate?.created_at ? format(new Date(candidate.created_at), 'MMM d, yyyy') : 'Recently'}</span>
                   </div>
                 </div>
                 
@@ -152,7 +155,7 @@ export default function CandidateProfile() {
             </div>
             
             <div className="flex gap-2">
-              {candidate.resume_url && (
+              {candidate?.resume_url && (
                 <Button variant="outline" onClick={() => window.open(`http://localhost:5000${candidate.resume_url}`, '_blank')}>
                   <Download className="w-4 h-4 mr-2" />
                   Download Resume
@@ -210,17 +213,17 @@ export default function CandidateProfile() {
               <div className="lg:col-span-2 space-y-4">
                 <ResumeUpload 
                   candidateId={id!}
-                  currentResumeUrl={candidate.resume_url}
+                  currentResumeUrl={candidate?.resume_url}
                   onUploadSuccess={(resumeUrl) => {
                     // Trigger a refetch of candidate data
                     window.location.reload()
                   }}
                 />
                 
-                {candidate.resume_url && (
+                {candidate?.resume_url && (
                   <ResumePreview 
                     resumeUrl={candidate.resume_url}
-                    candidateName={candidate.name}
+                    candidateName={candidate?.name || 'Unknown Candidate'}
                   />
                 )}
               </div>

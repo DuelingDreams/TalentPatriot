@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar } from '@/components/ui/calendar'
+import { Calendar } from '@/components/ui/LazyCalendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -110,6 +110,13 @@ export function InterviewCalendar() {
   const { user, currentOrgId } = useAuth()
   const { data: interviews = [], isLoading, error } = useInterviews(currentOrgId || undefined)
 
+  // Handle calendar date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date)
+    }
+  }
+
   // Get interviews for selected date
   const selectedDateInterviews = interviews.filter((interview: any) =>
     isSameDay(new Date(interview.scheduledAt), selectedDate)
@@ -150,7 +157,7 @@ export function InterviewCalendar() {
             <Calendar
               mode="single"
               selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
+              onSelect={handleDateSelect}
               className="rounded-md border w-full"
             />
             

@@ -14,7 +14,7 @@ import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
 import { PipelineOverview } from '@/components/dashboard/PipelineOverview'
-import { JobsChart } from '@/components/dashboard/JobsChart'
+import { JobsChart } from '@/components/dashboard/LazyJobsChart'
 import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
 import { QuickActions } from '@/components/dashboard/QuickActions'
 import { AIInsights } from '@/components/ai/AIInsights'
@@ -104,26 +104,32 @@ export default function Dashboard() {
     }
   }, [currentOrgId, userRole, jobsLoading, setLocation])
 
-  // Calculate real stats from data
-  const openJobsCount = jobs?.filter((job: any) => job.status === 'open').length || 0
-  const totalJobsCount = jobs?.length || 0
-  const totalCandidatesCount = candidates?.length || 0
-  const totalClientsCount = clients?.length || 0
-  const activeCandidatesCount = jobCandidates?.filter((jc: any) => 
+  // Type-safe data extraction with proper fallbacks
+  const jobsArray = Array.isArray(jobs) ? jobs : []
+  const candidatesArray = Array.isArray(candidates) ? candidates : []
+  const clientsArray = Array.isArray(clients) ? clients : []
+  const jobCandidatesArray = Array.isArray(jobCandidates) ? jobCandidates : []
+
+  // Calculate real stats from data with type safety
+  const openJobsCount = jobsArray.filter((job: any) => job.status === 'open').length
+  const totalJobsCount = jobsArray.length
+  const totalCandidatesCount = candidatesArray.length
+  const totalClientsCount = clientsArray.length
+  const activeCandidatesCount = jobCandidatesArray.filter((jc: any) => 
     ['screening', 'interview', 'technical', 'reference'].includes(jc.stage)
-  ).length || 0
-  const hiredThisMonth = jobCandidates?.filter((jc: any) => {
+  ).length
+  const hiredThisMonth = jobCandidatesArray.filter((jc: any) => {
     if (jc.stage !== 'hired') return false
     const hiredDate = new Date(jc.updated_at)
     const now = new Date()
     return hiredDate.getMonth() === now.getMonth() && hiredDate.getFullYear() === now.getFullYear()
-  }).length || 0
+  }).length
 
-  // Calculate pipeline data
+  // Calculate pipeline data with type safety
   const pipelineStages = ['applied', 'screening', 'interview', 'technical', 'reference', 'offer', 'hired', 'rejected']
   const pipelineData = pipelineStages.map(stage => {
-    const count = jobCandidates?.filter((jc: any) => jc.stage === stage).length || 0
-    const total = jobCandidates?.length || 1
+    const count = jobCandidatesArray.filter((jc: any) => jc.stage === stage).length
+    const total = jobCandidatesArray.length || 1
     return {
       stage: stage.charAt(0).toUpperCase() + stage.slice(1),
       count,
@@ -131,12 +137,12 @@ export default function Dashboard() {
     }
   })
 
-  // Calculate job status data
+  // Calculate job status data with type safety
   const jobStatusData = [
-    { name: 'Open', value: jobs?.filter((j: any) => j.status === 'open').length || 0, color: '#22c55e' },
-    { name: 'In Progress', value: jobs?.filter((j: any) => j.status === 'in_progress').length || 0, color: '#3b82f6' },
-    { name: 'On Hold', value: jobs?.filter((j: any) => j.status === 'on_hold').length || 0, color: '#f59e0b' },
-    { name: 'Filled', value: jobs?.filter((j: any) => j.status === 'filled').length || 0, color: '#8b5cf6' },
+    { name: 'Open', value: jobsArray.filter((j: any) => j.status === 'open').length, color: '#22c55e' },
+    { name: 'In Progress', value: jobsArray.filter((j: any) => j.status === 'in_progress').length, color: '#3b82f6' },
+    { name: 'On Hold', value: jobsArray.filter((j: any) => j.status === 'on_hold').length, color: '#f59e0b' },
+    { name: 'Filled', value: jobsArray.filter((j: any) => j.status === 'filled').length, color: '#8b5cf6' },
   ]
 
   // Generate smart alerts based on real data
@@ -159,14 +165,14 @@ export default function Dashboard() {
       return alerts
     }
 
-    // Check for new applications
-    const recentApplications = jobCandidates?.filter((jc: any) => {
+    // Check for new applications with type safety
+    const recentApplications = jobCandidatesArray.filter((jc: any) => {
       const appliedDate = new Date(jc.created_at)
       const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
       return jc.stage === 'applied' && appliedDate > dayAgo
     })
 
-    if (recentApplications && recentApplications.length > 0) {
+    if (recentApplications.length > 0) {
       alerts.push({
         id: 'new-applications',
         type: 'warning',
@@ -180,14 +186,14 @@ export default function Dashboard() {
       })
     }
 
-    // Check for pipeline bottlenecks
-    const stuckCandidates = jobCandidates?.filter((jc: any) => {
+    // Check for pipeline bottlenecks with type safety
+    const stuckCandidates = jobCandidatesArray.filter((jc: any) => {
       const updatedDate = new Date(jc.updated_at)
       const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
       return ['screening', 'interview', 'technical'].includes(jc.stage) && updatedDate < fiveDaysAgo
     })
 
-    if (stuckCandidates && stuckCandidates.length > 3) {
+    if (stuckCandidates.length > 3) {
       alerts.push({
         id: 'pipeline-bottleneck',
         type: 'info',
@@ -202,7 +208,7 @@ export default function Dashboard() {
     }
 
     return alerts
-  }, [currentOrgId, jobCandidates])
+  }, [currentOrgId, jobCandidatesArray])
 
 
 
@@ -286,7 +292,7 @@ export default function Dashboard() {
         </div>
 
         {/* Performance Overview - Only show if there's data */}
-        {jobCandidates && jobCandidates.length > 0 && (
+        {jobCandidatesArray.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
@@ -296,14 +302,14 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
                   <span className="text-sm font-semibold text-gray-900">
-                    {Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)}%
+                    {Math.round((jobCandidatesArray.filter((jc: any) => jc.stage === 'hired').length / jobCandidatesArray.length) * 100)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
                     style={{ 
-                      width: `${Math.round((jobCandidates.filter((jc: any) => jc.stage === 'hired').length / jobCandidates.length) * 100)}%` 
+                      width: `${Math.round((jobCandidatesArray.filter((jc: any) => jc.stage === 'hired').length / jobCandidatesArray.length) * 100)}%` 
                     }}
                   ></div>
                 </div>
@@ -333,7 +339,7 @@ export default function Dashboard() {
         )}
 
         {/* Activity and Actions Grid - Only show if there's data */}
-        {(jobCandidates && jobCandidates.length > 0) || (jobs && jobs.length > 0) ? (
+        {jobCandidatesArray.length > 0 || jobsArray.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <RecentActivity loading={false} />
