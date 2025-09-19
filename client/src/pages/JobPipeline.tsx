@@ -1003,7 +1003,36 @@ export default function JobPipeline() {
     }
 
     const applicationId = active.id as string
-    const newColumnId = over.id as string
+    let newColumnId = over.id as string
+
+    // CRITICAL FIX: Check if we dropped on another candidate instead of a column
+    // If so, get the column ID from that candidate's data
+    const isDroppedOnColumn = jobPipelineData.columns.some(col => col.id === newColumnId)
+    
+    if (!isDroppedOnColumn) {
+      // We dropped on another candidate, find that candidate's column
+      const targetApplication = jobPipelineData.applications.find(app => app.id === newColumnId)
+      if (targetApplication?.columnId) {
+        console.log('[Drag Fix] Dropped on candidate, using their column:', {
+          droppedOnCandidateId: newColumnId,
+          extractedColumnId: targetApplication.columnId
+        })
+        newColumnId = targetApplication.columnId
+      } else {
+        console.error('Could not determine target column:', {
+          overId: over.id,
+          isColumn: isDroppedOnColumn,
+          availableColumns: jobPipelineData.columns.map(c => c.id),
+          availableApplications: jobPipelineData.applications.map(a => a.id)
+        })
+        toast({
+          title: "Move Failed",
+          description: "Could not determine target column for drop operation",
+          variant: "destructive",
+        })
+        return
+      }
+    }
 
     // Enhanced validation with detailed logging
     if (!applicationId || !newColumnId) {
