@@ -86,7 +86,7 @@ export function useJobPipeline(jobId: string | undefined, options?: { enableReal
       }
       
       const result = await apiRequest(`/api/jobs/${jobId}/pipeline`)
-      return result
+      return result as PipelineData
     },
     enabled: !!jobId,
     // Optimized for real-time pipeline updates

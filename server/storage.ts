@@ -397,7 +397,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUserSettings(userId: string): Promise<UserSettings | null> {
+  async getUserSettings(userId: string): Promise<UserSettings | undefined> {
     try {
       const { data, error } = await supabase
         .from('user_settings')
@@ -424,7 +424,7 @@ export class DatabaseStorage implements IStorage {
       return data as UserSettings;
     } catch (error) {
       console.error('Error fetching user settings:', error);
-      return null;
+      return undefined;
     }
   }
 
