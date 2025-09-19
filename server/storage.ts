@@ -151,6 +151,26 @@ export interface IStorage {
   getPipelineColumns(orgId: string): Promise<PipelineColumn[]>;
   createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn>;
   
+  // Job Pipeline Data (unified fetch for consistency)
+  getJobPipelineData(jobId: string, orgId: string): Promise<{
+    columns: Array<{ id: string; title: string; position: string }>;
+    applications: Array<{
+      id: string;
+      jobId: string;
+      candidateId: string;
+      columnId: string;
+      status: string;
+      appliedAt: string;
+      candidate: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+        resumeUrl: string | null;
+      } | null;
+    }>;
+  }>;
+  
   // Job applications
   submitJobApplication(applicationData: {
     jobId: string;
@@ -2107,6 +2127,107 @@ export class DatabaseStorage implements IStorage {
     } catch (err) {
       console.error('Pipeline column creation exception:', err)
       throw err
+    }
+  }
+
+  // Job Pipeline Data (unified fetch for consistency)
+  async getJobPipelineData(jobId: string, orgId: string): Promise<{
+    columns: Array<{ id: string; title: string; position: string }>;
+    applications: Array<{
+      id: string;
+      jobId: string;
+      candidateId: string;
+      columnId: string;
+      status: string;
+      appliedAt: string;
+      candidate: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+        resumeUrl: string | null;
+      } | null;
+    }>;
+  }> {
+    console.log(`[getJobPipelineData] Fetching pipeline data for job: ${jobId}, org: ${orgId}`);
+    
+    try {
+      // Get pipeline columns for this job (using same client as move operations)
+      const { data: columns, error: columnsError } = await supabase
+        .from('pipeline_columns')
+        .select('*')
+        .eq('job_id', jobId)
+        .eq('org_id', orgId)
+        .order('position');
+
+      if (columnsError) {
+        console.error('[getJobPipelineData] Error fetching pipeline columns:', columnsError);
+        throw new Error(`Failed to fetch pipeline columns: ${columnsError.message}`);
+      }
+
+      // Get applications for this job (using same client as move operations)
+      const { data: applications, error: applicationsError } = await supabase
+        .from('job_candidate')
+        .select(`
+          id,
+          job_id,
+          candidate_id,
+          pipeline_column_id,
+          status,
+          created_at,
+          stage,
+          notes,
+          candidate:candidates(id, name, email, phone, resume_url)
+        `)
+        .eq('job_id', jobId)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (applicationsError) {
+        console.error('[getJobPipelineData] Error fetching applications:', applicationsError);
+        throw new Error(`Failed to fetch applications: ${applicationsError.message}`);
+      }
+
+      console.log(`[getJobPipelineData] Found ${columns?.length || 0} columns and ${applications?.length || 0} applications`);
+      
+      // Log applications for debugging
+      applications?.forEach((app: any) => {
+        console.log(`[getJobPipelineData] Application ${app.id}: candidateName="${app.candidate?.name}", columnId="${app.pipeline_column_id}"`);
+      });
+
+      // Transform data to match frontend interface
+      const pipelineData = {
+        columns: columns?.map((col: any) => ({
+          id: col.id,
+          title: col.title,
+          position: col.position.toString()
+        })) || [],
+        applications: applications?.map((app: any) => ({
+          id: app.id,
+          jobId: app.job_id,
+          candidateId: app.candidate_id,
+          columnId: app.pipeline_column_id,
+          status: app.status,
+          appliedAt: app.created_at,
+          candidate: app.candidate ? {
+            id: app.candidate.id,
+            name: app.candidate.name,
+            email: app.candidate.email,
+            phone: app.candidate.phone,
+            resumeUrl: app.candidate.resume_url
+          } : null
+        })) || []
+      };
+
+      console.log(`[getJobPipelineData] Returning pipeline data:`, {
+        columnsCount: pipelineData.columns.length,
+        applicationsCount: pipelineData.applications.length
+      });
+
+      return pipelineData;
+    } catch (error) {
+      console.error(`[getJobPipelineData] Error fetching job pipeline data:`, error);
+      throw error;
     }
   }
 

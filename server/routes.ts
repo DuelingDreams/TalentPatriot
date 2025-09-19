@@ -2083,7 +2083,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/jobs/:jobId/pipeline", async (req, res) => {
     try {
       const { jobId } = req.params;
-      console.log('Fetching pipeline for job:', jobId);
+      console.log('[Pipeline Route] Fetching pipeline for job:', jobId);
 
       // Get job details to verify it exists and get organization ID
       const job = await storage.getJob(jobId);
@@ -2093,7 +2093,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       // Access org_id from raw data
       const orgId = (job as any).org_id;
-      console.log('Job orgId extracted:', orgId);
+      console.log('[Pipeline Route] Job orgId extracted:', orgId);
 
       // Import pipeline service
       const { ensureDefaultPipelineForJob } = await import('./lib/pipelineService');
@@ -2104,66 +2104,23 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         organizationId: orgId 
       });
 
-      // Get pipeline columns for this job
-      const { data: columns, error: columnsError } = await supabaseAdmin
-        .from('pipeline_columns')
-        .select('*')
-        .eq('job_id', jobId)
-        .eq('org_id', orgId)
-        .order('position');
+      // Use storage layer method to ensure database consistency
+      // This uses the same Supabase client as the move operations
+      const pipelineData = await storage.getJobPipelineData(jobId, orgId);
 
-      if (columnsError) {
-        console.error('Error fetching pipeline columns:', columnsError);
-        throw new Error(`Failed to fetch pipeline columns: ${columnsError.message}`);
-      }
-
-      // Get applications for this job
-      const { data: applications, error: applicationsError } = await supabaseAdmin
-        .from('job_candidate')
-        .select(`
-          id,
-          job_id,
-          candidate_id,
-          pipeline_column_id,
-          status,
-          created_at,
-          stage,
-          notes,
-          candidate:candidates(id, name, email, phone, resume_url)
-        `)
-        .eq('job_id', jobId)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-
-      // Transform data to match frontend interface
-      const pipelineData = {
-        columns: columns?.map((col: any) => ({
-          id: col.id,
-          title: col.title,
-          position: col.position.toString()
-        })) || [],
-        applications: applications?.map((app: any) => ({
+      console.log('[Pipeline Route] Pipeline data fetched successfully:', {
+        columnsCount: pipelineData.columns.length,
+        applicationsCount: pipelineData.applications.length,
+        applications: pipelineData.applications.map(app => ({
           id: app.id,
-          jobId: app.job_id,
-          candidateId: app.candidate_id,
-          columnId: app.pipeline_column_id,
-          status: app.status,
-          appliedAt: app.created_at,
-          candidate: app.candidate ? {
-            id: app.candidate.id,
-            name: app.candidate.name,
-            email: app.candidate.email,
-            phone: app.candidate.phone,
-            resumeUrl: app.candidate.resume_url
-          } : null
-        })) || []
-      };
-
+          candidateName: app.candidate?.name,
+          columnId: app.columnId
+        }))
+      });
 
       res.json(pipelineData);
     } catch (error) {
-      console.error('Error fetching job pipeline:', error);
+      console.error('[Pipeline Route] Error fetching job pipeline:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({ error: "Failed to fetch job pipeline", details: errorMsg });
     }
@@ -2707,7 +2664,7 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get("/api/candidates/:candidateId/applications", async (req, res) => {
     try {
       const { candidateId } = req.params;
-      const orgId = req.query.orgId || req.userContext?.orgId;
+      const orgId = req.query.orgId as string || req.headers['x-org-id'] as string;
       
       if (!orgId) {
         return res.status(400).json({ error: 'Organization ID is required' });
