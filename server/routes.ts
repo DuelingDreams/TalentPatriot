@@ -74,19 +74,40 @@ async function requireAuth(req: AuthenticatedRequest, res: express.Response, nex
   }
 }
 
-// Middleware to require admin role
-function requireAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+// Middleware to require platform admin role (for beta applications)
+function requirePlatformAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
   if (!req.user) {
     return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
   }
 
-  const adminRoles = ['admin', 'owner'];
-  if (!adminRoles.includes(req.user.role)) {
+  // Only platform_admin can review beta applications (not organization admins)
+  const platformAdminRoles = ['platform_admin'];
+  if (!platformAdminRoles.includes(req.user.role)) {
     return res.status(403).json({ 
-      error: 'Admin access required', 
+      error: 'Platform admin access required for beta application management', 
       code: 'INSUFFICIENT_PERMISSIONS',
       userRole: req.user.role,
-      requiredRoles: adminRoles
+      requiredRoles: platformAdminRoles
+    });
+  }
+
+  next();
+}
+
+// Middleware to require organization admin role (for regular org features)
+function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
+  }
+
+  // Organization admins can manage their org (not beta applications)
+  const orgAdminRoles = ['admin', 'platform_admin']; // platform_admin can also manage orgs
+  if (!orgAdminRoles.includes(req.user.role)) {
+    return res.status(403).json({ 
+      error: 'Organization admin access required', 
+      code: 'INSUFFICIENT_PERMISSIONS',
+      userRole: req.user.role,
+      requiredRoles: orgAdminRoles
     });
   }
 
@@ -3419,30 +3440,13 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // Get All Beta Applications (Admin only)
-  app.get("/api/beta/applications", requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/beta/applications", requireAuth, requirePlatformAdmin, async (req: AuthenticatedRequest, res) => {
     console.info('[API]', req.method, req.url, 'User:', req.user?.email);
     try {
       const betaApplications = await storage.getBetaApplications();
       
-      // Normalize snake_case to camelCase for frontend
-      const normalizedApplications = betaApplications.map(app => ({
-        id: app.id,
-        companyName: app.company_name,
-        contactName: app.contact_name,
-        email: app.email,
-        phone: app.phone,
-        website: app.website,
-        companySize: app.company_size,
-        currentAts: app.current_ats,
-        painPoints: app.pain_points,
-        expectations: app.expectations,
-        status: app.status,
-        reviewNotes: app.notes,
-        reviewedAt: app.processed_at,
-        reviewedBy: app.processed_by,
-        createdAt: app.created_at,
-        updatedAt: app.updated_at,
-      }));
+      // Return applications as-is (storage layer handles normalization)
+      const normalizedApplications = betaApplications;
       
       console.info('[API] GET /api/beta/applications →', { success: true, count: normalizedApplications.length });
       res.json(normalizedApplications);
@@ -3454,7 +3458,7 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // Get Single Beta Application (Admin only)
-  app.get("/api/beta/applications/:id", requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+  app.get("/api/beta/applications/:id", requireAuth, requirePlatformAdmin, async (req: AuthenticatedRequest, res) => {
     console.info('[API]', req.method, req.url, 'User:', req.user?.email);
     try {
       const { id } = req.params;
@@ -3469,25 +3473,8 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(404).json({ error: "Beta application not found" });
       }
       
-      // Storage layer already returns camelCase data
-      const normalizedApplication = {
-        id: betaApplication.id,
-        companyName: betaApplication.companyName,
-        contactName: betaApplication.contactName,
-        email: betaApplication.email,
-        phone: betaApplication.phone,
-        website: betaApplication.website,
-        companySize: betaApplication.companySize,
-        currentAts: betaApplication.currentAts,
-        painPoints: betaApplication.painPoints,
-        expectations: betaApplication.expectations,
-        status: betaApplication.status,
-        reviewNotes: betaApplication.reviewNotes,
-        reviewedAt: betaApplication.reviewedAt,
-        reviewedBy: betaApplication.reviewedBy,
-        createdAt: betaApplication.createdAt,
-        updatedAt: betaApplication.updatedAt,
-      };
+      // Return the application data as-is (storage layer handles normalization)
+      const normalizedApplication = betaApplication;
       
       console.info('[API] GET /api/beta/applications/:id →', { success: true, id });
       res.json(normalizedApplication);
@@ -3505,7 +3492,7 @@ Expires: 2025-12-31T23:59:59.000Z
     reviewedBy: z.string().optional(),
   });
 
-  app.put("/api/beta/applications/:id", requireAuth, requireAdmin, writeLimiter, async (req: AuthenticatedRequest, res) => {
+  app.put("/api/beta/applications/:id", requireAuth, requirePlatformAdmin, writeLimiter, async (req: AuthenticatedRequest, res) => {
     console.info('[API]', req.method, req.url, 'User:', req.user?.email);
     try {
       const { id } = req.params;
@@ -3525,25 +3512,8 @@ Expires: 2025-12-31T23:59:59.000Z
       
       const updatedApplication = await storage.updateBetaApplication(id, updateData);
       
-      // Storage layer already returns camelCase data
-      const normalizedApplication = {
-        id: updatedApplication.id,
-        companyName: updatedApplication.companyName,
-        contactName: updatedApplication.contactName,
-        email: updatedApplication.email,
-        phone: updatedApplication.phone,
-        website: updatedApplication.website,
-        companySize: updatedApplication.companySize,
-        currentAts: updatedApplication.currentAts,
-        painPoints: updatedApplication.painPoints,
-        expectations: updatedApplication.expectations,
-        status: updatedApplication.status,
-        reviewNotes: updatedApplication.reviewNotes,
-        reviewedAt: updatedApplication.reviewedAt,
-        reviewedBy: updatedApplication.reviewedBy,
-        createdAt: updatedApplication.createdAt,
-        updatedAt: updatedApplication.updatedAt,
-      };
+      // Return the application data as-is (storage layer handles normalization)
+      const normalizedApplication = updatedApplication;
       
       console.info('[API] PUT /api/beta/applications/:id →', { success: true, id, status: validatedData.status });
       res.json({ 
