@@ -23,6 +23,8 @@ export const DEV_USERS = {
 export const DEV_USER = DEV_USERS.mentalcastle // Default user
 
 export function isDevelopment(): boolean {
+  // Guard against production environment
+  if (import.meta.env.NODE_ENV === 'production') return false
   if (typeof window === 'undefined') return false
   return window.location.hostname.includes('localhost') || 
          window.location.hostname.includes('replit') ||
