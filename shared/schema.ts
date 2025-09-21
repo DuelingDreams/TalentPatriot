@@ -425,3 +425,17 @@ export const messageFieldsPresets = {
   list: ['id', 'subject', 'type', 'priority', 'is_read', 'created_at'],
   detail: ['id', 'subject', 'content', 'type', 'priority', 'is_read', 'created_at', 'thread_id'],
 } as const;
+
+// Schema introspection helper using materialized view
+export async function getSchemaColumns(table?: string) {
+  // Only import supabase when needed to avoid circular dependencies
+  const { supabase } = await import("../server/lib/supabase");
+  
+  let query = supabase.from("schema_columns_mv").select("*").eq("table_schema", "public");
+  if (table) {
+    query = query.eq("table_name", table);
+  }
+  const { data, error } = await query.order("table_name").order("ordinal_position");
+  if (error) throw error;
+  return data;
+}
