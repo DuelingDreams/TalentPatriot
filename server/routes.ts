@@ -94,24 +94,67 @@ function requirePlatformAdmin(req: AuthenticatedRequest, res: express.Response, 
   next();
 }
 
-// Middleware to require organization admin role (for regular org features)
-function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+// Middleware to require organization admin role (for org management)
+async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
   if (!req.user) {
     return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
   }
 
-  // Organization admins can manage their org (not beta applications)
-  const orgAdminRoles = ['admin', 'platform_admin']; // platform_admin can also manage orgs
-  if (!orgAdminRoles.includes(req.user.role)) {
-    return res.status(403).json({ 
-      error: 'Organization admin access required', 
-      code: 'INSUFFICIENT_PERMISSIONS',
-      userRole: req.user.role,
-      requiredRoles: orgAdminRoles
-    });
+  const orgId = req.params.orgId || req.headers['x-org-id'] as string;
+  if (!orgId) {
+    return res.status(400).json({ error: 'Organization ID required', code: 'ORG_ID_REQUIRED' });
   }
 
-  next();
+  try {
+    // Check if user is org admin or owner
+    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
+    const organization = await storage.getOrganization(orgId);
+    
+    const isOrgAdmin = userOrg?.role === 'admin' || organization?.ownerId === req.user.id;
+    
+    if (!isOrgAdmin) {
+      return res.status(403).json({ 
+        error: 'Organization admin access required', 
+        code: 'INSUFFICIENT_PERMISSIONS',
+        userRole: userOrg?.role || 'none'
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Organization admin check error:', error);
+    res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
+  }
+}
+
+// Middleware to require recruiter seat (for recruiting functions)
+async function requireRecruiterSeat(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
+  }
+
+  const orgId = req.params.orgId || req.headers['x-org-id'] as string;
+  if (!orgId) {
+    return res.status(400).json({ error: 'Organization ID required', code: 'ORG_ID_REQUIRED' });
+  }
+
+  try {
+    // Check if user has an active recruiter seat
+    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
+    
+    if (!userOrg?.isRecruiterSeat) {
+      return res.status(403).json({ 
+        error: 'Recruiter seat required for this action', 
+        code: 'RECRUITER_SEAT_REQUIRED',
+        message: 'This feature requires a paid recruiter seat. Contact your organization admin to upgrade.'
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Recruiter seat check error:', error);
+    res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
+  }
 }
 
 // Utility functions for ETag generation and caching

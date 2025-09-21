@@ -9,8 +9,11 @@ export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'o
 export const jobTypeEnum = pgEnum('job_type', ['full-time', 'part-time', 'contract', 'internship']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
-export const userRoleEnum = pgEnum('user_role', ['platform_admin', 'hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer']);
-export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer']);
+// Platform-level roles (minimal)
+export const userRoleEnum = pgEnum('user_role', ['platform_admin', 'user', 'demo_viewer']);
+
+// Organization-level roles (business functionality)
+export const orgRoleEnum = pgEnum('org_role', ['admin', 'hiring_manager', 'interviewer', 'viewer']);
 export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'onsite', 'technical', 'cultural']);
 export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
 export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'candidate', 'system']);
@@ -25,13 +28,15 @@ export const organizations = pgTable("organizations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   ownerId: uuid("owner_id").notNull(), // references users.id from Supabase auth
   slug: text("slug"),
+  seatsPurchased: integer("seats_purchased").default(0).notNull(), // Billing: how many recruiter seats are paid for
+  planTier: varchar("plan_tier", { length: 50 }).default('starter'), // starter, professional, enterprise
 }, (table) => ({
   uniqueSlug: uniqueIndex("unique_org_slug").on(table.slug),
 }));
 
 export const userProfiles = pgTable("user_profiles", {
   id: uuid("id").primaryKey(), // references auth.users(id) 
-  role: userRoleEnum("role").default('hiring_manager').notNull(),
+  role: userRoleEnum("role").default('user').notNull(), // Platform-level role only
   firstName: varchar("first_name", { length: 255 }),
   lastName: varchar("last_name", { length: 255 }),
   phone: varchar("phone", { length: 50 }),
@@ -62,6 +67,7 @@ export const userOrganizations = pgTable("user_organizations", {
   userId: uuid("user_id").notNull(), // references auth.users(id)
   orgId: uuid("org_id").references(() => organizations.id).notNull(),
   role: orgRoleEnum("role").notNull(),
+  isRecruiterSeat: boolean("is_recruiter_seat").default(false).notNull(), // This drives pricing!
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
 }, (table) => ({
   uniqueUserOrg: uniqueIndex("unique_user_org").on(table.userId, table.orgId),
