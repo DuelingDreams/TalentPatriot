@@ -31,6 +31,68 @@ import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 import crypto from "crypto";
 
+// Authentication and Authorization Middleware
+interface AuthenticatedRequest extends express.Request {
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
+// Middleware to verify Supabase authentication
+async function requireAuth(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
+    }
+
+    const token = authHeader.substring(7);
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Authentication system unavailable', code: 'AUTH_SYSTEM_UNAVAILABLE' });
+    }
+
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !user) {
+      return res.status(401).json({ error: 'Invalid authentication token', code: 'INVALID_TOKEN' });
+    }
+
+    // Get user profile for role information
+    const userProfile = await storage.getUserProfile(user.id);
+    
+    req.user = {
+      id: user.id,
+      email: user.email || '',
+      role: userProfile?.role || 'hiring_manager'
+    };
+
+    next();
+  } catch (error) {
+    console.error('Authentication middleware error:', error);
+    res.status(500).json({ error: 'Authentication check failed', code: 'AUTH_CHECK_FAILED' });
+  }
+}
+
+// Middleware to require admin role
+function requireAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
+  }
+
+  const adminRoles = ['admin', 'owner'];
+  if (!adminRoles.includes(req.user.role)) {
+    return res.status(403).json({ 
+      error: 'Admin access required', 
+      code: 'INSUFFICIENT_PERMISSIONS',
+      userRole: req.user.role,
+      requiredRoles: adminRoles
+    });
+  }
+
+  next();
+}
+
 // Utility functions for ETag generation and caching
 function generateETag(data: unknown): string {
   return crypto.createHash('md5').update(JSON.stringify(data)).digest('hex');
@@ -3357,10 +3419,9 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // Get All Beta Applications (Admin only)
-  app.get("/api/beta/applications", async (req, res) => {
-    console.info('[API]', req.method, req.url);
+  app.get("/api/beta/applications", requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
     try {
-      // Note: In production, add proper admin authentication here
       const betaApplications = await storage.getBetaApplications();
       
       // Normalize snake_case to camelCase for frontend
@@ -3393,8 +3454,8 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // Get Single Beta Application (Admin only)
-  app.get("/api/beta/applications/:id", async (req, res) => {
-    console.info('[API]', req.method, req.url);
+  app.get("/api/beta/applications/:id", requireAuth, requireAdmin, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
     try {
       const { id } = req.params;
       
@@ -3408,24 +3469,24 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(404).json({ error: "Beta application not found" });
       }
       
-      // Normalize snake_case to camelCase for frontend
+      // Storage layer already returns camelCase data
       const normalizedApplication = {
         id: betaApplication.id,
-        companyName: betaApplication.company_name,
-        contactName: betaApplication.contact_name,
+        companyName: betaApplication.companyName,
+        contactName: betaApplication.contactName,
         email: betaApplication.email,
         phone: betaApplication.phone,
         website: betaApplication.website,
-        companySize: betaApplication.company_size,
-        currentAts: betaApplication.current_ats,
-        painPoints: betaApplication.pain_points,
+        companySize: betaApplication.companySize,
+        currentAts: betaApplication.currentAts,
+        painPoints: betaApplication.painPoints,
         expectations: betaApplication.expectations,
         status: betaApplication.status,
-        reviewNotes: betaApplication.notes,
-        reviewedAt: betaApplication.processed_at,
-        reviewedBy: betaApplication.processed_by,
-        createdAt: betaApplication.created_at,
-        updatedAt: betaApplication.updated_at,
+        reviewNotes: betaApplication.reviewNotes,
+        reviewedAt: betaApplication.reviewedAt,
+        reviewedBy: betaApplication.reviewedBy,
+        createdAt: betaApplication.createdAt,
+        updatedAt: betaApplication.updatedAt,
       };
       
       console.info('[API] GET /api/beta/applications/:id →', { success: true, id });
@@ -3444,8 +3505,8 @@ Expires: 2025-12-31T23:59:59.000Z
     reviewedBy: z.string().optional(),
   });
 
-  app.put("/api/beta/applications/:id", writeLimiter, async (req, res) => {
-    console.info('[API]', req.method, req.url);
+  app.put("/api/beta/applications/:id", requireAuth, requireAdmin, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
     try {
       const { id } = req.params;
       
@@ -3455,32 +3516,33 @@ Expires: 2025-12-31T23:59:59.000Z
       
       const validatedData = updateBetaApplicationSchema.parse(req.body);
       
-      // Add review timestamp if status is being changed
+      // Add review timestamp and reviewer if status is being changed
       const updateData = { ...validatedData };
       if (validatedData.status && validatedData.status !== 'pending') {
-        updateData.reviewedAt = new Date();
+        (updateData as any).reviewedAt = new Date();
+        (updateData as any).reviewedBy = req.user?.id;
       }
       
       const updatedApplication = await storage.updateBetaApplication(id, updateData);
       
-      // Normalize snake_case to camelCase for frontend
+      // Storage layer already returns camelCase data
       const normalizedApplication = {
         id: updatedApplication.id,
-        companyName: updatedApplication.company_name,
-        contactName: updatedApplication.contact_name,
+        companyName: updatedApplication.companyName,
+        contactName: updatedApplication.contactName,
         email: updatedApplication.email,
         phone: updatedApplication.phone,
         website: updatedApplication.website,
-        companySize: updatedApplication.company_size,
-        currentAts: updatedApplication.current_ats,
-        painPoints: updatedApplication.pain_points,
+        companySize: updatedApplication.companySize,
+        currentAts: updatedApplication.currentAts,
+        painPoints: updatedApplication.painPoints,
         expectations: updatedApplication.expectations,
         status: updatedApplication.status,
-        reviewNotes: updatedApplication.notes,
-        reviewedAt: updatedApplication.processed_at,
-        reviewedBy: updatedApplication.processed_by,
-        createdAt: updatedApplication.created_at,
-        updatedAt: updatedApplication.updated_at,
+        reviewNotes: updatedApplication.reviewNotes,
+        reviewedAt: updatedApplication.reviewedAt,
+        reviewedBy: updatedApplication.reviewedBy,
+        createdAt: updatedApplication.createdAt,
+        updatedAt: updatedApplication.updatedAt,
       };
       
       console.info('[API] PUT /api/beta/applications/:id →', { success: true, id, status: validatedData.status });
