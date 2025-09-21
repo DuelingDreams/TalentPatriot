@@ -127,8 +127,8 @@ async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response,
   }
 }
 
-// Middleware to require recruiter seat (for recruiting functions)
-async function requireRecruiterSeat(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
+// Middleware to require recruiting capabilities (role + seat)
+async function requireRecruiting(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
   if (!req.user) {
     return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
   }
@@ -139,12 +139,26 @@ async function requireRecruiterSeat(req: AuthenticatedRequest, res: express.Resp
   }
 
   try {
-    // Check if user has an active recruiter seat
     const userOrg = await storage.getUserOrganization(req.user.id, orgId);
     
-    if (!userOrg?.isRecruiterSeat) {
+    // Check if user has recruiting role (recruiter, admin, or hiring_manager with seat)
+    const hasRecruiterRole = userOrg?.role === 'recruiter' || userOrg?.role === 'admin';
+    const hasHiringManagerWithSeat = userOrg?.role === 'hiring_manager' && userOrg?.isRecruiterSeat;
+    
+    if (!hasRecruiterRole && !hasHiringManagerWithSeat) {
       return res.status(403).json({ 
-        error: 'Recruiter seat required for this action', 
+        error: 'Recruiting access required', 
+        code: 'RECRUITING_ACCESS_REQUIRED',
+        message: 'This feature requires a recruiter role or hiring manager with recruiter seat.',
+        userRole: userOrg?.role || 'none',
+        hasRecruiterSeat: userOrg?.isRecruiterSeat || false
+      });
+    }
+
+    // For billing purposes, ensure they have a paid seat (unless admin)
+    if (userOrg?.role !== 'admin' && !userOrg?.isRecruiterSeat) {
+      return res.status(403).json({ 
+        error: 'Paid recruiter seat required', 
         code: 'RECRUITER_SEAT_REQUIRED',
         message: 'This feature requires a paid recruiter seat. Contact your organization admin to upgrade.'
       });
@@ -152,7 +166,7 @@ async function requireRecruiterSeat(req: AuthenticatedRequest, res: express.Resp
 
     next();
   } catch (error) {
-    console.error('Recruiter seat check error:', error);
+    console.error('Recruiting access check error:', error);
     res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
   }
 }

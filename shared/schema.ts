@@ -13,7 +13,7 @@ export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'arch
 export const userRoleEnum = pgEnum('user_role', ['platform_admin', 'user', 'demo_viewer']);
 
 // Organization-level roles (business functionality)
-export const orgRoleEnum = pgEnum('org_role', ['admin', 'hiring_manager', 'interviewer', 'viewer']);
+export const orgRoleEnum = pgEnum('org_role', ['admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer']);
 export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'onsite', 'technical', 'cultural']);
 export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
 export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'candidate', 'system']);
