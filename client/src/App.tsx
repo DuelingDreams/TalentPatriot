@@ -61,6 +61,7 @@ const Pricing = lazy(() => import("@/pages/Pricing"));
 const ProfileSettings = lazy(() => import("@/pages/ProfileSettings"));
 const AccountSettings = lazy(() => import("@/pages/AccountSettings"));
 const BetaProgram = lazy(() => import("@/pages/BetaProgram"));
+const BetaApplicationsAdmin = lazy(() => import("@/pages/BetaApplicationsAdmin"));
 const ResumeParsingDemo = lazy(() => import("@/pages/ResumeParsingDemo"));
 
 function AppPrefetch() {
@@ -298,6 +299,13 @@ function Router() {
         <Route path="/test-features">
           <ProtectedRoute type="route">
             <TestFeatures />
+          </ProtectedRoute>
+        </Route>
+        
+        {/* Beta applications admin dashboard */}
+        <Route path="/admin/beta-applications">
+          <ProtectedRoute type="route">
+            <BetaApplicationsAdmin />
           </ProtectedRoute>
         </Route>
         

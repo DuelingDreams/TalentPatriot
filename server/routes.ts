@@ -3310,6 +3310,228 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // ================================
+  // Beta Applications API Endpoints
+  // ================================
+
+  // Submit Beta Application (Public endpoint)
+  const betaApplicationSchema = z.object({
+    companyName: z.string().min(1, "Company name is required"),
+    contactName: z.string().min(1, "Contact name is required"),
+    email: z.string().email("Valid email is required"),
+    phone: z.string().optional(),
+    website: z.string().url().optional().or(z.literal("")),
+    companySize: z.string().min(1, "Company size is required"),
+    currentAts: z.string().optional(),
+    painPoints: z.string().min(1, "Pain points are required"),
+    expectations: z.string().optional(),
+  });
+
+  app.post("/api/beta/apply", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const validatedData = betaApplicationSchema.parse(req.body);
+      
+      const betaApplication = await storage.createBetaApplication({
+        ...validatedData,
+        status: 'pending',
+      });
+      
+      console.info('[API] POST /api/beta/apply →', { success: true, id: betaApplication.id });
+      res.status(201).json({ 
+        success: true, 
+        message: "Beta application submitted successfully! We'll review your application and get back to you soon.",
+        id: betaApplication.id 
+      });
+    } catch (error) {
+      console.error('Beta application submission error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to submit beta application", details: errorMessage });
+    }
+  });
+
+  // Get All Beta Applications (Admin only)
+  app.get("/api/beta/applications", async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      // Note: In production, add proper admin authentication here
+      const betaApplications = await storage.getBetaApplications();
+      
+      // Normalize snake_case to camelCase for frontend
+      const normalizedApplications = betaApplications.map(app => ({
+        id: app.id,
+        companyName: app.company_name,
+        contactName: app.contact_name,
+        email: app.email,
+        phone: app.phone,
+        website: app.website,
+        companySize: app.company_size,
+        currentAts: app.current_ats,
+        painPoints: app.pain_points,
+        expectations: app.expectations,
+        status: app.status,
+        reviewNotes: app.notes,
+        reviewedAt: app.processed_at,
+        reviewedBy: app.processed_by,
+        createdAt: app.created_at,
+        updatedAt: app.updated_at,
+      }));
+      
+      console.info('[API] GET /api/beta/applications →', { success: true, count: normalizedApplications.length });
+      res.json(normalizedApplications);
+    } catch (error) {
+      console.error('Beta applications fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch beta applications", details: errorMessage });
+    }
+  });
+
+  // Get Single Beta Application (Admin only)
+  app.get("/api/beta/applications/:id", async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ error: "Application ID is required" });
+      }
+      
+      const betaApplication = await storage.getBetaApplication(id);
+      
+      if (!betaApplication) {
+        return res.status(404).json({ error: "Beta application not found" });
+      }
+      
+      // Normalize snake_case to camelCase for frontend
+      const normalizedApplication = {
+        id: betaApplication.id,
+        companyName: betaApplication.company_name,
+        contactName: betaApplication.contact_name,
+        email: betaApplication.email,
+        phone: betaApplication.phone,
+        website: betaApplication.website,
+        companySize: betaApplication.company_size,
+        currentAts: betaApplication.current_ats,
+        painPoints: betaApplication.pain_points,
+        expectations: betaApplication.expectations,
+        status: betaApplication.status,
+        reviewNotes: betaApplication.notes,
+        reviewedAt: betaApplication.processed_at,
+        reviewedBy: betaApplication.processed_by,
+        createdAt: betaApplication.created_at,
+        updatedAt: betaApplication.updated_at,
+      };
+      
+      console.info('[API] GET /api/beta/applications/:id →', { success: true, id });
+      res.json(normalizedApplication);
+    } catch (error) {
+      console.error('Beta application fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch beta application", details: errorMessage });
+    }
+  });
+
+  // Update Beta Application Status (Admin only)
+  const updateBetaApplicationSchema = z.object({
+    status: z.enum(['pending', 'reviewing', 'approved', 'rejected', 'waitlist']).optional(),
+    reviewNotes: z.string().optional(),
+    reviewedBy: z.string().optional(),
+  });
+
+  app.put("/api/beta/applications/:id", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ error: "Application ID is required" });
+      }
+      
+      const validatedData = updateBetaApplicationSchema.parse(req.body);
+      
+      // Add review timestamp if status is being changed
+      const updateData = { ...validatedData };
+      if (validatedData.status && validatedData.status !== 'pending') {
+        updateData.reviewedAt = new Date();
+      }
+      
+      const updatedApplication = await storage.updateBetaApplication(id, updateData);
+      
+      // Normalize snake_case to camelCase for frontend
+      const normalizedApplication = {
+        id: updatedApplication.id,
+        companyName: updatedApplication.company_name,
+        contactName: updatedApplication.contact_name,
+        email: updatedApplication.email,
+        phone: updatedApplication.phone,
+        website: updatedApplication.website,
+        companySize: updatedApplication.company_size,
+        currentAts: updatedApplication.current_ats,
+        painPoints: updatedApplication.pain_points,
+        expectations: updatedApplication.expectations,
+        status: updatedApplication.status,
+        reviewNotes: updatedApplication.notes,
+        reviewedAt: updatedApplication.processed_at,
+        reviewedBy: updatedApplication.processed_by,
+        createdAt: updatedApplication.created_at,
+        updatedAt: updatedApplication.updated_at,
+      };
+      
+      console.info('[API] PUT /api/beta/applications/:id →', { success: true, id, status: validatedData.status });
+      res.json({ 
+        success: true, 
+        message: "Beta application updated successfully",
+        application: normalizedApplication 
+      });
+    } catch (error) {
+      console.error('Beta application update error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('not found') || errorMessage.includes('Not found')) {
+        return res.status(404).json({ error: "Beta application not found", details: errorMessage });
+      }
+      res.status(500).json({ error: "Failed to update beta application", details: errorMessage });
+    }
+  });
+
+  // Delete Beta Application (Admin only - rarely used)
+  app.delete("/api/beta/applications/:id", writeLimiter, async (req, res) => {
+    console.info('[API]', req.method, req.url);
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ error: "Application ID is required" });
+      }
+      
+      await storage.deleteBetaApplication(id);
+      
+      console.info('[API] DELETE /api/beta/applications/:id →', { success: true, id });
+      res.json({ 
+        success: true, 
+        message: "Beta application deleted successfully" 
+      });
+    } catch (error) {
+      console.error('Beta application deletion error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('not found') || errorMessage.includes('Not found')) {
+        return res.status(404).json({ error: "Beta application not found", details: errorMessage });
+      }
+      res.status(500).json({ error: "Failed to delete beta application", details: errorMessage });
+    }
+  });
+
 
   const httpServer = createServer(app);
 

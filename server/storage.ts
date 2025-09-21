@@ -12,6 +12,7 @@ import {
   interviews,
   messages,
   messageRecipients,
+  betaApplications,
   type UserProfile,
   type UserSettings,
   type Organization,
@@ -25,6 +26,7 @@ import {
   type Interview,
   type Message,
   type MessageRecipient,
+  type BetaApplication,
   type InsertUserProfile,
   type InsertUserSettings,
   type InsertOrganization,
@@ -37,7 +39,8 @@ import {
   type InsertPipelineColumn,
   type InsertInterview,
   type InsertMessage,
-  type InsertMessageRecipient
+  type InsertMessageRecipient,
+  type InsertBetaApplication
 } from "@shared/schema";
 import { createClient } from '@supabase/supabase-js';
 import { atsEmailService } from './emailService';
@@ -295,6 +298,13 @@ export interface IStorage {
       limit: number;
     };
   }>;
+  
+  // Beta Applications
+  getBetaApplication(id: string): Promise<BetaApplication | undefined>;
+  getBetaApplications(): Promise<BetaApplication[]>;
+  createBetaApplication(betaApplication: InsertBetaApplication): Promise<BetaApplication>;
+  updateBetaApplication(id: string, betaApplication: Partial<InsertBetaApplication>): Promise<BetaApplication>;
+  deleteBetaApplication(id: string): Promise<void>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -3201,6 +3211,126 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error in getMessagesPaginated:', error);
       throw error;
+    }
+  }
+
+  // Beta Applications
+  async getBetaApplication(id: string): Promise<BetaApplication | undefined> {
+    const { data, error } = await supabase
+      .from('beta_applications')
+      .select('*')
+      .eq('id', id)
+      .single()
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return undefined; // Record not found
+      }
+      console.error('Database beta application fetch error:', error)
+      throw new Error(`Failed to fetch beta application: ${error.message}`)
+    }
+    
+    return data as BetaApplication
+  }
+
+  async getBetaApplications(): Promise<BetaApplication[]> {
+    const { data, error } = await supabase
+      .from('beta_applications')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      console.error('Database beta applications fetch error:', error)
+      throw new Error(`Failed to fetch beta applications: ${error.message}`)
+    }
+    
+    return data as BetaApplication[]
+  }
+
+  async createBetaApplication(betaApplication: InsertBetaApplication): Promise<BetaApplication> {
+    try {
+      const dbBetaApplication = {
+        company_name: betaApplication.companyName,
+        contact_name: betaApplication.contactName,
+        email: betaApplication.email,
+        phone: betaApplication.phone,
+        website: betaApplication.website,
+        company_size: betaApplication.companySize,
+        current_ats: betaApplication.currentAts,
+        pain_points: betaApplication.painPoints,
+        expectations: betaApplication.expectations,
+        status: betaApplication.status || 'pending',
+        notes: betaApplication.reviewNotes,
+        processed_at: betaApplication.reviewedAt,
+        processed_by: betaApplication.reviewedBy,
+      }
+      
+      const { data, error } = await supabase
+        .from('beta_applications')
+        .insert(dbBetaApplication)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database beta application creation error:', error)
+        throw new Error(`Failed to create beta application: ${error.message}`)
+      }
+      
+      return data as BetaApplication
+    } catch (err) {
+      console.error('Beta application creation exception:', err)
+      throw err
+    }
+  }
+
+  async updateBetaApplication(id: string, updateData: Partial<InsertBetaApplication>): Promise<BetaApplication> {
+    try {
+      const dbUpdate: Partial<Record<string, unknown>> = {}
+      if (updateData.companyName !== undefined) dbUpdate.company_name = updateData.companyName
+      if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
+      if (updateData.email !== undefined) dbUpdate.email = updateData.email
+      if (updateData.phone !== undefined) dbUpdate.phone = updateData.phone
+      if (updateData.website !== undefined) dbUpdate.website = updateData.website
+      if (updateData.companySize !== undefined) dbUpdate.company_size = updateData.companySize
+      if (updateData.currentAts !== undefined) dbUpdate.current_ats = updateData.currentAts
+      if (updateData.painPoints !== undefined) dbUpdate.pain_points = updateData.painPoints
+      if (updateData.expectations !== undefined) dbUpdate.expectations = updateData.expectations
+      if (updateData.status !== undefined) dbUpdate.status = updateData.status
+      if (updateData.reviewNotes !== undefined) dbUpdate.notes = updateData.reviewNotes
+      if (updateData.reviewedAt !== undefined) dbUpdate.processed_at = updateData.reviewedAt
+      if (updateData.reviewedBy !== undefined) dbUpdate.processed_by = updateData.reviewedBy
+      
+      // Always update the updated_at timestamp
+      dbUpdate.updated_at = new Date().toISOString()
+      
+      const { data, error } = await supabase
+        .from('beta_applications')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Database beta application update error:', error)
+        throw new Error(`Failed to update beta application: ${error.message}`)
+      }
+      
+      return data as BetaApplication
+    } catch (err) {
+      console.error('Beta application update exception:', err)
+      throw err
+    }
+  }
+
+  async deleteBetaApplication(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('beta_applications')
+      .delete()
+      .eq('id', id)
+    
+    if (error) {
+      console.error('Database beta application deletion error:', error)
+      throw new Error(`Failed to delete beta application: ${error.message}`)
     }
   }
 }

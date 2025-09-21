@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -65,16 +67,36 @@ export default function BetaProgram() {
   const onSubmit = async (data: BetaApplicationForm) => {
     setIsSubmitting(true)
     try {
-      // Store beta application data in sessionStorage for later use
-      sessionStorage.setItem('betaApplicationData', JSON.stringify(data))
-      
-      // TODO: Implement beta application submission API
-      await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
+      // Submit beta application to database via API
+      const response = await fetch('/api/beta/apply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyName: data.companyName,
+          contactName: data.contactName,
+          email: data.email,
+          phone: data.phone,
+          website: data.website,
+          companySize: data.companySize,
+          currentAts: data.currentATS,
+          painPoints: data.painPoints,
+          expectations: data.expectations,
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to submit application')
+      }
+
+      const result = await response.json()
       
       setSubmitted(true)
       toast({
         title: "Application submitted!",
-        description: "Please create your account to complete the beta access process.",
+        description: result.message || "We'll review your application and get back to you soon.",
       })
       
       // Redirect to signup after a brief delay
@@ -83,9 +105,10 @@ export default function BetaProgram() {
       }, 2000)
       
     } catch (error) {
+      console.error('Beta application submission error:', error)
       toast({
         title: "Error",
-        description: "Failed to submit application. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to submit application. Please try again.",
         variant: "destructive",
       })
     } finally {
