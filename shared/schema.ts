@@ -1,4 +1,4 @@
-import { pgTable, text, uuid, timestamp, varchar, pgEnum, uniqueIndex, boolean, integer, index, pgView } from "drizzle-orm/pg-core";
+import { pgTable, text, uuid, timestamp, varchar, pgEnum, uniqueIndex, boolean, integer, index, pgView, jsonb, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -232,6 +232,105 @@ export const messageRecipients = pgTable("message_recipients", {
   isRead: boolean("is_read").default(false).notNull(),
   readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Beta Applications (for beta access control workflow)
+export const betaApplications = pgTable("beta_applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  companyName: text("company_name").notNull(),
+  contactName: text("contact_name").notNull(),
+  email: varchar("email", { length: 255 }).notNull(),
+  phone: varchar("phone", { length: 50 }),
+  website: varchar("website", { length: 255 }),
+  companySize: varchar("company_size", { length: 100 }).notNull(),
+  currentAts: text("current_ats"),
+  painPoints: text("pain_points").notNull(),
+  expectations: text("expectations"),
+  status: varchar("status", { length: 50 }).default('pending').notNull(),
+  reviewNotes: text("review_notes"),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: uuid("reviewed_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Applications (legacy table - parallel to job_candidate)
+export const applications = pgTable("applications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobId: uuid("job_id").references(() => jobs.id),
+  candidateId: uuid("candidate_id").references(() => candidates.id),
+  status: recordStatusEnum("status"),
+  appliedAt: timestamp("applied_at"),
+  columnId: uuid("column_id").references(() => pipelineColumns.id),
+});
+
+// Application Metadata (extended application data)
+export const applicationMetadata = pgTable("application_metadata", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  jobId: uuid("job_id").references(() => jobs.id).notNull(),
+  educationDetails: text("education_details"),
+  employmentDetails: text("employment_details"),
+  applicationSource: varchar("application_source", { length: 50 }),
+  submissionTimestamp: timestamp("submission_timestamp"),
+  formVersion: varchar("form_version", { length: 10 }),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+// Apply Events (application event tracking)
+export const applyEvents = pgTable("apply_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobId: uuid("job_id").notNull(),
+  applicantEmail: text("applicant_email").notNull(),
+  requesterIp: text("requester_ip"), // Using text instead of inet for compatibility
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// AI Insights Cache
+export const aiInsightsCache = pgTable("ai_insights_cache", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  insightsData: jsonb("insights_data").notNull(), 
+  recruitmentMetrics: jsonb("recruitment_metrics").notNull(),
+  generatedAt: timestamp("generated_at"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+// AI Insights Metrics
+export const aiInsightsMetrics = pgTable("ai_insights_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  totalInsightsGenerated: integer("total_insights_generated"),
+  recommendationsImplemented: integer("recommendations_implemented"),
+  recommendationsDismissed: integer("recommendations_dismissed"),
+  avgUserRating: numeric("avg_user_rating", { precision: 2, scale: 1 }),
+  apiCallsCount: integer("api_calls_count"),
+  lastGenerationTime: timestamp("last_generation_time"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
+});
+
+// AI Recommendations History
+export const aiRecommendationsHistory = pgTable("ai_recommendations_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  recommendationId: varchar("recommendation_id", { length: 255 }).notNull(),
+  recommendationType: varchar("recommendation_type", { length: 50 }).notNull(),
+  priority: varchar("priority", { length: 20 }).notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  impact: text("impact").notNull(),
+  actionItems: jsonb("action_items"),
+  confidence: integer("confidence"),
+  userFeedback: varchar("user_feedback", { length: 20 }),
+  implementedAt: timestamp("implemented_at"),
+  dismissedAt: timestamp("dismissed_at"),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
 });
 
 
