@@ -408,6 +408,45 @@ export const insertMessageRecipientSchema = createInsertSchema(messageRecipients
   createdAt: true,
 });
 
+export const insertBetaApplicationSchema = createInsertSchema(betaApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertApplicationSchema = createInsertSchema(applications).omit({
+  id: true,
+});
+
+export const insertApplicationMetadataSchema = createInsertSchema(applicationMetadata).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertApplyEventSchema = createInsertSchema(applyEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiInsightsCacheSchema = createInsertSchema(aiInsightsCache).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAiInsightsMetricsSchema = createInsertSchema(aiInsightsMetrics).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAiRecommendationsHistorySchema = createInsertSchema(aiRecommendationsHistory).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 
 
 
@@ -456,6 +495,27 @@ export type InsertMessageRecipient = z.infer<typeof insertMessageRecipientSchema
 
 export type UserSettings = typeof userSettings.$inferSelect;
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
+
+export type BetaApplication = typeof betaApplications.$inferSelect;
+export type InsertBetaApplication = z.infer<typeof insertBetaApplicationSchema>;
+
+export type Application = typeof applications.$inferSelect;
+export type InsertApplication = z.infer<typeof insertApplicationSchema>;
+
+export type ApplicationMetadata = typeof applicationMetadata.$inferSelect;
+export type InsertApplicationMetadata = z.infer<typeof insertApplicationMetadataSchema>;
+
+export type ApplyEvent = typeof applyEvents.$inferSelect;
+export type InsertApplyEvent = z.infer<typeof insertApplyEventSchema>;
+
+export type AiInsightsCache = typeof aiInsightsCache.$inferSelect;
+export type InsertAiInsightsCache = z.infer<typeof insertAiInsightsCacheSchema>;
+
+export type AiInsightsMetrics = typeof aiInsightsMetrics.$inferSelect;
+export type InsertAiInsightsMetrics = z.infer<typeof insertAiInsightsMetricsSchema>;
+
+export type AiRecommendationsHistory = typeof aiRecommendationsHistory.$inferSelect;
+export type InsertAiRecommendationsHistory = z.infer<typeof insertAiRecommendationsHistorySchema>;
 
 // Pagination Types
 
