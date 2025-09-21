@@ -3310,6 +3310,29 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // Test route for schema_columns_mv performance optimization
+  if (process.env.NODE_ENV !== 'production') {
+    app.get('/api/test/schema-columns/:table?', async (req, res) => {
+      try {
+        const { getSchemaColumns } = await import('../shared/schema');
+        const tableName = req.params.table;
+        const columns = await getSchemaColumns(tableName);
+        res.json({
+          success: true,
+          table: tableName || 'all tables',
+          columnCount: columns?.length || 0,
+          columns: columns || []
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+          note: 'This requires app_meta.schema_columns_mv materialized view to exist'
+        });
+      }
+    });
+  }
+
   const httpServer = createServer(app);
 
   console.log("📡 Registered all API routes");
