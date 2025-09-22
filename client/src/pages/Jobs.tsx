@@ -6,18 +6,77 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
 import { useClients } from '@/hooks/useClients'
 import { useAuth } from '@/contexts/AuthContext'
 import { useJobsQuery, useCreateJob, usePublishJob } from '@/hooks/useJobMutation'
 import { getDemoJobStats, getDemoClientStats } from '@/lib/demo-data'
-import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink, FileX } from 'lucide-react'
+import { Plus, Briefcase, Building2, Calendar, Loader2, Users, Globe, ExternalLink, FileX, ArrowUpDown, Filter, Eye, UserPlus, AlertTriangle, Clock, CheckCircle } from 'lucide-react'
 import { Link, useLocation } from 'wouter'
 
 import { EmptyState } from '@/components/ui/empty-state'
 
+type SortOption = 'date' | 'candidates' | 'status' | 'health'
+type FilterOption = 'all' | 'open' | 'closed' | 'on_hold' | 'draft'
+type JobHealth = 'healthy' | 'needs_attention' | 'stale'
+
+// Job health calculation logic
+function calculateJobHealth(job: any, candidateCount: number): JobHealth {
+  const now = new Date()
+  const createdDate = new Date(job.createdAt)
+  const daysSinceCreated = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
+  const publishedDate = job.publishedAt ? new Date(job.publishedAt) : null
+  const daysSincePublished = publishedDate ? Math.floor((now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60 * 24)) : null
+  
+  // For draft jobs
+  if (job.status === 'draft') {
+    return daysSinceCreated > 7 ? 'stale' : 'healthy'
+  }
+  
+  // For published jobs
+  if (job.status === 'open') {
+    // Healthy: Recent job with good candidate flow
+    if (daysSincePublished && daysSincePublished <= 14 && candidateCount >= 3) return 'healthy'
+    if (daysSincePublished && daysSincePublished <= 7) return 'healthy'
+    
+    // Needs attention: Low candidate count or moderate age
+    if (candidateCount === 0 && daysSincePublished && daysSincePublished > 3) return 'needs_attention'
+    if (candidateCount < 3 && daysSincePublished && daysSincePublished > 14) return 'needs_attention'
+    
+    // Stale: Old job with poor performance
+    if (daysSincePublished && daysSincePublished > 30) return 'stale'
+    if (candidateCount === 0 && daysSincePublished && daysSincePublished > 7) return 'stale'
+    
+    return candidateCount >= 2 ? 'healthy' : 'needs_attention'
+  }
+  
+  // Closed, on hold, or filled jobs
+  return 'healthy'
+}
+
+function getHealthColor(health: JobHealth): string {
+  switch (health) {
+    case 'healthy': return 'bg-green-100 text-green-800'
+    case 'needs_attention': return 'bg-yellow-100 text-yellow-800'
+    case 'stale': return 'bg-red-100 text-red-800'
+    default: return 'bg-gray-100 text-gray-800'
+  }
+}
+
+function getHealthIcon(health: JobHealth) {
+  switch (health) {
+    case 'healthy': return CheckCircle
+    case 'needs_attention': return AlertTriangle
+    case 'stale': return Clock
+    default: return CheckCircle
+  }
+}
+
 export default function Jobs() {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false)
+  const [sortBy, setSortBy] = useState<SortOption>('date')
+  const [filterBy, setFilterBy] = useState<FilterOption>('all')
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
@@ -157,8 +216,40 @@ export default function Jobs() {
   const publishJob = usePublishJob()
 
   // Use demo data for demo users
-  const displayJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
+  const rawJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
   const isDemoMode = userRole === 'demo_viewer'
+  
+  // Add candidate counts to jobs (mock for now - in real implementation, this would come from API)
+  const jobsWithStats = rawJobs.map((job: any) => ({
+    ...job,
+    candidateCount: Math.floor(Math.random() * 12), // Mock data - replace with real API call
+    health: calculateJobHealth(job, Math.floor(Math.random() * 12))
+  }))
+  
+  // Apply filtering
+  const filteredJobs = jobsWithStats.filter((job: any) => {
+    if (filterBy === 'all') return true
+    return job.status === filterBy
+  })
+  
+  // Apply sorting
+  const sortedJobs = [...filteredJobs].sort((a, b) => {
+    switch (sortBy) {
+      case 'date':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      case 'candidates':
+        return b.candidateCount - a.candidateCount
+      case 'status':
+        return a.status.localeCompare(b.status)
+      case 'health':
+        const healthOrder: Record<JobHealth, number> = { healthy: 0, needs_attention: 1, stale: 2 }
+        return healthOrder[a.health as JobHealth] - healthOrder[b.health as JobHealth]
+      default:
+        return 0
+    }
+  })
+  
+  const displayJobs = sortedJobs
 
   // Check for onboarding parameters
   useEffect(() => {
@@ -215,6 +306,46 @@ export default function Jobs() {
             </div>
           </div>
         </div>
+        
+        {/* Filters and Sorting */}
+        <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Filter:</span>
+            <Select value={filterBy} onValueChange={(value: FilterOption) => setFilterBy(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Jobs</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="on_hold">On Hold</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Date Posted</SelectItem>
+                <SelectItem value="candidates">Candidate Count</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+                <SelectItem value="health">Health</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-sm text-gray-500">{displayJobs.length} job{displayJobs.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
 
         {/* Loading State */}
         {jobsLoading && (
@@ -255,96 +386,136 @@ export default function Jobs() {
                   isPublishing={publishJob.isPending}
                   isDemoMode={isDemoMode}
                   containerHeight={Math.min(800, typeof window !== 'undefined' ? window.innerHeight - 300 : 600)}
+                  // showCompactCards={true} // TODO: Add this prop to VirtualizedJobsList
                 />
               ) : (
-                // Use regular rendering for smaller datasets
-                <div className="grid gap-6" data-testid="jobs-list-regular">
-                  {displayJobs.map((job: any) => (
-                    <Card key={job.id} className="rounded-2xl shadow-sm hover:shadow-lg transition-shadow" data-testid={`job-card-${job.id}`}>
-                      <CardContent className="p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h3 className="text-xl font-semibold text-gray-900" data-testid={`job-title-${job.id}`}>{job.title}</h3>
-                              <Badge className={getStatusColor(job.status)} data-testid={`job-status-${job.id}`}>
-                                {job.status}
-                              </Badge>
-                            </div>
-                            
-                            <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
-                              <div className="flex items-center gap-1">
-                                <Building2 className="w-4 h-4" />
-                                <span data-testid={`job-client-${job.id}`}>
-                                  {job.client?.name || 'No client assigned'}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                <span data-testid={`job-created-${job.id}`}>
-                                  Created {new Date(job.createdAt).toLocaleDateString()}
-                                </span>
-                              </div>
-                              {job.publicSlug && (
-                                <div className="flex items-center gap-1">
-                                  <Globe className="w-4 h-4" />
-                                  <a 
-                                    href={`/careers/${job.publicSlug}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                                    data-testid={`job-public-url-${job.id}`}
-                                  >
-                                    Public URL
-                                    <ExternalLink className="w-3 h-3" />
-                                  </a>
+                // Use regular rendering for smaller datasets - redesigned compact cards
+                <div className="grid gap-4" data-testid="jobs-list-regular">
+                  {displayJobs.map((job: any) => {
+                    const HealthIcon = getHealthIcon(job.health)
+                    return (
+                      <Card key={job.id} className="border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200" data-testid={`job-card-${job.id}`}>
+                        <CardContent className="p-5">
+                          <div className="flex items-center justify-between">
+                            {/* Left side - Job info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start gap-3 mb-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="text-lg font-semibold text-gray-900 truncate" data-testid={`job-title-${job.id}`}>
+                                      {job.title}
+                                    </h3>
+                                    <Badge className={getStatusColor(job.status)} data-testid={`job-status-${job.id}`}>
+                                      {job.status}
+                                    </Badge>
+                                    <Badge className={getHealthColor(job.health)} data-testid={`job-health-${job.id}`}>
+                                      <HealthIcon className="w-3 h-3 mr-1" />
+                                      {job.health.replace('_', ' ')}
+                                    </Badge>
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                                    <div className="flex items-center gap-1">
+                                      <Users className="w-4 h-4" />
+                                      <span data-testid={`job-candidates-${job.id}`}>
+                                        {job.candidateCount} candidate{job.candidateCount !== 1 ? 's' : ''}
+                                      </span>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-1">
+                                      <Calendar className="w-4 h-4" />
+                                      <span data-testid={`job-created-${job.id}`}>
+                                        {job.publishedAt 
+                                          ? `Posted ${new Date(job.publishedAt).toLocaleDateString()}`
+                                          : `Created ${new Date(job.createdAt).toLocaleDateString()}`
+                                        }
+                                      </span>
+                                    </div>
+                                    
+                                    {job.client?.name && (
+                                      <div className="flex items-center gap-1">
+                                        <Building2 className="w-4 h-4" />
+                                        <span data-testid={`job-client-${job.id}`} className="truncate max-w-32">
+                                          {job.client.name}
+                                        </span>
+                                      </div>
+                                    )}
+                                    
+                                    {job.publicSlug && (
+                                      <div className="flex items-center gap-1">
+                                        <Globe className="w-4 h-4" />
+                                        <a 
+                                          href={`/careers/${job.publicSlug}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                          data-testid={`job-public-url-${job.id}`}
+                                        >
+                                          Live
+                                          <ExternalLink className="w-3 h-3" />
+                                        </a>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              )}
+                              </div>
                             </div>
                             
-                            {job.description && (
-                              <p className="text-gray-600 text-sm mb-4 line-clamp-2" data-testid={`job-description-${job.id}`}>
-                                {job.description}
-                              </p>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center gap-2 ml-6">
-                            {job.status === 'draft' && !isDemoMode && (
-                              <>
-                                <EditJobDialog 
-                                  job={job}
-                                  onJobUpdated={() => {
-                                    // Refresh jobs data after update
-                                    // The hook will automatically invalidate queries
-                                  }}
-                                />
-                                <Button
-                                  onClick={() => handlePublish(job.id)}
-                                  disabled={publishJob.isPending}
-                                  variant="outline"
-                                  size="sm"
-                                  className="flex items-center gap-1"
-                                  data-testid={`job-publish-${job.id}`}
-                                >
-                                  {publishJob.isPending ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <Globe className="w-4 h-4" />
-                                  )}
-                                  {publishJob.isPending ? 'Publishing...' : 'Publish'}
+                            {/* Right side - Actions */}
+                            <div className="flex items-center gap-2 ml-4">
+                              {job.status === 'draft' && !isDemoMode && (
+                                <>
+                                  <EditJobDialog 
+                                    job={job}
+                                    onJobUpdated={() => {
+                                      // Refresh jobs data after update
+                                    }}
+                                  />
+                                  <Button
+                                    onClick={() => handlePublish(job.id)}
+                                    disabled={publishJob.isPending}
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex items-center gap-1"
+                                    data-testid={`job-publish-${job.id}`}
+                                  >
+                                    {publishJob.isPending ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Globe className="w-4 h-4" />
+                                    )}
+                                    {publishJob.isPending ? 'Publishing...' : 'Publish'}
+                                  </Button>
+                                </>
+                              )}
+                              
+                              {/* Quick Actions */}
+                              <Link href={`/pipeline/${job.id}`}>
+                                <Button variant="outline" size="sm" className="flex items-center gap-1" data-testid={`job-pipeline-${job.id}`}>
+                                  <Eye className="w-4 h-4" />
+                                  Pipeline
                                 </Button>
-                              </>
-                            )}
-                            <Link href={`/pipeline/${job.id}`}>
-                              <Button variant="outline" size="sm" data-testid={`job-pipeline-${job.id}`}>
-                                View Pipeline
+                              </Link>
+                              
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex items-center gap-1"
+                                onClick={() => {
+                                  // TODO: Implement add candidate modal/flow
+                                  toast({ title: "Add Candidate", description: "Feature coming soon!" })
+                                }}
+                                data-testid={`job-add-candidate-${job.id}`}
+                              >
+                                <UserPlus className="w-4 h-4" />
+                                Add
                               </Button>
-                            </Link>
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
               )
             )}
