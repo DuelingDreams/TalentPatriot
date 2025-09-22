@@ -10,10 +10,13 @@ interface JobPipelineData {
   totalCandidates: number
   stages: {
     applied: number
-    screening: number
+    phone_screen: number
     interview: number
+    technical: number
+    final: number
     offer: number
     hired: number
+    rejected: number
   }
 }
 
@@ -40,10 +43,13 @@ export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = fals
       // Count candidates by stage
       const stageCounts = {
         applied: jobCandidatesForJob.filter((jc: any) => jc.stage === 'applied').length,
-        screening: jobCandidatesForJob.filter((jc: any) => jc.stage === 'screening').length,
+        phone_screen: jobCandidatesForJob.filter((jc: any) => jc.stage === 'phone_screen').length,
         interview: jobCandidatesForJob.filter((jc: any) => jc.stage === 'interview').length,
+        technical: jobCandidatesForJob.filter((jc: any) => jc.stage === 'technical').length,
+        final: jobCandidatesForJob.filter((jc: any) => jc.stage === 'final').length,
         offer: jobCandidatesForJob.filter((jc: any) => jc.stage === 'offer').length,
-        hired: jobCandidatesForJob.filter((jc: any) => jc.stage === 'hired').length
+        hired: jobCandidatesForJob.filter((jc: any) => jc.stage === 'hired').length,
+        rejected: jobCandidatesForJob.filter((jc: any) => jc.stage === 'rejected').length
       }
       
       return {
@@ -60,10 +66,13 @@ export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = fals
   const getStageColor = (stage: string) => {
     switch (stage) {
       case 'applied': return 'bg-gray-500'
-      case 'screening': return 'bg-blue-500'
+      case 'phone_screen': return 'bg-blue-500'
       case 'interview': return 'bg-yellow-500'
+      case 'technical': return 'bg-orange-500'
+      case 'final': return 'bg-indigo-500'
       case 'offer': return 'bg-purple-500'
       case 'hired': return 'bg-green-500'
+      case 'rejected': return 'bg-red-500'
       default: return 'bg-gray-500'
     }
   }
@@ -88,7 +97,7 @@ export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = fals
               </div>
               <div className="h-6 bg-gray-200 animate-pulse rounded" />
               <div className="flex justify-between text-xs">
-                {['Applied', 'Screen', 'Interview', 'Offer', 'Hired'].map((stage) => (
+                {['Applied', 'Screen', 'Interview', 'Technical', 'Final', 'Offer', 'Hired', 'Rejected'].map((stage) => (
                   <div key={stage} className="h-3 bg-gray-200 animate-pulse rounded w-12" />
                 ))}
               </div>
@@ -151,8 +160,11 @@ export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = fals
               <span>Applied</span>
               <span>Screen</span>
               <span>Interview</span>
+              <span>Technical</span>
+              <span>Final</span>
               <span>Offer</span>
               <span>Hired</span>
+              <span>Rejected</span>
             </div>
           </div>
         ))}

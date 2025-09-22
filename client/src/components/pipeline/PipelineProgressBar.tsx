@@ -7,8 +7,10 @@ export function PipelineProgressBar({ columns, applicationsByColumn }: PipelineP
   // Standard stage order and colors (matching the pipeline column colors)
   const stageConfig = [
     { id: 'applied', title: 'Applied', color: 'bg-gray-500' },
-    { id: 'screening', title: 'Screen', color: 'bg-blue-500' },
+    { id: 'phone_screen', title: 'Phone Screen', color: 'bg-blue-500' },
     { id: 'interview', title: 'Interview', color: 'bg-yellow-500' },
+    { id: 'technical', title: 'Technical', color: 'bg-orange-500' },
+    { id: 'final', title: 'Final', color: 'bg-indigo-500' },
     { id: 'offer', title: 'Offer', color: 'bg-purple-500' },
     { id: 'hired', title: 'Hired', color: 'bg-green-500' }
   ]

@@ -234,10 +234,10 @@ export default function ProfessionalCandidates() {
   const stages = [
     { value: 'all', label: 'All Stages' },
     { value: 'applied', label: 'Applied' },
-    { value: 'screening', label: 'Screening' },
+    { value: 'phone_screen', label: 'Phone Screen' },
     { value: 'interview', label: 'Interview' },
     { value: 'technical', label: 'Technical' },
-    { value: 'reference', label: 'Reference' },
+    { value: 'final', label: 'Final' },
     { value: 'offer', label: 'Offer' },
     { value: 'hired', label: 'Hired' },
     { value: 'rejected', label: 'Rejected' }

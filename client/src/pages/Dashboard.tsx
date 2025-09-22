@@ -129,7 +129,7 @@ export default function Dashboard() {
   }).length
 
   // Calculate pipeline data with type safety
-  const pipelineStages = ['applied', 'screening', 'interview', 'technical', 'reference', 'offer', 'hired', 'rejected']
+  const pipelineStages = ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']
   const pipelineData = pipelineStages.map(stage => {
     const count = jobCandidatesArray.filter((jc: any) => jc.stage === stage).length
     const total = jobCandidatesArray.length || 1
@@ -150,7 +150,7 @@ export default function Dashboard() {
 
   // Calculate Today's Work data
   const candidatesNeedingReview = jobCandidatesArray.filter((jc: any) => 
-    jc.stage === 'applied' || jc.stage === 'screening'
+    jc.stage === 'applied' || jc.stage === 'phone_screen'
   ).length
   
   const interviewsToday = jobCandidatesArray.filter((jc: any) => {

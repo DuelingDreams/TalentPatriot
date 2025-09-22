@@ -7,7 +7,7 @@ import { sql } from "drizzle-orm";
 // Enums
 export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'on_hold', 'filled']);
 export const jobTypeEnum = pgEnum('job_type', ['full-time', 'part-time', 'contract', 'internship']);
-export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
+export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
 // Platform-level roles (minimal)
 export const userRoleEnum = pgEnum('user_role', ['platform_admin', 'user', 'demo_viewer']);
@@ -554,7 +554,7 @@ export const jobsQuerySchema = paginationQuerySchema.extend({
 export const candidatesQuerySchema = paginationQuerySchema.extend({
   orgId: z.string().uuid('Invalid organization ID'),
   jobId: z.string().uuid().optional(),
-  stage: z.enum(['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']).optional(),
+  stage: z.enum(['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']).optional(),
   status: z.string().optional(),
   search: z.string().optional(),
 });
