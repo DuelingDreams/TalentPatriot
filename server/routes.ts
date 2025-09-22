@@ -1116,6 +1116,85 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   })
 
+  // Analytics Dashboard endpoints using materialized views
+  app.get('/api/analytics/pipeline-snapshot', async (req, res) => {
+    try {
+      const { orgId, limit } = req.query as { orgId: string; limit?: string }
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID is required' })
+      }
+
+      const limitNum = limit ? parseInt(limit, 10) : 10
+      const data = await storage.getPipelineSnapshot(orgId, limitNum)
+      
+      res.setHeader('Cache-Control', 'private, max-age=30, must-revalidate')
+      res.setHeader('Vary', 'X-Org-Id')
+      res.json(data)
+    } catch (error) {
+      console.error('Error fetching pipeline snapshot:', error)
+      res.status(500).json({ error: 'Failed to fetch pipeline snapshot' })
+    }
+  })
+
+  app.get('/api/analytics/stage-time', async (req, res) => {
+    try {
+      const { orgId, jobId } = req.query as { orgId: string; jobId?: string }
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID is required' })
+      }
+
+      const data = await storage.getStageTimeAnalytics(orgId, jobId)
+      
+      res.setHeader('Cache-Control', 'private, max-age=60, must-revalidate')
+      res.setHeader('Vary', 'X-Org-Id')
+      res.json(data)
+    } catch (error) {
+      console.error('Error fetching stage time analytics:', error)
+      res.status(500).json({ error: 'Failed to fetch stage time analytics' })
+    }
+  })
+
+  app.get('/api/analytics/job-health', async (req, res) => {
+    try {
+      const { orgId } = req.query as { orgId: string }
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID is required' })
+      }
+
+      const data = await storage.getJobHealthData(orgId)
+      
+      res.setHeader('Cache-Control', 'private, max-age=120, must-revalidate')
+      res.setHeader('Vary', 'X-Org-Id')
+      res.json(data)
+    } catch (error) {
+      console.error('Error fetching job health data:', error)
+      res.status(500).json({ error: 'Failed to fetch job health data' })
+    }
+  })
+
+  app.get('/api/analytics/dashboard-activity', async (req, res) => {
+    try {
+      const { orgId, limit } = req.query as { orgId: string; limit?: string }
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID is required' })
+      }
+
+      const limitNum = limit ? parseInt(limit, 10) : 50
+      const data = await storage.getDashboardActivity(orgId, limitNum)
+      
+      res.setHeader('Cache-Control', 'private, max-age=15, must-revalidate')
+      res.setHeader('Vary', 'X-Org-Id')
+      res.json(data)
+    } catch (error) {
+      console.error('Error fetching dashboard activity:', error)
+      res.status(500).json({ error: 'Failed to fetch dashboard activity' })
+    }
+  })
+
   // AI Insights endpoint
   app.get('/api/ai/insights', async (req, res) => {
     try {
