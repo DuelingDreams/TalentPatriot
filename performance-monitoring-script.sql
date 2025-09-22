@@ -62,7 +62,7 @@ WHERE query IS NOT NULL
 CREATE OR REPLACE VIEW v_ats_table_performance AS
 SELECT 
     schemaname,
-    tablename,
+    relname as tablename,
     seq_scan as sequential_scans,
     seq_tup_read as rows_read_sequentially,
     idx_scan as index_scans,
@@ -90,7 +90,7 @@ SELECT
     last_autoanalyze
 FROM pg_stat_user_tables
 WHERE schemaname = 'public'
-    AND tablename IN (
+    AND relname IN (
         'jobs', 
         'candidates', 
         'job_candidate', 
@@ -110,27 +110,28 @@ ORDER BY (seq_tup_read + idx_tup_fetch) DESC;
 -- =========================================================
 CREATE OR REPLACE VIEW v_ats_index_performance AS
 SELECT 
-    schemaname,
-    tablename,
-    indexname,
-    idx_scan as times_used,
-    idx_tup_read as rows_read,
-    idx_tup_fetch as rows_fetched,
+    st.schemaname,
+    st.relname as tablename,
+    si.indexrelname as indexname,
+    si.idx_scan as times_used,
+    si.idx_tup_read as rows_read,
+    si.idx_tup_fetch as rows_fetched,
     CASE 
-        WHEN idx_scan > 0 THEN
-            ROUND((idx_tup_fetch::numeric / idx_scan), 2)
+        WHEN si.idx_scan > 0 THEN
+            ROUND((si.idx_tup_fetch::numeric / si.idx_scan), 2)
         ELSE 0
     END as avg_rows_per_scan,
     -- Index efficiency indicator
     CASE 
-        WHEN idx_scan = 0 THEN 'Unused'
-        WHEN idx_scan < 10 THEN 'Low Usage'
-        WHEN idx_scan < 100 THEN 'Moderate Usage'
+        WHEN si.idx_scan = 0 THEN 'Unused'
+        WHEN si.idx_scan < 10 THEN 'Low Usage'
+        WHEN si.idx_scan < 100 THEN 'Moderate Usage'
         ELSE 'High Usage'
     END as usage_level
-FROM pg_stat_user_indexes
-WHERE schemaname = 'public'
-    AND tablename IN (
+FROM pg_stat_user_indexes si 
+JOIN pg_stat_user_tables st ON si.relid = st.relid
+WHERE st.schemaname = 'public'
+    AND st.relname IN (
         'jobs', 
         'candidates', 
         'job_candidate', 
@@ -142,7 +143,7 @@ WHERE schemaname = 'public'
         'organizations',
         '_job_candidate_stage_shadow'
     )
-ORDER BY idx_scan DESC;
+ORDER BY si.idx_scan DESC;
 
 -- =========================================================
 -- ATS-Specific Performance Metrics
@@ -151,15 +152,15 @@ ORDER BY idx_scan DESC;
 CREATE OR REPLACE VIEW v_ats_workflow_performance AS
 SELECT 
     'Pipeline Operations' as workflow_category,
-    SUM(CASE WHEN tablename = 'job_candidate' THEN seq_scan + COALESCE(idx_scan, 0) ELSE 0 END) as pipeline_queries,
-    SUM(CASE WHEN tablename = 'job_candidate' THEN n_tup_upd ELSE 0 END) as pipeline_updates,
-    SUM(CASE WHEN tablename = 'jobs' THEN seq_scan + COALESCE(idx_scan, 0) ELSE 0 END) as job_queries,
-    SUM(CASE WHEN tablename = 'candidates' THEN seq_scan + COALESCE(idx_scan, 0) ELSE 0 END) as candidate_queries,
-    SUM(CASE WHEN tablename = 'interviews' THEN n_tup_ins + n_tup_upd ELSE 0 END) as interview_activities,
-    SUM(CASE WHEN tablename = 'messages' THEN n_tup_ins ELSE 0 END) as messages_sent
+    SUM(CASE WHEN relname = 'job_candidate' THEN seq_scan + COALESCE(idx_scan, 0) ELSE 0 END) as pipeline_queries,
+    SUM(CASE WHEN relname = 'job_candidate' THEN n_tup_upd ELSE 0 END) as pipeline_updates,
+    SUM(CASE WHEN relname = 'jobs' THEN seq_scan + COALESCE(idx_scan, 0) ELSE 0 END) as job_queries,
+    SUM(CASE WHEN relname = 'candidates' THEN seq_scan + COALESCE(idx_scan, 0) ELSE 0 END) as candidate_queries,
+    SUM(CASE WHEN relname = 'interviews' THEN n_tup_ins + n_tup_upd ELSE 0 END) as interview_activities,
+    SUM(CASE WHEN relname = 'messages' THEN n_tup_ins ELSE 0 END) as messages_sent
 FROM pg_stat_user_tables
 WHERE schemaname = 'public'
-    AND tablename IN ('job_candidate', 'jobs', 'candidates', 'interviews', 'messages')
+    AND relname IN ('job_candidate', 'jobs', 'candidates', 'interviews', 'messages')
 UNION ALL
 SELECT 
     'Database Health' as workflow_category,
@@ -171,7 +172,7 @@ SELECT
     0 as unused_metric
 FROM pg_stat_user_tables
 WHERE schemaname = 'public'
-    AND tablename IN (
+    AND relname IN (
         'jobs', 'candidates', 'job_candidate', 'interviews', 'messages', 
         'pipeline_columns', 'clients', 'notes', 'organizations'
     );
@@ -212,15 +213,15 @@ WHERE datname = current_database();
 CREATE OR REPLACE VIEW v_ats_performance_alerts AS
 SELECT 
     'High Sequential Scan Ratio' as alert_type,
-    tablename as affected_object,
+    relname as affected_object,
     CONCAT(
-        'Table ', tablename, ' has ', seq_scan, ' sequential scans vs ', 
+        'Table ', relname, ' has ', seq_scan, ' sequential scans vs ', 
         COALESCE(idx_scan, 0), ' index scans'
     ) as alert_message,
     'HIGH' as severity
 FROM pg_stat_user_tables
 WHERE schemaname = 'public'
-    AND tablename IN (
+    AND relname IN (
         'jobs', 'candidates', 'job_candidate', 'interviews', 'messages', 
         'pipeline_columns', 'clients', 'notes', 'organizations'
     )
@@ -231,31 +232,32 @@ UNION ALL
 
 SELECT 
     'Unused Index' as alert_type,
-    indexname as affected_object,
-    CONCAT('Index ', indexname, ' on table ', tablename, ' has never been used') as alert_message,
+    si.indexrelname as affected_object,
+    CONCAT('Index ', si.indexrelname, ' on table ', st.relname, ' has never been used') as alert_message,
     'MEDIUM' as severity
-FROM pg_stat_user_indexes
-WHERE schemaname = 'public'
-    AND tablename IN (
+FROM pg_stat_user_indexes si
+JOIN pg_stat_user_tables st ON si.relid = st.relid
+WHERE st.schemaname = 'public'
+    AND st.relname IN (
         'jobs', 'candidates', 'job_candidate', 'interviews', 'messages', 
         'pipeline_columns', 'clients', 'notes', 'organizations'
     )
-    AND idx_scan = 0
+    AND si.idx_scan = 0
 
 UNION ALL
 
 SELECT 
     'High Dead Tuple Ratio' as alert_type,
-    tablename as affected_object,
+    relname as affected_object,
     CONCAT(
-        'Table ', tablename, ' has ', n_dead_tup, ' dead tuples vs ', 
+        'Table ', relname, ' has ', n_dead_tup, ' dead tuples vs ', 
         n_live_tup, ' live tuples (', 
         ROUND((n_dead_tup::numeric / GREATEST(n_live_tup, 1)) * 100, 1), '% dead)'
     ) as alert_message,
     'MEDIUM' as severity
 FROM pg_stat_user_tables
 WHERE schemaname = 'public'
-    AND tablename IN (
+    AND relname IN (
         'jobs', 'candidates', 'job_candidate', 'interviews', 'messages', 
         'pipeline_columns', 'clients', 'notes', 'organizations'
     )
