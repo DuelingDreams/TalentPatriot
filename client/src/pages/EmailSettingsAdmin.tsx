@@ -58,7 +58,7 @@ const emailEventTypes = [
 export default function EmailSettingsAdmin() {
   const { toast } = useToast();
   const { data: currentOrg } = useCurrentOrganization();
-  const orgId = currentOrg?.id;
+  const orgId = (currentOrg as any)?.id;
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
   const [isCreatingTemplate, setIsCreatingTemplate] = useState(false);
 
