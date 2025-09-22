@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Confirmation - {{organization_name}}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 30px; text-align: center; }
+        .logo { max-height: 40px; margin-bottom: 15px; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .confirmation-banner { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 30px; margin: 20px 0; text-align: center; border: 1px solid #bbf7d0; }
+        .confirmation-icon { font-size: 64px; margin-bottom: 20px; }
+        .confirmation-title { font-size: 28px; font-weight: 600; color: #166534; margin-bottom: 15px; }
+        .confirmation-subtitle { color: #15803d; font-size: 16px; margin-bottom: 20px; }
+        .application-details { background-color: #f8fafc; border-radius: 12px; padding: 25px; margin: 25px 0; border: 1px solid #e2e8f0; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
+        .detail-label { font-weight: 600; color: #1e293b; }
+        .detail-value { color: #3b82f6; font-weight: 500; }
+        .reference-number { background-color: #f0f9ff; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; }
+        .ref-title { color: #1e40af; font-weight: 600; margin-bottom: 10px; }
+        .ref-number { font-size: 24px; font-weight: 700; color: #1e3a8a; font-family: 'Monaco', 'Menlo', monospace; letter-spacing: 2px; }
+        .next-steps-section { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .step-item { background-color: #ffffff; border-radius: 8px; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; display: flex; align-items: center; }
+        .step-number { background-color: #3b82f6; color: #ffffff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; margin-right: 15px; }
+        .step-text { color: #1e293b; font-weight: 500; }
+        .job-summary { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .job-title { font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 10px; }
+        .job-company { color: #64748b; margin-bottom: 15px; }
+        .job-details { color: #64748b; line-height: 1.6; }
+        .timeline-info { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .timeline-title { font-weight: 600; color: #92400e; margin-bottom: 10px; }
+        .timeline-content { color: #a16207; font-size: 14px; line-height: 1.6; }
+        .documents-section { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .document-item { display: flex; align-items: center; margin: 8px 0; padding: 8px 0; }
+        .document-icon { color: #3b82f6; margin-right: 10px; font-size: 16px; }
+        .document-name { color: #1e293b; font-weight: 500; }
+        .document-status { color: #22c55e; font-size: 12px; margin-left: auto; }
+        .contact-section { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .cta-button { display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; margin: 10px 5px; }
+        .secondary-button { background-color: #f1f5f9; color: #3b82f6; border: 1px solid #cbd5e1; }
+        .social-links { text-align: center; margin: 20px 0; }
+        .social-link { display: inline-block; margin: 0 10px; color: #64748b; text-decoration: none; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+        @media (max-width: 600px) { 
+            .content { padding: 20px; } 
+            .detail-row { flex-direction: column; align-items: flex-start; }
+            .document-item { flex-direction: column; align-items: flex-start; }
+            .step-item { flex-direction: column; text-align: center; }
+            .step-number { margin-right: 0; margin-bottom: 10px; }
+            .cta-button { display: block; margin: 10px 0; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{#if organization_logo}}
+                <img src="{{organization_logo}}" alt="{{organization_name}}" class="logo">
+            {{/if}}
+            <h1>{{organization_name}}</h1>
+        </div>
+        
+        <div class="content">
+            <div class="confirmation-banner">
+                <div class="confirmation-icon">✅</div>
+                <div class="confirmation-title">Application Received!</div>
+                <div class="confirmation-subtitle">Thank you for your interest in joining our team</div>
+            </div>
+            
+            <h2 style="color: #1e293b; margin-bottom: 20px;">Hi {{candidate_name}}!</h2>
+            
+            <p style="color: #64748b; line-height: 1.6; font-size: 16px;">
+                We've successfully received your application for the <strong>{{job_title}}</strong> position at <strong>{{organization_name}}</strong>. Your application is now being reviewed by our hiring team.
+            </p>
+            
+            <div class="reference-number">
+                <div class="ref-title">Your Application Reference Number</div>
+                <div class="ref-number">{{application_id}}</div>
+                <div style="color: #64748b; font-size: 12px; margin-top: 8px;">
+                    Please save this number for your records
+                </div>
+            </div>
+            
+            <div class="application-details">
+                <h3 style="color: #1e293b; margin-bottom: 20px; text-align: center;">Application Summary</h3>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Position:</span>
+                    <span class="detail-value">{{job_title}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Department:</span>
+                    <span class="detail-value">{{department}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">{{job_location}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Employment Type:</span>
+                    <span class="detail-value">{{employment_type}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Applied On:</span>
+                    <span class="detail-value">{{application_date}}</span>
+                </div>
+                
+                {{#if salary_range}}
+                <div class="detail-row">
+                    <span class="detail-label">Salary Range:</span>
+                    <span class="detail-value">{{salary_range}}</span>
+                </div>
+                {{/if}}
+            </div>
+            
+            {{#if job_description}}
+            <div class="job-summary">
+                <div class="job-title">About This Role</div>
+                <div class="job-company">{{organization_name}} • {{department}}</div>
+                <div class="job-details">{{job_description}}</div>
+            </div>
+            {{/if}}
+            
+            {{#if submitted_documents}}
+            <div class="documents-section">
+                <h3 style="color: #1e293b; margin-bottom: 15px;">📄 Submitted Documents</h3>
+                {{#each submitted_documents}}
+                <div class="document-item">
+                    <span class="document-icon">{{this.icon}}</span>
+                    <span class="document-name">{{this.name}}</span>
+                    <span class="document-status">✓ Received</span>
+                </div>
+                {{/each}}
+            </div>
+            {{/if}}
+            
+            <div class="next-steps-section">
+                <h3 style="color: #1e40af; margin-bottom: 20px; text-align: center;">What Happens Next?</h3>
+                
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Our hiring team will review your application and qualifications</div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-text">If you're a good fit, we'll reach out to schedule an initial interview</div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-text">You'll receive email updates as your application progresses</div>
+                </div>
+                
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div class="step-text">Check your application status anytime using your reference number</div>
+                </div>
+            </div>
+            
+            <div class="timeline-info">
+                <div class="timeline-title">⏰ Expected Timeline</div>
+                <div class="timeline-content">
+                    {{#if review_timeline}}
+                    {{review_timeline}}
+                    {{else}}
+                    We aim to review all applications within 5-7 business days. If your background matches what we're looking for, you can expect to hear from us within 1-2 weeks. We appreciate your patience as we carefully consider each application.
+                    {{/if}}
+                </div>
+            </div>
+            
+            {{#if application_portal_url}}
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{application_portal_url}}" class="cta-button">Track Application Status</a>
+                {{#if profile_url}}
+                <a href="{{profile_url}}" class="cta-button secondary-button">Update Profile</a>
+                {{/if}}
+            </div>
+            {{/if}}
+            
+            <div class="contact-section">
+                <h3 style="color: #1e293b; margin-bottom: 15px;">Questions About Your Application?</h3>
+                <div style="color: #64748b; line-height: 1.6;">
+                    If you have any questions about this position or your application, feel free to reach out:
+                    <br><br>
+                    <strong>{{recruiter_name}}</strong><br>
+                    {{recruiter_title}}<br>
+                    Email: {{recruiter_email}}<br>
+                    {{#if recruiter_phone}}Phone: {{recruiter_phone}}{{/if}}
+                </div>
+            </div>
+            
+            {{#if company_culture_links}}
+            <div style="background-color: #f0f9ff; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                <div style="color: #1e40af; font-weight: 600; margin-bottom: 15px;">Learn More About {{organization_name}}</div>
+                <div style="color: #3b82f6; font-size: 14px; margin-bottom: 15px;">
+                    While you wait, discover our company culture and values
+                </div>
+                <div class="social-links">
+                    {{#if company_website}}
+                    <a href="{{company_website}}" class="social-link">🌐 Website</a>
+                    {{/if}}
+                    {{#if linkedin_url}}
+                    <a href="{{linkedin_url}}" class="social-link">💼 LinkedIn</a>
+                    {{/if}}
+                    {{#if careers_page}}
+                    <a href="{{careers_page}}" class="social-link">💼 Careers</a>
+                    {{/if}}
+                    {{#if culture_page}}
+                    <a href="{{culture_page}}" class="social-link">🏢 Culture</a>
+                    {{/if}}
+                </div>
+            </div>
+            {{/if}}
+            
+            {{#if other_positions}}
+            <div style="background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                <div style="color: #1e293b; font-weight: 600; margin-bottom: 10px;">Interested in Other Opportunities?</div>
+                <div style="color: #64748b; margin-bottom: 15px;">Check out our other open positions that might interest you.</div>
+                <a href="{{careers_url}}" class="cta-button secondary-button">View All Open Positions</a>
+            </div>
+            {{/if}}
+            
+            <div style="background-color: #f0fdf4; border-left: 4px solid #22c55e; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <div style="color: #166534; font-weight: 600; margin-bottom: 5px;">✅ Application Tips</div>
+                <div style="color: #15803d; font-size: 14px; line-height: 1.6;">
+                    • Keep an eye on your email (including spam folder) for updates<br>
+                    • Update your profile if any contact information changes<br>
+                    • Feel free to apply for other positions that interest you<br>
+                    • Connect with us on LinkedIn to stay updated on company news
+                </div>
+            </div>
+            
+            <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+                Thank you again for your interest in joining {{organization_name}}. We're excited to learn more about you and will be in touch soon with next steps.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>This confirmation was sent by {{organization_name}} via TalentPatriot ATS</p>
+            <p>{{organization_address}}</p>
+            <p style="font-size: 12px; margin-top: 10px;">
+                Application Reference: {{application_id}} | Applied: {{application_date}}
+            </p>
+        </div>
+    </div>
+</body>
+</html>
