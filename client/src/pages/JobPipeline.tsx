@@ -1179,7 +1179,7 @@ export default function JobPipeline() {
   const [activeCandidate, setActiveCandidate] = useState<CandidateCardProps['candidate'] | null>(null)
   const [activeTab, setActiveTab] = useState('candidates')
   const { toast } = useToast()
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
   
   // Fetch data - must be called before any conditional returns (with real-time updates)
   const { data: jobs } = useJobs({ enableRealTime: true })
@@ -1737,6 +1737,9 @@ export default function JobPipeline() {
                 <PipelineProgressBar 
                   columns={jobPipelineData?.columns || []}
                   applicationsByColumn={applicationsByColumn}
+                  jobId={jobId}
+                  orgId={currentOrgId || ''}
+                  showTiming={true}
                 />
                 
                 <DndContext

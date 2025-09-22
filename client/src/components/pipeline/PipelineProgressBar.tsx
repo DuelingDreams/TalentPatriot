@@ -1,9 +1,56 @@
+import { useQuery } from '@tanstack/react-query'
+
 interface PipelineProgressBarProps {
   columns: Array<{ id: string; title: string; position: string }>
   applicationsByColumn: Map<string, any[]>
+  jobId?: string
+  orgId?: string
+  showTiming?: boolean
 }
 
-export function PipelineProgressBar({ columns, applicationsByColumn }: PipelineProgressBarProps) {
+export function PipelineProgressBar({ 
+  columns, 
+  applicationsByColumn, 
+  jobId, 
+  orgId, 
+  showTiming = false 
+}: PipelineProgressBarProps) {
+  // Fetch stage timing data if timing is enabled and we have the required data
+  const { data: stageTimeData } = useQuery({
+    queryKey: ['/api/analytics/stage-time', orgId, jobId],
+    queryFn: async () => {
+      if (!orgId) return []
+      const params = new URLSearchParams({ orgId })
+      if (jobId) params.append('jobId', jobId)
+      
+      const response = await fetch(`/api/analytics/stage-time?${params}`)
+      if (!response.ok) throw new Error('Failed to fetch stage time data')
+      return response.json()
+    },
+    enabled: showTiming && !!orgId,
+    staleTime: 60 * 1000, // Cache for 1 minute
+  })
+
+  // Create a map of stage timing data for quick lookup
+  const stageTimingMap = new Map<string, number>()
+  if (stageTimeData) {
+    stageTimeData.forEach((item: any) => {
+      stageTimingMap.set(item.stage, item.avg_hours_in_stage)
+    })
+  }
+
+  // Format hours into readable time string
+  const formatTime = (hours: number): string => {
+    if (hours < 1) {
+      return `${Math.round(hours * 60)}m`
+    } else if (hours < 24) {
+      return `${Math.round(hours * 10) / 10}h`
+    } else {
+      const days = Math.round(hours / 24 * 10) / 10
+      return `${days}d`
+    }
+  }
+
   // Standard stage order and colors (matching the pipeline column colors)
   const stageConfig = [
     { id: 'applied', title: 'Applied', color: 'bg-gray-500' },
@@ -27,10 +74,14 @@ export function PipelineProgressBar({ columns, applicationsByColumn }: PipelineP
       ? applicationsByColumn.get(matchingColumn.id)?.length || 0
       : 0
     
+    // Get timing data for this stage
+    const avgTime = stageTimingMap.get(stage.id)
+    
     return {
       ...stage,
       count,
-      columnId: matchingColumn?.id
+      columnId: matchingColumn?.id,
+      avgTime
     }
   })
 
@@ -61,7 +112,7 @@ export function PipelineProgressBar({ columns, applicationsByColumn }: PipelineP
                   ${stage.count > 0 ? 'opacity-100' : 'opacity-40'}
                 `}
                 style={{ width: `${width}%` }}
-                title={`${stage.title}: ${stage.count} candidate${stage.count !== 1 ? 's' : ''}`}
+                title={`${stage.title}: ${stage.count} candidate${stage.count !== 1 ? 's' : ''}${stage.avgTime ? ` • Avg: ${formatTime(stage.avgTime)}` : ''}`}
               >
                 {stage.count > 0 && (
                   <span className="font-semibold">
@@ -93,6 +144,11 @@ export function PipelineProgressBar({ columns, applicationsByColumn }: PipelineP
                 {stage.count > 0 && (
                   <div className="text-xs text-slate-500 mt-1">
                     {stage.count} candidate{stage.count !== 1 ? 's' : ''}
+                  </div>
+                )}
+                {showTiming && stage.avgTime && (
+                  <div className="text-xs text-slate-400 mt-1">
+                    Avg: {formatTime(stage.avgTime)}
                   </div>
                 )}
               </div>
