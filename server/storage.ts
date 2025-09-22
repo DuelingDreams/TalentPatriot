@@ -79,6 +79,64 @@ type PipelineCandidate = {
   };
 };
 
+// Analytics types from the database views
+type PipelineSnapshotData = {
+  job_id: string;
+  job_title: string;
+  org_id: string;
+  job_status: string;
+  applied: number;
+  phone_screen: number;
+  interview: number;
+  technical: number;
+  final: number;
+  offer: number;
+  hired: number;
+  rejected: number;
+  total_candidates: number;
+  created_at: string;
+  updated_at: string;
+};
+
+type StageTimeData = {
+  job_id: string;
+  stage: string;
+  avg_hours_in_stage: number;
+  sample_size: number;
+};
+
+type JobHealthData = {
+  job_id: string;
+  title: string;
+  org_id: string;
+  job_status: string;
+  applied_count: number;
+  phone_screen_count: number;
+  interview_count: number;
+  technical_count: number;
+  final_count: number;
+  offer_count: number;
+  hired_count: number;
+  rejected_count: number;
+  total_candidates: number;
+  health_status: 'Healthy' | 'Needs Attention' | 'Stale' | 'Closed' | 'No Candidates';
+  last_active_move: string | null;
+  last_any_move: string | null;
+};
+
+type DashboardActivityData = {
+  changed_at: string;
+  job_id: string;
+  job_title: string;
+  candidate_id: string;
+  candidate_name: string;
+  from_stage: string | null;
+  to_stage: string;
+  from_stage_display: string | null;
+  to_stage_display: string;
+  org_id: string;
+};
+
 // Storage interface for ATS system
 export interface IStorage {
   // User Profiles
@@ -97,6 +155,12 @@ export interface IStorage {
   searchClients(searchTerm: string, orgId: string): Promise<Client[]>;
   searchJobs(searchTerm: string, orgId: string): Promise<Job[]>;
   searchCandidates(searchTerm: string, orgId: string): Promise<Candidate[]>;
+  
+  // Analytics methods for new dashboard views
+  getPipelineSnapshot(orgId: string, limit?: number): Promise<PipelineSnapshotData[]>;
+  getStageTimeAnalytics(orgId: string, jobId?: string): Promise<StageTimeData[]>;
+  getJobHealthData(orgId: string): Promise<JobHealthData[]>;
+  getDashboardActivity(orgId: string, limit?: number): Promise<DashboardActivityData[]>;
   
   // Organizations
   getOrganization(id: string): Promise<Organization | undefined>;
@@ -3331,6 +3395,112 @@ export class DatabaseStorage implements IStorage {
     if (error) {
       console.error('Database beta application deletion error:', error)
       throw new Error(`Failed to delete beta application: ${error.message}`)
+    }
+  }
+
+  // Analytics methods implementation
+  async getPipelineSnapshot(orgId: string, limit: number = 10): Promise<PipelineSnapshotData[]> {
+    try {
+      let query = supabase
+        .from('v_dashboard_pipeline_snapshot')
+        .select('*')
+        .eq('org_id', orgId)
+        .eq('job_status', 'open')
+        .order('total_candidates', { ascending: false })
+
+      if (limit > 0) {
+        query = query.limit(limit)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Database pipeline snapshot fetch error:', error)
+        throw new Error(`Failed to fetch pipeline snapshot: ${error.message}`)
+      }
+
+      return (data || []) as PipelineSnapshotData[]
+    } catch (err) {
+      console.error('Pipeline snapshot fetch exception:', err)
+      throw err
+    }
+  }
+
+  async getStageTimeAnalytics(orgId: string, jobId?: string): Promise<StageTimeData[]> {
+    try {
+      let query = supabase
+        .from('v_pipeline_stage_avg_time')
+        .select('*')
+
+      // Join with jobs to filter by org_id
+      const { data: jobs } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('org_id', orgId)
+
+      if (!jobs || jobs.length === 0) {
+        return []
+      }
+
+      const jobIds = jobs.map(job => job.id)
+      query = query.in('job_id', jobIds)
+
+      if (jobId) {
+        query = query.eq('job_id', jobId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        console.error('Database stage time analytics fetch error:', error)
+        throw new Error(`Failed to fetch stage time analytics: ${error.message}`)
+      }
+
+      return (data || []) as StageTimeData[]
+    } catch (err) {
+      console.error('Stage time analytics fetch exception:', err)
+      throw err
+    }
+  }
+
+  async getJobHealthData(orgId: string): Promise<JobHealthData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('v_job_health')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('total_candidates', { ascending: false })
+
+      if (error) {
+        console.error('Database job health fetch error:', error)
+        throw new Error(`Failed to fetch job health data: ${error.message}`)
+      }
+
+      return (data || []) as JobHealthData[]
+    } catch (err) {
+      console.error('Job health fetch exception:', err)
+      throw err
+    }
+  }
+
+  async getDashboardActivity(orgId: string, limit: number = 50): Promise<DashboardActivityData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('v_dashboard_activity')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('changed_at', { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        console.error('Database dashboard activity fetch error:', error)
+        throw new Error(`Failed to fetch dashboard activity: ${error.message}`)
+      }
+
+      return (data || []) as DashboardActivityData[]
+    } catch (err) {
+      console.error('Dashboard activity fetch exception:', err)
+      throw err
     }
   }
 }
