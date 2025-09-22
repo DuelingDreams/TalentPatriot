@@ -33,7 +33,7 @@ export function CandidateNotesDialog({
 
   const { user, currentOrgId } = useAuth()
   const currentUserId = user?.id
-  const { data: notes = [], isLoading } = useCandidateNotes(candidateId)
+  const { data: notes = [], isLoading } = useCandidateNotes(jobCandidateId)
   const createNoteMutation = useCreateCandidateNote()
 
   const handleAddNote = async () => {
