@@ -17,7 +17,10 @@ import { PipelineOverview } from '@/components/dashboard/PipelineOverview'
 import { JobsChart } from '@/components/dashboard/LazyJobsChart'
 import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
 import { QuickActions } from '@/components/dashboard/QuickActions'
-import { AIInsights } from '@/components/ai/AIInsights'
+import { TodaysWork } from '@/components/dashboard/TodaysWork'
+import { SimpleQuickActions } from '@/components/dashboard/SimpleQuickActions'
+import { SmartHiringTips } from '@/components/dashboard/SmartHiringTips'
+import { PipelineSnapshot } from '@/components/dashboard/PipelineSnapshot'
 import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator'
 import { useRealTimeRefresh } from '@/hooks/useRealTimeRefresh'
 import { AuthRequired, hasAuthRequired } from '@/components/AuthRequired'
@@ -145,70 +148,23 @@ export default function Dashboard() {
     { name: 'Filled', value: jobsArray.filter((j: any) => j.status === 'filled').length, color: '#8b5cf6' },
   ]
 
-  // Generate smart alerts based on real data
-  const smartAlerts = React.useMemo(() => {
-    const alerts: any[] = []
-
-    if (!currentOrgId) {
-      // Special alert for users without organization
-      alerts.push({
-        id: 'no-org',
-        type: 'urgent',
-        title: 'Organization Setup Required',
-        description: 'Please complete your organization setup to access your data',
-        action: {
-          label: 'Setup Organization',
-          href: '/settings/organization'
-        },
-        dismissible: false
-      })
-      return alerts
-    }
-
-    // Check for new applications with type safety
-    const recentApplications = jobCandidatesArray.filter((jc: any) => {
-      const appliedDate = new Date(jc.created_at)
-      const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
-      return jc.stage === 'applied' && appliedDate > dayAgo
-    })
-
-    if (recentApplications.length > 0) {
-      alerts.push({
-        id: 'new-applications',
-        type: 'warning',
-        title: `${recentApplications.length} New Application${recentApplications.length > 1 ? 's' : ''}`,
-        description: 'Recent applications require review',
-        action: {
-          label: 'Review Applications',
-          href: '/candidates'
-        },
-        dismissible: true
-      })
-    }
-
-    // Check for pipeline bottlenecks with type safety
-    const stuckCandidates = jobCandidatesArray.filter((jc: any) => {
-      const updatedDate = new Date(jc.updated_at)
-      const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
-      return ['screening', 'interview', 'technical'].includes(jc.stage) && updatedDate < fiveDaysAgo
-    })
-
-    if (stuckCandidates.length > 3) {
-      alerts.push({
-        id: 'pipeline-bottleneck',
-        type: 'info',
-        title: 'Pipeline Bottleneck',
-        description: `${stuckCandidates.length} candidates stuck in pipeline for >5 days`,
-        action: {
-          label: 'View Pipeline',
-          href: '/pipeline'
-        },
-        dismissible: true
-      })
-    }
-
-    return alerts
-  }, [currentOrgId, jobCandidatesArray])
+  // Calculate Today's Work data
+  const candidatesNeedingReview = jobCandidatesArray.filter((jc: any) => 
+    jc.stage === 'applied' || jc.stage === 'screening'
+  ).length
+  
+  const interviewsToday = jobCandidatesArray.filter((jc: any) => {
+    // Mock calculation - in real app would check interview schedule
+    return jc.stage === 'interview'
+  }).length
+  
+  const jobsNeedingAttention = jobsArray.filter((job: any) => {
+    // Mock calculation - jobs with no applications in last 7 days
+    const now = new Date()
+    const createdDate = new Date(job.createdAt)
+    const daysSinceCreated = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
+    return job.status === 'open' && daysSinceCreated > 7
+  }).length
 
 
 
@@ -238,11 +194,16 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Smart Alerts */}
-        <SmartAlerts alerts={smartAlerts} />
+        {/* Today's Work */}
+        <TodaysWork 
+          candidatesNeedingReview={candidatesNeedingReview}
+          interviewsToday={interviewsToday}
+          jobsNeedingAttention={jobsNeedingAttention}
+          loading={jobCandidatesLoading}
+        />
 
         {/* Quick Actions */}
-        <QuickActions />
+        <SimpleQuickActions />
 
         {/* Mobile-specific floating action button */}
         <div className="fixed bottom-6 right-6 md:hidden z-50">
@@ -253,166 +214,50 @@ export default function Dashboard() {
           } />
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <StatCard
-            label="Open Positions"
-            value={openJobsCount}
-            icon={Briefcase}
-            trend={{ value: 12, label: "from last month" }}
-            loading={jobsLoading}
-          />
-          <StatCard
-            label="Total Candidates"
-            value={totalCandidatesCount}
-            icon={Users}
-            trend={{ value: 8, label: "from last month" }}
-            loading={candidatesLoading}
-          />
-          <StatCard
-            label="Active Candidates"
-            value={activeCandidatesCount}
-            icon={UserCheck}
-            loading={jobCandidatesLoading}
-          />
-          <StatCard
-            label="Hired This Month"
-            value={hiredThisMonth}
-            icon={TrendingUp}
-            trend={{ value: 25, label: "increase" }}
-            loading={jobCandidatesLoading}
-          />
-        </div>
-
-        {/* Analytics Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          <PipelineOverview data={pipelineData} loading={jobCandidatesLoading} />
-          <JobsChart data={jobStatusData} loading={jobsLoading} />
-          <AIInsights />
-        </div>
-
-        {/* Performance Overview - Only show if there's data */}
-        {jobCandidatesArray.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {Math.round((jobCandidatesArray.filter((jc: any) => jc.stage === 'hired').length / jobCandidatesArray.length) * 100)}%
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                    style={{ 
-                      width: `${Math.round((jobCandidatesArray.filter((jc: any) => jc.stage === 'hired').length / jobCandidatesArray.length) * 100)}%` 
-                    }}
-                  ></div>
-                </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Avg Time to Hire</span>
-                <span className="text-sm font-semibold text-gray-900">21 days</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '70%' }}></div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Client Satisfaction</span>
-                <span className="text-sm font-semibold text-gray-900">92%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '92%' }}></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        )}
-
-        {/* Activity and Actions Grid - Only show if there's data */}
-        {jobCandidatesArray.length > 0 || jobsArray.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <RecentActivity loading={false} />
-            </div>
-
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <button
-                  onClick={() => window.location.href = '/jobs'}
-                  className="w-full p-4 rounded-lg border border-[#E6F0FF] hover:border-[#264C99] hover:shadow-sm transition-all group bg-white font-[Inter,sans-serif]"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#1F3A5F] flex items-center justify-center">
-                      <Briefcase className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium text-[#1A1A1A] group-hover:text-[#264C99]">
-                        View All Jobs
-                      </div>
-                      <div className="text-sm text-[#5C667B]">
-                        Browse open positions and requirements
-                      </div>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => window.location.href = '/pipeline'}
-                  className="w-full p-4 rounded-lg border border-[#E6F0FF] hover:border-[#264C99] hover:shadow-sm transition-all group bg-white font-[Inter,sans-serif]"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#264C99] flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium text-[#1A1A1A] group-hover:text-[#264C99]">
-                        Pipeline Overview
-                      </div>
-                      <div className="text-sm text-[#5C667B]">
-                        Drag and drop candidates between stages
-                      </div>
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => window.location.href = '/candidates'}
-                  className="w-full p-4 rounded-lg border border-[#E6F0FF] hover:border-[#264C99] hover:shadow-sm transition-all group bg-white font-[Inter,sans-serif]"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#1F3A5F] flex items-center justify-center">
-                      <Users className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="font-medium text-[#1A1A1A] group-hover:text-[#264C99]">
-                        Browse Candidates
-                      </div>
-                      <div className="text-sm text-[#5C667B]">
-                        Search and view candidate profiles
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              </CardContent>
-            </Card>
+        {/* Insights & Trends */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-gray-900">Insights & Trends</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <StatCard
+              label="Open Positions"
+              value={openJobsCount}
+              icon={Briefcase}
+              trend={{ value: 12, label: "from last month" }}
+              loading={jobsLoading}
+            />
+            <StatCard
+              label="Total Candidates"
+              value={totalCandidatesCount}
+              icon={Users}
+              trend={{ value: 8, label: "from last month" }}
+              loading={candidatesLoading}
+            />
+            <StatCard
+              label="Active Candidates"
+              value={activeCandidatesCount}
+              icon={UserCheck}
+              trend={{ value: 5, label: "from last month" }}
+              loading={jobCandidatesLoading}
+            />
+            <StatCard
+              label="Hired This Month"
+              value={hiredThisMonth}
+              icon={TrendingUp}
+              trend={{ value: 25, label: "from last month" }}
+              loading={jobCandidatesLoading}
+            />
           </div>
         </div>
-        ) : null}
+
+        {/* Smart Hiring Tips and Pipeline Snapshot */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SmartHiringTips loading={jobCandidatesLoading} />
+          <PipelineSnapshot loading={jobsLoading} />
+        </div>
+
+        {/* Recent Activity */}
+        <RecentActivity loading={jobCandidatesLoading} />
+
       </div>
     </DashboardLayout>
   )
