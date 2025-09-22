@@ -470,10 +470,11 @@ export class DatabaseStorage implements IStorage {
     try {
       return await this.createUserProfile({
         id: userId,
-        role: 'hiring_manager'
+        role: 'user'
       });
     } catch (error: unknown) {
-      console.warn('Failed to create user profile:', error?.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.warn('Failed to create user profile:', errorMessage);
       
       // If it's a foreign key constraint error, the user doesn't exist in auth.users
       if (error?.message?.includes('foreign key constraint') || error?.message?.includes('violates foreign key')) {

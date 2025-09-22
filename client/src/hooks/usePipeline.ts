@@ -207,7 +207,7 @@ export function useMoveApplication(jobId: string) {
       return { previousData };
     },
     
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       console.log('[useMoveApplication] Move successful - data updated in database');
       
       // Directly update the cache with the returned data to ensure UI stays consistent
@@ -215,7 +215,7 @@ export function useMoveApplication(jobId: string) {
         if (!old || !old.applications) return old;
         
         const updatedApplications = old.applications.map((app: any) => {
-          if (app.id === data.jobCandidate.id) {
+          if (app.id === data.jobCandidate?.id) {
             console.log('[useMoveApplication] Updating cache with server response:', {
               oldColumnId: app.columnId,
               newColumnId: data.jobCandidate.pipeline_column_id,
@@ -239,7 +239,7 @@ export function useMoveApplication(jobId: string) {
       queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
     },
     
-    onError: (error, { candidateId }, context) => {
+    onError: (error, { applicationId }, context) => {
       console.error('[useMoveApplication] Move failed:', error);
       
       // Rollback optimistic update
