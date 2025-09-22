@@ -200,7 +200,9 @@ durations as (
       coalesce(next_changed_at, now()) - changed_at
     )) / 3600.0 as hours_in_stage
   from ordered_events
-  where hours_in_stage > 0 -- avoid negative durations
+  where extract(epoch from (
+    coalesce(next_changed_at, now()) - changed_at
+  )) / 3600.0 > 0 -- avoid negative durations
 )
 select
   job_id,
