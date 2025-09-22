@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Invitation - {{organization_name}}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 30px; text-align: center; }
+        .logo { max-height: 40px; margin-bottom: 15px; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .interview-card { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 30px; margin: 20px 0; border: 1px solid #bae6fd; }
+        .interview-title { font-size: 22px; font-weight: 600; color: #1e293b; margin-bottom: 15px; text-align: center; }
+        .datetime-box { background-color: #ffffff; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #e2e8f0; text-align: center; }
+        .date { font-size: 24px; font-weight: 600; color: #1e3a8a; }
+        .time { font-size: 18px; color: #3b82f6; margin-top: 5px; }
+        .detail-section { margin: 25px 0; }
+        .detail-title { font-weight: 600; color: #1e293b; margin-bottom: 10px; font-size: 16px; }
+        .detail-content { color: #64748b; line-height: 1.6; }
+        .cta-button { display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 500; margin: 10px 5px; }
+        .secondary-button { background-color: #f1f5f9; color: #3b82f6; border: 1px solid #cbd5e1; }
+        .contact-info { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+        @media (max-width: 600px) { .content { padding: 20px; } .cta-button { display: block; margin: 10px 0; text-align: center; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{#if organization_logo}}
+                <img src="{{organization_logo}}" alt="{{organization_name}}" class="logo">
+            {{/if}}
+            <h1>{{organization_name}}</h1>
+        </div>
+        
+        <div class="content">
+            <h2 style="color: #1e293b; text-align: center; margin-bottom: 10px;">You're Invited for an Interview! 🎉</h2>
+            <p style="text-align: center; color: #64748b; margin-bottom: 30px;">Hi {{candidate_name}}, we're excited to move forward with your application.</p>
+            
+            <div class="interview-card">
+                <div class="interview-title">{{interview_type}} Interview</div>
+                <div style="text-align: center; color: #64748b; margin-bottom: 20px;">for {{job_title}}</div>
+                
+                <div class="datetime-box">
+                    <div class="date">{{interview_date}}</div>
+                    <div class="time">{{interview_time}} {{timezone}}</div>
+                    <div style="color: #64748b; margin-top: 10px; font-size: 14px;">Duration: {{interview_duration}}</div>
+                </div>
+                
+                {{#if interview_location}}
+                <div class="detail-section">
+                    <div class="detail-title">📍 Location</div>
+                    <div class="detail-content">{{interview_location}}</div>
+                </div>
+                {{/if}}
+                
+                {{#if meeting_link}}
+                <div class="detail-section">
+                    <div class="detail-title">💻 Virtual Meeting</div>
+                    <div class="detail-content">
+                        <a href="{{meeting_link}}" style="color: #3b82f6; text-decoration: none;">{{meeting_link}}</a>
+                    </div>
+                </div>
+                {{/if}}
+                
+                <div class="detail-section">
+                    <div class="detail-title">👥 Interviewer(s)</div>
+                    <div class="detail-content">{{interviewer_names}}</div>
+                </div>
+                
+                {{#if interview_agenda}}
+                <div class="detail-section">
+                    <div class="detail-title">📋 What to Expect</div>
+                    <div class="detail-content">{{interview_agenda}}</div>
+                </div>
+                {{/if}}
+                
+                {{#if preparation_notes}}
+                <div class="detail-section">
+                    <div class="detail-title">📚 Preparation</div>
+                    <div class="detail-content">{{preparation_notes}}</div>
+                </div>
+                {{/if}}
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{confirm_url}}" class="cta-button">Confirm Attendance</a>
+                {{#if calendar_link}}
+                    <a href="{{calendar_link}}" class="cta-button secondary-button">Add to Calendar</a>
+                {{/if}}
+            </div>
+            
+            {{#if need_to_reschedule}}
+            <p style="color: #64748b; text-align: center; font-size: 14px;">
+                Need to reschedule? <a href="{{reschedule_url}}" style="color: #3b82f6;">Click here</a> to select a different time.
+            </p>
+            {{/if}}
+            
+            <div class="contact-info">
+                <div class="detail-title">Questions? Contact Us</div>
+                <div class="detail-content">
+                    Email: {{recruiter_email}}<br>
+                    {{#if recruiter_phone}}Phone: {{recruiter_phone}}{{/if}}
+                </div>
+            </div>
+            
+            <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
+                We look forward to speaking with you! Please arrive 5 minutes early and bring any questions you may have about the role and our company.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>This interview invitation was sent by {{organization_name}}</p>
+            <p>{{organization_address}}</p>
+        </div>
+    </div>
+</body>
+</html>

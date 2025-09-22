@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to {{organization_name}} - TalentPatriot</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 30px; text-align: center; }
+        .logo { max-height: 40px; margin-bottom: 15px; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .welcome-banner { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 30px; margin: 20px 0; text-align: center; border: 1px solid #bbf7d0; }
+        .welcome-icon { font-size: 64px; margin-bottom: 20px; }
+        .welcome-title { font-size: 28px; font-weight: 600; color: #166534; margin-bottom: 15px; }
+        .welcome-subtitle { color: #15803d; font-size: 16px; }
+        .user-info { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .info-row { margin: 10px 0; }
+        .info-label { font-weight: 600; color: #1e293b; display: inline-block; width: 120px; }
+        .info-value { color: #64748b; }
+        .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 25px 0; }
+        .feature-card { background-color: #f8fafc; border-radius: 8px; padding: 20px; text-align: center; border: 1px solid #e2e8f0; }
+        .feature-icon { font-size: 32px; margin-bottom: 10px; }
+        .feature-title { font-weight: 600; color: #1e293b; margin-bottom: 5px; font-size: 14px; }
+        .feature-desc { color: #64748b; font-size: 12px; line-height: 1.4; }
+        .quick-start { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; padding: 25px; margin: 25px 0; }
+        .step-item { background-color: #ffffff; border-radius: 8px; padding: 15px; margin: 10px 0; border: 1px solid #e2e8f0; display: flex; align-items: center; }
+        .step-number { background-color: #3b82f6; color: #ffffff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; margin-right: 15px; }
+        .step-text { color: #1e293b; font-weight: 500; }
+        .cta-button { display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 500; margin: 10px 5px; }
+        .secondary-button { background-color: #f1f5f9; color: #3b82f6; border: 1px solid #cbd5e1; }
+        .support-section { background-color: #f8fafc; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+        @media (max-width: 600px) { 
+            .content { padding: 20px; } 
+            .feature-grid { grid-template-columns: 1fr; }
+            .cta-button { display: block; margin: 10px 0; text-align: center; }
+            .step-item { flex-direction: column; text-align: center; }
+            .step-number { margin-right: 0; margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{#if organization_logo}}
+                <img src="{{organization_logo}}" alt="{{organization_name}}" class="logo">
+            {{/if}}
+            <h1>{{organization_name}}</h1>
+        </div>
+        
+        <div class="content">
+            <div class="welcome-banner">
+                <div class="welcome-icon">🎉</div>
+                <div class="welcome-title">Welcome to TalentPatriot!</div>
+                <div class="welcome-subtitle">Your recruitment management platform is ready</div>
+            </div>
+            
+            <h2 style="color: #1e293b; margin-bottom: 20px;">Hi {{user_name}}!</h2>
+            
+            {{#if_equals user_role "owner"}}
+            <p style="color: #64748b; line-height: 1.6; font-size: 16px;">
+                Congratulations on setting up your TalentPatriot account! As the <strong>organization owner</strong>, you now have access to a powerful recruitment platform that will help streamline your hiring process and build amazing teams.
+            </p>
+            {{else}}
+            <p style="color: #64748b; line-height: 1.6; font-size: 16px;">
+                Welcome to the team! You've been added to <strong>{{organization_name}}</strong> on TalentPatriot as a <strong>{{user_role}}</strong>. You now have access to powerful recruitment tools to help manage candidates and streamline your hiring process.
+            </p>
+            {{/if_equals}}
+            
+            <div class="user-info">
+                <h3 style="color: #1e293b; margin-bottom: 15px;">Your Account Details</h3>
+                <div class="info-row">
+                    <span class="info-label">Organization:</span>
+                    <span class="info-value">{{organization_name}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Your Role:</span>
+                    <span class="info-value">{{user_role}}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value">{{user_email}}</span>
+                </div>
+                {{#if plan_tier}}
+                <div class="info-row">
+                    <span class="info-label">Plan:</span>
+                    <span class="info-value">{{plan_tier}}</span>
+                </div>
+                {{/if}}
+            </div>
+            
+            <h3 style="color: #1e293b; margin: 30px 0 20px 0;">What You Can Do</h3>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-title">Job Management</div>
+                    <div class="feature-desc">Create and publish job postings with custom pipelines</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <div class="feature-title">Candidate Tracking</div>
+                    <div class="feature-desc">Manage candidates through your recruitment pipeline</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🗓️</div>
+                    <div class="feature-title">Interview Scheduling</div>
+                    <div class="feature-desc">Schedule and manage interviews with team members</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Analytics & Reports</div>
+                    <div class="feature-desc">Track hiring metrics and team performance</div>
+                </div>
+                {{#if_equals user_role "owner"}}
+                <div class="feature-card">
+                    <div class="feature-icon">👨‍💼</div>
+                    <div class="feature-title">Team Management</div>
+                    <div class="feature-desc">Invite team members and manage permissions</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <div class="feature-title">Brand Customization</div>
+                    <div class="feature-desc">Customize your careers page and email templates</div>
+                </div>
+                {{/if_equals}}
+            </div>
+            
+            <div class="quick-start">
+                <h3 style="color: #1e293b; margin-bottom: 20px; text-align: center;">Quick Start Guide</h3>
+                {{#if_equals user_role "owner"}}
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Complete your organization profile and upload your logo</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Invite your team members to collaborate</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Create your first job posting with a custom pipeline</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div class="step-text">Publish your careers page and start receiving applications</div>
+                </div>
+                {{else}}
+                <div class="step-item">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Complete your user profile and preferences</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Explore the dashboard and familiarize yourself with the interface</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Review assigned candidates and current job openings</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div class="step-text">Start collaborating with your team on active recruitments</div>
+                </div>
+                {{/if_equals}}
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{dashboard_url}}" class="cta-button">Go to Dashboard</a>
+                {{#if_equals user_role "owner"}}
+                <a href="{{setup_guide_url}}" class="cta-button secondary-button">Setup Guide</a>
+                {{else}}
+                <a href="{{profile_url}}" class="cta-button secondary-button">Complete Profile</a>
+                {{/if_equals}}
+            </div>
+            
+            <div class="support-section">
+                <h3 style="color: #1e293b; margin-bottom: 15px;">Need Help Getting Started?</h3>
+                <p style="color: #64748b; line-height: 1.6; margin-bottom: 15px;">
+                    Our team is here to help you succeed. Check out these resources:
+                </p>
+                <ul style="color: #64748b; line-height: 1.6; margin-left: 20px;">
+                    <li><a href="{{documentation_url}}" style="color: #3b82f6;">User Documentation & Guides</a></li>
+                    <li><a href="{{video_tutorials_url}}" style="color: #3b82f6;">Video Tutorials</a></li>
+                    <li><a href="{{support_url}}" style="color: #3b82f6;">Contact Support Team</a></li>
+                    {{#if_equals user_role "owner"}}
+                    <li><a href="{{onboarding_call_url}}" style="color: #3b82f6;">Schedule Onboarding Call</a></li>
+                    {{/if_equals}}
+                </ul>
+            </div>
+            
+            {{#if beta_program}}
+            <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <strong style="color: #92400e;">Beta Program Member</strong><br>
+                <span style="color: #a16207; font-size: 14px;">
+                    Thank you for being part of our beta program! Your feedback helps us build a better product. Share your thoughts at {{beta_feedback_email}}.
+                </span>
+            </div>
+            {{/if}}
+            
+            <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-top: 30px;">
+                We're excited to have you on board and look forward to helping you build amazing teams. If you have any questions, don't hesitate to reach out!
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Welcome email sent by TalentPatriot ATS</p>
+            <p>This account was created for {{organization_name}}</p>
+            <p style="font-size: 12px; margin-top: 10px;">
+                <a href="{{unsubscribe_url}}" style="color: #64748b;">Unsubscribe from welcome emails</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

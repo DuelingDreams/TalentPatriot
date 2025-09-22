@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Candidate Alert - {{organization_name}}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background-color: #f8fafc; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 30px; text-align: center; }
+        .logo { max-height: 40px; margin-bottom: 15px; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .alert-box { background-color: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+        .candidate-card { background-color: #f8fafc; border-radius: 12px; padding: 25px; margin: 20px 0; border: 1px solid #e2e8f0; }
+        .candidate-name { font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 10px; }
+        .job-title { color: #3b82f6; font-weight: 500; margin-bottom: 15px; }
+        .detail-row { display: flex; justify-content: space-between; margin: 8px 0; padding: 8px 0; border-bottom: 1px solid #e2e8f0; }
+        .detail-label { font-weight: 500; color: #64748b; }
+        .detail-value { color: #1e293b; }
+        .cta-button { display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500; margin: 20px 0; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #64748b; font-size: 14px; }
+        @media (max-width: 600px) { .content { padding: 20px; } .detail-row { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            {{#if organization_logo}}
+                <img src="{{organization_logo}}" alt="{{organization_name}}" class="logo">
+            {{/if}}
+            <h1>{{organization_name}}</h1>
+        </div>
+        
+        <div class="content">
+            <div class="alert-box">
+                <h2 style="margin: 0; color: #1e293b; font-size: 18px;">🎉 New Candidate Application</h2>
+                <p style="margin: 10px 0 0 0; color: #64748b;">A new candidate has applied for one of your positions.</p>
+            </div>
+            
+            <div class="candidate-card">
+                <div class="candidate-name">{{candidate_name}}</div>
+                <div class="job-title">Applied for: {{job_title}}</div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Email:</span>
+                    <span class="detail-value">{{candidate_email}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Phone:</span>
+                    <span class="detail-value">{{candidate_phone}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Location:</span>
+                    <span class="detail-value">{{candidate_location}}</span>
+                </div>
+                
+                <div class="detail-row">
+                    <span class="detail-label">Applied:</span>
+                    <span class="detail-value">{{application_date}}</span>
+                </div>
+                
+                {{#if candidate_experience}}
+                <div class="detail-row">
+                    <span class="detail-label">Experience:</span>
+                    <span class="detail-value">{{candidate_experience}}</span>
+                </div>
+                {{/if}}
+                
+                {{#if resume_url}}
+                <div style="margin-top: 20px;">
+                    <a href="{{resume_url}}" style="color: #3b82f6; text-decoration: none; font-weight: 500;">📄 View Resume</a>
+                </div>
+                {{/if}}
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{{candidate_profile_url}}" class="cta-button">Review Candidate Profile</a>
+            </div>
+            
+            <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
+                This candidate has been automatically added to your pipeline. You can review their application, schedule interviews, and move them through your hiring process from your dashboard.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>This notification was sent by {{organization_name}} via TalentPatriot ATS</p>
+            <p>{{organization_address}}</p>
+        </div>
+    </div>
+</body>
+</html>
