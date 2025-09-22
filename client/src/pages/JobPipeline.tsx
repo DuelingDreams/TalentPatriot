@@ -20,7 +20,7 @@ import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { useAuth } from '@/contexts/AuthContext'
-import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical } from 'lucide-react'
+import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock } from 'lucide-react'
 import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
 import { Link } from 'wouter'
 
@@ -916,13 +916,42 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
 
   const styling = getColumnStyling(column.id, column.title)
   
-  // Calculate average time in stage (mock calculation for now)
+  // Calculate average time in stage with dynamic data
   const calculateAverageTime = () => {
-    if (applications.length === 0) return '0 days'
+    if (applications.length === 0) return '-'
     
-    // Mock calculation - in a real app, you'd calculate based on actual timestamps
-    const mockAverageDays = Math.floor(Math.random() * 7) + 1
-    return `${mockAverageDays} day${mockAverageDays !== 1 ? 's' : ''}`
+    try {
+      const now = new Date()
+      const stageTransitions = applications
+        .map(app => {
+          // Try to get the most recent stage entry date
+          const appliedDate = app.appliedAt || app.created_at || app.updatedAt
+          if (!appliedDate) return null
+          
+          const entryDate = new Date(appliedDate)
+          if (isNaN(entryDate.getTime())) return null
+          
+          // Calculate days in current stage
+          const daysInStage = Math.floor((now.getTime() - entryDate.getTime()) / (1000 * 60 * 60 * 24))
+          return Math.max(0, daysInStage) // Ensure non-negative
+        })
+        .filter(days => days !== null) as number[]
+      
+      if (stageTransitions.length === 0) return '-'
+      
+      // Calculate average
+      const averageDays = Math.round(
+        stageTransitions.reduce((sum, days) => sum + days, 0) / stageTransitions.length
+      )
+      
+      if (averageDays === 0) return '<1 day'
+      if (averageDays === 1) return '1 day'
+      return `${averageDays} days`
+      
+    } catch (error) {
+      console.warn('Error calculating average time in stage:', error)
+      return '-'
+    }
   }
 
   const handleAddCandidate = () => {
@@ -944,9 +973,10 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
                 <span className={`text-sm ${styling.headerText} opacity-75`}>
                   {applications.length} candidate{applications.length !== 1 ? 's' : ''}
                 </span>
-                <span className={`text-xs ${styling.headerText} opacity-60`}>
-                  Avg: {calculateAverageTime()}
-                </span>
+                <div className={`flex items-center gap-1 text-xs ${styling.headerText} opacity-60`}>
+                  <Clock className="w-3 h-3" />
+                  <span>{calculateAverageTime()}</span>
+                </div>
               </div>
             </div>
             <Badge 
