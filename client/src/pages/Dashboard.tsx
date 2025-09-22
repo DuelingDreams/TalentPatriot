@@ -249,6 +249,9 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Smart Alerts for Job Health */}
+        <SmartAlerts orgId={currentOrgId || ''} />
+
         {/* Smart Hiring Tips and Pipeline Snapshot */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SmartHiringTips loading={jobCandidatesLoading} />

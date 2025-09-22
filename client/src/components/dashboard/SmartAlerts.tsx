@@ -9,9 +9,11 @@ import {
   Calendar,
   X,
   ChevronRight,
-  Bell
+  Bell,
+  TrendingDown
 } from 'lucide-react'
 import { Link } from 'wouter'
+import { useQuery } from '@tanstack/react-query'
 
 interface AlertItem {
   id: string
@@ -26,15 +28,66 @@ interface AlertItem {
 }
 
 interface SmartAlertsProps {
-  alerts?: AlertItem[]
+  orgId: string
   onDismiss?: (alertId: string) => void
 }
 
-export function SmartAlerts({ alerts, onDismiss }: SmartAlertsProps) {
+export function SmartAlerts({ orgId, onDismiss }: SmartAlertsProps) {
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
 
-  // Use provided alerts or empty array for real users
-  const displayAlerts: AlertItem[] = alerts || []
+  // Fetch job health data from analytics endpoint
+  const { data: jobHealthData, isLoading, error } = useQuery({
+    queryKey: ['/api/analytics/job-health', orgId],
+    queryFn: async () => {
+      const response = await fetch(`/api/analytics/job-health?orgId=${orgId}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch job health data')
+      }
+      return response.json()
+    },
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  })
+
+  // Transform job health data into alerts
+  const healthAlerts: AlertItem[] = (jobHealthData || [])
+    .filter((job: any) => job.health_status !== 'Healthy' && job.health_status !== 'Closed')
+    .map((job: any) => {
+      const urgencyLevel = job.health_status === 'Stale' ? 'urgent' : 'warning'
+      
+      let title = ''
+      let description = ''
+      
+      if (job.health_status === 'Stale') {
+        title = `Stale job: ${job.title}`
+        description = `No recent activity. Last movement: ${job.last_active_move ? new Date(job.last_active_move).toLocaleDateString() : 'No activity'}`
+      } else if (job.health_status === 'Needs Attention') {
+        title = `Job needs attention: ${job.title}`
+        if (job.total_candidates === 0) {
+          description = 'No candidates yet. Consider reviewing job requirements or posting strategy.'
+        } else {
+          description = `${job.total_candidates} candidates but pipeline may be stuck. Review recent activity.`
+        }
+      } else if (job.health_status === 'No Candidates') {
+        title = `No candidates: ${job.title}`
+        description = 'This job has received no applications yet. Consider updating the job description or requirements.'
+      }
+
+      return {
+        id: `job-health-${job.job_id}`,
+        type: urgencyLevel,
+        title,
+        description,
+        action: {
+          label: 'View Job Pipeline',
+          href: `/pipeline/${job.job_id}`
+        },
+        dismissible: true
+      }
+    })
+
+  // Combine health alerts with loading state
+  const displayAlerts: AlertItem[] = isLoading ? [] : healthAlerts
 
   const handleDismiss = (alertId: string) => {
     setDismissedAlerts(prev => new Set(Array.from(prev).concat(alertId)))
