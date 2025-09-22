@@ -204,18 +204,19 @@ export default function ProfessionalCandidates() {
 
   // Create a map of candidate applications - memoized for performance
   const candidateApplications = useMemo(() => {
-    return jobCandidates?.reduce((acc: Record<string, JobCandidate[]>, jc: JobCandidate) => {
+    if (!Array.isArray(jobCandidates)) return {}
+    return jobCandidates.reduce((acc: Record<string, JobCandidate[]>, jc: JobCandidate) => {
       if (!acc[jc.candidateId]) {
         acc[jc.candidateId] = []
       }
       acc[jc.candidateId].push(jc)
       return acc
-    }, {} as Record<string, typeof jobCandidates>)
+    }, {} as Record<string, JobCandidate[]>)
   }, [jobCandidates])
 
   // Filter candidates - memoized for performance
   const filteredCandidates = useMemo(() => {
-    if (!candidates) return []
+    if (!Array.isArray(candidates)) return []
     
     return candidates.filter((candidate: Candidate) => {
       const matchesSearch = candidate.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
@@ -291,9 +292,9 @@ export default function ProfessionalCandidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
-                {jobCandidates?.filter((jc: JobCandidate) => 
-                  ['screening', 'interview', 'technical', 'reference', 'offer'].includes(jc.stage)
-                ).length || 0}
+                {Array.isArray(jobCandidates) ? jobCandidates.filter((jc: JobCandidate) => 
+                  ['phone_screen', 'interview', 'technical', 'final', 'offer'].includes(jc.stage)
+                ).length : 0}
               </div>
               <p className="text-xs text-slate-500 mt-1">In process</p>
             </CardContent>
@@ -308,12 +309,12 @@ export default function ProfessionalCandidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
-                {candidates?.filter((candidate: Candidate) => {
+                {Array.isArray(candidates) ? candidates.filter((candidate: Candidate) => {
                   const createdDate = new Date(candidate.createdAt)
                   const weekAgo = new Date()
                   weekAgo.setDate(weekAgo.getDate() - 7)
                   return createdDate >= weekAgo
-                }).length || 0}
+                }).length : 0}
               </div>
               <p className="text-xs text-slate-500 mt-1">Recent additions</p>
             </CardContent>
@@ -379,8 +380,8 @@ export default function ProfessionalCandidates() {
         {/* Tabs */}
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="all">All Candidates ({candidates?.length || 0})</TabsTrigger>
-            <TabsTrigger value="active">Active ({jobCandidates?.filter((jc: JobCandidate) => ['screening', 'interview', 'technical'].includes(jc.stage)).length || 0})</TabsTrigger>
+            <TabsTrigger value="all">All Candidates ({Array.isArray(candidates) ? candidates.length : 0})</TabsTrigger>
+            <TabsTrigger value="active">Active ({Array.isArray(jobCandidates) ? jobCandidates.filter((jc: JobCandidate) => ['phone_screen', 'interview', 'technical'].includes(jc.stage)).length : 0})</TabsTrigger>
             <TabsTrigger value="new">New This Week</TabsTrigger>
             <TabsTrigger value="favorites">Favorites</TabsTrigger>
           </TabsList>
