@@ -169,7 +169,8 @@ export default function Candidates() {
   }
   
   // Filter candidates based on search and tab
-  const filteredCandidates = candidates?.filter((candidate: any) => {
+  const candidatesArray = Array.isArray(candidates) ? candidates : []
+  const filteredCandidates = candidatesArray.filter((candidate: any) => {
     const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          candidate.email.toLowerCase().includes(searchQuery.toLowerCase())
     
@@ -189,18 +190,18 @@ export default function Candidates() {
   }) || []
 
   // Calculate stats
-  const totalCandidates = candidates?.length || 0
-  const activeCandidates = candidates?.filter((c: any) => c.status === 'active').length || 0
+  const totalCandidates = candidatesArray.length
+  const activeCandidates = candidatesArray.filter((c: any) => c.status === 'active').length
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  const newThisWeek = candidates?.filter((c: any) => {
+  const newThisWeek = candidatesArray.filter((c: any) => {
     try {
       const candidateDate = new Date(c.createdAt)
       return !isNaN(candidateDate.getTime()) && candidateDate >= oneWeekAgo
     } catch {
       return false
     }
-  }).length || 0
-  const favoriteCandidates = candidates?.filter((c: any) => c.status === 'favorite').length || 0
+  }).length
+  const favoriteCandidates = candidatesArray.filter((c: any) => c.status === 'favorite').length
 
   return (
     <DashboardLayout pageTitle="Candidates">
