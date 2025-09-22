@@ -135,15 +135,26 @@ export function useMoveApplication(jobId: string) {
     mutationFn: async ({ candidateId, columnId }: { candidateId: string; columnId: string }) => {
       
       // Validate required parameters
-      if (!candidateId || !columnId || !jobId) {
-        throw new Error('Missing required parameters for moving application');
+      if (!candidateId || !columnId || !jobId || !currentOrgId) {
+        throw new Error(`Missing required parameters: candidateId=${!!candidateId}, columnId=${!!columnId}, jobId=${!!jobId}, orgId=${!!currentOrgId}`);
       }
       
-      // Use the correct API endpoint that matches the server route
-      await apiRequest(`/api/jobs/${jobId}/candidates/${candidateId}/move`, {
-        method: 'PATCH',
-        body: JSON.stringify({ columnId }),
+      console.log('[useMoveApplication] API call with:', { 
+        candidateId, 
+        columnId, 
+        jobId, 
+        orgId: currentOrgId,
+        endpoint: `/api/jobs/${jobId}/candidates/${candidateId}/move`
       });
+      
+      // Use the correct API endpoint that matches the server route
+      const response = await apiRequest(`/api/jobs/${jobId}/candidates/${candidateId}/move`, {
+        method: 'PATCH',
+        body: JSON.stringify({ columnId })
+      });
+      
+      console.log('[useMoveApplication] API response:', response);
+      return response;
     },
     
     // Optimistic update: immediately update UI before API call completes

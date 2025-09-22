@@ -1214,23 +1214,50 @@ export class DatabaseStorage implements IStorage {
 
 
 
-  async moveJobCandidate(candidateId: string, newColumnId: string): Promise<JobCandidate> {
-    console.log(`[moveJobCandidate] Starting move: candidateId=${candidateId}, newColumnId=${newColumnId}`);
+  async moveJobCandidate(applicationOrCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    console.log(`[moveJobCandidate] Starting move: applicationOrCandidateId=${applicationOrCandidateId}, newColumnId=${newColumnId}`);
     
-    // First find the job_candidate record by candidate_id
-    const { data: jobCandidateData, error: findError } = await supabase
+    // Try to find the job_candidate record - first try by ID (application ID)
+    let jobCandidateData;
+    let findError;
+    
+    // First attempt: Try by job_candidate.id (application ID)
+    const { data: byIdData, error: byIdError } = await supabase
       .from('job_candidate')
       .select('id, pipeline_column_id, stage, candidate_id')
-      .eq('candidate_id', candidateId)
+      .eq('id', applicationOrCandidateId)
       .single();
     
-    if (findError || !jobCandidateData) {
-      console.error(`[moveJobCandidate] Job candidate lookup failed:`, findError);
-      throw new Error(`Job candidate not found for candidate ID: ${candidateId}`);
+    if (byIdData && !byIdError) {
+      jobCandidateData = byIdData;
+      console.log(`[moveJobCandidate] Found by application ID: ${applicationOrCandidateId}`);
+    } else {
+      // Second attempt: Try by candidate_id
+      const { data: byCandidateData, error: byCandidateError } = await supabase
+        .from('job_candidate')
+        .select('id, pipeline_column_id, stage, candidate_id')
+        .eq('candidate_id', applicationOrCandidateId)
+        .single();
+      
+      if (byCandidateData && !byCandidateError) {
+        jobCandidateData = byCandidateData;
+        console.log(`[moveJobCandidate] Found by candidate ID: ${applicationOrCandidateId}`);
+      } else {
+        findError = byCandidateError;
+      }
+    }
+    
+    if (!jobCandidateData) {
+      console.error(`[moveJobCandidate] Job candidate lookup failed:`, {
+        applicationOrCandidateId,
+        byIdError,
+        byCandidateError: findError
+      });
+      throw new Error(`Job candidate not found for ID: ${applicationOrCandidateId}`);
     }
     
     const jobCandidateId = jobCandidateData.id;
-    console.log(`[moveJobCandidate] Found job_candidate ID: ${jobCandidateId} for candidate ID: ${candidateId}`);
+    console.log(`[moveJobCandidate] Using job_candidate ID: ${jobCandidateId} for input ID: ${applicationOrCandidateId}`);
     
     // First get the column to determine the stage
     const { data: columnData, error: columnError } = await supabase
