@@ -17,13 +17,13 @@ create table if not exists public.stage_order (
   display_name text not null
 );
 
--- Insert stage order data matching your existing enum and UI expectations
+-- Insert stage order data matching your frontend UI expectations
 insert into public.stage_order(stage, position, display_name) values
   ('applied', 1, 'Applied'),
-  ('screening', 2, 'Screen'),
+  ('screening', 2, 'Screening'),
   ('interview', 3, 'Interview'),
   ('technical', 4, 'Technical'),
-  ('final', 5, 'Final'),
+  ('reference', 5, 'Reference'),
   ('offer', 6, 'Offer'),
   ('hired', 7, 'Hired'),
   ('rejected', 8, 'Rejected')
@@ -55,10 +55,10 @@ create table if not exists public.job_pipeline_stage_events (
   
   -- Add constraints to ensure valid stage values
   constraint valid_from_stage check (
-    from_stage is null or from_stage in ('applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected')
+    from_stage is null or from_stage in ('applied', 'screening', 'interview', 'technical', 'reference', 'offer', 'hired', 'rejected')
   ),
   constraint valid_to_stage check (
-    to_stage in ('applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected')
+    to_stage in ('applied', 'screening', 'interview', 'technical', 'reference', 'offer', 'hired', 'rejected')
   )
 );
 
@@ -230,7 +230,7 @@ stage_counts as (
     sum(case when stage = 'screening' then candidate_count else 0 end) as c_screening,
     sum(case when stage = 'interview' then candidate_count else 0 end) as c_interview,
     sum(case when stage = 'technical' then candidate_count else 0 end) as c_technical,
-    sum(case when stage = 'final' then candidate_count else 0 end) as c_final,
+    sum(case when stage = 'reference' then candidate_count else 0 end) as c_reference,
     sum(case when stage = 'offer' then candidate_count else 0 end) as c_offer,
     sum(case when stage = 'hired' then candidate_count else 0 end) as c_hired,
     sum(case when stage = 'rejected' then candidate_count else 0 end) as c_rejected,
@@ -247,7 +247,7 @@ select
   coalesce(sc.c_screening, 0) as screening_count,
   coalesce(sc.c_interview, 0) as interview_count,
   coalesce(sc.c_technical, 0) as technical_count,
-  coalesce(sc.c_final, 0) as final_count,
+  coalesce(sc.c_reference, 0) as reference_count,
   coalesce(sc.c_offer, 0) as offer_count,
   coalesce(sc.c_hired, 0) as hired_count,
   coalesce(sc.c_rejected, 0) as rejected_count,
@@ -257,7 +257,7 @@ select
     when la.last_active_move is null and coalesce(sc.c_total, 0) = 0 then 'No Candidates'
     when la.last_active_move is null then 'Needs Attention'
     when la.last_active_move < now() - interval '14 days' then 'Stale'
-    when coalesce(sc.c_interview, 0) + coalesce(sc.c_technical, 0) + coalesce(sc.c_final, 0) = 0 
+    when coalesce(sc.c_interview, 0) + coalesce(sc.c_technical, 0) + coalesce(sc.c_reference, 0) = 0 
          and (coalesce(sc.c_applied, 0) + coalesce(sc.c_screening, 0)) > 0
          and la.last_any_move < now() - interval '7 days' then 'Needs Attention'
     else 'Healthy'
@@ -303,7 +303,7 @@ select
   coalesce(sum(case when c.stage = 'screening' then c.candidate_count else 0 end), 0) as screening,
   coalesce(sum(case when c.stage = 'interview' then c.candidate_count else 0 end), 0) as interview,
   coalesce(sum(case when c.stage = 'technical' then c.candidate_count else 0 end), 0) as technical,
-  coalesce(sum(case when c.stage = 'final' then c.candidate_count else 0 end), 0) as final,
+  coalesce(sum(case when c.stage = 'reference' then c.candidate_count else 0 end), 0) as reference,
   coalesce(sum(case when c.stage = 'offer' then c.candidate_count else 0 end), 0) as offer,
   coalesce(sum(case when c.stage = 'hired' then c.candidate_count else 0 end), 0) as hired,
   coalesce(sum(case when c.stage = 'rejected' then c.candidate_count else 0 end), 0) as rejected,
