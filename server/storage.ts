@@ -13,6 +13,9 @@ import {
   messages,
   messageRecipients,
   betaApplications,
+  organizationEmailSettings,
+  emailTemplates,
+  emailEvents,
   type UserProfile,
   type UserSettings,
   type Organization,
@@ -27,6 +30,9 @@ import {
   type Message,
   type MessageRecipient,
   type BetaApplication,
+  type OrganizationEmailSettings,
+  type EmailTemplate,
+  type EmailEvent,
   type InsertUserProfile,
   type InsertUserSettings,
   type InsertOrganization,
@@ -40,7 +46,10 @@ import {
   type InsertInterview,
   type InsertMessage,
   type InsertMessageRecipient,
-  type InsertBetaApplication
+  type InsertBetaApplication,
+  type InsertOrganizationEmailSettings,
+  type InsertEmailTemplate,
+  type InsertEmailEvent
 } from "@shared/schema";
 import { createClient } from '@supabase/supabase-js';
 import { atsEmailService } from './emailService';
@@ -369,6 +378,16 @@ export interface IStorage {
   createBetaApplication(betaApplication: InsertBetaApplication): Promise<BetaApplication>;
   updateBetaApplication(id: string, betaApplication: Partial<InsertBetaApplication>): Promise<BetaApplication>;
   deleteBetaApplication(id: string): Promise<void>;
+  
+  // Email Management
+  getOrganizationEmailSettings(orgId: string): Promise<OrganizationEmailSettings | undefined>;
+  updateOrganizationEmailSettings(orgId: string, settings: Partial<InsertOrganizationEmailSettings>): Promise<OrganizationEmailSettings>;
+  getEmailTemplates(orgId: string): Promise<EmailTemplate[]>;
+  createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
+  updateEmailTemplate(templateId: string, orgId: string, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate>;
+  deleteEmailTemplate(templateId: string, orgId: string): Promise<void>;
+  getEmailEvents(orgId: string, options?: { limit?: number; eventType?: string; status?: string }): Promise<EmailEvent[]>;
+  createEmailEvent(event: InsertEmailEvent): Promise<EmailEvent>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -3500,6 +3519,232 @@ export class DatabaseStorage implements IStorage {
       return (data || []) as DashboardActivityData[]
     } catch (err) {
       console.error('Dashboard activity fetch exception:', err)
+      throw err
+    }
+  }
+
+  // Email Management Methods
+  
+  async getOrganizationEmailSettings(orgId: string): Promise<OrganizationEmailSettings | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('organization_email_settings')
+        .select('*')
+        .eq('org_id', orgId)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') return undefined
+        throw new Error(`Failed to fetch email settings: ${error.message}`)
+      }
+
+      return data as OrganizationEmailSettings
+    } catch (err) {
+      console.error('Error fetching organization email settings:', err)
+      throw err
+    }
+  }
+
+  async updateOrganizationEmailSettings(orgId: string, settings: Partial<InsertOrganizationEmailSettings>): Promise<OrganizationEmailSettings> {
+    try {
+      const { data, error } = await supabase
+        .from('organization_email_settings')
+        .upsert({
+          org_id: orgId,
+          from_email: settings.fromEmail,
+          from_name: settings.fromName,
+          reply_to_email: settings.replyToEmail,
+          company_logo_url: settings.companyLogoUrl,
+          brand_color: settings.brandColor,
+          brand_secondary_color: settings.brandSecondaryColor,
+          company_website: settings.companyWebsite,
+          company_address: settings.companyAddress,
+          enabled_events: settings.enabledEvents,
+          email_signature: settings.emailSignature,
+        }, { onConflict: 'org_id' })
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to update email settings: ${error.message}`)
+      }
+
+      return data as OrganizationEmailSettings
+    } catch (err) {
+      console.error('Error updating organization email settings:', err)
+      throw err
+    }
+  }
+
+  async getEmailTemplates(orgId: string): Promise<EmailTemplate[]> {
+    try {
+      const { data, error } = await supabase
+        .from('email_templates')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('template_type', { ascending: true })
+
+      if (error) {
+        throw new Error(`Failed to fetch email templates: ${error.message}`)
+      }
+
+      return (data || []) as EmailTemplate[]
+    } catch (err) {
+      console.error('Error fetching email templates:', err)
+      throw err
+    }
+  }
+
+  async createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate> {
+    try {
+      const { data, error } = await supabase
+        .from('email_templates')
+        .insert({
+          org_id: template.orgId,
+          template_type: template.templateType,
+          template_name: template.templateName,
+          sendgrid_template_id: template.sendgridTemplateId,
+          fallback_subject: template.fallbackSubject,
+          fallback_html: template.fallbackHtml,
+          fallback_text: template.fallbackText,
+          template_variables: template.templateVariables,
+          is_active: template.isActive,
+          is_default: template.isDefault,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to create email template: ${error.message}`)
+      }
+
+      return data as EmailTemplate
+    } catch (err) {
+      console.error('Error creating email template:', err)
+      throw err
+    }
+  }
+
+  async updateEmailTemplate(templateId: string, orgId: string, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate> {
+    try {
+      const { data, error } = await supabase
+        .from('email_templates')
+        .update({
+          template_name: template.templateName,
+          sendgrid_template_id: template.sendgridTemplateId,
+          fallback_subject: template.fallbackSubject,
+          fallback_html: template.fallbackHtml,
+          fallback_text: template.fallbackText,
+          template_variables: template.templateVariables,
+          is_active: template.isActive,
+        })
+        .eq('id', templateId)
+        .eq('org_id', orgId) // Verify template belongs to organization
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to update email template: ${error.message}`)
+      }
+
+      if (!data) {
+        throw new Error('Email template not found or access denied')
+      }
+
+      return data as EmailTemplate
+    } catch (err) {
+      console.error('Error updating email template:', err)
+      throw err
+    }
+  }
+
+  async deleteEmailTemplate(templateId: string, orgId: string): Promise<void> {
+    try {
+      const { data, error } = await supabase
+        .from('email_templates')
+        .delete()
+        .eq('id', templateId)
+        .eq('org_id', orgId) // Verify template belongs to organization
+        .select()
+
+      if (error) {
+        throw new Error(`Failed to delete email template: ${error.message}`)
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error('Email template not found or access denied')
+      }
+    } catch (err) {
+      console.error('Error deleting email template:', err)
+      throw err
+    }
+  }
+
+  async getEmailEvents(orgId: string, options: {
+    limit?: number;
+    eventType?: string;
+    status?: string;
+  } = {}): Promise<EmailEvent[]> {
+    try {
+      let query = supabase
+        .from('email_events')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('sent_at', { ascending: false })
+
+      if (options.eventType) {
+        query = query.eq('event_type', options.eventType)
+      }
+
+      if (options.status) {
+        query = query.eq('status', options.status)
+      }
+
+      if (options.limit) {
+        query = query.limit(options.limit)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        throw new Error(`Failed to fetch email events: ${error.message}`)
+      }
+
+      return (data || []) as EmailEvent[]
+    } catch (err) {
+      console.error('Error fetching email events:', err)
+      throw err
+    }
+  }
+
+  async createEmailEvent(event: InsertEmailEvent): Promise<EmailEvent> {
+    try {
+      const { data, error } = await supabase
+        .from('email_events')
+        .insert({
+          org_id: event.orgId,
+          event_type: event.eventType,
+          recipient_email: event.recipientEmail,
+          recipient_name: event.recipientName,
+          sendgrid_message_id: event.sendgridMessageId,
+          template_id: event.templateId,
+          job_id: event.jobId,
+          candidate_id: event.candidateId,
+          status: event.status,
+          error_message: event.errorMessage,
+          template_data: event.templateData,
+          metadata: event.metadata,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to create email event: ${error.message}`)
+      }
+
+      return data as EmailEvent
+    } catch (err) {
+      console.error('Error creating email event:', err)
       throw err
     }
   }

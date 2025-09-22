@@ -14,7 +14,8 @@ import {
   MessageSquare,
   HelpCircle, 
   BarChart3,
-  Globe
+  Globe,
+  Mail
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -38,6 +39,7 @@ const navigationItems = [
   { label: 'Candidates', href: '/candidates', icon: Users, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
+  { label: 'Email Settings', href: '/admin/email-settings', icon: Mail, roles: ['admin'] },
   { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
 ]
 

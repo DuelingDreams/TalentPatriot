@@ -893,6 +893,124 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Email Management Endpoints
+  
+  // Get organization email settings
+  app.get('/api/organizations/:orgId/email-settings', requireAuth, requireOrgAdmin, async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      const settings = await storage.getOrganizationEmailSettings(orgId);
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching email settings:', error);
+      res.status(500).json({ error: 'Failed to fetch email settings' });
+    }
+  });
+
+  // Update organization email settings
+  app.put('/api/organizations/:orgId/email-settings', requireAuth, requireOrgAdmin, async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      
+      // Validate request body
+      const { insertOrganizationEmailSettingsSchema } = await import('@shared/schema');
+      const validatedData = insertOrganizationEmailSettingsSchema.parse(req.body);
+      
+      const settings = await storage.updateOrganizationEmailSettings(orgId, validatedData);
+      res.json(settings);
+    } catch (error) {
+      console.error('Error updating email settings:', error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ error: 'Invalid request data', details: error.issues });
+      } else {
+        res.status(500).json({ error: 'Failed to update email settings' });
+      }
+    }
+  });
+
+  // Get email templates for organization
+  app.get('/api/organizations/:orgId/email-templates', requireAuth, requireRecruiting, async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      const templates = await storage.getEmailTemplates(orgId);
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching email templates:', error);
+      res.status(500).json({ error: 'Failed to fetch email templates' });
+    }
+  });
+
+  // Create email template
+  app.post('/api/organizations/:orgId/email-templates', requireAuth, requireOrgAdmin, async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      
+      // Validate request body
+      const { insertEmailTemplateSchema } = await import('@shared/schema');
+      const validatedData = insertEmailTemplateSchema.parse({ ...req.body, orgId });
+      
+      const template = await storage.createEmailTemplate(validatedData);
+      res.status(201).json(template);
+    } catch (error) {
+      console.error('Error creating email template:', error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ error: 'Invalid request data', details: error.issues });
+      } else {
+        res.status(500).json({ error: 'Failed to create email template' });
+      }
+    }
+  });
+
+  // Update email template
+  app.put('/api/organizations/:orgId/email-templates/:templateId', requireAuth, requireOrgAdmin, async (req, res) => {
+    try {
+      const { orgId, templateId } = req.params;
+      
+      // Validate request body (partial update)
+      const { insertEmailTemplateSchema } = await import('@shared/schema');
+      const validatedData = insertEmailTemplateSchema.partial().parse(req.body);
+      
+      const template = await storage.updateEmailTemplate(templateId, orgId, validatedData);
+      res.json(template);
+    } catch (error) {
+      console.error('Error updating email template:', error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ error: 'Invalid request data', details: error.issues });
+      } else {
+        res.status(500).json({ error: 'Failed to update email template' });
+      }
+    }
+  });
+
+  // Delete email template
+  app.delete('/api/organizations/:orgId/email-templates/:templateId', requireAuth, requireOrgAdmin, async (req, res) => {
+    try {
+      const { orgId, templateId } = req.params;
+      await storage.deleteEmailTemplate(templateId, orgId);
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting email template:', error);
+      res.status(500).json({ error: 'Failed to delete email template' });
+    }
+  });
+
+  // Get email events for organization (analytics)
+  app.get('/api/organizations/:orgId/email-events', requireAuth, requireRecruiting, async (req, res) => {
+    try {
+      const { orgId } = req.params;
+      const { limit = 50, eventType, status } = req.query;
+      const events = await storage.getEmailEvents(orgId, {
+        limit: Number(limit),
+        eventType: eventType as string,
+        status: status as string
+      });
+      res.json(events);
+    } catch (error) {
+      console.error('Error fetching email events:', error);
+      res.status(500).json({ error: 'Failed to fetch email events' });
+    }
+  });
+
   // Reports & Analytics endpoints
   app.get('/api/reports/metrics', async (req, res) => {
     try {
