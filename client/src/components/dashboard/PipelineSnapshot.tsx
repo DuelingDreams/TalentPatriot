@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Link } from 'wouter'
+import { ArrowRight } from 'lucide-react'
 
 interface JobPipelineData {
   id: string
@@ -8,7 +10,7 @@ interface JobPipelineData {
   totalCandidates: number
   stages: {
     applied: number
-    screen: number
+    screening: number
     interview: number
     offer: number
     hired: number
@@ -16,61 +18,53 @@ interface JobPipelineData {
 }
 
 interface PipelineSnapshotProps {
-  jobs?: JobPipelineData[]
+  jobs?: any[]
+  jobCandidates?: any[]
   loading?: boolean
 }
 
-export function PipelineSnapshot({ jobs = [], loading = false }: PipelineSnapshotProps) {
-  // Mock data based on the mockup
-  const mockJobs: JobPipelineData[] = [
-    {
-      id: '1',
-      title: 'Cloud Engineer',
-      totalCandidates: 5,
-      stages: {
-        applied: 1,
-        screen: 1,
-        interview: 2,
-        offer: 1,
-        hired: 0
+export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = false }: PipelineSnapshotProps) {
+  // Process real data to create pipeline snapshot
+  const processJobData = (): JobPipelineData[] => {
+    if (!jobs || jobs.length === 0) return []
+    
+    // Get top 3 open jobs
+    const openJobs = jobs
+      .filter((job: any) => job.status === 'open')
+      .slice(0, 3)
+    
+    return openJobs.map((job: any) => {
+      // Get candidates for this specific job
+      const jobCandidatesForJob = jobCandidates.filter((jc: any) => jc.job_id === job.id)
+      
+      // Count candidates by stage
+      const stageCounts = {
+        applied: jobCandidatesForJob.filter((jc: any) => jc.stage === 'applied').length,
+        screening: jobCandidatesForJob.filter((jc: any) => jc.stage === 'screening').length,
+        interview: jobCandidatesForJob.filter((jc: any) => jc.stage === 'interview').length,
+        offer: jobCandidatesForJob.filter((jc: any) => jc.stage === 'offer').length,
+        hired: jobCandidatesForJob.filter((jc: any) => jc.stage === 'hired').length
       }
-    },
-    {
-      id: '2', 
-      title: 'DevOps Engineer',
-      totalCandidates: 9,
-      stages: {
-        applied: 3,
-        screen: 2,
-        interview: 3,
-        offer: 1,
-        hired: 0
+      
+      return {
+        id: job.id,
+        title: job.title,
+        totalCandidates: jobCandidatesForJob.length,
+        stages: stageCounts
       }
-    },
-    {
-      id: '3',
-      title: 'Software Engineer', 
-      totalCandidates: 14,
-      stages: {
-        applied: 5,
-        screen: 4,
-        interview: 3,
-        offer: 1,
-        hired: 1
-      }
-    }
-  ]
+    })
+  }
 
-  const displayJobs = jobs.length > 0 ? jobs : mockJobs
+  const displayJobs = processJobData()
 
   const getStageColor = (stage: string) => {
     switch (stage) {
-      case 'applied': return 'bg-gray-400'
-      case 'screen': return 'bg-blue-500'
+      case 'applied': return 'bg-gray-500'
+      case 'screening': return 'bg-blue-500'
       case 'interview': return 'bg-yellow-500'
       case 'offer': return 'bg-purple-500'
       case 'hired': return 'bg-green-500'
-      default: return 'bg-gray-400'
+      default: return 'bg-gray-500'
     }
   }
 
@@ -108,7 +102,15 @@ export function PipelineSnapshot({ jobs = [], loading = false }: PipelineSnapsho
   return (
     <Card data-testid="pipeline-snapshot">
       <CardHeader>
-        <CardTitle className="text-lg">Pipeline Snapshot</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">Pipeline Snapshot</CardTitle>
+          <Link href="/pipeline">
+            <Button variant="outline" size="sm" className="text-xs" data-testid="see-all-pipelines-btn">
+              See All Pipelines
+              <ArrowRight className="w-3 h-3 ml-1" />
+            </Button>
+          </Link>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {displayJobs.map((job) => (
@@ -157,7 +159,8 @@ export function PipelineSnapshot({ jobs = [], loading = false }: PipelineSnapsho
         
         {displayJobs.length === 0 && (
           <div className="text-center py-8">
-            <p className="text-sm text-gray-500">No active jobs in pipeline</p>
+            <p className="text-sm text-gray-500">No open jobs with candidates</p>
+            <p className="text-xs text-gray-400 mt-1">Create a job and start recruiting to see pipeline data</p>
           </div>
         )}
       </CardContent>
