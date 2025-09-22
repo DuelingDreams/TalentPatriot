@@ -375,12 +375,13 @@ begin
   if not exists (select 1 from public.job_pipeline_stage_events limit 1) then
     
     -- Insert initial events for all current job_candidate records
+    -- Use jobs table to get org_id if missing from job_candidate
     insert into public.job_pipeline_stage_events (
       org_id, job_id, candidate_id, job_candidate_id, 
       from_stage, to_stage, changed_at, changed_by
     )
     select 
-      jc.org_id,
+      coalesce(jc.org_id, j.org_id) as org_id, -- fallback to job's org_id if jc.org_id is null
       jc.job_id, 
       jc.candidate_id,
       jc.id,
@@ -389,7 +390,9 @@ begin
       jc.created_at as changed_at,
       null as changed_by -- unknown who initially created
     from public.job_candidate jc
-    where jc.status = 'active';
+    left join public.jobs j on j.id = jc.job_id
+    where jc.status = 'active' 
+      and (jc.org_id is not null or j.org_id is not null); -- only insert records where we can determine org_id
     
     -- Populate shadow table with current states
     insert into public._job_candidate_stage_shadow (job_candidate_id, last_stage, updated_at)
