@@ -94,9 +94,11 @@ function EnhancedApplicationCard({
   const { data: clients } = useClients()
   
   // Find job and client info with defensive checks
-  const jobInfo = jobs?.find((job: any) => job?.id === jobId) || null
+  const jobsArray = Array.isArray(jobs) ? jobs : []
+  const clientsArray = Array.isArray(clients) ? clients : []
+  const jobInfo = jobsArray.find((job: any) => job?.id === jobId) || null
   const clientInfo = jobInfo?.clientId 
-    ? clients?.find((client: any) => client?.id === jobInfo.clientId) || null
+    ? clientsArray.find((client: any) => client?.id === jobInfo.clientId) || null
     : null
 
   const style = {
@@ -319,9 +321,11 @@ function ApplicationCard({
   const { data: clients } = useClients()
   
   // Find job and client info with defensive checks
-  const jobInfo = jobs?.find((job: any) => job?.id === jobId) || null
+  const jobsArray = Array.isArray(jobs) ? jobs : []
+  const clientsArray = Array.isArray(clients) ? clients : []
+  const jobInfo = jobsArray.find((job: any) => job?.id === jobId) || null
   const clientInfo = jobInfo?.clientId 
-    ? clients?.find((client: any) => client?.id === jobInfo.clientId) || null
+    ? clientsArray.find((client: any) => client?.id === jobInfo.clientId) || null
     : null
 
   const style = {
@@ -1549,14 +1553,14 @@ export default function JobPipeline() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs?.map((job: any) => {
+            {Array.isArray(jobs) && jobs.map((job: any) => {
               return (
                 <JobPipelineCard key={job.id} job={job} />
               );
             })}
           </div>
 
-          {(!jobs || jobs.length === 0) && (
+          {(!jobs || !Array.isArray(jobs) || jobs.length === 0) && (
             <div className="text-center py-12">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Briefcase className="w-8 h-8 text-slate-400" />

@@ -45,7 +45,7 @@ export function CandidateNotesDialog({
         jobCandidateId,
         authorId: currentUserId,
         content: newNote.trim(),
-        isPrivate: isPrivate ? 'true' : 'false'
+        isPrivate: isPrivate
       })
       setNewNote('')
       setIsPrivate(false)
