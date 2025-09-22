@@ -143,10 +143,7 @@ function EnhancedApplicationCard({
       })
       return
     }
-    toast({
-      title: "Notes",
-      description: `Opening notes for ${safeCandidateName}`,
-    })
+    setNotesDialogOpen(true)
   }
 
   // Format date for display
@@ -257,6 +254,14 @@ function EnhancedApplicationCard({
           </div>
         </CardContent>
       </Card>
+      
+      <CandidateNotesDialog
+        open={notesDialogOpen}
+        onClose={() => setNotesDialogOpen(false)}
+        candidateId={safeCandidateId}
+        jobCandidateId={safeApplicationId}
+        candidateName={safeCandidateName}
+      />
     </div>
   )
 }
