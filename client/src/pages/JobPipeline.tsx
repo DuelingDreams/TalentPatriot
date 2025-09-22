@@ -19,6 +19,7 @@ import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, or
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
+import { PipelineProgressBar } from '@/components/pipeline/PipelineProgressBar'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock } from 'lucide-react'
 import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
@@ -1731,12 +1732,19 @@ export default function JobPipeline() {
                 </div>
               </div>
             ) : (
-              <DndContext
-                sensors={sensors}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-              >
-                <div className="flex gap-4 overflow-x-auto pb-4 px-2 md:px-0 -mx-2 md:mx-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
+              <div>
+                {/* Pipeline Progress Bar Summary */}
+                <PipelineProgressBar 
+                  columns={jobPipelineData?.columns || []}
+                  applicationsByColumn={applicationsByColumn}
+                />
+                
+                <DndContext
+                  sensors={sensors}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div className="flex gap-4 overflow-x-auto pb-4 px-2 md:px-0 -mx-2 md:mx-0 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
                   {/* PIPELINE SYSTEM: Use dynamic columns */}
                   {jobPipelineData?.columns && applicationsByColumn ? (
                     jobPipelineData.columns.map(column => (
@@ -1752,16 +1760,17 @@ export default function JobPipeline() {
                       <div className="text-slate-600">No pipeline data available</div>
                     </div>
                   )}
-                </div>
-                
-                <DragOverlay>
-                  {activeCandidate ? (
-                    <div className="cursor-grabbing">
-                      <CandidateCard candidate={activeCandidate} isDragging />
-                    </div>
-                  ) : null}
-                </DragOverlay>
-              </DndContext>
+                  </div>
+                  
+                  <DragOverlay>
+                    {activeCandidate ? (
+                      <div className="cursor-grabbing">
+                        <CandidateCard candidate={activeCandidate} isDragging />
+                      </div>
+                    ) : null}
+                  </DragOverlay>
+                </DndContext>
+              </div>
             )}
           </TabsContent>
 
