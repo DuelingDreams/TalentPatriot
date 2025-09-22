@@ -1,0 +1,153 @@
+table_name,column_name,data_type,is_nullable,column_default
+_job_candidate_stage_shadow,job_candidate_id,uuid,NO,null
+_job_candidate_stage_shadow,last_stage,text,YES,null
+_job_candidate_stage_shadow,updated_at,timestamp with time zone,NO,now()
+candidates,id,uuid,NO,gen_random_uuid()
+candidates,org_id,uuid,YES,null
+candidates,name,text,NO,null
+candidates,email,text,NO,null
+candidates,phone,text,YES,null
+candidates,resume_url,text,YES,null
+candidates,status,USER-DEFINED,YES,active'::record_status
+candidates,created_by,uuid,YES,null
+candidates,created_at,timestamp with time zone,YES,now()
+candidates,updated_at,timestamp with time zone,YES,now()
+candidates,resume_parsed,boolean,YES,FALSE
+candidates,skills,ARRAY,YES,null
+candidates,experience_level,text,YES,null
+candidates,total_years_experience,integer,YES,0
+candidates,education,text,YES,null
+candidates,summary,text,YES,null
+candidates,searchable_content,text,YES,null
+candidates,linkedin_url,text,YES,null
+candidates,portfolio_url,text,YES,null
+candidates,work_authorization,character varying,YES,null
+candidates,visa_sponsorship,character varying,YES,null
+candidates,age_confirmation,character varying,YES,null
+candidates,previous_employee,character varying,YES,null
+candidates,referral_source,character varying,YES,null
+candidates,employment_history,text,YES,null
+candidates,comprehensive_education,text,YES,null
+candidates,data_privacy_ack,boolean,YES,FALSE
+candidates,ai_acknowledgment,boolean,YES,FALSE
+candidates,gender,character varying,YES,null
+candidates,race_ethnicity,character varying,YES,null
+candidates,veteran_status,character varying,YES,null
+candidates,disability_status,character varying,YES,null
+clients,id,uuid,NO,gen_random_uuid()
+clients,org_id,uuid,YES,null
+clients,name,text,NO,null
+clients,industry,text,YES,null
+clients,location,text,YES,null
+clients,website,text,YES,null
+clients,contact_name,text,YES,null
+clients,contact_email,text,YES,null
+clients,notes,text,YES,null
+clients,status,USER-DEFINED,YES,active'::record_status
+clients,created_by,uuid,YES,null
+clients,created_at,timestamp with time zone,YES,now()
+clients,updated_at,timestamp with time zone,YES,now()
+interviews,id,uuid,NO,gen_random_uuid()
+interviews,org_id,uuid,YES,null
+interviews,job_candidate_id,uuid,YES,null
+interviews,title,text,NO,null
+interviews,type,USER-DEFINED,NO,null
+interviews,status,USER-DEFINED,YES,scheduled'::interview_status
+interviews,scheduled_at,timestamp with time zone,NO,null
+interviews,duration,text,YES,60'::text
+interviews,location,text,YES,null
+interviews,interviewer_id,uuid,YES,null
+interviews,notes,text,YES,null
+interviews,feedback,text,YES,null
+interviews,rating,integer,YES,null
+interviews,record_status,USER-DEFINED,YES,active'::record_status
+interviews,created_at,timestamp with time zone,YES,now()
+interviews,updated_at,timestamp with time zone,YES,now()
+job_candidate,id,uuid,NO,gen_random_uuid()
+job_candidate,org_id,uuid,YES,null
+job_candidate,job_id,uuid,YES,null
+job_candidate,candidate_id,uuid,YES,null
+job_candidate,application_id,uuid,YES,null
+job_candidate,stage,USER-DEFINED,YES,applied'::candidate_stage
+job_candidate,notes,text,YES,null
+job_candidate,assigned_to,uuid,YES,null
+job_candidate,status,USER-DEFINED,YES,active'::record_status
+job_candidate,created_at,timestamp with time zone,YES,now()
+job_candidate,updated_at,timestamp with time zone,YES,now()
+job_candidate,pipeline_column_id,uuid,YES,null
+jobs,id,uuid,NO,gen_random_uuid()
+jobs,org_id,uuid,YES,null
+jobs,client_id,uuid,YES,null
+jobs,title,text,NO,null
+jobs,description,text,YES,null
+jobs,location,text,YES,null
+jobs,job_type,USER-DEFINED,YES,full-time'::job_type
+jobs,department,text,YES,null
+jobs,status,USER-DEFINED,YES,draft'::job_status
+jobs,record_status,USER-DEFINED,YES,active'::record_status
+jobs,assigned_to,uuid,YES,null
+jobs,created_by,uuid,YES,null
+jobs,created_at,timestamp with time zone,YES,now()
+jobs,updated_at,timestamp with time zone,YES,now()
+jobs,public_slug,character varying,YES,null
+jobs,published_at,timestamp with time zone,YES,null
+jobs,experience_level,USER-DEFINED,YES,mid'::experience_level
+jobs,remote_option,USER-DEFINED,YES,onsite'::remote_option
+jobs,salary_range,character varying,YES,null
+jobs,is_public,boolean,NO,FALSE
+messages,id,uuid,NO,gen_random_uuid()
+messages,org_id,uuid,YES,null
+messages,type,USER-DEFINED,NO,null
+messages,priority,USER-DEFINED,YES,normal'::message_priority
+messages,subject,text,NO,null
+messages,content,text,NO,null
+messages,sender_id,uuid,YES,null
+messages,recipient_id,uuid,YES,null
+messages,client_id,uuid,YES,null
+messages,job_id,uuid,YES,null
+messages,candidate_id,uuid,YES,null
+messages,is_read,text,YES,false'::text
+messages,created_at,timestamp with time zone,YES,now()
+messages,updated_at,timestamp with time zone,YES,now()
+messages,thread_id,uuid,YES,null
+messages,reply_to_id,uuid,YES,null
+messages,attachments,ARRAY,YES,null
+messages,tags,ARRAY,YES,null
+messages,is_archived,boolean,NO,FALSE
+messages,record_status,USER-DEFINED,YES,active'::record_status
+notes,id,uuid,NO,gen_random_uuid()
+notes,content,text,NO,null
+notes,created_at,timestamp without time zone,YES,now()
+notes,created_by,uuid,YES,null
+notes,job_id,uuid,YES,null
+notes,candidate_id,uuid,YES,null
+notes,org_id,uuid,YES,null
+notes,is_demo,boolean,YES,FALSE
+organizations,id,uuid,NO,gen_random_uuid()
+organizations,name,text,NO,null
+organizations,slug,text,YES,null
+organizations,owner_id,uuid,YES,null
+organizations,created_at,timestamp with time zone,YES,now()
+organizations,updated_at,timestamp with time zone,YES,now()
+organizations,beta_program,boolean,YES,FALSE
+organizations,beta_applied_at,timestamp without time zone,YES,null
+organizations,beta_approved_at,timestamp without time zone,YES,null
+organizations,beta_notes,text,YES,null
+organizations,seats_purchased,integer,NO,0
+organizations,plan_tier,character varying,YES,starter'::character varying
+pipeline_columns,id,uuid,NO,gen_random_uuid()
+pipeline_columns,org_id,uuid,NO,null
+pipeline_columns,title,text,NO,null
+pipeline_columns,position,integer,NO,null
+pipeline_columns,created_at,timestamp with time zone,NO,now()
+pipeline_columns,updated_at,timestamp with time zone,NO,now()
+pipeline_columns,job_id,uuid,YES,null
+stage_order,stage,text,NO,null
+stage_order,position,integer,NO,null
+stage_order,display_name,text,NO,null
+user_organizations,id,uuid,NO,gen_random_uuid()
+user_organizations,user_id,uuid,YES,null
+user_organizations,org_id,uuid,YES,null
+user_organizations,role,USER-DEFINED,NO,recruiter'::organization_role
+user_organizations,joined_at,timestamp with time zone,YES,now()
+user_organizations,is_recruiter_seat,boolean,NO,FALSE

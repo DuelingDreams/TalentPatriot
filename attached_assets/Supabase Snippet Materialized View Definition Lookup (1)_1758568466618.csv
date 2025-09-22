@@ -1,0 +1,17 @@
+schemaname,matviewname,definition
+public,mv_dashboard_snapshot," SELECT job_id,
+    job_title,
+    org_id,
+    job_status,
+    applied,
+    phone_screen,
+    interview,
+    technical,
+    final,
+    offer,
+    hired,
+    rejected,
+    total_candidates,
+    created_at,
+    updated_at
+   FROM v_dashboard_pipeline_snapshot;"

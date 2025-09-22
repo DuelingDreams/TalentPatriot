@@ -1,0 +1,13 @@
+schemaname,tablename,rls_enabled
+public,_job_candidate_stage_shadow,FALSE
+public,candidates,TRUE
+public,clients,TRUE
+public,interviews,TRUE
+public,job_candidate,TRUE
+public,jobs,TRUE
+public,messages,TRUE
+public,notes,TRUE
+public,organizations,TRUE
+public,pipeline_columns,TRUE
+public,stage_order,FALSE
+public,user_organizations,TRUE

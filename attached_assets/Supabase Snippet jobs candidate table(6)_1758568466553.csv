@@ -1,0 +1,2 @@
+id,org_id,job_id,candidate_id,application_id,stage,notes,assigned_to,status,created_at,updated_at,pipeline_column_id
+815d5a89-fe51-496b-9a30-d0d589a5a474,null,183c14a6-92e7-45d1-aaed-970cb0b5cf19,0ac0ed4a-5cfd-4eae-af7d-c6cbcd783ab9,null,applied,null,null,active,2025-07-30 15:39:02.902924+00,2025-07-30 15:39:02.902924+00,null

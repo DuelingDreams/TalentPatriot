@@ -1,0 +1,2 @@
+id,name,slug,owner_id,created_at,updated_at,beta_program,beta_applied_at,beta_approved_at,beta_notes,seats_purchased,plan_tier
+00000000-0000-0000-0000-000000000000,TalentPatriot Demo,demo-org-fixed,null,2025-07-30 04:16:06.093895+00,2025-09-21 21:41:03.498084+00,FALSE,null,null,null,0,starter

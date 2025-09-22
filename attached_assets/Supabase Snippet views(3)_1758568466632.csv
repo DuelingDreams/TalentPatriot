@@ -1,0 +1,191 @@
+table_name,view_definition
+public_jobs," SELECT id,
+    org_id,
+    public_slug,
+    title,
+    description,
+    location,
+    department,
+    job_type,
+    status,
+    record_status,
+    experience_level,
+    remote_option,
+    salary_range,
+    created_at,
+    updated_at
+   FROM jobs j
+  WHERE ((is_public = true) AND ((record_status IS NULL) OR (record_status <> 'demo'::record_status)));"
+v_dashboard_activity," SELECT e.changed_at,
+    e.job_id,
+    j.title AS job_title,
+    e.candidate_id,
+    c.name AS candidate_name,
+    e.from_stage,
+    e.to_stage,
+    so_from.display_name AS from_stage_display,
+    so_to.display_name AS to_stage_display,
+    e.org_id
+   FROM ((((job_pipeline_stage_events e
+     LEFT JOIN jobs j ON ((j.id = e.job_id)))
+     LEFT JOIN candidates c ON ((c.id = e.candidate_id)))
+     LEFT JOIN stage_order so_from ON ((so_from.stage = e.from_stage)))
+     LEFT JOIN stage_order so_to ON ((so_to.stage = e.to_stage)))
+  ORDER BY e.changed_at DESC
+ LIMIT 100;"
+v_dashboard_pipeline_snapshot," SELECT j.id AS job_id,
+    j.title AS job_title,
+    j.org_id,
+    j.status AS job_status,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'applied'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS applied,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'phone_screen'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS phone_screen,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'interview'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS interview,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'technical'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS technical,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'final'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS final,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'offer'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS offer,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'hired'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS hired,
+    COALESCE(sum(
+        CASE
+            WHEN (c.stage = 'rejected'::candidate_stage) THEN c.candidate_count
+            ELSE 0
+        END), (0)::bigint) AS rejected,
+    COALESCE(sum(c.candidate_count), (0)::bigint) AS total_candidates,
+    j.created_at,
+    j.updated_at
+   FROM (jobs j
+     LEFT JOIN v_pipeline_stage_counts c ON ((c.job_id = j.id)))
+  GROUP BY j.id, j.title, j.org_id, j.status, j.created_at, j.updated_at
+  ORDER BY j.updated_at DESC;"
+v_job_health," WITH last_activity AS (
+         SELECT job_pipeline_stage_events.job_id,
+            max(job_pipeline_stage_events.changed_at) FILTER (WHERE ((job_pipeline_stage_events.to_stage <> 'hired'::text) AND (job_pipeline_stage_events.to_stage <> 'rejected'::text))) AS last_active_move,
+            max(job_pipeline_stage_events.changed_at) AS last_any_move
+           FROM job_pipeline_stage_events
+          GROUP BY job_pipeline_stage_events.job_id
+        ), stage_counts AS (
+         SELECT v_pipeline_stage_counts.job_id,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'applied'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_applied,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'phone_screen'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_phone_screen,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'interview'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_interview,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'technical'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_technical,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'final'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_final,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'offer'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_offer,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'hired'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_hired,
+            sum(
+                CASE
+                    WHEN (v_pipeline_stage_counts.stage = 'rejected'::candidate_stage) THEN v_pipeline_stage_counts.candidate_count
+                    ELSE 0
+                END) AS c_rejected,
+            sum(v_pipeline_stage_counts.candidate_count) AS c_total
+           FROM v_pipeline_stage_counts
+          GROUP BY v_pipeline_stage_counts.job_id
+        )
+ SELECT j.id AS job_id,
+    j.title,
+    j.org_id,
+    j.status AS job_status,
+    COALESCE(sc.c_applied, (0)::bigint) AS applied_count,
+    COALESCE(sc.c_phone_screen, (0)::bigint) AS phone_screen_count,
+    COALESCE(sc.c_interview, (0)::bigint) AS interview_count,
+    COALESCE(sc.c_technical, (0)::bigint) AS technical_count,
+    COALESCE(sc.c_final, (0)::bigint) AS final_count,
+    COALESCE(sc.c_offer, (0)::bigint) AS offer_count,
+    COALESCE(sc.c_hired, (0)::bigint) AS hired_count,
+    COALESCE(sc.c_rejected, (0)::bigint) AS rejected_count,
+    COALESCE(sc.c_total, (0)::bigint) AS total_candidates,
+        CASE
+            WHEN (j.status <> 'open'::job_status) THEN 'Closed'::text
+            WHEN ((la.last_active_move IS NULL) AND (COALESCE(sc.c_total, (0)::bigint) = 0)) THEN 'No Candidates'::text
+            WHEN (la.last_active_move IS NULL) THEN 'Needs Attention'::text
+            WHEN (la.last_active_move < (now() - '14 days'::interval)) THEN 'Stale'::text
+            WHEN ((((COALESCE(sc.c_interview, (0)::bigint) + COALESCE(sc.c_technical, (0)::bigint)) + COALESCE(sc.c_final, (0)::bigint)) = 0) AND ((COALESCE(sc.c_applied, (0)::bigint) + COALESCE(sc.c_phone_screen, (0)::bigint)) > 0) AND (la.last_any_move < (now() - '7 days'::interval))) THEN 'Needs Attention'::text
+            ELSE 'Healthy'::text
+        END AS health_status,
+    la.last_active_move,
+    la.last_any_move
+   FROM ((jobs j
+     LEFT JOIN last_activity la ON ((la.job_id = j.id)))
+     LEFT JOIN stage_counts sc ON ((sc.job_id = j.id)));"
+v_pipeline_stage_avg_time," WITH ordered_events AS (
+         SELECT e.job_id,
+            e.candidate_id,
+            e.to_stage,
+            e.changed_at,
+            lead(e.changed_at) OVER (PARTITION BY e.job_id, e.candidate_id ORDER BY e.changed_at) AS next_changed_at
+           FROM job_pipeline_stage_events e
+        ), durations AS (
+         SELECT ordered_events.job_id,
+            ordered_events.to_stage AS stage,
+            (EXTRACT(epoch FROM (COALESCE(ordered_events.next_changed_at, now()) - ordered_events.changed_at)) / 3600.0) AS hours_in_stage
+           FROM ordered_events
+          WHERE ((EXTRACT(epoch FROM (COALESCE(ordered_events.next_changed_at, now()) - ordered_events.changed_at)) / 3600.0) > (0)::numeric)
+        )
+ SELECT job_id,
+    stage,
+    round(avg(hours_in_stage), 1) AS avg_hours_in_stage,
+    (count(*))::integer AS sample_size
+   FROM durations
+  GROUP BY job_id, stage
+ HAVING (count(*) >= 1);"
+v_pipeline_stage_counts," SELECT job_id,
+    stage,
+    (count(*))::integer AS candidate_count
+   FROM job_candidate jc
+  WHERE (status = 'active'::record_status)
+  GROUP BY job_id, stage;"
