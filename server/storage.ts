@@ -1364,20 +1364,47 @@ export class DatabaseStorage implements IStorage {
       targetStage: stage
     });
     
-    // TEMPORARY: Bypass database update to test frontend functionality
-    console.log(`[moveJobCandidateDirect] TEMPORARILY bypassing database update due to type mismatch error`);
-    console.log(`[moveJobCandidateDirect] Would update: job_candidate ${jobCandidateId} to column ${newColumnId} with stage ${stage}`);
+    // Database update with proper error handling
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .update({
+        pipeline_column_id: newColumnId,
+        stage: stage,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobCandidateId)
+      .select()
+      .single();
     
-    // Return a mock successful response to test frontend
-    const mockData = {
-      id: jobCandidateId,
-      pipeline_column_id: newColumnId,
-      stage: stage,
-      updated_at: new Date().toISOString()
-    };
+    if (error) {
+      console.error(`[moveJobCandidateDirect] Update failed:`, error);
+      
+      // Provide specific error messages for common issues
+      if (error.message?.includes('invalid input value for enum')) {
+        throw new Error(`Invalid stage value. Please contact support if this error persists.`);
+      } else if (error.message?.includes('foreign key')) {
+        throw new Error(`Invalid column reference. The pipeline column may have been deleted.`);
+      } else if (error.message?.includes('not found')) {
+        throw new Error(`Application not found. It may have been removed or archived.`);
+      } else {
+        throw new Error(`Failed to move application: ${error.message}`);
+      }
+    }
+
+    // Check if the update actually affected any rows
+    if (!data) {
+      console.warn(`[moveJobCandidateDirect] No rows updated - record may have been deleted`);
+      throw new Error(`Application not found or may have been deleted. Please refresh and try again.`);
+    }
     
-    console.log(`[moveJobCandidateDirect] Returning mock success data:`, mockData);
-    return mockData as JobCandidate;
+    console.log(`[moveJobCandidateDirect] Successfully updated:`, {
+      id: data.id,
+      pipeline_column_id: data.pipeline_column_id,
+      stage: data.stage,
+      updated_at: data.updated_at
+    });
+    
+    return data as JobCandidate;
   }
 
   async getCandidateByEmail(email: string, orgId: string): Promise<Candidate | undefined> {
