@@ -8,12 +8,11 @@ import { useCurrentOrganization } from '@/hooks/useOrganizations'
 import { 
   Home, 
   Briefcase, 
-  Building2, 
+  Kanban, 
   Users, 
   Calendar, 
   MessageSquare,
   HelpCircle, 
-  FileText,
   BarChart3,
   Globe
 } from 'lucide-react'
@@ -26,23 +25,29 @@ interface SidebarProps {
 
 const navigationItems = [
   { label: 'Dashboard', href: '/dashboard', icon: Home, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
-  { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
-  { label: 'Pipeline', href: '/pipeline', icon: FileText, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
-  { label: 'Clients', href: '/clients', icon: Building2, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
+  { 
+    label: 'Jobs', 
+    href: '/jobs', 
+    icon: Briefcase, 
+    roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'],
+    subItems: [
+      { label: 'Careers Page', href: '/careers', icon: Globe, external: true }
+    ]
+  },
+  { label: 'Pipeline', href: '/pipeline', icon: Kanban, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Candidates', href: '/candidates', icon: Users, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Calendar', href: '/calendar', icon: Calendar, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
-  { label: 'Careers Page', href: '/careers', icon: Globe, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'], external: true },
 ]
 
 const secondaryItems = [
-  { label: 'Help & Support', href: '/help', icon: HelpCircle },
-  { label: 'Documentation', href: '/docs', icon: FileText },
+  { label: 'Help', href: '/help', icon: HelpCircle },
 ]
 
 export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const [location] = useLocation()
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set(['Jobs']))
   const { user, userRole } = useAuth()
   const { data: currentOrganization } = useCurrentOrganization()
 
@@ -52,12 +57,22 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
 
   // Generate the careers page URL based on the current organization
   const getCareersUrl = () => {
-    if (!currentOrganization?.slug) {
+    if (!currentOrganization || typeof currentOrganization !== 'object' || !('slug' in currentOrganization) || !currentOrganization.slug) {
       return '/careers' // Fallback to regular careers page
     }
     
     // Use path-based routing (no DNS required) for better scalability
     return `/org/${currentOrganization.slug}/careers`
+  }
+
+  const toggleExpanded = (itemLabel: string) => {
+    const newExpanded = new Set(expandedItems)
+    if (newExpanded.has(itemLabel)) {
+      newExpanded.delete(itemLabel)
+    } else {
+      newExpanded.add(itemLabel)
+    }
+    setExpandedItems(newExpanded)
   }
 
   return (
@@ -99,51 +114,106 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
             {filteredNavigationItems.map((item) => {
               const Icon = item.icon
               const isActive = location === item.href
-              
-              // Handle careers page link (using path-based routing)
-              if (item.label === 'Careers Page') {
-                const careersUrl = getCareersUrl()
-                
-                return (
-                  <Link 
-                    key={item.href} 
-                    href={careersUrl}
-                    className="block"
-                  >
-                    <Button
-                      variant="ghost"
-                      className={cn(
-                        "w-full justify-start text-sm font-medium",
-                        isActive ? "bg-[#F0F4F8] text-[#264C99] font-semibold" : "text-[#5C667B] hover:bg-[#F0F4F8]"
-                      )}
-                      onClick={onClose}
-                    >
-                      <Icon className="w-5 h-5 mr-3" />
-                      {item.label}
-                      <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </Button>
-                  </Link>
-                )
-              }
+              const hasSubItems = item.subItems && item.subItems.length > 0
+              const isExpanded = expandedItems.has(item.label)
               
               return (
-                <Link key={item.href} href={item.href}>
-                  <Button
-                    variant={isActive ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full justify-start text-sm font-medium",
-                      isActive 
-                        ? "text-[#1F3A5F] bg-[#E6F0FF] hover:bg-[#D1E7FF]" 
-                        : "text-[#5C667B] hover:bg-[#F0F4F8]"
+                <div key={item.href}>
+                  {/* Main Navigation Item */}
+                  <div className="flex items-center">
+                    <Link href={item.href} className="flex-1">
+                      <Button
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start text-sm font-medium transition-all duration-200",
+                          isActive 
+                            ? "bg-[#1F3A5F] text-white font-bold shadow-md hover:bg-[#264C99]" 
+                            : "text-[#5C667B] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
+                        )}
+                        onClick={onClose}
+                      >
+                        <Icon className="w-5 h-5 mr-3" />
+                        {item.label}
+                      </Button>
+                    </Link>
+                    
+                    {/* Expand/Collapse Button for Items with SubItems */}
+                    {hasSubItems && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-1 p-1 h-8 w-8 text-[#5C667B] hover:bg-[#F0F4F8]"
+                        onClick={() => toggleExpanded(item.label)}
+                      >
+                        <svg 
+                          className={cn("w-4 h-4 transition-transform", isExpanded ? "rotate-90" : "")}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Button>
                     )}
-                    onClick={onClose}
-                  >
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.label}
-                  </Button>
-                </Link>
+                  </div>
+                  
+                  {/* Sub Items */}
+                  {hasSubItems && isExpanded && (
+                    <div className="ml-8 mt-1 space-y-1">
+                      {item.subItems?.map((subItem) => {
+                        const SubIcon = subItem.icon
+                        const subIsActive = location === subItem.href
+                        
+                        if (subItem.label === 'Careers Page') {
+                          const careersUrl = getCareersUrl()
+                          
+                          return (
+                            <Link 
+                              key={subItem.href} 
+                              href={careersUrl}
+                              className="block"
+                            >
+                              <Button
+                                variant="ghost"
+                                className={cn(
+                                  "w-full justify-start text-sm pl-8",
+                                  subIsActive 
+                                    ? "bg-[#1F3A5F] text-white font-bold" 
+                                    : "text-[#6B7280] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
+                                )}
+                                onClick={onClose}
+                              >
+                                <SubIcon className="w-4 h-4 mr-3" />
+                                {subItem.label}
+                                <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                </svg>
+                              </Button>
+                            </Link>
+                          )
+                        }
+                        
+                        return (
+                          <Link key={subItem.href} href={subItem.href}>
+                            <Button
+                              variant="ghost"
+                              className={cn(
+                                "w-full justify-start text-sm pl-8",
+                                subIsActive 
+                                  ? "bg-[#1F3A5F] text-white font-bold" 
+                                  : "text-[#6B7280] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
+                              )}
+                              onClick={onClose}
+                            >
+                              <SubIcon className="w-4 h-4 mr-3" />
+                              {subItem.label}
+                            </Button>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               )
             })}
 
@@ -153,12 +223,18 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
             {/* Secondary Navigation */}
             {secondaryItems.map((item) => {
               const Icon = item.icon
+              const isActive = location === item.href
               
               return (
                 <Link key={item.href} href={item.href}>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start text-sm font-medium text-[#5C667B] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
+                    className={cn(
+                      "w-full justify-start text-sm font-medium transition-all duration-200",
+                      isActive 
+                        ? "bg-[#1F3A5F] text-white font-bold shadow-md hover:bg-[#264C99]" 
+                        : "text-[#5C667B] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
+                    )}
                     onClick={onClose}
                   >
                     <Icon className="w-5 h-5 mr-3" />
