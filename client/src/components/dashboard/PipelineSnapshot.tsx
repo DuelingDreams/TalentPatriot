@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Link } from 'wouter'
 import { ArrowRight } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 interface JobPipelineData {
   id: string
@@ -21,47 +22,41 @@ interface JobPipelineData {
 }
 
 interface PipelineSnapshotProps {
-  jobs?: any[]
-  jobCandidates?: any[]
-  loading?: boolean
+  orgId: string
+  limit?: number
 }
 
-export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = false }: PipelineSnapshotProps) {
-  // Process real data to create pipeline snapshot
-  const processJobData = (): JobPipelineData[] => {
-    if (!jobs || jobs.length === 0) return []
-    
-    // Get top 3 open jobs
-    const openJobs = jobs
-      .filter((job: any) => job.status === 'open')
-      .slice(0, 3)
-    
-    return openJobs.map((job: any) => {
-      // Get candidates for this specific job
-      const jobCandidatesForJob = jobCandidates.filter((jc: any) => jc.job_id === job.id)
-      
-      // Count candidates by stage
-      const stageCounts = {
-        applied: jobCandidatesForJob.filter((jc: any) => jc.stage === 'applied').length,
-        phone_screen: jobCandidatesForJob.filter((jc: any) => jc.stage === 'phone_screen').length,
-        interview: jobCandidatesForJob.filter((jc: any) => jc.stage === 'interview').length,
-        technical: jobCandidatesForJob.filter((jc: any) => jc.stage === 'technical').length,
-        final: jobCandidatesForJob.filter((jc: any) => jc.stage === 'final').length,
-        offer: jobCandidatesForJob.filter((jc: any) => jc.stage === 'offer').length,
-        hired: jobCandidatesForJob.filter((jc: any) => jc.stage === 'hired').length,
-        rejected: jobCandidatesForJob.filter((jc: any) => jc.stage === 'rejected').length
+export function PipelineSnapshot({ orgId, limit = 3 }: PipelineSnapshotProps) {
+  // Fetch pipeline snapshot data from analytics endpoint
+  const { data: pipelineData, isLoading, error } = useQuery({
+    queryKey: ['/api/analytics/pipeline-snapshot', orgId, limit],
+    queryFn: async () => {
+      const response = await fetch(`/api/analytics/pipeline-snapshot?orgId=${orgId}&limit=${limit}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch pipeline snapshot')
       }
-      
-      return {
-        id: job.id,
-        title: job.title,
-        totalCandidates: jobCandidatesForJob.length,
-        stages: stageCounts
-      }
-    })
-  }
+      return response.json()
+    },
+    staleTime: 30 * 1000, // Cache for 30 seconds
+    refetchInterval: 60 * 1000, // Refetch every minute
+  })
 
-  const displayJobs = processJobData()
+  // Transform analytics data to component format
+  const displayJobs: JobPipelineData[] = (pipelineData || []).map((item: any) => ({
+    id: item.job_id,
+    title: item.job_title,
+    totalCandidates: item.total_candidates,
+    stages: {
+      applied: item.applied,
+      phone_screen: item.phone_screen,
+      interview: item.interview,
+      technical: item.technical,
+      final: item.final,
+      offer: item.offer,
+      hired: item.hired,
+      rejected: item.rejected
+    }
+  }))
 
   const getStageColor = (stage: string) => {
     switch (stage) {
@@ -82,7 +77,7 @@ export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = fals
     return Math.max((count / total) * 100, count > 0 ? 8 : 0) // Minimum 8% if there are candidates
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card data-testid="pipeline-snapshot">
         <CardHeader>
@@ -169,7 +164,14 @@ export function PipelineSnapshot({ jobs = [], jobCandidates = [], loading = fals
           </div>
         ))}
         
-        {displayJobs.length === 0 && (
+        {error && (
+          <div className="text-center py-8">
+            <p className="text-sm text-red-500">Failed to load pipeline data</p>
+            <p className="text-xs text-gray-400 mt-1">Please refresh the page or try again later</p>
+          </div>
+        )}
+        
+        {!error && displayJobs.length === 0 && !isLoading && (
           <div className="text-center py-8">
             <p className="text-sm text-gray-500">No open jobs with candidates</p>
             <p className="text-xs text-gray-400 mt-1">Create a job and start recruiting to see pipeline data</p>

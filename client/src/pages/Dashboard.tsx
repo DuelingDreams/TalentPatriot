@@ -253,9 +253,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <SmartHiringTips loading={jobCandidatesLoading} />
           <PipelineSnapshot 
-            jobs={jobsArray} 
-            jobCandidates={jobCandidatesArray}
-            loading={jobsLoading || jobCandidatesLoading} 
+            orgId={currentOrgId || ''} 
           />
         </div>
 
