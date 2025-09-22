@@ -258,7 +258,7 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity */}
-        <RecentActivity loading={jobCandidatesLoading} />
+        <RecentActivity orgId={currentOrgId || ''} />
 
       </div>
     </DashboardLayout>

@@ -3,11 +3,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { formatDistanceToNow } from 'date-fns'
-import { Clock, UserPlus, Briefcase, CheckCircle, XCircle, Calendar } from 'lucide-react'
+import { Clock, UserPlus, Briefcase, CheckCircle, XCircle, Calendar, ArrowRight } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 
 interface Activity {
   id: string
-  type: 'candidate_added' | 'job_posted' | 'interview_scheduled' | 'offer_made' | 'candidate_rejected'
+  type: 'candidate_added' | 'job_posted' | 'interview_scheduled' | 'offer_made' | 'candidate_rejected' | 'stage_moved'
   title: string
   description: string
   timestamp: Date
@@ -18,8 +19,8 @@ interface Activity {
 }
 
 interface RecentActivityProps {
-  activities?: Activity[]
-  loading?: boolean
+  orgId: string
+  limit?: number
 }
 
 const activityIcons = {
@@ -28,6 +29,7 @@ const activityIcons = {
   interview_scheduled: Calendar,
   offer_made: CheckCircle,
   candidate_rejected: XCircle,
+  stage_moved: ArrowRight,
 }
 
 const activityColors = {
@@ -36,11 +38,49 @@ const activityColors = {
   interview_scheduled: 'bg-purple-100 text-purple-600',
   offer_made: 'bg-emerald-100 text-emerald-600',
   candidate_rejected: 'bg-red-100 text-red-600',
+  stage_moved: 'bg-orange-100 text-orange-600',
 }
 
-export function RecentActivity({ activities = [], loading }: RecentActivityProps) {
-  // Don't show demo activities for authenticated users - only show actual activities
-  const displayActivities = activities
+export function RecentActivity({ orgId, limit = 20 }: RecentActivityProps) {
+  // Fetch dashboard activity data from analytics endpoint
+  const { data: activityData, isLoading, error } = useQuery({
+    queryKey: ['/api/analytics/dashboard-activity', orgId, limit],
+    queryFn: async () => {
+      const response = await fetch(`/api/analytics/dashboard-activity?orgId=${orgId}&limit=${limit}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard activity')
+      }
+      return response.json()
+    },
+    staleTime: 15 * 1000, // Cache for 15 seconds
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds for real-time feel
+  })
+
+  // Transform analytics data to Activity format
+  const displayActivities: Activity[] = (activityData || []).map((item: any, index: number) => {
+    const candidateInitials = item.candidate_name
+      .split(' ')
+      .map((n: string) => n[0])
+      .join('')
+      .toUpperCase()
+    
+    // Create activity based on stage movement
+    const activity: Activity = {
+      id: `${item.job_id}_${item.candidate_id}_${item.changed_at}_${index}`,
+      type: 'stage_moved',
+      title: `${item.candidate_name} moved to ${item.to_stage_display}`,
+      description: item.from_stage_display 
+        ? `Moved from ${item.from_stage_display} to ${item.to_stage_display} • ${item.job_title}`
+        : `Applied to ${item.job_title}`,
+      timestamp: new Date(item.changed_at),
+      user: {
+        name: candidateInitials,
+        avatar: undefined
+      }
+    }
+    
+    return activity
+  })
 
   return (
     <Card className="h-full">
@@ -50,7 +90,7 @@ export function RecentActivity({ activities = [], loading }: RecentActivityProps
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[400px] pr-4">
-          {loading ? (
+          {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex items-start space-x-3">
