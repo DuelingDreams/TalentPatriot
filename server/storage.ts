@@ -1364,12 +1364,15 @@ export class DatabaseStorage implements IStorage {
       targetStage: stage
     });
     
+    // Try using explicit enum cast for PostgreSQL
+    const updateQuery = {
+      pipeline_column_id: newColumnId,
+      stage: stage as 'applied' | 'phone_screen' | 'interview' | 'technical' | 'final' | 'offer' | 'hired' | 'rejected'
+    };
+    
     const { data, error } = await supabase
       .from('job_candidate')
-      .update({
-        pipeline_column_id: newColumnId,
-        stage: stage
-      })
+      .update(updateQuery)
       .eq('id', jobCandidateId)
       .select()
       .single();
