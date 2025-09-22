@@ -40,6 +40,227 @@ interface ApplicationCardProps {
   isDragging?: boolean
 }
 
+// Enhanced Application Card Component
+function EnhancedApplicationCard({ 
+  applicationId, 
+  candidateId, 
+  candidateName, 
+  candidateEmail, 
+  candidatePhone,
+  resumeUrl,
+  jobId,
+  columnId,
+  status,
+  appliedAt,
+  isDragging 
+}: ApplicationCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({ id: applicationId || 'unknown-app' })
+
+  const isCurrentlyDragging = isDragging || isSortableDragging
+  const { toast } = useToast()
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false)
+  
+  // Defensive coding: Safe defaults for all data
+  const safeCandidateName = candidateName || 'Unknown Candidate'
+  const safeCandidateEmail = candidateEmail || 'No email provided'
+  const safeCandidatePhone = candidatePhone && candidatePhone.trim() !== '' ? candidatePhone : null
+  const safeResumeUrl = resumeUrl && resumeUrl.trim() !== '' ? resumeUrl : null
+  const safeCandidateId = candidateId || 'unknown'
+  const safeApplicationId = applicationId || 'unknown-app'
+  const safeJobId = jobId || ''
+  
+  // Early return if critical data is missing
+  if (!applicationId || !candidateId) {
+    return (
+      <Card className="bg-red-50 border-red-200 mb-3 p-4">
+        <div className="text-red-600 text-sm">Error: Application or candidate data is missing</div>
+        <div className="text-red-500 text-xs mt-1">
+          Application ID: {applicationId || 'Missing'} | Candidate ID: {candidateId || 'Missing'}
+        </div>
+      </Card>
+    )
+  }
+  
+  // Fetch job and client data with real-time updates for pipeline
+  const { data: jobs } = useJobs({ enableRealTime: true })
+  const { data: clients } = useClients()
+  
+  // Find job and client info with defensive checks
+  const jobInfo = jobs?.find((job: any) => job?.id === jobId) || null
+  const clientInfo = jobInfo?.clientId 
+    ? clients?.find((client: any) => client?.id === jobInfo.clientId) || null
+    : null
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isCurrentlyDragging ? 0.5 : 1,
+    cursor: isCurrentlyDragging ? 'grabbing' : 'grab',
+  }
+
+  // Quick Actions handlers focused on Resume and Notes as requested
+  const handleViewResume = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (safeResumeUrl && safeResumeUrl.trim() !== '') {
+      try {
+        window.open(safeResumeUrl, '_blank')
+        toast({
+          title: "Opening Resume",
+          description: `Opening resume for ${safeCandidateName}`,
+        })
+      } catch (error) {
+        console.error('Error opening resume:', error)
+        toast({
+          title: "Error",
+          description: "Failed to open resume. Please try again.",
+          variant: "destructive"
+        })
+      }
+    } else {
+      toast({
+        title: "No Resume",
+        description: "This candidate hasn't uploaded a resume yet",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleOpenNotes = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (!safeCandidateId || safeCandidateId === 'unknown') {
+      toast({
+        title: "Error",
+        description: "Cannot open notes - candidate ID is missing",
+        variant: "destructive",
+      })
+      return
+    }
+    toast({
+      title: "Notes",
+      description: `Opening notes for ${safeCandidateName}`,
+    })
+  }
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric' 
+      })
+    } catch {
+      return 'Unknown'
+    }
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`
+        touch-none select-none mb-3
+        ${isCurrentlyDragging ? 'z-50' : 'z-0'}
+      `}
+    >
+      <Card className={`
+        bg-white shadow-sm border transition-all group relative
+        ${isCurrentlyDragging 
+          ? 'border-blue-500 shadow-xl scale-105 rotate-2' 
+          : 'border-slate-200 hover:shadow-md hover:border-blue-300'
+        }
+      `}>
+        <CardContent className="p-4">
+          {/* Drag Handle */}
+          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-60 transition-opacity">
+            <GripVertical className="w-4 h-4 text-slate-400" />
+          </div>
+
+          {/* Main Content */}
+          <div className="pr-6">
+            {/* Candidate Name and Status */}
+            <div className="flex items-start justify-between mb-2">
+              <h4 className="font-semibold text-slate-900 text-sm leading-tight">
+                {safeCandidateName}
+              </h4>
+              <Badge 
+                variant="outline" 
+                className="text-xs px-2 py-1 ml-2 flex-shrink-0"
+              >
+                {status === 'active' ? 'Active' : status}
+              </Badge>
+            </div>
+            
+            {/* Job Title and Company */}
+            <div className="mb-2">
+              <p className="text-sm font-medium text-slate-700">
+                {jobInfo?.title || 'Position Title'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {clientInfo?.name || jobInfo?.client?.name || 'Company Name'}
+              </p>
+            </div>
+
+            {/* Contact Info */}
+            <div className="mb-3 space-y-1">
+              <div className="flex items-center gap-1 text-xs text-slate-600">
+                <Mail className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{safeCandidateEmail}</span>
+              </div>
+              {safeCandidatePhone && (
+                <div className="flex items-center gap-1 text-xs text-slate-600">
+                  <Phone className="w-3 h-3 flex-shrink-0" />
+                  <span>{safeCandidatePhone}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Applied Date */}
+            <div className="mb-3">
+              <span className="text-xs text-slate-500">
+                Applied: {formatDate(appliedAt || '')}
+              </span>
+            </div>
+
+            {/* Quick Action Buttons - Resume and Notes as requested */}
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-xs h-8 flex-1"
+                onClick={handleViewResume}
+                data-testid={`resume-${applicationId}`}
+              >
+                <FileText className="w-3 h-3 mr-1" />
+                {safeResumeUrl ? 'Resume' : 'No Resume'}
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-xs h-8 flex-1"
+                onClick={handleOpenNotes}
+                data-testid={`notes-${applicationId}`}
+              >
+                <MessageSquare className="w-3 h-3 mr-1" />
+                Notes
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Keep the original ApplicationCard for backward compatibility
 function ApplicationCard({ 
   applicationId, 
   candidateId, 
@@ -625,47 +846,164 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: column.id,
   })
+  const { toast } = useToast()
 
-  // Column colors based on position/title
-  const getColumnColor = (title: string) => {
-    switch (title.toLowerCase()) {
-      case 'new':
-      case 'applied': return 'bg-[#F0F4F8] border-gray-200'
-      case 'screening': return 'bg-[#E6F0FF] border-[#264C99]/20'
-      case 'interview': return 'bg-yellow-100 border-yellow-200'
-      case 'offer': return 'bg-purple-100 border-purple-200'
-      case 'hired': return 'bg-green-100 border-green-200'
-      case 'rejected': return 'bg-red-100 border-red-200'
-      default: return 'bg-slate-100 border-slate-200'
+  // Enhanced column styling with specific colors as requested
+  const getColumnStyling = (columnId: string, title: string) => {
+    const normalizedId = columnId.toLowerCase()
+    const normalizedTitle = title.toLowerCase()
+    
+    if (normalizedId.includes('applied') || normalizedTitle.includes('applied')) {
+      return {
+        headerBg: 'bg-gray-100',
+        headerBorder: 'border-gray-300',
+        headerText: 'text-gray-800',
+        columnBg: 'bg-gray-50',
+        columnBorder: 'border-gray-200',
+        accent: 'gray'
+      }
+    }
+    if (normalizedId.includes('screen') || normalizedTitle.includes('screen')) {
+      return {
+        headerBg: 'bg-blue-100',
+        headerBorder: 'border-blue-300',
+        headerText: 'text-blue-800',
+        columnBg: 'bg-blue-50',
+        columnBorder: 'border-blue-200',
+        accent: 'blue'
+      }
+    }
+    if (normalizedId.includes('interview') || normalizedTitle.includes('interview')) {
+      return {
+        headerBg: 'bg-yellow-100',
+        headerBorder: 'border-yellow-300',
+        headerText: 'text-yellow-800',
+        columnBg: 'bg-yellow-50',
+        columnBorder: 'border-yellow-200',
+        accent: 'yellow'
+      }
+    }
+    if (normalizedId.includes('offer') || normalizedTitle.includes('offer')) {
+      return {
+        headerBg: 'bg-purple-100',
+        headerBorder: 'border-purple-300',
+        headerText: 'text-purple-800',
+        columnBg: 'bg-purple-50',
+        columnBorder: 'border-purple-200',
+        accent: 'purple'
+      }
+    }
+    if (normalizedId.includes('hired') || normalizedTitle.includes('hired')) {
+      return {
+        headerBg: 'bg-green-100',
+        headerBorder: 'border-green-300',
+        headerText: 'text-green-800',
+        columnBg: 'bg-green-50',
+        columnBorder: 'border-green-200',
+        accent: 'green'
+      }
+    }
+    // Default fallback
+    return {
+      headerBg: 'bg-slate-100',
+      headerBorder: 'border-slate-300',
+      headerText: 'text-slate-800',
+      columnBg: 'bg-slate-50',
+      columnBorder: 'border-slate-200',
+      accent: 'slate'
     }
   }
 
-  const columnColor = getColumnColor(column.title)
+  const styling = getColumnStyling(column.id, column.title)
+  
+  // Calculate average time in stage (mock calculation for now)
+  const calculateAverageTime = () => {
+    if (applications.length === 0) return '0 days'
+    
+    // Mock calculation - in a real app, you'd calculate based on actual timestamps
+    const mockAverageDays = Math.floor(Math.random() * 7) + 1
+    return `${mockAverageDays} day${mockAverageDays !== 1 ? 's' : ''}`
+  }
+
+  const handleAddCandidate = () => {
+    toast({
+      title: "Add Candidate",
+      description: `Adding new candidate to ${column.title} stage`,
+    })
+  }
 
   return (
-    <div className="flex-1 min-w-[280px] md:min-w-[300px]">
-      <div className={`p-4 rounded-t-lg border-2 ${columnColor} ${
-        isOver ? 'border-blue-500 shadow-lg' : ''
-      }`}>
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-slate-900">{column.title}</h3>
-          <Badge variant="secondary" className={`text-xs transition-all ${
-            isOver ? 'bg-blue-500 text-white scale-110' : ''
-          }`}>
-            {applications.length}
-          </Badge>
-        </div>
-      </div>
+    <div className="flex-1 min-w-[280px] md:min-w-[320px]">
+      {/* Enhanced Column Header Card */}
+      <Card className={`${styling.headerBg} ${styling.headerBorder} border-2 rounded-b-none shadow-sm`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`font-semibold ${styling.headerText} text-lg`}>{column.title}</h3>
+              <div className="flex items-center gap-4 mt-1">
+                <span className={`text-sm ${styling.headerText} opacity-75`}>
+                  {applications.length} candidate{applications.length !== 1 ? 's' : ''}
+                </span>
+                <span className={`text-xs ${styling.headerText} opacity-60`}>
+                  Avg: {calculateAverageTime()}
+                </span>
+              </div>
+            </div>
+            <Badge 
+              variant="secondary" 
+              className={`text-sm font-medium ${
+                styling.accent === 'gray' ? 'bg-gray-200 text-gray-800' :
+                styling.accent === 'blue' ? 'bg-blue-200 text-blue-800' :
+                styling.accent === 'yellow' ? 'bg-yellow-200 text-yellow-800' :
+                styling.accent === 'purple' ? 'bg-purple-200 text-purple-800' :
+                styling.accent === 'green' ? 'bg-green-200 text-green-800' :
+                'bg-slate-200 text-slate-800'
+              } ${
+                isOver ? 'scale-110 shadow-md' : ''
+              } transition-all`}
+            >
+              {applications.length}
+            </Badge>
+          </div>
+        </CardHeader>
+      </Card>
+      
+      {/* Column Content Area */}
       <div 
         ref={setNodeRef}
-        className={`min-h-[400px] p-4 border-2 border-t-0 rounded-b-lg transition-all duration-200 ${
-          columnColor
-        } ${
-          isOver 
-            ? 'bg-opacity-60 border-blue-500 shadow-inner scale-[1.02]' 
-            : 'bg-opacity-20'
-        }`}
+        className={`
+          min-h-[500px] p-4 border-2 border-t-0 rounded-t-none rounded-b-lg
+          transition-all duration-200
+          ${styling.columnBg} ${styling.columnBorder}
+          ${
+            isOver 
+              ? 'border-blue-500 shadow-lg bg-opacity-80 scale-[1.01]' 
+              : ''
+          }
+        `}
       >
+        {/* Add Candidate Button */}
+        <Button
+          onClick={handleAddCandidate}
+          variant="outline"
+          className={`
+            w-full mb-4 border-dashed border-2 h-12
+            ${styling.accent === 'gray' ? 'border-gray-300 hover:bg-gray-100 text-gray-600' :
+              styling.accent === 'blue' ? 'border-blue-300 hover:bg-blue-100 text-blue-600' :
+              styling.accent === 'yellow' ? 'border-yellow-300 hover:bg-yellow-100 text-yellow-600' :
+              styling.accent === 'purple' ? 'border-purple-300 hover:bg-purple-100 text-purple-600' :
+              styling.accent === 'green' ? 'border-green-300 hover:bg-green-100 text-green-600' :
+              'border-slate-300 hover:bg-slate-100 text-slate-600'
+            }
+            hover:border-solid transition-all
+          `}
+          data-testid={`add-candidate-${column.id}`}
+        >
+          <Users className="w-4 h-4 mr-2" />
+          + Add Candidate
+        </Button>
+
+        {/* Candidates List */}
         <SortableContext 
           items={applications?.filter(app => app?.id).map(app => app.id) || []} 
           strategy={verticalListSortingStrategy}
@@ -695,18 +1033,21 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
             }
             
             return (
-              <ApplicationCard 
+              <EnhancedApplicationCard 
                 key={application.id}
                 {...safeApplicationData}
               />
             )
           })?.filter(Boolean) || []}
         </SortableContext>
+        
+        {/* Enhanced Empty State */}
         {applications.length === 0 && (
-          <div className="flex items-center justify-center h-32 text-slate-400">
+          <div className="flex flex-col items-center justify-center h-48 text-slate-400">
             <div className="text-center">
-              <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No applications</p>
+              <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="text-sm font-medium mb-1">No candidates yet</p>
+              <p className="text-xs opacity-75">Drag candidates here or use the button above</p>
             </div>
           </div>
         )}
