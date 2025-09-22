@@ -3355,7 +3355,32 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
-  // Move job candidate to different pipeline column (Kanban drag and drop)
+  // NEW: Move application using applicationId (job_candidate.id) - Primary endpoint
+  app.patch("/api/jobs/:jobId/applications/:applicationId/move", writeLimiter, async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+      const { columnId } = req.body;
+      
+      if (!columnId) {
+        return res.status(400).json({ error: "Column ID is required" });
+      }
+
+      console.info('Moving application', applicationId, 'to column', columnId);
+      
+      // Use the storage method to move the job candidate by applicationId
+      const updatedJobCandidate = await storage.moveJobCandidate(applicationId, columnId);
+      
+      res.json({ 
+        message: "Application moved successfully",
+        jobCandidate: updatedJobCandidate
+      });
+    } catch (error) {
+      console.error("Error moving application:", error);
+      res.status(500).json({ error: "Failed to move application" });
+    }
+  });
+
+  // LEGACY: Move job candidate to different pipeline column (Kanban drag and drop)
   app.patch("/api/jobs/:jobId/candidates/:candidateId/move", writeLimiter, async (req, res) => {
     try {
       const { candidateId } = req.params;
@@ -3365,7 +3390,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: "Column ID is required" });
       }
 
-      console.info('Moving job candidate', candidateId, 'to column', columnId);
+      console.info('Moving job candidate (legacy)', candidateId, 'to column', columnId);
       
       // Use the storage method to move the job candidate
       const updatedJobCandidate = await storage.moveJobCandidate(candidateId, columnId);

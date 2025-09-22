@@ -127,39 +127,55 @@ export function useJobPipelineColumns(jobId: string | undefined) {
 }
 
 // Move application to different pipeline column (drag and drop)
+// Track pending moves to prevent concurrent operations on the same card
+const pendingMoves = new Set<string>();
+
 export function useMoveApplication(jobId: string) {
   const queryClient = useQueryClient()
   const { currentOrgId } = useAuth()
 
   return useMutation({
-    mutationFn: async ({ candidateId, columnId }: { candidateId: string; columnId: string }) => {
+    mutationFn: async ({ applicationId, columnId }: { applicationId: string; columnId: string }) => {
       
       // Validate required parameters
-      if (!candidateId || !columnId || !jobId || !currentOrgId) {
-        throw new Error(`Missing required parameters: candidateId=${!!candidateId}, columnId=${!!columnId}, jobId=${!!jobId}, orgId=${!!currentOrgId}`);
+      if (!applicationId || !columnId || !jobId || !currentOrgId) {
+        throw new Error(`Missing required parameters: applicationId=${!!applicationId}, columnId=${!!columnId}, jobId=${!!jobId}, orgId=${!!currentOrgId}`);
       }
+
+      // Prevent concurrent moves of the same application
+      if (pendingMoves.has(applicationId)) {
+        throw new Error(`Move already in progress for this application`);
+      }
+
+      // Add to pending moves
+      pendingMoves.add(applicationId);
       
-      console.log('[useMoveApplication] API call with:', { 
-        candidateId, 
-        columnId, 
-        jobId, 
-        orgId: currentOrgId,
-        endpoint: `/api/jobs/${jobId}/candidates/${candidateId}/move`
-      });
-      
-      // Use the correct API endpoint that matches the server route
-      const response = await apiRequest(`/api/jobs/${jobId}/candidates/${candidateId}/move`, {
-        method: 'PATCH',
-        body: JSON.stringify({ columnId })
-      });
-      
-      console.log('[useMoveApplication] API response:', response);
-      return response;
+      try {
+        console.log('[useMoveApplication] API call with:', { 
+          applicationId, 
+          columnId, 
+          jobId, 
+          orgId: currentOrgId,
+          endpoint: `/api/jobs/${jobId}/applications/${applicationId}/move`
+        });
+        
+        // Use applicationId-based endpoint for consistency with drag identifiers
+        const response = await apiRequest(`/api/jobs/${jobId}/applications/${applicationId}/move`, {
+          method: 'PATCH',
+          body: JSON.stringify({ columnId })
+        });
+        
+        console.log('[useMoveApplication] API response:', response);
+        return response;
+      } finally {
+        // Always remove from pending moves
+        pendingMoves.delete(applicationId);
+      }
     },
     
     // Optimistic update: immediately update UI before API call completes
-    onMutate: async ({ candidateId, columnId }) => {
-      console.log('[useMoveApplication] Starting optimistic update:', { candidateId, columnId });
+    onMutate: async ({ applicationId, columnId }) => {
+      console.log('[useMoveApplication] Starting optimistic update:', { applicationId, columnId });
       
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ['job-pipeline', jobId] });
@@ -172,15 +188,10 @@ export function useMoveApplication(jobId: string) {
         if (!old || !old.applications) return old;
         
         const updatedApplications = old.applications.map((app: any) => {
-          // Try multiple ways to match the candidate - the data structure might vary
-          const matches = app.candidateId === candidateId || 
-                         app.candidate?.id === candidateId ||
-                         (app as any).candidate_id === candidateId;
-          
-          if (matches) {
+          // Match by applicationId (job_candidate.id) directly
+          if (app.id === applicationId) {
             console.log('[Optimistic Update] Found matching application:', { 
-              appId: app.id, 
-              candidateId, 
+              applicationId, 
               oldColumnId: app.columnId, 
               newColumnId: columnId 
             });

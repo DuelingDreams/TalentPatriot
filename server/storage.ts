@@ -1215,7 +1215,54 @@ export class DatabaseStorage implements IStorage {
 
 
   async moveJobCandidate(applicationOrCandidateId: string, newColumnId: string): Promise<JobCandidate> {
-    console.log(`[moveJobCandidate] Starting move: applicationOrCandidateId=${applicationOrCandidateId}, newColumnId=${newColumnId}`);
+    console.log(`[moveJobCandidate] Starting transactional move: applicationOrCandidateId=${applicationOrCandidateId}, newColumnId=${newColumnId}`);
+    
+    // Try the RPC transaction first, fall back to direct method if RPC doesn't exist
+    try {
+      const { data: transactionResult, error: transactionError } = await supabase.rpc('move_job_candidate_transaction', {
+        p_application_or_candidate_id: applicationOrCandidateId,
+        p_new_column_id: newColumnId
+      });
+
+      if (transactionError) {
+        // If RPC function doesn't exist, fall back to direct method
+        if (transactionError.message?.includes('function') && transactionError.message?.includes('does not exist')) {
+          console.log(`[moveJobCandidate] RPC function not available, using direct method`);
+          return await this.moveJobCandidateDirect(applicationOrCandidateId, newColumnId);
+        }
+        
+        console.error(`[moveJobCandidate] Transaction failed:`, transactionError);
+        
+        // Handle specific error types for better user feedback
+        if (transactionError.message?.includes('not found')) {
+          throw new Error(`Application not found. It may have been removed or archived.`);
+        } else if (transactionError.message?.includes('invalid column')) {
+          throw new Error(`Invalid target column. The pipeline stage may have been deleted.`);
+        } else if (transactionError.message?.includes('permission')) {
+          throw new Error(`Permission denied. You don't have access to move this application.`);
+        } else if (transactionError.message?.includes('concurrent')) {
+          throw new Error(`Concurrent modification detected. Please refresh and try again.`);
+        } else {
+          throw new Error(`Move operation failed: ${transactionError.message}`);
+        }
+      }
+
+      if (!transactionResult) {
+        throw new Error(`Move operation completed but no data returned.`);
+      }
+
+      console.log(`[moveJobCandidate] Transaction completed successfully:`, transactionResult);
+      return transactionResult as JobCandidate;
+    } catch (error) {
+      // If any error with RPC, fall back to direct method
+      console.log(`[moveJobCandidate] RPC failed, falling back to direct method:`, error);
+      return await this.moveJobCandidateDirect(applicationOrCandidateId, newColumnId);
+    }
+  }
+
+  // Fallback method for direct database operations when RPC is not available
+  private async moveJobCandidateDirect(applicationOrCandidateId: string, newColumnId: string): Promise<JobCandidate> {
+    console.log(`[moveJobCandidateDirect] Starting move: applicationOrCandidateId=${applicationOrCandidateId}, newColumnId=${newColumnId}`);
     
     // Try to find the job_candidate record - first try by ID (application ID)
     let jobCandidateData;
@@ -1224,31 +1271,31 @@ export class DatabaseStorage implements IStorage {
     // First attempt: Try by job_candidate.id (application ID)
     const { data: byIdData, error: byIdError } = await supabase
       .from('job_candidate')
-      .select('id, pipeline_column_id, stage, candidate_id')
+      .select('id, pipeline_column_id, stage, candidate_id, job_id, org_id, updated_at')
       .eq('id', applicationOrCandidateId)
       .single();
     
     if (byIdData && !byIdError) {
       jobCandidateData = byIdData;
-      console.log(`[moveJobCandidate] Found by application ID: ${applicationOrCandidateId}`);
+      console.log(`[moveJobCandidateDirect] Found by application ID: ${applicationOrCandidateId}`);
     } else {
       // Second attempt: Try by candidate_id
       const { data: byCandidateData, error: byCandidateError } = await supabase
         .from('job_candidate')
-        .select('id, pipeline_column_id, stage, candidate_id')
+        .select('id, pipeline_column_id, stage, candidate_id, job_id, org_id, updated_at')
         .eq('candidate_id', applicationOrCandidateId)
         .single();
       
       if (byCandidateData && !byCandidateError) {
         jobCandidateData = byCandidateData;
-        console.log(`[moveJobCandidate] Found by candidate ID: ${applicationOrCandidateId}`);
+        console.log(`[moveJobCandidateDirect] Found by candidate ID: ${applicationOrCandidateId}`);
       } else {
         findError = byCandidateError;
       }
     }
     
     if (!jobCandidateData) {
-      console.error(`[moveJobCandidate] Job candidate lookup failed:`, {
+      console.error(`[moveJobCandidateDirect] Job candidate lookup failed:`, {
         applicationOrCandidateId,
         byIdError,
         byCandidateError: findError
@@ -1257,29 +1304,40 @@ export class DatabaseStorage implements IStorage {
     }
     
     const jobCandidateId = jobCandidateData.id;
-    console.log(`[moveJobCandidate] Using job_candidate ID: ${jobCandidateId} for input ID: ${applicationOrCandidateId}`);
+    console.log(`[moveJobCandidateDirect] Using job_candidate ID: ${jobCandidateId} for input ID: ${applicationOrCandidateId}`);
     
-    // First get the column to determine the stage
+    // Verify column exists and get its title for stage mapping
     const { data: columnData, error: columnError } = await supabase
       .from('pipeline_columns')
-      .select('title')
+      .select('title, org_id, job_id')
       .eq('id', newColumnId)
       .single();
     
     if (columnError) {
-      console.error(`[moveJobCandidate] Column lookup failed:`, columnError);
+      console.error(`[moveJobCandidateDirect] Column lookup failed:`, columnError);
       throw new Error(`Failed to get column info: ${columnError.message}`);
+    }
+
+    // Security check: Verify organization and job ownership
+    if (columnData.org_id !== jobCandidateData.org_id) {
+      throw new Error(`Permission denied: Column belongs to different organization`);
+    }
+    
+    if (columnData.job_id && columnData.job_id !== jobCandidateData.job_id) {
+      throw new Error(`Permission denied: Column belongs to different job`);
     }
     
     // Map column title to stage with correct enum values
-    // Valid enum values: ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']
+    // Valid enum values: ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']
     const stageMapping: Record<string, string> = {
       'applied': 'applied',
-      'screen': 'screening', // Map "Screen" column to 'screening' enum
-      'screening': 'screening', // Direct mapping for 'screening'
+      'screen': 'phone_screen', // Map "Screen" column to 'phone_screen' enum
+      'phone_screen': 'phone_screen', // Direct mapping
+      'phone screen': 'phone_screen', // Handle spaces
+      'screening': 'phone_screen', // Legacy support for 'screening'
       'interview': 'interview',
-      'technical': 'technical', // Use correct enum value
-      'final': 'final', // Use correct enum value
+      'technical': 'technical',
+      'final': 'final',
       'offer': 'offer',
       'hired': 'hired',
       'rejected': 'rejected'
@@ -1289,16 +1347,22 @@ export class DatabaseStorage implements IStorage {
     const directTitle = columnData.title.toLowerCase();
     const stage = stageMapping[normalizedTitle] || stageMapping[directTitle] || 'applied';
     
-    // Validate the stage is a valid enum value
-    const validStages = ['applied', 'screening', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected'];
+    // Validate the stage is a valid enum value - Use correct database enum values
+    const validStages = ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected'];
     if (!validStages.includes(stage)) {
-      console.error(`[moveJobCandidate] Invalid stage mapping: "${stage}" for column "${columnData.title}"`);
+      console.error(`[moveJobCandidateDirect] Invalid stage mapping: "${stage}" for column "${columnData.title}"`);
       throw new Error(`Invalid stage value: ${stage}. Valid stages are: ${validStages.join(', ')}`);
     }
     
-    console.log(`[moveJobCandidate] Column "${columnData.title}" (normalized: "${normalizedTitle}", direct: "${directTitle}") mapped to stage "${stage}"`);
+    console.log(`[moveJobCandidateDirect] Column "${columnData.title}" (normalized: "${normalizedTitle}", direct: "${directTitle}") mapped to stage "${stage}"`);
     
-    console.log(`[moveJobCandidate] Before update:`, jobCandidateData);
+    // Atomic update with conflict detection - ensure we use correct field names
+    console.log(`[moveJobCandidateDirect] Attempting update with:`, {
+      jobCandidateId,
+      newColumnId,
+      stage,
+      targetStage: stage
+    });
     
     const { data, error } = await supabase
       .from('job_candidate')
@@ -1311,7 +1375,7 @@ export class DatabaseStorage implements IStorage {
       .single();
     
     if (error) {
-      console.error(`[moveJobCandidate] Update failed:`, error);
+      console.error(`[moveJobCandidateDirect] Update failed:`, error);
       
       // Provide specific error messages for common issues
       if (error.message?.includes('invalid input value for enum')) {
@@ -1324,21 +1388,19 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Failed to move application: ${error.message}`);
       }
     }
+
+    // Check if the update actually affected any rows (optimistic locking check)
+    if (!data) {
+      console.warn(`[moveJobCandidateDirect] No rows updated - concurrent modification detected`);
+      throw new Error(`Concurrent modification detected. Please refresh and try again.`);
+    }
     
-    console.log(`[moveJobCandidate] After update:`, {
+    console.log(`[moveJobCandidateDirect] Successfully updated:`, {
       id: data.id,
       pipeline_column_id: data.pipeline_column_id,
-      stage: data.stage
+      stage: data.stage,
+      updated_at: data.updated_at
     });
-    
-    // Verify the update actually took effect
-    const { data: verifyData } = await supabase
-      .from('job_candidate')
-      .select('id, pipeline_column_id, stage')
-      .eq('id', jobCandidateId)
-      .single();
-    
-    console.log(`[moveJobCandidate] Verification query result:`, verifyData);
     
     return data as JobCandidate;
   }
