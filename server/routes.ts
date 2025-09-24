@@ -3168,6 +3168,33 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Batched candidate notes endpoint
+  app.get("/api/candidate-notes/batch", async (req, res) => {
+    try {
+      const jobCandidateIds = req.query.jobCandidateIds as string;
+      
+      if (!jobCandidateIds) {
+        return res.status(400).json({ error: "jobCandidateIds is required" });
+      }
+
+      // Parse the comma-separated IDs
+      const candidateIds = jobCandidateIds.split(',').filter(id => id.trim());
+      
+      if (candidateIds.length === 0) {
+        return res.status(400).json({ error: "At least one jobCandidateId is required" });
+      }
+
+      console.log('[NOTES_API] GET /api/candidate-notes/batch - Fetching for', candidateIds.length, 'candidates');
+      
+      const batchedNotes = await storage.getBatchedCandidateNotes(candidateIds);
+      
+      console.log('[NOTES_API] Batched notes fetched successfully');
+      res.json(batchedNotes);
+    } catch (error) {
+      console.error("[NOTES_API] Error fetching batched candidate notes:", error);
+      res.status(500).json({ error: "Failed to fetch batched candidate notes" });
+    }
+  });
 
   // Messages routes
   app.get("/api/messages", async (req, res) => {

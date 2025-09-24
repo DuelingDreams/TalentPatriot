@@ -80,3 +80,29 @@ export function useUpdateCandidateNote() {
     },
   })
 }
+
+// Batched candidate notes hook - fetches notes for multiple candidates at once
+export function useBatchedCandidateNotes(jobCandidateIds: string[]) {
+  return useQuery({
+    queryKey: ['/api/candidate-notes/batch', ...jobCandidateIds.sort()],
+    queryFn: async () => {
+      if (!jobCandidateIds.length) {
+        return {};
+      }
+
+      console.log('[useBatchedCandidateNotes] Fetching notes for', jobCandidateIds.length, 'candidates');
+      
+      const response = await fetch(`/api/candidate-notes/batch?jobCandidateIds=${jobCandidateIds.join(',')}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch batched candidate notes')
+      }
+      
+      const result = await response.json() as Record<string, EnrichedCandidateNotes[]>
+      console.log('[useBatchedCandidateNotes] Batched notes fetched successfully');
+      return result;
+    },
+    enabled: jobCandidateIds.length > 0,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000  // 5 minutes
+  })
+}

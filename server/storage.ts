@@ -1775,6 +1775,105 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Batched version for multiple job candidates
+  async getBatchedCandidateNotes(jobCandidateIds: string[]): Promise<Record<string, CandidateNotes[]>> {
+    try {
+      console.log('[STORAGE] Fetching batched candidate notes for', jobCandidateIds.length, 'candidates');
+      
+      if (!jobCandidateIds.length) {
+        return {};
+      }
+
+      const { data, error } = await supabase
+        .from('candidate_notes')
+        .select(`
+          id,
+          org_id,
+          job_candidate_id,
+          author_id,
+          content,
+          is_private,
+          created_at,
+          updated_at
+        `)
+        .in('job_candidate_id', jobCandidateIds)
+        .order('created_at', { ascending: true })
+
+      if (error) {
+        console.error('Database batched candidate notes fetch error:', error)
+        throw new Error(`Failed to fetch batched candidate notes: ${error.message}`)
+      }
+
+      console.log('[STORAGE] Raw batched notes data:', data?.length || 0, 'notes found');
+
+      // Get author emails for all notes
+      const notes = data || [];
+      const authorIds = Array.from(new Set(notes.map(note => note.author_id)));
+      
+      let authorEmails: Record<string, string> = {};
+      
+      if (authorIds.length > 0) {
+        try {
+          // Fetch all author profiles in one query
+          const { data: profiles } = await supabase
+            .from('user_profiles')
+            .select('id, first_name, last_name')
+            .in('id', authorIds);
+          
+          authorIds.forEach(authorId => {
+            const profile = profiles?.find(p => p.id === authorId);
+            if (profile && profile.first_name && profile.last_name) {
+              const name = `${profile.first_name} ${profile.last_name}`.toLowerCase().replace(/\s+/g, '');
+              authorEmails[authorId] = `${name}@company.com`;
+            } else {
+              authorEmails[authorId] = `user_${authorId.split('-')[0]}@company.com`;
+            }
+          });
+          
+          console.log('[STORAGE] Author emails resolved for batched notes:', Object.keys(authorEmails).length);
+        } catch (emailError) {
+          console.warn('[STORAGE] Failed to fetch author emails for batched notes, using fallback:', emailError);
+          authorIds.forEach(authorId => {
+            authorEmails[authorId] = `user_${authorId.split('-')[0]}@company.com`;
+          });
+        }
+      }
+
+      // Group notes by jobCandidateId
+      const groupedNotes: Record<string, CandidateNotes[]> = {};
+      
+      // Initialize empty arrays for all requested candidates
+      jobCandidateIds.forEach(id => {
+        groupedNotes[id] = [];
+      });
+
+      // Group notes by job candidate ID
+      notes.forEach(note => {
+        const enrichedNote = {
+          id: note.id,
+          orgId: note.org_id,
+          jobCandidateId: note.job_candidate_id,
+          authorId: note.author_id,
+          authorEmail: authorEmails[note.author_id] || `user_${note.author_id.split('-')[0]}@company.com`,
+          content: note.content,
+          isPrivate: note.is_private === true || note.is_private === 'true',
+          createdAt: note.created_at,
+          updatedAt: note.updated_at
+        } as CandidateNotes & { authorEmail: string };
+
+        if (groupedNotes[note.job_candidate_id]) {
+          groupedNotes[note.job_candidate_id].push(enrichedNote);
+        }
+      });
+
+      console.log('[STORAGE] Returning batched notes for', Object.keys(groupedNotes).length, 'candidates');
+      return groupedNotes;
+    } catch (err) {
+      console.error('Batched candidate notes fetch exception:', err)
+      throw err
+    }
+  }
+
   async createCandidateNote(note: InsertCandidateNotes): Promise<CandidateNotes> {
     try {
       const dbNote = {
