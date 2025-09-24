@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../../lib/supabase';
 import type {
   UserProfile,
   UserSettings,
@@ -10,25 +10,6 @@ import type {
   InsertUserOrganization
 } from "@shared/schema";
 import type { IAuthRepository } from './interface';
-
-// Supabase client configuration
-const supabaseUrl = process.env.VITE_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-  },
-  db: {
-    schema: 'public',
-  },
-  global: {
-    headers: {
-      'x-client-info': 'ats-backend@1.0.0',
-    },
-  },
-});
 
 export class AuthRepository implements IAuthRepository {
   // User Profiles
