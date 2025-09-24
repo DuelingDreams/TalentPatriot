@@ -34,6 +34,30 @@ import { createClient } from '@supabase/supabase-js';
 import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 import crypto from "crypto";
+import multer from 'multer';
+import { ImportService } from './lib/importService';
+
+// Configure multer for file uploads (in-memory storage)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept CSV and Excel files
+    const allowedMimes = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    
+    if (allowedMimes.includes(file.mimetype) || file.originalname.match(/\.(csv|xls|xlsx)$/i)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV, XLS, and XLSX files are allowed'), false);
+    }
+  }
+});
 
 // Authentication and Authorization Middleware
 interface AuthenticatedRequest extends express.Request {
@@ -3954,7 +3978,7 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // Create new import (file upload)
-  app.post("/api/imports", requireAuth, writeLimiter, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/imports", requireAuth, writeLimiter, upload.single('file'), async (req: AuthenticatedRequest, res) => {
     console.info('[API]', req.method, req.url);
     try {
       const userProfile = await storage.getUserProfile(req.user?.id || '');
@@ -3967,14 +3991,45 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const validatedData = insertDataImportSchema.parse({
-        ...req.body,
+      // Check if file was uploaded
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ error: 'File is required' });
+      }
+
+      // Get import type from request body or detect from filename
+      const importType = req.body.importType || 
+        (file.originalname.toLowerCase().includes('candidate') ? 'candidates' : 'jobs');
+      
+      if (!['candidates', 'jobs'].includes(importType)) {
+        return res.status(400).json({ error: 'Invalid import type. Must be "candidates" or "jobs"' });
+      }
+
+      // Create the import record
+      const newImport = await storage.createDataImport({
         orgId: userProfile.orgId,
-        userId: req.user?.id,
-        status: 'processing'
+        userId: req.user?.id || '',
+        importType: importType as 'candidates' | 'jobs',
+        fileName: file.originalname,
+        fileSize: file.size,
+        status: 'processing',
+        totalRecords: 0,
+        successfulRecords: 0,
+        failedRecords: 0,
+        fieldMapping: null,
+        errorSummary: null,
+        processingStartedAt: new Date(),
+        processingCompletedAt: null
       });
 
-      const newImport = await storage.createDataImport(validatedData);
+      // Start processing in the background (don't await)
+      setImmediate(async () => {
+        try {
+          await ImportService.processImport(newImport, file.buffer, file.originalname);
+        } catch (error) {
+          console.error('Background import processing failed:', error);
+        }
+      });
       
       console.info('[API] POST /api/imports →', { success: true, id: newImport.id });
       res.status(201).json(newImport);

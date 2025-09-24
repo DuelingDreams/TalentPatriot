@@ -278,15 +278,26 @@ export default function DataImport() {
   // Mutation to create new import
   const createImportMutation = useMutation({
     mutationFn: async (data: {
-      fileName: string;
-      fileSize: number;
+      file: File;
       importType: string;
-      totalRecords: number;
     }) => {
-      return apiRequest('/api/imports', {
+      const formData = new FormData();
+      formData.append('file', data.file);
+      formData.append('importType', data.importType);
+      
+      // Use fetch directly for FormData uploads
+      const response = await fetch('/api/imports', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: formData,
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/imports'] });
@@ -317,18 +328,25 @@ export default function DataImport() {
         return;
       }
 
-      // Determine import type based on file content (this would be more sophisticated in a real app)
-      const importType = file.name.toLowerCase().includes('candidate') ? 'candidates' : 'jobs';
+      // Validate file type
+      const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+      const allowedExtensions = ['.csv', '.xls', '.xlsx'];
       
-      // For demo purposes, we'll simulate record counting
-      // In a real app, you'd parse the file to count records
-      const estimatedRecords = Math.floor(Math.random() * 100) + 50;
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please select a CSV, XLS, or XLSX file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Determine import type based on file content
+      const importType = file.name.toLowerCase().includes('candidate') ? 'candidates' : 'jobs';
 
       createImportMutation.mutate({
-        fileName: file.name,
-        fileSize: file.size,
-        importType,
-        totalRecords: estimatedRecords
+        file,
+        importType
       });
     } catch (error) {
       toast({
