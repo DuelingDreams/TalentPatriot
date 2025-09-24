@@ -24,9 +24,9 @@ type JobHealth = 'healthy' | 'needs_attention' | 'stale'
 // Job health calculation logic
 function calculateJobHealth(job: any, candidateCount: number): JobHealth {
   const now = new Date()
-  const createdDate = new Date(job.createdAt)
+  const createdDate = new Date(job.created_at)
   const daysSinceCreated = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
-  const publishedDate = job.publishedAt ? new Date(job.publishedAt) : null
+  const publishedDate = job.published_at ? new Date(job.published_at) : null
   const daysSincePublished = publishedDate ? Math.floor((now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60 * 24)) : null
   
   // For draft jobs
@@ -219,11 +219,11 @@ export default function Jobs() {
   const rawJobs = userRole === 'demo_viewer' ? getDemoJobStats() : jobs || []
   const isDemoMode = userRole === 'demo_viewer'
   
-  // Add candidate counts to jobs (mock for now - in real implementation, this would come from API)
+  // Jobs already include candidate counts from the API
   const jobsWithStats = rawJobs.map((job: any) => ({
     ...job,
-    candidateCount: Math.floor(Math.random() * 12), // Mock data - replace with real API call
-    health: calculateJobHealth(job, Math.floor(Math.random() * 12))
+    candidateCount: job.candidateCount || 0, // Use real data from API
+    health: calculateJobHealth(job, job.candidateCount || 0)
   }))
   
   // Apply filtering
@@ -236,7 +236,7 @@ export default function Jobs() {
   const sortedJobs = [...filteredJobs].sort((a, b) => {
     switch (sortBy) {
       case 'date':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       case 'candidates':
         return b.candidateCount - a.candidateCount
       case 'status':
@@ -425,9 +425,9 @@ export default function Jobs() {
                                     <div className="flex items-center gap-1">
                                       <Calendar className="w-4 h-4" />
                                       <span data-testid={`job-created-${job.id}`}>
-                                        {job.publishedAt 
-                                          ? `Posted ${new Date(job.publishedAt).toLocaleDateString()}`
-                                          : `Created ${new Date(job.createdAt).toLocaleDateString()}`
+                                        {job.published_at 
+                                          ? `Posted ${new Date(job.published_at).toLocaleDateString()}`
+                                          : `Created ${new Date(job.created_at).toLocaleDateString()}`
                                         }
                                       </span>
                                     </div>
