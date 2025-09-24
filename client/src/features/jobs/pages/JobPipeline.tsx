@@ -18,6 +18,7 @@ import { useJobs } from '@/features/jobs/hooks/useJobs'
 import { useClients } from '@/features/organization/hooks/useClients'
 import { useCandidatesForJob } from '../hooks/useCandidatesForJob'
 import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, useRejectCandidate, organizeApplicationsByColumn } from '@/features/candidates/hooks/usePipeline'
+import { useBatchedCandidateNotes } from '@/features/candidates/hooks/useCandidateNotes'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
@@ -1279,6 +1280,20 @@ export default function JobPipeline() {
     isSuccess: pipelineSuccess 
   } = useJobPipeline(jobId, { enableRealTime: true, includeCompleted })
   const moveApplication = useMoveApplication(jobId || '')
+
+  // Extract job candidate IDs for batched notes preloading
+  const jobCandidateIds = useMemo(() => {
+    if (!jobPipelineData?.applications) return []
+    return jobPipelineData.applications
+      .filter(app => app?.id)
+      .map(app => app.id)
+  }, [jobPipelineData?.applications])
+
+  // Preload all candidate notes in batch to avoid N+1 queries
+  const { 
+    data: batchedNotes, 
+    isLoading: notesLoading 
+  } = useBatchedCandidateNotes(jobCandidateIds)
 
   // Enhanced loading state validation - prevents drag operations during loading
   const isPipelineReady = pipelineSuccess && 
