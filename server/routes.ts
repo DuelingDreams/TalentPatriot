@@ -2695,7 +2695,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/jobs/:jobId/pipeline", async (req, res) => {
     try {
       const { jobId } = req.params;
-      console.log('[Pipeline Route] Fetching pipeline for job:', jobId);
+      const includeCompleted = req.query.includeCompleted === 'true';
+      console.log('[Pipeline Route] Fetching pipeline for job:', jobId, 'includeCompleted:', includeCompleted);
 
       // Get job details to verify it exists and get organization ID
       const job = await storage.getJob(jobId);
@@ -2718,15 +2719,17 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       // Use storage layer method to ensure database consistency
       // This uses the same Supabase client as the move operations
-      const pipelineData = await storage.getJobPipelineData(jobId, orgId);
+      const pipelineData = await storage.getJobPipelineData(jobId, orgId, includeCompleted);
 
       console.log('[Pipeline Route] Pipeline data fetched successfully:', {
         columnsCount: pipelineData.columns.length,
         applicationsCount: pipelineData.applications.length,
+        includeCompleted,
         applications: pipelineData.applications.map(app => ({
           id: app.id,
           candidateName: app.candidate?.name,
-          columnId: app.columnId
+          columnId: app.columnId,
+          stage: app.stage || 'unknown'
         }))
       });
 

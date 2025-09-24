@@ -262,7 +262,7 @@ export interface IStorage {
   createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn>;
   
   // Job Pipeline Data (unified fetch for consistency)
-  getJobPipelineData(jobId: string, orgId: string): Promise<{
+  getJobPipelineData(jobId: string, orgId: string, includeCompleted?: boolean): Promise<{
     columns: Array<{ id: string; title: string; position: string }>;
     applications: Array<{
       id: string;
@@ -2510,7 +2510,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Job Pipeline Data (unified fetch for consistency)
-  async getJobPipelineData(jobId: string, orgId: string): Promise<{
+  async getJobPipelineData(jobId: string, orgId: string, includeCompleted: boolean = false): Promise<{
     columns: Array<{ id: string; title: string; position: string }>;
     applications: Array<{
       id: string;
@@ -2528,7 +2528,7 @@ export class DatabaseStorage implements IStorage {
       } | null;
     }>;
   }> {
-    console.log(`[getJobPipelineData] Fetching pipeline data for job: ${jobId}, org: ${orgId}`);
+    console.log(`[getJobPipelineData] Fetching pipeline data for job: ${jobId}, org: ${orgId}, includeCompleted: ${includeCompleted}`);
     
     try {
       // Get pipeline columns for this job (using same client as move operations)
@@ -2544,8 +2544,8 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Failed to fetch pipeline columns: ${columnsError.message}`);
       }
 
-      // Get applications for this job (using same client as move operations)
-      const { data: applications, error: applicationsError } = await supabase
+      // Build the query for applications
+      let query = supabase
         .from('job_candidate')
         .select(`
           id,
@@ -2559,7 +2559,14 @@ export class DatabaseStorage implements IStorage {
           candidate:candidates(id, name, email, phone, resume_url)
         `)
         .eq('job_id', jobId)
-        .eq('status', 'active')
+        .eq('status', 'active');
+
+      // Filter out completed candidates if not requested
+      if (!includeCompleted) {
+        query = query.not('stage', 'in', '(hired,rejected)');
+      }
+
+      const { data: applications, error: applicationsError } = await query
         .order('created_at', { ascending: false });
 
       if (applicationsError) {
