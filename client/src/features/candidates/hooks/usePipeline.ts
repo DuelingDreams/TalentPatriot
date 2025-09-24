@@ -308,20 +308,40 @@ export function useRejectCandidate(jobId: string) {
     onSuccess: (data: any) => {
       console.log('[useRejectCandidate] Reject successful - removing from pipeline');
       
-      // Remove rejected candidate from pipeline view
-      queryClient.setQueryData(['job-pipeline', jobId], (old: any) => {
+      // Remove rejected candidate from both pipeline views (includeCompleted: false and true)
+      // Update cache for includeCompleted: false (main pipeline view)
+      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], (old: any) => {
         if (!old || !old.applications) return old;
         
         const filteredApplications = old.applications.filter((app: any) => 
           app.id !== data.jobCandidate?.id
         );
         
-        console.log('[useRejectCandidate] Candidate removed from pipeline view');
+        console.log('[useRejectCandidate] Candidate removed from main pipeline view');
         return { ...old, applications: filteredApplications };
       });
       
-      // Invalidate to trigger background refresh
-      queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
+      // Update cache for includeCompleted: true (analytics view with completed candidates)
+      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: true }], (old: any) => {
+        if (!old || !old.applications) return old;
+        
+        // For includeCompleted view, update the application status instead of removing it
+        const updatedApplications = old.applications.map((app: any) => 
+          app.id === data.jobCandidate?.id 
+            ? { ...app, columnId: null, status: 'rejected' }
+            : app
+        );
+        
+        console.log('[useRejectCandidate] Candidate status updated in analytics view');
+        return { ...old, applications: updatedApplications };
+      });
+      
+      // Invalidate to trigger background refresh with correct cache keys
+      queryClient.invalidateQueries({ 
+        predicate: (query) => 
+          query.queryKey[0] === 'job-pipeline' && 
+          query.queryKey[1] === jobId 
+      });
     },
     
     onError: (error) => {
