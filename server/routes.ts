@@ -3921,17 +3921,20 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get("/api/imports", requireAuth, async (req: AuthenticatedRequest, res) => {
     console.info('[API]', req.method, req.url);
     try {
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
-      if (!userProfile?.orgId) {
-        return res.status(400).json({ error: 'Organization ID required' });
+      // Get organization ID from header
+      const orgId = req.headers['x-org-id'] as string;
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required in x-org-id header' });
       }
 
-      // Only allow admin users to view imports
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const imports = await storage.getDataImports(userProfile.orgId);
+      const imports = await storage.getDataImports(orgId);
       
       console.info('[API] GET /api/imports →', { success: true, count: imports.length });
       res.json(imports);
@@ -3953,8 +3956,10 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      // Only allow admin users to view imports
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
@@ -3986,8 +3991,10 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      // Only allow admin users to create imports
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
@@ -4057,8 +4064,10 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      // Only allow admin users to update imports
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
@@ -4094,8 +4103,10 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      // Only allow admin users to delete imports
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
@@ -4132,8 +4143,10 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      // Only allow admin users to view import records
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
@@ -4174,8 +4187,10 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      // Only allow admin users to create import records
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
@@ -4222,8 +4237,10 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      // Only allow admin users to update import records
-      if (userProfile.role !== 'admin') {
+      // Get user's organization role and check admin access
+      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
       }
 
