@@ -13,7 +13,7 @@ import {
 import { Link } from 'wouter'
 import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 import { useAuth } from '@/contexts/AuthContext'
-import { useJobCandidates } from '@/hooks/useJobCandidates'
+import { useJobCandidates } from '@/features/jobs/hooks/useJobCandidates'
 
 interface QuickAction {
   id: string

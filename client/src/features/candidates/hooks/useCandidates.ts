@@ -1,4 +1,4 @@
-import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
+import { useGenericList, useGenericItem, useGenericCreate } from '@/shared/hooks/useGenericCrud'
 import { demoCandidates } from '@/lib/demo-data-consolidated'
 import type { Candidate, InsertCandidate } from '@shared/schema'
 

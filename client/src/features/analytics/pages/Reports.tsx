@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
 import { CalendarDays, Users, TrendingUp, Clock, Download, FileSpreadsheet, BarChart3 } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { toast } from '@/hooks/use-toast'
+import { toast } from '@/shared/hooks/use-toast'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 
 interface ReportMetrics {

@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Brain, TrendingUp, Users, Target, AlertCircle, CheckCircle, Lightbulb, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { toast } from '@/hooks/use-toast'
+import { toast } from '@/shared/hooks/use-toast'
 
 interface AIRecommendation {
   id: string

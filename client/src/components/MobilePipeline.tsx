@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ChevronRight, Mail, Phone, Calendar, FileText, MoreVertical } from 'lucide-react'
-import type { PipelineColumn } from '@/hooks/usePipeline'
+import type { PipelineColumn } from '@/features/candidates/hooks/usePipeline'
 
 interface JobCandidate {
   id: string
@@ -24,8 +24,8 @@ interface JobCandidate {
   }
 }
 
-import { useMoveApplication } from '@/hooks/usePipeline'
-import { toast } from '@/hooks/use-toast'
+import { useMoveApplication } from '@/features/candidates/hooks/usePipeline'
+import { toast } from '@/shared/hooks/use-toast'
 
 interface MobilePipelineProps {
   columns: PipelineColumn[]

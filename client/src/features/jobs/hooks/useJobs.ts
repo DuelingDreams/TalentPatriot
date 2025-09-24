@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
+import { useGenericList, useGenericItem, useGenericCreate } from '@/shared/hooks/useGenericCrud'
 import { demoJobs } from '@/lib/demo-data-consolidated'
 import { apiRequest } from '@/lib/queryClient'
 import { useDemoFlag } from '@/lib/demoFlag'

@@ -1,4 +1,4 @@
-import { inviteUserToOrganization, assignCurrentUserAsOwner } from '@/hooks/useUserOrganization';
+import { inviteUserToOrganization, assignCurrentUserAsOwner } from '@/features/organization/hooks/useUserOrganization';
 
 /**
  * Complete onboarding service that handles the full signup workflow

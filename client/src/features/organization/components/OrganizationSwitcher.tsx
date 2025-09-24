@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useUserOrganizations, useCurrentOrganization } from '@/hooks/useOrganizations'
+import { useUserOrganizations, useCurrentOrganization } from '@/features/organization/hooks/useOrganizations'
 import { Button } from '@/components/ui/button'
 import { 
   Select, 

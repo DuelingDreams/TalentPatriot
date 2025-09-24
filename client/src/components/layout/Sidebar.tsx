@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCurrentOrganization } from '@/hooks/useOrganizations'
+import { useCurrentOrganization } from '@/features/organization/hooks/useOrganizations'
 import { 
   Home, 
   Briefcase, 

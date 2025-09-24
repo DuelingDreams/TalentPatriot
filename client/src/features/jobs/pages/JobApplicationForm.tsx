@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
-import { useToast } from '@/hooks/use-toast'
-import { usePublicJobBySlug } from '@/hooks/usePublicJobBySlug'
+import { useToast } from '@/shared/hooks/use-toast'
+import { usePublicJobBySlug } from '@/features/jobs/hooks/usePublicJobBySlug'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft, Send, Loader2, MapPin, Clock, DollarSign, Building2, Briefcase, Upload, CheckCircle2, AlertCircle, X, RefreshCw } from 'lucide-react'
 import type { Job } from '@shared/schema'
-import { useJobApplication } from '@/hooks/useJobMutation'
+import { useJobApplication } from '@/features/jobs/hooks/useJobMutation'
 
 interface ApplicationFormData {
   firstName: string

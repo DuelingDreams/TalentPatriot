@@ -10,7 +10,7 @@ import { AppModal } from '@/components/ui/AppModal'
 import { formatDistanceToNow } from 'date-fns'
 import { MessageSquare, Plus, User, Lock, Eye } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCandidateNotes, useCreateCandidateNote } from '@/hooks/useCandidateNotes'
+import { useCandidateNotes, useCreateCandidateNote } from '@/features/candidates/hooks/useCandidateNotes'
 
 interface CandidateNotesDialogProps {
   open: boolean

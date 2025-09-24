@@ -1,4 +1,4 @@
-import { useGenericList, useGenericItem, useGenericCreate } from './useGenericCrud'
+import { useGenericList, useGenericItem, useGenericCreate } from '@/shared/hooks/useGenericCrud'
 import { demoClients } from '@/lib/demo-data-consolidated'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'

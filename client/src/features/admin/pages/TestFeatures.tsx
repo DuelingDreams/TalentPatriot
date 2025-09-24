@@ -9,10 +9,10 @@ import { Separator } from '@/components/ui/separator'
 import { CheckCircle2, XCircle, Clock, MessageSquare, Calendar, Upload } from 'lucide-react'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
-import { useAuth } from '@/hooks/useAuth'
-import { useMessages, useCreateMessage } from '@/hooks/useMessages'
-import { useInterviews, useCreateInterview } from '@/hooks/useInterviews'
-import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useMessages, useCreateMessage } from '@/features/communications/hooks/useMessages'
+import { useInterviews, useCreateInterview } from '@/features/communications/hooks/useInterviews'
+import { useToast } from '@/shared/hooks/use-toast'
 
 export function TestFeatures() {
   const { user, currentOrgId } = useAuth()

@@ -12,9 +12,9 @@ import { Calendar as CalendarIcon, Clock, MapPin, Video, Phone, User, Plus, Load
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCandidates } from '@/hooks/useCandidates'
-import { useCreateInterview } from '@/hooks/useInterviews'
-import { useToast } from '@/hooks/use-toast'
+import { useCandidates } from '@/features/candidates/hooks/useCandidates'
+import { useCreateInterview } from '@/features/communications/hooks/useInterviews'
+import { useToast } from '@/shared/hooks/use-toast'
 
 const interviewTypes = [
   { value: 'phone', label: 'Phone Call', icon: Phone },

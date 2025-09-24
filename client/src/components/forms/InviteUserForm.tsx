@@ -1,11 +1,11 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserOrganization } from '@/hooks/useUserOrganization';
+import { useUserOrganization } from '@/features/organization/hooks/useUserOrganization';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, UserMinus, Crown, Shield } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
-import { getOrganizationUsers } from '@/hooks/useUserOrganization';
+import { getOrganizationUsers } from '@/features/organization/hooks/useUserOrganization';
 
 interface OrganizationUsersProps {
   orgId: string;

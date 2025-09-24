@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { useDebounce } from '@/hooks/useDebounce'
+import { useDebounce } from '@/shared/hooks/useDebounce'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,8 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/contexts/AuthContext'
-import { useCandidates } from '@/hooks/useCandidates'
-import { useJobCandidates } from '@/hooks/useJobCandidates'
+import { useCandidates } from '@/features/candidates/hooks/useCandidates'
+import { useJobCandidates } from '@/features/jobs/hooks/useJobCandidates'
 
 import { 
   Search, 
@@ -36,7 +36,7 @@ import { Link } from 'wouter'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
 import GuidedCandidateImport from '@/components/candidates/GuidedCandidateImport'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/shared/hooks/use-toast'
 
 interface Candidate {
   id: string

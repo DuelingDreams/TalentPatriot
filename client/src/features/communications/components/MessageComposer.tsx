@@ -7,11 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Send, Plus, X, User, Building, Briefcase } from 'lucide-react'
-import { useCreateMessage } from '@/hooks/useMessages'
+import { useCreateMessage } from '@/features/communications/hooks/useMessages'
 import { useAuth } from '@/contexts/AuthContext'
-import { useClients } from '@/hooks/useClients'
-import { useJobs } from '@/hooks/useJobs'
-import { useCandidates } from '@/hooks/useCandidates'
+import { useClients } from '@/features/organization/hooks/useClients'
+import { useJobs } from '@/features/jobs/hooks/useJobs'
+import { useCandidates } from '@/features/candidates/hooks/useCandidates'
 import type { InsertMessage } from '@/../../shared/schema'
 
 interface MessageComposerProps {

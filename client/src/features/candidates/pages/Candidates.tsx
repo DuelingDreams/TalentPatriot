@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { VirtualizedCandidatesList } from '@/components/performance/VirtualizedCandidatesList'
 import { useAuth } from '@/contexts/AuthContext'
 import { DemoCandidates } from '@/components/demo/DemoCandidates'
-import { useCandidates } from '@/hooks/useCandidates'
+import { useCandidates } from '@/features/candidates/hooks/useCandidates'
 import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { formatDistanceToNow } from 'date-fns'
 import { Link, useLocation } from 'wouter'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/shared/hooks/use-toast'
 
 export default function Candidates() {
   const { userRole, currentOrgId } = useAuth()

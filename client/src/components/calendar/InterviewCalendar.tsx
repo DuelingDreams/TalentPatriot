@@ -19,7 +19,7 @@ import {
 import { format, isSameDay } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/contexts/AuthContext'
-import { useInterviews } from '@/hooks/useInterviews'
+import { useInterviews } from '@/features/communications/hooks/useInterviews'
 import { ScheduleInterviewDialog } from './ScheduleInterviewDialog'
 
 const InterviewTypeIcon = ({ type }: { type: string }) => {

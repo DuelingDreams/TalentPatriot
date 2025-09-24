@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLocation } from 'wouter'
 import { useEffect, useState, ReactNode } from 'react'
 import { useDemoFlag } from '@/lib/demoFlag'
-import { useCanAccess, type RolePermissions } from '@/hooks/useRolePermissions'
+import { useCanAccess, type RolePermissions } from '../hooks/useRolePermissions'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, ShieldX } from 'lucide-react'
 

@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/shared/hooks/use-toast'
 import { CheckCircle, ArrowRight, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 

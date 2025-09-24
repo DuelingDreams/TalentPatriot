@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Download, Upload, Database, FileSpreadsheet, FileText, Archive } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { toast } from '@/hooks/use-toast'
+import { toast } from '@/shared/hooks/use-toast'
 
 interface ExportOptions {
   candidates: boolean

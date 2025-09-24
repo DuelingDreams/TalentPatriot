@@ -1,6 +1,6 @@
 // Optimized query hooks with performance improvements
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 
 // Optimized dashboard query with caching
 export function useOptimizedDashboard() {

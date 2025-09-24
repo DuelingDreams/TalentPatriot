@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { toast } from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
-import { useClients } from '@/hooks/useClients'
-import { useUpdateJob, useDeleteJob } from '@/hooks/useJobMutation'
+import { useClients } from '@/features/organization/hooks/useClients'
+import { useUpdateJob, useDeleteJob } from '@/features/jobs/hooks/useJobMutation'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { 
   AlertDialog, 

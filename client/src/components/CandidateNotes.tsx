@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Plus, MessageSquare, Lock, Globe, X, Check } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { useCandidateNotes, useCreateCandidateNote, type EnrichedCandidateNotes } from '@/hooks/useCandidateNotes'
+import { useCandidateNotes, useCreateCandidateNote, type EnrichedCandidateNotes } from '@/features/candidates/hooks/useCandidateNotes'
 import { useAuth } from '@/contexts/AuthContext'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/shared/hooks/use-toast'
 import { cn } from '@/lib/utils'
 
 interface CandidateNotesProps {

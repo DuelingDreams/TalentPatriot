@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/shared/hooks/use-toast'
 import { AlertCircle, Mail, Phone, MessageSquare, FileText, Users, GripVertical, Calendar, Edit3, ArrowRightLeft, Share2 } from 'lucide-react'
 import { getDemoPipelineData, getDemoCandidateById, getDemoJobById, getDemoClientById } from '@/lib/demo-data'
 
