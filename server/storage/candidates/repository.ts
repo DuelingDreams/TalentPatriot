@@ -475,13 +475,83 @@ export class CandidatesRepository implements ICandidatesRepository {
   
   // Simplified implementations for remaining methods
   async getInterview(id: string): Promise<Interview | undefined> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      const { data, error } = await supabase
+        .from('interviews')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return undefined; // Not found
+        console.error('Database interview fetch error:', error);
+        throw new Error(`Failed to fetch interview: ${error.message}`);
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        jobCandidateId: data.job_candidate_id,
+        interviewerId: data.interviewer_id,
+        title: data.title,
+        scheduledAt: data.scheduled_at,
+        duration: data.duration,
+        location: data.location,
+        type: data.type,
+        status: data.status,
+        notes: data.notes,
+        feedback: data.feedback,
+        rating: data.rating,
+        recordStatus: data.record_status || 'active',
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Interview;
+    } catch (err) {
+      console.error('Interview fetch exception:', err);
+      throw err;
+    }
   }
   
-  async getInterviews(): Promise<Interview[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+  async getInterviews(orgId?: string): Promise<Interview[]> {
+    try {
+      let query = supabase
+        .from('interviews')
+        .select('*')
+        .order('scheduled_at', { ascending: true });
+
+      if (orgId) {
+        query = query.eq('org_id', orgId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Database interviews fetch error:', error);
+        throw new Error(`Failed to fetch interviews: ${error.message}`);
+      }
+
+      return (data || []).map(interview => ({
+        id: interview.id,
+        orgId: interview.org_id,
+        jobCandidateId: interview.job_candidate_id,
+        interviewerId: interview.interviewer_id,
+        title: interview.title,
+        scheduledAt: interview.scheduled_at,
+        duration: interview.duration,
+        location: interview.location,
+        type: interview.type,
+        status: interview.status,
+        notes: interview.notes,
+        feedback: interview.feedback,
+        rating: interview.rating,
+        recordStatus: interview.record_status || 'active',
+        createdAt: interview.created_at,
+        updatedAt: interview.updated_at
+      })) as Interview[];
+    } catch (err) {
+      console.error('Interviews fetch exception:', err);
+      throw err;
+    }
   }
   
   async getInterviewsByJobCandidate(jobCandidateId: string): Promise<Interview[]> {
@@ -495,18 +565,124 @@ export class CandidatesRepository implements ICandidatesRepository {
   }
   
   async createInterview(interview: InsertInterview): Promise<Interview> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      const dbInterview = {
+        org_id: interview.orgId,
+        job_candidate_id: interview.jobCandidateId,
+        interviewer_id: interview.interviewerId,
+        title: interview.title,
+        scheduled_at: interview.scheduledAt,
+        duration: interview.duration || null,
+        location: interview.location || null,
+        type: interview.type || 'phone',
+        status: interview.status || 'scheduled',
+        notes: interview.notes || null,
+        feedback: interview.feedback || null,
+        rating: interview.rating || null,
+        record_status: interview.recordStatus || 'active'
+      };
+
+      const { data, error } = await supabase
+        .from('interviews')
+        .insert(dbInterview)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database interview creation error:', error);
+        throw new Error(`Failed to create interview: ${error.message}`);
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        jobCandidateId: data.job_candidate_id,
+        interviewerId: data.interviewer_id,
+        title: data.title,
+        scheduledAt: data.scheduled_at,
+        duration: data.duration,
+        location: data.location,
+        type: data.type,
+        status: data.status,
+        notes: data.notes,
+        feedback: data.feedback,
+        rating: data.rating,
+        recordStatus: data.record_status || 'active',
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Interview;
+    } catch (err) {
+      console.error('Interview creation exception:', err);
+      throw err;
+    }
   }
   
   async updateInterview(id: string, interview: Partial<InsertInterview>): Promise<Interview> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      const dbUpdate: Partial<Record<string, unknown>> = {};
+      if (interview.title !== undefined) dbUpdate.title = interview.title;
+      if (interview.scheduledAt !== undefined) dbUpdate.scheduled_at = interview.scheduledAt;
+      if (interview.duration !== undefined) dbUpdate.duration = interview.duration;
+      if (interview.location !== undefined) dbUpdate.location = interview.location;
+      if (interview.type !== undefined) dbUpdate.type = interview.type;
+      if (interview.status !== undefined) dbUpdate.status = interview.status;
+      if (interview.notes !== undefined) dbUpdate.notes = interview.notes;
+      if (interview.feedback !== undefined) dbUpdate.feedback = interview.feedback;
+      if (interview.rating !== undefined) dbUpdate.rating = interview.rating;
+      if (interview.recordStatus !== undefined) dbUpdate.record_status = interview.recordStatus;
+      dbUpdate.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('interviews')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database interview update error:', error);
+        throw new Error(`Failed to update interview: ${error.message}`);
+      }
+
+      return {
+        id: data.id,
+        orgId: data.org_id,
+        jobCandidateId: data.job_candidate_id,
+        interviewerId: data.interviewer_id,
+        title: data.title,
+        scheduledAt: data.scheduled_at,
+        duration: data.duration,
+        location: data.location,
+        type: data.type,
+        status: data.status,
+        notes: data.notes,
+        feedback: data.feedback,
+        rating: data.rating,
+        recordStatus: data.record_status || 'active',
+        createdAt: data.created_at,
+        updatedAt: data.updated_at
+      } as Interview;
+    } catch (err) {
+      console.error('Interview update exception:', err);
+      throw err;
+    }
   }
   
   async deleteInterview(id: string): Promise<void> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      const { error } = await supabase
+        .from('interviews')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Database interview deletion error:', error);
+        throw new Error(`Failed to delete interview: ${error.message}`);
+      }
+    } catch (err) {
+      console.error('Interview deletion exception:', err);
+      throw err;
+    }
   }
   
   async getPipelineCandidates(jobId: string, orgId: string): Promise<PipelineCandidate[]> {

@@ -94,8 +94,14 @@ export class JobsRepository implements IJobsRepository {
   }
 
   async searchClients(searchTerm: string, orgId: string): Promise<Client[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .eq('org_id', orgId)
+      .ilike('name', `%${searchTerm}%`);
+    
+    if (error) throw new Error(`Failed to search clients: ${error.message}`);
+    return data as Client[];
   }
 
   async getJob(id: string): Promise<Job | undefined> {
@@ -127,53 +133,195 @@ export class JobsRepository implements IJobsRepository {
   }
 
   async getJobsByOrg(orgId: string): Promise<Job[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      console.log(`Fetching jobs for orgId: ${orgId}`);
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        throw new Error(`Failed to fetch jobs: ${error.message}`);
+      }
+      
+      console.log(`Found ${data?.length || 0} jobs for orgId: ${orgId}`);
+      return data as Job[];
+    } catch (err) {
+      console.error('Exception in getJobsByOrg:', err);
+      throw err;
+    }
   }
 
   async getJobsByClient(clientId: string): Promise<Job[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('client_id', clientId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    return data as Job[];
   }
 
-  async createJob(job: InsertJob): Promise<Job> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+  async createJob(insertJob: InsertJob): Promise<Job> {
+    try {
+      console.log('Creating job with data:', insertJob);
+      
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert({
+          title: insertJob.title,
+          description: insertJob.description ?? null,
+          location: insertJob.location ?? null,
+          job_type: insertJob.jobType ?? 'full-time',
+          status: insertJob.status ?? 'draft', // Default to draft as requested
+          record_status: insertJob.recordStatus ?? 'active',
+          client_id: insertJob.clientId,
+          org_id: insertJob.orgId,
+          assigned_to: insertJob.assignedTo ?? null,
+          created_by: insertJob.createdBy ?? null
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database job creation error:', error);
+        throw new Error(`Failed to create job: ${error.message}`);
+      }
+      
+      return data as Job;
+    } catch (err) {
+      console.error('Job creation exception:', err);
+      throw err;
+    }
   }
 
   async publishJob(jobId: string): Promise<Job> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('jobs')
+      .update({ 
+        status: 'open',
+        published_at: new Date().toISOString()
+      })
+      .eq('id', jobId)
+      .select()
+      .single();
+    
+    if (error) {
+      throw new Error(`Failed to publish job: ${error.message}`);
+    }
+    
+    return data as Job;
   }
 
-  async updateJob(id: string, data: Partial<InsertJob>): Promise<Job> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+  async updateJob(id: string, updateData: Partial<InsertJob>): Promise<Job> {
+    try {
+      const dbUpdate: Partial<Record<string, unknown>> = {};
+      if (updateData.title !== undefined) dbUpdate.title = updateData.title;
+      if (updateData.description !== undefined) dbUpdate.description = updateData.description;
+      if (updateData.status !== undefined) dbUpdate.status = updateData.status;
+      if (updateData.clientId !== undefined) dbUpdate.client_id = updateData.clientId;
+      if (updateData.assignedTo !== undefined) dbUpdate.assigned_to = updateData.assignedTo;
+      if (updateData.recordStatus !== undefined) dbUpdate.record_status = updateData.recordStatus;
+      if (updateData.location !== undefined) dbUpdate.location = updateData.location;
+      if (updateData.jobType !== undefined) dbUpdate.job_type = updateData.jobType;
+      if (updateData.remoteOption !== undefined) dbUpdate.remote_option = updateData.remoteOption;
+      if (updateData.salaryRange !== undefined) dbUpdate.salary_range = updateData.salaryRange;
+      if (updateData.experienceLevel !== undefined) dbUpdate.experience_level = updateData.experienceLevel;
+      if (updateData.updatedAt !== undefined) dbUpdate.updated_at = updateData.updatedAt;
+      
+      const { data, error } = await supabase
+        .from('jobs')
+        .update(dbUpdate)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database job update error:', error);
+        throw new Error(`Failed to update job: ${error.message}`);
+      }
+      
+      return data as Job;
+    } catch (err) {
+      console.error('Job update exception:', err);
+      throw err;
+    }
   }
 
   async deleteJob(id: string): Promise<void> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      throw new Error(error.message);
+    }
   }
 
   async searchJobs(searchTerm: string, orgId: string): Promise<Job[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('org_id', orgId)
+      .ilike('title', `%${searchTerm}%`);
+    
+    if (error) throw new Error(`Failed to search jobs: ${error.message}`);
+    return data as Job[];
   }
 
   async getPublicJobs(): Promise<Job[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'open')
+      .not('published_at', 'is', null)
+      .eq('record_status', 'active')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    return data as Job[];
   }
 
   async getPublicJobsByOrg(orgId: string): Promise<Job[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('org_id', orgId)
+      .eq('status', 'open')
+      .not('published_at', 'is', null)
+      .eq('record_status', 'active')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    return data as Job[];
   }
 
   async getPublicJob(id: string): Promise<Job | undefined> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('public_jobs')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') return undefined;
+      throw new Error(error.message);
+    }
+    
+    return data as Job;
   }
 
   async getPipelineColumns(orgId: string): Promise<PipelineColumn[]> {
