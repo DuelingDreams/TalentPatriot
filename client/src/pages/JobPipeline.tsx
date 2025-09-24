@@ -11,6 +11,8 @@ import { MobilePipeline } from '@/components/MobilePipeline'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
@@ -21,7 +23,7 @@ import { CandidateNotes } from '@/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { PipelineProgressBar } from '@/components/pipeline/PipelineProgressBar'
 import { useAuth } from '@/contexts/AuthContext'
-import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX } from 'lucide-react'
+import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX, Eye, EyeOff } from 'lucide-react'
 import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
 import { Link } from 'wouter'
 
@@ -1268,12 +1270,14 @@ export default function JobPipeline() {
 
   // NEW PIPELINE SYSTEM: Get pipeline data for the specific job with real-time updates
   const { user } = useAuth()
+  const [includeCompleted, setIncludeCompleted] = useState(false)
+  
   const { 
     data: jobPipelineData, 
     isLoading: pipelineLoading, 
     error: pipelineError,
     isSuccess: pipelineSuccess 
-  } = useJobPipeline(jobId, { enableRealTime: true })
+  } = useJobPipeline(jobId, { enableRealTime: true, includeCompleted })
   const moveApplication = useMoveApplication(jobId || '')
 
   // Enhanced loading state validation - prevents drag operations during loading
@@ -1721,6 +1725,54 @@ export default function JobPipeline() {
               </div>
               {currentJob.description && (
                 <p className="text-slate-600 mt-4">{currentJob.description}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Pipeline Controls */}
+        <div className="mb-6">
+          <Card className="bg-slate-50 border-slate-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Eye className="w-4 h-4 text-slate-600" />
+                  <div>
+                    <Label htmlFor="include-completed" className="text-sm font-medium text-slate-700">
+                      Show completed candidates
+                    </Label>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Include hired and rejected candidates in the pipeline view
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="include-completed"
+                  checked={includeCompleted}
+                  onCheckedChange={setIncludeCompleted}
+                  className="data-[state=checked]:bg-blue-600"
+                />
+              </div>
+              {jobPipelineData?.applications && (
+                <div className="flex items-center gap-4 mt-3 text-xs text-slate-600">
+                  <span>
+                    Active: {jobPipelineData.applications.filter((app: any) => 
+                      !['hired', 'rejected'].includes(app.stage)
+                    ).length}
+                  </span>
+                  {includeCompleted && (
+                    <>
+                      <span>•</span>
+                      <span>
+                        Completed: {jobPipelineData.applications.filter((app: any) => 
+                          ['hired', 'rejected'].includes(app.stage)
+                        ).length}
+                      </span>
+                    </>
+                  )}
+                  <span>•</span>
+                  <span>Total: {jobPipelineData.applications.length}</span>
+                </div>
               )}
             </CardContent>
           </Card>

@@ -47,11 +47,12 @@ export function usePipeline(orgId: string | undefined) {
 }
 
 // Get pipeline data for a specific job
-export function useJobPipeline(jobId: string | undefined, options?: { enableRealTime?: boolean }) {
+export function useJobPipeline(jobId: string | undefined, options?: { enableRealTime?: boolean; includeCompleted?: boolean }) {
   const { isDemoUser } = useDemoFlag()
+  const includeCompleted = options?.includeCompleted || false
 
   return useQuery({
-    queryKey: ['job-pipeline', jobId],
+    queryKey: ['job-pipeline', jobId, { includeCompleted }],
     queryFn: async (): Promise<PipelineData> => {
       if (!jobId) throw new Error('Job ID is required')
       
@@ -85,7 +86,9 @@ export function useJobPipeline(jobId: string | undefined, options?: { enableReal
         }
       }
       
-      const result = await apiRequest(`/api/jobs/${jobId}/pipeline`)
+      // Add includeCompleted query parameter when needed
+      const queryParams = includeCompleted ? '?includeCompleted=true' : ''
+      const result = await apiRequest(`/api/jobs/${jobId}/pipeline${queryParams}`)
       return result as PipelineData
     },
     enabled: !!jobId,
