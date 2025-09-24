@@ -20,6 +20,8 @@ export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'ca
 export const messagePriorityEnum = pgEnum('message_priority', ['low', 'normal', 'high', 'urgent']);
 export const experienceLevelEnum = pgEnum('experience_level', ['entry', 'mid', 'senior', 'executive']);
 export const remoteOptionEnum = pgEnum('remote_option', ['onsite', 'remote', 'hybrid']);
+export const importStatusEnum = pgEnum('import_status', ['pending', 'processing', 'completed', 'failed', 'cancelled']);
+export const importTypeEnum = pgEnum('import_type', ['candidates', 'jobs', 'both']);
 
 // Tables
 export const organizations = pgTable("organizations", {
@@ -395,6 +397,39 @@ export const emailEvents = pgTable("email_events", {
   clickedAt: timestamp("clicked_at"),
 });
 
+// Data Import Tables
+export const dataImports = pgTable("data_imports", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  userId: uuid("user_id").notNull(), // references auth.users(id)
+  importType: importTypeEnum("import_type").notNull(),
+  fileName: text("file_name").notNull(),
+  fileSize: integer("file_size").notNull(),
+  status: importStatusEnum("status").default('pending').notNull(),
+  totalRecords: integer("total_records").default(0),
+  successfulRecords: integer("successful_records").default(0),
+  failedRecords: integer("failed_records").default(0),
+  fieldMapping: jsonb("field_mapping").default(sql`'{}'::jsonb`),
+  errorSummary: jsonb("error_summary").default(sql`'{}'::jsonb`),
+  processingStartedAt: timestamp("processing_started_at"),
+  processingCompletedAt: timestamp("processing_completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const importRecords = pgTable("import_records", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  importId: uuid("import_id").references(() => dataImports.id).notNull(),
+  rowNumber: integer("row_number").notNull(),
+  originalData: jsonb("original_data").notNull(),
+  processedData: jsonb("processed_data"),
+  status: varchar("status", { length: 20 }).default('pending').notNull(), // pending, success, failed
+  errorMessage: text("error_message"),
+  entityId: uuid("entity_id"), // ID of created candidate/job if successful
+  entityType: varchar("entity_type", { length: 20 }), // 'candidate' or 'job'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 
 // Insert schemas
 
@@ -529,6 +564,17 @@ export const insertEmailEventSchema = createInsertSchema(emailEvents).omit({
   clickedAt: true,
 });
 
+export const insertDataImportSchema = createInsertSchema(dataImports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertImportRecordSchema = createInsertSchema(importRecords).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
@@ -598,6 +644,12 @@ export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 
 export type EmailEvent = typeof emailEvents.$inferSelect;
 export type InsertEmailEvent = z.infer<typeof insertEmailEventSchema>;
+
+export type DataImport = typeof dataImports.$inferSelect;
+export type InsertDataImport = z.infer<typeof insertDataImportSchema>;
+
+export type ImportRecord = typeof importRecords.$inferSelect;
+export type InsertImportRecord = z.infer<typeof insertImportRecordSchema>;
 
 // Pagination Types
 
