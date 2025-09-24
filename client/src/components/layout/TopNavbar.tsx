@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useLocation } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { UserProfile } from '@/components/auth/UserProfile'
-import { OrganizationSwitcher } from '@/components/organization/OrganizationSwitcher'
+import { UserProfile } from '@/features/auth/components/UserProfile'
+import { OrganizationSwitcher } from '@/features/organization/components/OrganizationSwitcher'
 import { 
   Menu, 
   Search, 
