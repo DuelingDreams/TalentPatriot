@@ -1804,8 +1804,27 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         // Backward compatibility: return non-paginated results
         const jobs = await storage.getJobsByOrg(orgId);
         
+        // Add candidate counts to each job
+        const jobsWithCounts = await Promise.all(
+          jobs.map(async (job: any) => {
+            try {
+              const jobCandidates = await storage.getJobCandidatesByJob(job.id);
+              return {
+                ...job,
+                candidateCount: jobCandidates.length
+              };
+            } catch (error) {
+              console.error(`Error fetching candidates for job ${job.id}:`, error);
+              return {
+                ...job,
+                candidateCount: 0
+              };
+            }
+          })
+        );
+        
         // Generate ETag for response
-        const etag = generateETag(jobs);
+        const etag = generateETag(jobsWithCounts);
         
         // Check If-None-Match header for 304 Not Modified
         const clientETag = req.headers['if-none-match'];
@@ -1817,11 +1836,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         setResponseCaching(res, {
           etag,
           cacheControl: 'private, max-age=180, must-revalidate',
-          lastModified: jobs.length > 0 ? new Date(jobs[0].createdAt) : undefined
+          lastModified: jobsWithCounts.length > 0 ? new Date(jobsWithCounts[0].created_at) : undefined
         });
 
-        console.info('[API] GET /api/jobs (legacy) →', { success: true, count: jobs?.length || 0 });
-        res.json(jobs);
+        console.info('[API] GET /api/jobs (legacy) →', { success: true, count: jobsWithCounts?.length || 0 });
+        res.json(jobsWithCounts);
       }
     } catch (error) {
       console.error('Error in GET /api/jobs:', error);
