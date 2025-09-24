@@ -16,6 +16,8 @@ import {
   organizationEmailSettings,
   emailTemplates,
   emailEvents,
+  dataImports,
+  importRecords,
   type UserProfile,
   type UserSettings,
   type Organization,
@@ -33,6 +35,8 @@ import {
   type OrganizationEmailSettings,
   type EmailTemplate,
   type EmailEvent,
+  type DataImport,
+  type ImportRecord,
   type InsertUserProfile,
   type InsertUserSettings,
   type InsertOrganization,
@@ -49,7 +53,9 @@ import {
   type InsertBetaApplication,
   type InsertOrganizationEmailSettings,
   type InsertEmailTemplate,
-  type InsertEmailEvent
+  type InsertEmailEvent,
+  type InsertDataImport,
+  type InsertImportRecord
 } from "@shared/schema";
 import { createClient } from '@supabase/supabase-js';
 import { atsEmailService } from './emailService';
@@ -389,6 +395,20 @@ export interface IStorage {
   deleteEmailTemplate(templateId: string, orgId: string): Promise<void>;
   getEmailEvents(orgId: string, options?: { limit?: number; eventType?: string; status?: string }): Promise<EmailEvent[]>;
   createEmailEvent(event: InsertEmailEvent): Promise<EmailEvent>;
+
+  // Data Import Management
+  getDataImport(id: string): Promise<DataImport | undefined>;
+  getDataImports(orgId: string): Promise<DataImport[]>;
+  createDataImport(dataImport: InsertDataImport): Promise<DataImport>;
+  updateDataImport(id: string, dataImport: Partial<InsertDataImport>): Promise<DataImport>;
+  deleteDataImport(id: string): Promise<void>;
+  
+  // Import Records Management
+  getImportRecord(id: string): Promise<ImportRecord | undefined>;
+  getImportRecords(importId: string): Promise<ImportRecord[]>;
+  createImportRecord(record: InsertImportRecord): Promise<ImportRecord>;
+  updateImportRecord(id: string, record: Partial<InsertImportRecord>): Promise<ImportRecord>;
+  getImportRecordsByStatus(importId: string, status: string): Promise<ImportRecord[]>;
 }
 
 // Database storage implementation using Supabase only - no more in-memory Maps
@@ -3880,6 +3900,244 @@ export class DatabaseStorage implements IStorage {
       return data as EmailEvent
     } catch (err) {
       console.error('Error creating email event:', err)
+      throw err
+    }
+  }
+
+  // Data Import Management
+  async getDataImport(id: string): Promise<DataImport | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('data_imports')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') return undefined
+        throw new Error(`Failed to fetch data import: ${error.message}`)
+      }
+
+      return data as DataImport
+    } catch (err) {
+      console.error('Error fetching data import:', err)
+      throw err
+    }
+  }
+
+  async getDataImports(orgId: string): Promise<DataImport[]> {
+    try {
+      const { data, error } = await supabase
+        .from('data_imports')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        throw new Error(`Failed to fetch data imports: ${error.message}`)
+      }
+
+      return (data || []) as DataImport[]
+    } catch (err) {
+      console.error('Error fetching data imports:', err)
+      throw err
+    }
+  }
+
+  async createDataImport(dataImport: InsertDataImport): Promise<DataImport> {
+    try {
+      const { data, error } = await supabase
+        .from('data_imports')
+        .insert({
+          org_id: dataImport.orgId,
+          user_id: dataImport.userId,
+          import_type: dataImport.importType,
+          file_name: dataImport.fileName,
+          file_size: dataImport.fileSize,
+          status: dataImport.status,
+          total_records: dataImport.totalRecords,
+          successful_records: dataImport.successfulRecords,
+          failed_records: dataImport.failedRecords,
+          field_mapping: dataImport.fieldMapping,
+          error_summary: dataImport.errorSummary,
+          processing_started_at: dataImport.processingStartedAt,
+          processing_completed_at: dataImport.processingCompletedAt
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to create data import: ${error.message}`)
+      }
+
+      return data as DataImport
+    } catch (err) {
+      console.error('Error creating data import:', err)
+      throw err
+    }
+  }
+
+  async updateDataImport(id: string, dataImport: Partial<InsertDataImport>): Promise<DataImport> {
+    try {
+      const updateData: any = {}
+      
+      if (dataImport.status !== undefined) updateData.status = dataImport.status
+      if (dataImport.totalRecords !== undefined) updateData.total_records = dataImport.totalRecords
+      if (dataImport.successfulRecords !== undefined) updateData.successful_records = dataImport.successfulRecords
+      if (dataImport.failedRecords !== undefined) updateData.failed_records = dataImport.failedRecords
+      if (dataImport.fieldMapping !== undefined) updateData.field_mapping = dataImport.fieldMapping
+      if (dataImport.errorSummary !== undefined) updateData.error_summary = dataImport.errorSummary
+      if (dataImport.processingStartedAt !== undefined) updateData.processing_started_at = dataImport.processingStartedAt
+      if (dataImport.processingCompletedAt !== undefined) updateData.processing_completed_at = dataImport.processingCompletedAt
+
+      updateData.updated_at = new Date().toISOString()
+
+      const { data, error } = await supabase
+        .from('data_imports')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to update data import: ${error.message}`)
+      }
+
+      return data as DataImport
+    } catch (err) {
+      console.error('Error updating data import:', err)
+      throw err
+    }
+  }
+
+  async deleteDataImport(id: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('data_imports')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        throw new Error(`Failed to delete data import: ${error.message}`)
+      }
+    } catch (err) {
+      console.error('Error deleting data import:', err)
+      throw err
+    }
+  }
+
+  // Import Records Management
+  async getImportRecord(id: string): Promise<ImportRecord | undefined> {
+    try {
+      const { data, error } = await supabase
+        .from('import_records')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') return undefined
+        throw new Error(`Failed to fetch import record: ${error.message}`)
+      }
+
+      return data as ImportRecord
+    } catch (err) {
+      console.error('Error fetching import record:', err)
+      throw err
+    }
+  }
+
+  async getImportRecords(importId: string): Promise<ImportRecord[]> {
+    try {
+      const { data, error } = await supabase
+        .from('import_records')
+        .select('*')
+        .eq('import_id', importId)
+        .order('row_number', { ascending: true })
+
+      if (error) {
+        throw new Error(`Failed to fetch import records: ${error.message}`)
+      }
+
+      return (data || []) as ImportRecord[]
+    } catch (err) {
+      console.error('Error fetching import records:', err)
+      throw err
+    }
+  }
+
+  async createImportRecord(record: InsertImportRecord): Promise<ImportRecord> {
+    try {
+      const { data, error } = await supabase
+        .from('import_records')
+        .insert({
+          import_id: record.importId,
+          row_number: record.rowNumber,
+          original_data: record.originalData,
+          processed_data: record.processedData,
+          status: record.status,
+          error_message: record.errorMessage,
+          entity_id: record.entityId,
+          entity_type: record.entityType
+        })
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to create import record: ${error.message}`)
+      }
+
+      return data as ImportRecord
+    } catch (err) {
+      console.error('Error creating import record:', err)
+      throw err
+    }
+  }
+
+  async updateImportRecord(id: string, record: Partial<InsertImportRecord>): Promise<ImportRecord> {
+    try {
+      const updateData: any = {}
+      
+      if (record.processedData !== undefined) updateData.processed_data = record.processedData
+      if (record.status !== undefined) updateData.status = record.status
+      if (record.errorMessage !== undefined) updateData.error_message = record.errorMessage
+      if (record.entityId !== undefined) updateData.entity_id = record.entityId
+      if (record.entityType !== undefined) updateData.entity_type = record.entityType
+
+      const { data, error } = await supabase
+        .from('import_records')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        throw new Error(`Failed to update import record: ${error.message}`)
+      }
+
+      return data as ImportRecord
+    } catch (err) {
+      console.error('Error updating import record:', err)
+      throw err
+    }
+  }
+
+  async getImportRecordsByStatus(importId: string, status: string): Promise<ImportRecord[]> {
+    try {
+      const { data, error } = await supabase
+        .from('import_records')
+        .select('*')
+        .eq('import_id', importId)
+        .eq('status', status)
+        .order('row_number', { ascending: true })
+
+      if (error) {
+        throw new Error(`Failed to fetch import records by status: ${error.message}`)
+      }
+
+      return (data || []) as ImportRecord[]
+    } catch (err) {
+      console.error('Error fetching import records by status:', err)
       throw err
     }
   }
