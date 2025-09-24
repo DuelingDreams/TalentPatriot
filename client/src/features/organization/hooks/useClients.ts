@@ -20,7 +20,7 @@ export function useClients(options: { refetchInterval?: number } = {}) {
       const result = await apiRequest(`/api/clients?orgId=${currentOrgId}`)
       
       // Handle auth-required state gracefully
-      if (result?.authRequired) {
+      if ((result as any)?.authRequired) {
         return { authRequired: true, data: [] }
       }
       

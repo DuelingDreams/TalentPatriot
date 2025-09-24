@@ -20,7 +20,7 @@ export function useJobs(options: { refetchInterval?: number; enableRealTime?: bo
       const result = await apiRequest(`/api/jobs?orgId=${currentOrgId}`)
       
       // Handle auth-required state gracefully
-      if (result?.authRequired) {
+      if ((result as any)?.authRequired) {
         return { authRequired: true, data: [] }
       }
       

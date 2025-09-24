@@ -21,7 +21,7 @@ import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, us
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
-import { PipelineProgressBar } from '@/components/pipeline/PipelineProgressBar'
+import { PipelineProgressBar } from '../components/PipelineProgressBar'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX, Eye, EyeOff } from 'lucide-react'
 import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
