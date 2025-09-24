@@ -563,6 +563,189 @@ export class ATSEmailService {
     }
   }
 
+  async sendMessageAlert(
+    recipientEmail: string,
+    recipientName: string,
+    senderName: string,
+    organizationName: string,
+    messageDetails: {
+      senderInitials?: string;
+      senderRole?: string;
+      messageSubject?: string;
+      messagePreview?: string;
+      messageTimestamp?: string;
+      messageUrl?: string;
+      replyUrl?: string;
+      messageType?: string;
+      hasAttachments?: boolean;
+      candidateName?: string;
+      jobTitle?: string;
+      clientName?: string;
+      threadTitle?: string;
+      quickActions?: string[];
+      urgent?: boolean;
+      notificationSettingsUrl?: string;
+      organizationLogo?: string;
+      organizationAddress?: string;
+    } = {}
+  ): Promise<boolean> {
+    const templateId = this.getTemplateId('SG_TPL_MESSAGE_ALERT');
+    
+    if (templateId) {
+      // Use dynamic template
+      const templateData = {
+        organization_name: organizationName,
+        organization_logo: messageDetails.organizationLogo,
+        organization_address: messageDetails.organizationAddress,
+        recipient_name: recipientName,
+        sender_name: senderName,
+        sender_initials: messageDetails.senderInitials || senderName.split(' ').map(n => n[0]).join(''),
+        sender_role: messageDetails.senderRole || 'Team Member',
+        message_subject: messageDetails.messageSubject || 'New Message',
+        message_preview: messageDetails.messagePreview || 'You have a new message...',
+        message_timestamp: messageDetails.messageTimestamp || new Date().toLocaleString(),
+        message_url: messageDetails.messageUrl || '/messages',
+        reply_url: messageDetails.replyUrl || '/messages/reply',
+        message_type: messageDetails.messageType || 'direct',
+        has_attachments: messageDetails.hasAttachments || false,
+        candidate_name: messageDetails.candidateName,
+        job_title: messageDetails.jobTitle,
+        client_name: messageDetails.clientName,
+        thread_title: messageDetails.threadTitle,
+        quick_actions: messageDetails.quickActions || [],
+        urgent: messageDetails.urgent || false,
+        notification_settings_url: messageDetails.notificationSettingsUrl || '/settings/notifications',
+      };
+
+      return await sendDynamicEmail({
+        to: recipientEmail,
+        from: this.fromEmail,
+        templateId,
+        dynamicTemplateData: templateData,
+        subject: `New Message: ${messageDetails.messageSubject || 'TalentPatriot Notification'}` // Fallback subject
+      });
+    } else {
+      // Fallback to basic message alert
+      console.warn('SG_TPL_MESSAGE_ALERT template ID not found, using fallback HTML');
+      return await this.sendTeamAlert(
+        recipientEmail,
+        'New Message',
+        `You have a new message from ${senderName}: ${messageDetails.messagePreview || 'Please check your messages.'}`,
+        organizationName
+      );
+    }
+  }
+
+  async sendEventReminder(
+    recipientEmail: string,
+    recipientName: string,
+    organizationName: string,
+    eventDetails: {
+      eventType?: string;
+      eventTitle?: string;
+      eventDescription?: string;
+      eventDate?: string;
+      eventTime?: string;
+      timezone?: string;
+      duration?: string;
+      countdownText?: string;
+      eventLocation?: string;
+      meetingLink?: string;
+      meetingPlatform?: string;
+      meetingId?: string;
+      candidateName?: string;
+      candidateEmail?: string;
+      jobTitle?: string;
+      participants?: string[];
+      agenda?: string;
+      preparationItems?: string[];
+      icalDownloadUrl?: string;
+      joinUrl?: string;
+      rescheduleUrl?: string;
+      organizationLogo?: string;
+      organizationAddress?: string;
+    } = {}
+  ): Promise<boolean> {
+    const templateId = this.getTemplateId('SG_TPL_EVENT_REMINDER');
+    
+    if (templateId) {
+      // Use dynamic template
+      const templateData = {
+        organization_name: organizationName,
+        organization_logo: eventDetails.organizationLogo,
+        organization_address: eventDetails.organizationAddress,
+        recipient_name: recipientName,
+        event_type: eventDetails.eventType || 'Interview',
+        event_title: eventDetails.eventTitle || 'Upcoming Event',
+        event_description: eventDetails.eventDescription,
+        event_date: eventDetails.eventDate || 'TBD',
+        event_time: eventDetails.eventTime || 'TBD',
+        timezone: eventDetails.timezone || 'PST',
+        duration: eventDetails.duration || '30 minutes',
+        countdown_text: eventDetails.countdownText,
+        event_location: eventDetails.eventLocation,
+        meeting_link: eventDetails.meetingLink,
+        meeting_platform: eventDetails.meetingPlatform || 'Video Call',
+        meeting_id: eventDetails.meetingId,
+        candidate_name: eventDetails.candidateName,
+        candidate_email: eventDetails.candidateEmail,
+        job_title: eventDetails.jobTitle,
+        participants: eventDetails.participants || [],
+        agenda: eventDetails.agenda,
+        preparation_items: eventDetails.preparationItems || [],
+        ical_download_url: eventDetails.icalDownloadUrl,
+        join_url: eventDetails.joinUrl || eventDetails.meetingLink,
+        reschedule_url: eventDetails.rescheduleUrl,
+      };
+
+      return await sendDynamicEmail({
+        to: recipientEmail,
+        from: this.fromEmail,
+        templateId,
+        dynamicTemplateData: templateData,
+        subject: `Reminder: ${eventDetails.eventTitle || eventDetails.eventType || 'Upcoming Event'}` // Fallback subject
+      });
+    } else {
+      // Fallback to basic event reminder
+      console.warn('SG_TPL_EVENT_REMINDER template ID not found, using fallback HTML');
+      const subject = `Reminder: ${eventDetails.eventTitle || eventDetails.eventType || 'Upcoming Event'}`;
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
+            <h1>TalentPatriot</h1>
+          </div>
+          <div style="padding: 30px; background: #f8fafc;">
+            <h2 style="color: #1e40af;">Event Reminder</h2>
+            <p>Hello ${recipientName},</p>
+            <p>This is a reminder about your upcoming ${eventDetails.eventType || 'event'}:</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin: 0 0 10px 0; color: #374151;">${eventDetails.eventTitle || 'Event Details'}</h3>
+              <p><strong>Date:</strong> ${eventDetails.eventDate || 'TBD'}</p>
+              <p><strong>Time:</strong> ${eventDetails.eventTime || 'TBD'} ${eventDetails.timezone || ''}</p>
+              ${eventDetails.eventLocation ? `<p><strong>Location:</strong> ${eventDetails.eventLocation}</p>` : ''}
+              ${eventDetails.meetingLink ? `<p><strong>Meeting Link:</strong> <a href="${eventDetails.meetingLink}">${eventDetails.meetingLink}</a></p>` : ''}
+            </div>
+            
+            <p>Please make sure to attend on time. We look forward to meeting with you!</p>
+            
+            <p style="color: #6b7280; font-size: 14px;">
+              This is an automated reminder from TalentPatriot ATS.
+            </p>
+          </div>
+        </div>
+      `;
+
+      return await sendEmail({
+        to: recipientEmail,
+        from: this.fromEmail,
+        subject,
+        html,
+        text: `Event reminder: ${eventDetails.eventTitle || eventDetails.eventType || 'Upcoming Event'} on ${eventDetails.eventDate || 'TBD'} at ${eventDetails.eventTime || 'TBD'}`
+      });
+    }
+  }
+
   async sendTeamAlert(
     teamMemberEmail: string,
     alertType: string,
