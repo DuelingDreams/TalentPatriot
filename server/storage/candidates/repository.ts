@@ -555,13 +555,78 @@ export class CandidatesRepository implements ICandidatesRepository {
   }
   
   async getInterviewsByJobCandidate(jobCandidateId: string): Promise<Interview[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      const { data, error } = await supabase
+        .from('interviews')
+        .select('*')
+        .eq('job_candidate_id', jobCandidateId)
+        .order('scheduled_at', { ascending: true });
+
+      if (error) {
+        console.error('Database interviews fetch error:', error);
+        throw new Error(`Failed to fetch interviews: ${error.message}`);
+      }
+
+      return (data || []).map(interview => ({
+        id: interview.id,
+        orgId: interview.org_id,
+        jobCandidateId: interview.job_candidate_id,
+        interviewerId: interview.interviewer_id,
+        title: interview.title,
+        scheduledAt: interview.scheduled_at,
+        duration: interview.duration,
+        location: interview.location,
+        type: interview.type,
+        status: interview.status,
+        notes: interview.notes,
+        feedback: interview.feedback,
+        rating: interview.rating,
+        recordStatus: interview.record_status || 'active',
+        createdAt: interview.created_at,
+        updatedAt: interview.updated_at
+      })) as Interview[];
+    } catch (err) {
+      console.error('Interviews fetch exception:', err);
+      throw err;
+    }
   }
   
   async getInterviewsByDateRange(startDate: Date, endDate: Date): Promise<Interview[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      const { data, error } = await supabase
+        .from('interviews')
+        .select('*')
+        .gte('scheduled_at', startDate.toISOString())
+        .lte('scheduled_at', endDate.toISOString())
+        .order('scheduled_at', { ascending: true });
+
+      if (error) {
+        console.error('Database interviews fetch error:', error);
+        throw new Error(`Failed to fetch interviews: ${error.message}`);
+      }
+
+      return (data || []).map(interview => ({
+        id: interview.id,
+        orgId: interview.org_id,
+        jobCandidateId: interview.job_candidate_id,
+        interviewerId: interview.interviewer_id,
+        title: interview.title,
+        scheduledAt: interview.scheduled_at,
+        duration: interview.duration,
+        location: interview.location,
+        type: interview.type,
+        status: interview.status,
+        notes: interview.notes,
+        feedback: interview.feedback,
+        rating: interview.rating,
+        recordStatus: interview.record_status || 'active',
+        createdAt: interview.created_at,
+        updatedAt: interview.updated_at
+      })) as Interview[];
+    } catch (err) {
+      console.error('Interviews fetch exception:', err);
+      throw err;
+    }
   }
   
   async createInterview(interview: InsertInterview): Promise<Interview> {
@@ -691,28 +756,252 @@ export class CandidatesRepository implements ICandidatesRepository {
     return [];
   }
   
-  async submitJobApplication(applicationData: any): Promise<{ candidateId: string; applicationId: string }> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+  async submitJobApplication(applicationData: {
+    jobId: string;
+    candidateData: InsertCandidate;
+    resumeUrl?: string;
+    coverLetter?: string;
+  }): Promise<{ candidateId: string; applicationId: string }> {
+    try {
+      // First create or find the candidate
+      let candidate = await this.getCandidateByEmail(applicationData.candidateData.email, applicationData.candidateData.orgId);
+      
+      if (!candidate) {
+        candidate = await this.createCandidate(applicationData.candidateData);
+      }
+
+      // Create the job-candidate relationship (application)
+      const jobCandidateData: InsertJobCandidate = {
+        jobId: applicationData.jobId,
+        candidateId: candidate.id,
+        stage: 'applied',
+        status: 'active',
+        resumeUrl: applicationData.resumeUrl,
+        coverLetter: applicationData.coverLetter,
+        orgId: applicationData.candidateData.orgId
+      };
+
+      const jobCandidate = await this.createJobCandidate(jobCandidateData);
+
+      return {
+        candidateId: candidate.id,
+        applicationId: jobCandidate.id
+      };
+    } catch (err) {
+      console.error('Job application submission exception:', err);
+      throw err;
+    }
   }
   
-  async searchCandidatesAdvanced(filters: any): Promise<Candidate[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+  async searchCandidatesAdvanced(filters: {
+    orgId: string;
+    searchTerm?: string;
+    jobId?: string;
+    stage?: string;
+    status?: string;
+    skills?: string[];
+    dateRange?: { start: Date; end: Date };
+  }): Promise<Candidate[]> {
+    try {
+      let query = supabase
+        .from('candidates')
+        .select(`
+          *,
+          job_candidate!inner(
+            stage,
+            status,
+            job_id,
+            created_at
+          )
+        `)
+        .eq('org_id', filters.orgId);
+
+      // Filter by search term (name, email)
+      if (filters.searchTerm) {
+        query = query.or(`name.ilike.%${filters.searchTerm}%,email.ilike.%${filters.searchTerm}%`);
+      }
+
+      // Filter by specific job
+      if (filters.jobId) {
+        query = query.eq('job_candidate.job_id', filters.jobId);
+      }
+
+      // Filter by pipeline stage
+      if (filters.stage) {
+        query = query.eq('job_candidate.stage', filters.stage);
+      }
+
+      // Filter by status
+      if (filters.status) {
+        query = query.eq('job_candidate.status', filters.status);
+      }
+
+      // Filter by date range
+      if (filters.dateRange) {
+        query = query
+          .gte('job_candidate.created_at', filters.dateRange.start.toISOString())
+          .lte('job_candidate.created_at', filters.dateRange.end.toISOString());
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Advanced candidate search error:', error);
+        throw new Error(`Failed to search candidates: ${error.message}`);
+      }
+
+      return data as Candidate[];
+    } catch (err) {
+      console.error('Advanced candidate search exception:', err);
+      throw err;
+    }
   }
   
   async parseAndUpdateCandidate(candidateId: string, resumeText?: string): Promise<Candidate> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      // For now, return the existing candidate without AI parsing
+      // This would integrate with OpenAI for resume parsing in full implementation
+      const candidate = await this.getCandidate(candidateId);
+      if (!candidate) {
+        throw new Error('Candidate not found');
+      }
+      
+      console.log(`Resume parsing requested for candidate ${candidateId}`);
+      console.log('Resume text length:', resumeText?.length || 0);
+      
+      // TODO: Integrate with OpenAI for actual resume parsing
+      // For now, just return the candidate as-is
+      return candidate;
+    } catch (err) {
+      console.error('Resume parsing exception:', err);
+      throw err;
+    }
   }
   
   async searchCandidatesBySkills(orgId: string, skills: string[]): Promise<Candidate[]> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+    try {
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('org_id', orgId)
+        .overlaps('skills', skills);
+
+      if (error) {
+        console.error('Skills-based candidate search error:', error);
+        throw new Error(`Failed to search candidates by skills: ${error.message}`);
+      }
+
+      return data as Candidate[];
+    } catch (err) {
+      console.error('Skills-based candidate search exception:', err);
+      throw err;
+    }
   }
   
-  async getCandidatesPaginated(params: any): Promise<any> {
-    // TODO: Extract from original storage.ts
-    throw new Error('Method not implemented.');
+  async getCandidatesPaginated(params: {
+    orgId: string;
+    limit?: number;
+    cursor?: string;
+    stage?: string;
+    status?: string;
+    search?: string;
+    jobId?: string;
+    fields?: string[];
+  }): Promise<{
+    data: Candidate[];
+    pagination: { hasMore: boolean; limit: number; totalCount: number };
+  }> {
+    try {
+      const limit = Math.min(params.limit || 50, 100);
+      const selectFields = params.fields?.join(', ') || '*';
+      
+      let query = supabase
+        .from('candidates')
+        .select(selectFields)
+        .eq('org_id', params.orgId)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(limit + 1);
+
+      // Add filters
+      if (params.stage) {
+        query = query.eq('stage', params.stage);
+      }
+      if (params.status) {
+        query = query.eq('status', params.status);
+      }
+      if (params.search) {
+        query = query.or(`name.ilike.%${params.search}%,email.ilike.%${params.search}%`);
+      }
+
+      // If jobId is provided, filter through job_candidate junction
+      if (params.jobId) {
+        const { data: jobCandidates } = await supabase
+          .from('job_candidate')
+          .select('candidate_id')
+          .eq('job_id', params.jobId);
+        
+        if (jobCandidates && jobCandidates.length > 0) {
+          const candidateIds = jobCandidates.map(jc => jc.candidate_id);
+          query = query.in('id', candidateIds);
+        } else {
+          // No candidates for this job
+          return {
+            data: [],
+            pagination: { hasMore: false, limit, totalCount: 0 }
+          };
+        }
+      }
+
+      // Cursor-based pagination with deterministic ordering
+      if (params.cursor) {
+        try {
+          const decodedCursor = JSON.parse(Buffer.from(params.cursor, 'base64').toString('utf8'));
+          if (decodedCursor.id) {
+            // Use composite cursor for deterministic ordering
+            query = query.or(`created_at.lt.${decodedCursor.created_at},and(created_at.eq.${decodedCursor.created_at},id.lt.${decodedCursor.id})`);
+          } else {
+            // Fallback for old cursor format
+            query = query.lt('created_at', decodedCursor.created_at);
+          }
+        } catch (e) {
+          console.warn('Invalid cursor format, ignoring:', e instanceof Error ? e.message : 'unknown error');
+        }
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) {
+        console.error('Error in getCandidatesPaginated:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.warn('No data returned from getCandidatesPaginated query');
+        return {
+          data: [],
+          pagination: {
+            hasMore: false,
+            totalCount: count || 0,
+            limit
+          }
+        };
+      }
+
+      const hasMore = data.length > limit;
+      const results = hasMore ? data.slice(0, limit) : data;
+
+      return {
+        data: results as Candidate[],
+        pagination: {
+          hasMore,
+          totalCount: count || 0,
+          limit
+        }
+      };
+    } catch (err) {
+      console.error('Paginated candidates fetch exception:', err);
+      throw err;
+    }
   }
 }
