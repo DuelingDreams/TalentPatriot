@@ -273,3 +273,56 @@ export function organizeApplicationsByColumn(applications: PipelineApplication[]
   
   return columnMap
 }
+
+// Hook for rejecting candidates
+export function useRejectCandidate(jobId: string) {
+  const queryClient = useQueryClient()
+  const { currentOrgId } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({ applicationId }: { applicationId: string }) => {
+      
+      // Validate required parameters
+      if (!applicationId || !jobId || !currentOrgId) {
+        throw new Error(`Missing required parameters: applicationId=${!!applicationId}, jobId=${!!jobId}, orgId=${!!currentOrgId}`);
+      }
+
+      console.log('[useRejectCandidate] API call with:', { 
+        applicationId, 
+        jobId, 
+        orgId: currentOrgId,
+        endpoint: `/api/jobs/${jobId}/applications/${applicationId}/reject`
+      });
+      
+      const response = await apiRequest(`/api/jobs/${jobId}/applications/${applicationId}/reject`, {
+        method: 'PATCH'
+      });
+      
+      console.log('[useRejectCandidate] API response:', response);
+      return response;
+    },
+    
+    onSuccess: (data: any) => {
+      console.log('[useRejectCandidate] Reject successful - removing from pipeline');
+      
+      // Remove rejected candidate from pipeline view
+      queryClient.setQueryData(['job-pipeline', jobId], (old: any) => {
+        if (!old || !old.applications) return old;
+        
+        const filteredApplications = old.applications.filter((app: any) => 
+          app.id !== data.jobCandidate?.id
+        );
+        
+        console.log('[useRejectCandidate] Candidate removed from pipeline view');
+        return { ...old, applications: filteredApplications };
+      });
+      
+      // Invalidate to trigger background refresh
+      queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
+    },
+    
+    onError: (error) => {
+      console.error('[useRejectCandidate] Reject failed:', error);
+    }
+  })
+}

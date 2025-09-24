@@ -15,13 +15,13 @@ import { useToast } from '@/hooks/use-toast'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useCandidatesForJob } from '@/hooks/useCandidatesForJob'
-import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, organizeApplicationsByColumn } from '@/hooks/usePipeline'
+import { usePipeline, useJobPipeline, usePipelineColumns, useMoveApplication, useRejectCandidate, organizeApplicationsByColumn } from '@/hooks/usePipeline'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { PipelineProgressBar } from '@/components/pipeline/PipelineProgressBar'
 import { useAuth } from '@/contexts/AuthContext'
-import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock } from 'lucide-react'
+import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX } from 'lucide-react'
 import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
 import { Link } from 'wouter'
 
@@ -67,6 +67,7 @@ function EnhancedApplicationCard({
   const isCurrentlyDragging = isDragging || isSortableDragging
   const { toast } = useToast()
   const [notesDialogOpen, setNotesDialogOpen] = useState(false)
+  const rejectCandidate = useRejectCandidate(jobId)
   
   // Defensive coding: Safe defaults for all data
   const safeCandidateName = candidateName || 'Unknown Candidate'
@@ -146,6 +147,30 @@ function EnhancedApplicationCard({
       return
     }
     setNotesDialogOpen(true)
+  }
+
+  const handleRejectCandidate = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    
+    // Confirmation dialog
+    if (!window.confirm(`Are you sure you want to reject ${safeCandidateName}? This action will remove them from the active pipeline.`)) {
+      return
+    }
+    
+    try {
+      await rejectCandidate.mutateAsync({ applicationId: safeApplicationId })
+      toast({
+        title: "Candidate Rejected",
+        description: `${safeCandidateName} has been rejected and removed from the pipeline.`,
+      })
+    } catch (error) {
+      console.error('Error rejecting candidate:', error)
+      toast({
+        title: "Error",
+        description: "Failed to reject candidate. Please try again.",
+        variant: "destructive"
+      })
+    }
   }
 
   // Format date for display
@@ -230,7 +255,7 @@ function EnhancedApplicationCard({
               </span>
             </div>
 
-            {/* Quick Action Buttons - Resume and Notes as requested */}
+            {/* Quick Action Buttons - Resume, Notes, and Reject */}
             <div className="flex gap-2">
               <Button 
                 size="sm" 
@@ -251,6 +276,21 @@ function EnhancedApplicationCard({
               >
                 <MessageSquare className="w-3 h-3 mr-1" />
                 Notes
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="text-xs h-8 flex-1 hover:bg-red-50 hover:border-red-200 hover:text-red-700"
+                onClick={handleRejectCandidate}
+                disabled={rejectCandidate.isPending}
+                data-testid={`reject-${applicationId}`}
+              >
+                {rejectCandidate.isPending ? (
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                ) : (
+                  <UserX className="w-3 h-3 mr-1" />
+                )}
+                Reject
               </Button>
             </div>
           </div>
