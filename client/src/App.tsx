@@ -64,6 +64,7 @@ const BetaProgram = lazy(() => import("@/pages/BetaProgram"));
 const BetaApplicationsAdmin = lazy(() => import("@/pages/BetaApplicationsAdmin"));
 const ResumeParsingDemo = lazy(() => import("@/pages/ResumeParsingDemo"));
 const EmailSettingsAdmin = lazy(() => import("@/pages/EmailSettingsAdmin"));
+const DataImport = lazy(() => import("@/pages/DataImport"));
 
 function AppPrefetch() {
   useEffect(() => {
@@ -314,6 +315,13 @@ function Router() {
         <Route path="/admin/email-settings">
           <ProtectedRoute type="route">
             <EmailSettingsAdmin />
+          </ProtectedRoute>
+        </Route>
+        
+        {/* Data import admin dashboard */}
+        <Route path="/admin/imports">
+          <ProtectedRoute type="route">
+            <DataImport />
           </ProtectedRoute>
         </Route>
         
