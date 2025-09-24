@@ -123,7 +123,7 @@ export default function OnboardingStep2() {
 
     try {
       // Use the new onboarding service for cleaner organization creation
-      const { OnboardingService } = await import('@/services/onboardingService')
+      const { OnboardingService } = await import('../services/onboardingService')
       
       const result = await OnboardingService.createOrganizationAndAssignUser(
         user.id,
