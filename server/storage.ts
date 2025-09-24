@@ -435,6 +435,21 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   },
 })
 
+// Helper function to get user email from Supabase Auth
+async function getUserEmailFromAuth(userId: string): Promise<string | null> {
+  try {
+    const { data: { user }, error } = await supabase.auth.admin.getUserById(userId);
+    if (error || !user) {
+      console.warn(`Failed to get user email for ${userId}:`, error?.message);
+      return null;
+    }
+    return user.email || null;
+  } catch (error) {
+    console.error(`Error fetching user email for ${userId}:`, error);
+    return null;
+  }
+}
+
 export class DatabaseStorage implements IStorage {
   // User Profiles
   async getUserProfile(id: string): Promise<UserProfile | undefined> {
@@ -2771,14 +2786,30 @@ export class DatabaseStorage implements IStorage {
           for (const recipient of notificationRecipients) {
             const userProfile = await this.getUserProfile(recipient.userId);
             if (userProfile?.id) {
-              // For now, use a placeholder email until user profile includes email
-              const email = userProfile.id + '@example.com'; // Temporary - should be real email from auth
-              await atsEmailService.sendNewApplicationNotification(
-                email,
-                candidate.name,
-                job.title,
-                organization.name
-              );
+              // Get real user email from Supabase Auth
+              const email = await getUserEmailFromAuth(userProfile.id);
+              if (email) {
+                await atsEmailService.sendNewApplicationNotification(
+                  email,
+                  candidate.name,
+                  job.title,
+                  organization.name,
+                  {
+                    candidateEmail: candidate.email,
+                    candidatePhone: candidate.phone || undefined,
+                    candidateLocation: undefined, // Could be added to candidate model later
+                    applicationDate: new Date().toLocaleDateString(),
+                    candidateExperience: undefined, // Could be parsed from resume
+                    resumeUrl: candidate.resumeUrl || undefined,
+                    candidateProfileUrl: undefined, // Could be a frontend URL
+                    organizationLogo: undefined, // Could be added to organization model
+                    organizationAddress: organization.address || undefined,
+                  }
+                );
+                console.log(`Email notification sent to ${email} for new application by ${candidate.name}`);
+              } else {
+                console.warn(`No email found for user ${userProfile.id}, skipping notification`);
+              }
             }
           }
         }
