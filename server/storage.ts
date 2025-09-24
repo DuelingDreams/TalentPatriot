@@ -228,6 +228,7 @@ export interface IStorage {
   createJobCandidate(jobCandidate: InsertJobCandidate & { pipelineColumnId?: string }): Promise<JobCandidate>;
   updateJobCandidate(id: string, jobCandidate: Partial<InsertJobCandidate>): Promise<JobCandidate>;
   moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate>;
+  rejectJobCandidate(jobCandidateId: string): Promise<JobCandidate>;
   
   // Candidate Notes
   getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]>;
@@ -1399,6 +1400,41 @@ export class DatabaseStorage implements IStorage {
     }
     
     console.log(`[moveJobCandidateDirect] Successfully updated:`, {
+      id: data.id,
+      pipeline_column_id: data.pipeline_column_id,
+      stage: data.stage,
+      updated_at: data.updated_at
+    });
+    
+    return data as JobCandidate;
+  }
+
+  async rejectJobCandidate(jobCandidateId: string): Promise<JobCandidate> {
+    console.log(`[rejectJobCandidate] Rejecting candidate: ${jobCandidateId}`);
+    
+    // Update candidate stage to 'rejected' and remove from pipeline column
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .update({
+        pipeline_column_id: null, // Remove from kanban board
+        stage: 'rejected',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobCandidateId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error(`[rejectJobCandidate] Update failed:`, error);
+      throw new Error(`Failed to reject candidate: ${error.message}`);
+    }
+
+    if (!data) {
+      console.warn(`[rejectJobCandidate] No rows updated - record may have been deleted`);
+      throw new Error(`Application not found or may have been deleted. Please refresh and try again.`);
+    }
+    
+    console.log(`[rejectJobCandidate] Successfully rejected:`, {
       id: data.id,
       pipeline_column_id: data.pipeline_column_id,
       stage: data.stage,

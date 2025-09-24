@@ -3380,6 +3380,26 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // NEW: Reject candidate endpoint
+  app.patch("/api/jobs/:jobId/applications/:applicationId/reject", writeLimiter, async (req, res) => {
+    try {
+      const { applicationId } = req.params;
+
+      console.info('Rejecting application', applicationId);
+      
+      // Use the storage method to reject the job candidate
+      const updatedJobCandidate = await storage.rejectJobCandidate(applicationId);
+      
+      res.json({ 
+        message: "Candidate rejected successfully",
+        jobCandidate: updatedJobCandidate
+      });
+    } catch (error) {
+      console.error("Error rejecting application:", error);
+      res.status(500).json({ error: "Failed to reject candidate" });
+    }
+  });
+
   // LEGACY: Move job candidate to different pipeline column (Kanban drag and drop)
   app.patch("/api/jobs/:jobId/candidates/:candidateId/move", writeLimiter, async (req, res) => {
     try {
