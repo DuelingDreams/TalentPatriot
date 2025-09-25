@@ -52,7 +52,7 @@ export async function fetchCandidateSkills(candidateId: string): Promise<string[
 }
 
 /**
- * Saves skills for a specific candidate
+ * Saves skills for a specific candidate using backend API with architect's legacy orgId fix
  * 
  * @param candidateId - UUID of the candidate
  * @param nextSkills - Array of skills to save
@@ -77,21 +77,15 @@ export async function saveCandidateSkills(candidateId: string, nextSkills: strin
       a.localeCompare(b, 'en', { sensitivity: 'base' })
     )
 
-    const { error } = await supabase
-      .from('candidates')
-      .update({ 
-        skills: canonicalSkills.length > 0 ? canonicalSkills : null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', candidateId)
+    // Use backend API endpoint instead of direct Supabase call
+    // This ensures architect's legacy orgId fix is applied
+    const result = await apiRequest(`/api/candidates/${candidateId}/skills`, {
+      method: 'PUT',
+      body: JSON.stringify(canonicalSkills)
+    })
 
-    if (error) {
-      console.error('Error saving candidate skills:', error)
-      // If it's an RLS recursion error, throw a user-friendly error
-      if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
-        throw new Error('Unable to save skills due to a database permission issue. Please contact support.')
-      }
-      throw new Error(`Failed to save candidate skills: ${error.message}`)
+    if (!result.success) {
+      throw new Error('Failed to save candidate skills')
     }
 
     console.log(`Successfully saved ${canonicalSkills.length} skills for candidate ${candidateId}`)

@@ -2990,6 +2990,56 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Candidate skills endpoint - with architect's legacy orgId fix
+  app.put("/api/candidates/:id/skills", writeLimiter, async (req, res) => {
+    try {
+      const { id: candidateId } = req.params;
+      const skills = req.body.skills || req.body; // Accept { skills: [...] } or just [...]
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Get candidate to verify it exists and belongs to the organization
+      const candidate = await storage.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      // Handle legacy candidates with undefined orgId - architect's simple fix
+      if (!candidate.orgId) {
+        candidate.orgId = orgId; // Set to request orgId for legacy data
+      }
+      
+      // Ensure user can only access candidates from their organization
+      if (candidate.orgId !== orgId) {
+        console.warn(`[SKILLS-PUT] OrgId mismatch: candidate.orgId=${candidate.orgId}, request.orgId=${orgId}`);
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Update skills using Supabase directly (now with proper orgId context)
+      const { error } = await supabase
+        .from('candidates')
+        .update({ 
+          skills: Array.isArray(skills) && skills.length > 0 ? skills : null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', candidateId);
+
+      if (error) {
+        console.error('Skills update error:', error);
+        throw new Error(`Failed to save candidate skills: ${error.message}`);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Skills update error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to update skills", details: errorMessage });
+    }
+  });
+
   // Job-Candidate relationships
   app.get("/api/jobs/:jobId/candidates", async (req, res) => {
     try {
