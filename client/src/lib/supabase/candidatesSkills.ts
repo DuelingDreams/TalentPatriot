@@ -66,12 +66,12 @@ export async function saveCandidateSkills(candidateId: string, nextSkills: strin
 
     // Use backend API endpoint instead of direct Supabase call
     // This ensures architect's legacy orgId fix is applied
-    const result = await apiRequest(`/api/candidates/${candidateId}/skills`, {
+    const result = await apiRequest<{ success: boolean }>(`/api/candidates/${candidateId}/skills`, {
       method: 'PUT',
       body: JSON.stringify(canonicalSkills)
     })
 
-    if (!result.success) {
+    if (!result?.success) {
       throw new Error('Failed to save candidate skills')
     }
 
