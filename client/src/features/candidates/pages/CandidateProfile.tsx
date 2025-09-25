@@ -23,7 +23,8 @@ import {
   Star,
   MapPin,
   Briefcase,
-  Eye
+  Eye,
+  Tag
 } from 'lucide-react'
 import { Link } from 'wouter'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
@@ -31,6 +32,7 @@ import { useCandidate } from '@/features/candidates/hooks/useCandidates'
 import { useCandidateApplicationHistory } from '@/features/candidates/hooks/useCandidateApplicationHistory'
 import { useCandidateInterviews } from '@/features/candidates/hooks/useCandidateInterviews'
 import { useAuth } from '@/contexts/AuthContext'
+import { SkillsTab } from '@/components/candidates/skills/SkillsTab'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { ResumePreview } from '@/components/resume/LazyResumePreview'
 import { CandidateNotes } from '@/components/CandidateNotes'
@@ -38,7 +40,7 @@ import { CandidateNotes } from '@/components/CandidateNotes'
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>()
   const [activeTab, setActiveTab] = useState('overview')
-  const { userRole } = useAuth()
+  const { userRole, currentOrgId } = useAuth()
   
   const { data: candidateData, isLoading: candidateLoading } = useCandidate(id)
   
@@ -154,13 +156,21 @@ export default function CandidateProfile() {
               </div>
             </div>
             
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {candidate?.resume_url && (
                 <Button variant="outline" onClick={() => window.open(`http://localhost:5000${candidate.resume_url}`, '_blank')}>
                   <Download className="w-4 h-4 mr-2" />
                   Download Resume
                 </Button>
               )}
+              <Button 
+                variant="outline" 
+                onClick={() => setActiveTab('skills')}
+                data-testid="edit-skills-button"
+              >
+                <Tag className="w-4 h-4 mr-2" />
+                Edit Skills
+              </Button>
               <Button variant="outline">
                 <Edit className="w-4 h-4 mr-2" />
                 Edit Profile
@@ -171,10 +181,11 @@ export default function CandidateProfile() {
 
         {/* Content Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
             <TabsTrigger value="interviews">Interviews</TabsTrigger>
+            <TabsTrigger value="skills" data-testid="skills-tab-trigger">Skills</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="communication">Communication</TabsTrigger>
           </TabsList>
@@ -343,6 +354,27 @@ export default function CandidateProfile() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Skills Tab */}
+          <TabsContent value="skills" className="space-y-6">
+            {currentOrgId && id ? (
+              <SkillsTab 
+                candidateId={id} 
+                orgId={currentOrgId}
+                data-testid="skills-tab-content"
+              />
+            ) : (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Star className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                  <h3 className="font-semibold text-lg mb-2">Skills Management Unavailable</h3>
+                  <p className="text-muted-foreground">
+                    Unable to load skills. Please ensure you're properly authenticated and have access to this candidate.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Notes Tab */}
