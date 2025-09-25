@@ -6,17 +6,17 @@ import { sql } from "drizzle-orm";
 
 // Enums
 export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'on_hold', 'filled']);
-export const jobTypeEnum = pgEnum('job_type', ['full-time', 'part-time', 'contract', 'internship']);
+export const jobTypeEnum = pgEnum('job_type', ['full-time', 'part-time', 'contract', 'freelance', 'internship']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
-export const recordStatusEnum = pgEnum('record_status', ['active', 'demo', 'archived']);
+export const recordStatusEnum = pgEnum('record_status', ['active', 'inactive', 'demo']);
 // Platform-level roles (minimal)
-export const userRoleEnum = pgEnum('user_role', ['platform_admin', 'user', 'demo_viewer']);
+export const userRoleEnum = pgEnum('user_role', ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer', 'platform_admin', 'user']);
 
 // Organization-level roles (business functionality)
-export const orgRoleEnum = pgEnum('org_role', ['admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer']);
-export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'onsite', 'technical', 'cultural']);
-export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'confirmed', 'completed', 'cancelled', 'no_show']);
-export const messageTypeEnum = pgEnum('message_type', ['internal', 'client', 'candidate', 'system']);
+export const orgRoleEnum = pgEnum('org_role', ['owner', 'admin', 'hiring_manager', 'recruiter', 'interviewer', 'viewer']);
+export const interviewTypeEnum = pgEnum('interview_type', ['phone', 'video', 'in_person', 'technical']);
+export const interviewStatusEnum = pgEnum('interview_status', ['scheduled', 'completed', 'cancelled', 'no_show']);
+export const messageTypeEnum = pgEnum('message_type', ['general', 'interview', 'application', 'team', 'internal', 'client', 'candidate', 'system']);
 export const messagePriorityEnum = pgEnum('message_priority', ['low', 'normal', 'high', 'urgent']);
 export const experienceLevelEnum = pgEnum('experience_level', ['entry', 'mid', 'senior', 'executive']);
 export const remoteOptionEnum = pgEnum('remote_option', ['onsite', 'remote', 'hybrid']);
@@ -247,19 +247,21 @@ export const betaApplications = pgTable("beta_applications", {
   id: uuid("id").primaryKey().defaultRandom(),
   companyName: text("company_name").notNull(),
   contactName: text("contact_name").notNull(),
-  email: varchar("email", { length: 255 }).notNull(),
-  phone: varchar("phone", { length: 50 }),
-  website: varchar("website", { length: 255 }),
-  companySize: varchar("company_size", { length: 100 }).notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  website: text("website"),
+  companySize: text("company_size").notNull(),
   currentAts: text("current_ats"),
   painPoints: text("pain_points").notNull(),
   expectations: text("expectations"),
-  status: varchar("status", { length: 50 }).default('pending').notNull(),
-  reviewNotes: text("review_notes"),
-  reviewedAt: timestamp("reviewed_at"),
-  reviewedBy: uuid("reviewed_by"),
+  status: text("status").default('pending'),
+  userId: uuid("user_id"),
+  orgId: uuid("org_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+  processedBy: uuid("processed_by"),
+  notes: text("notes"),
 });
 
 // Applications (legacy table - parallel to job_candidate)
@@ -292,7 +294,7 @@ export const applyEvents = pgTable("apply_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   jobId: uuid("job_id").notNull(),
   applicantEmail: text("applicant_email").notNull(),
-  requesterIp: text("requester_ip"), // Using text instead of inet for compatibility
+  requesterIp: varchar("requester_ip"), // Using varchar for inet compatibility
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -395,6 +397,49 @@ export const emailEvents = pgTable("email_events", {
   deliveredAt: timestamp("delivered_at"),
   openedAt: timestamp("opened_at"),
   clickedAt: timestamp("clicked_at"),
+});
+
+// Job Candidate Stage Shadow (for tracking stage changes)
+export const jobCandidateStageShad = pgTable("_job_candidate_stage_shadow", {
+  jobCandidateId: uuid("job_candidate_id").notNull(),
+  lastStage: text("last_stage"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Beta Organizations
+export const betaOrganizations = pgTable("beta_organizations", {
+  id: uuid("id"),
+  name: text("name"),
+  slug: text("slug"),
+  createdAt: timestamp("created_at"),
+  betaAppliedAt: timestamp("beta_applied_at"),
+  betaApprovedAt: timestamp("beta_approved_at"),
+  betaNotes: text("beta_notes"),
+  originalCompanyName: text("original_company_name"),
+  contactEmail: text("contact_email"),
+  companySize: text("company_size"),
+  painPoints: text("pain_points"),
+  teamSize: integer("team_size"),
+  totalJobs: integer("total_jobs"),
+  totalCandidates: integer("total_candidates"),
+});
+
+// Beta Program Stats
+export const betaProgramStats = pgTable("beta_program_stats", {
+  pendingApplications: integer("pending_applications"),
+  approvedApplications: integer("approved_applications"),
+  rejectedApplications: integer("rejected_applications"),
+  convertedUsers: integer("converted_users"),
+  createdOrganizations: integer("created_organizations"),
+});
+
+// Beta Users
+export const betaUsers = pgTable("beta_users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: varchar("email").notNull(),
+  fullName: varchar("full_name").notNull(),
+  companyName: varchar("company_name"),
+  companySize: varchar("company_size"),
 });
 
 // Data Import Tables
@@ -573,6 +618,16 @@ export const insertDataImportSchema = createInsertSchema(dataImports).omit({
 export const insertImportRecordSchema = createInsertSchema(importRecords).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertJobCandidateStageShSch = createInsertSchema(jobCandidateStageShad);
+
+export const insertBetaOrganizationSchema = createInsertSchema(betaOrganizations);
+
+export const insertBetaProgramStatsSchema = createInsertSchema(betaProgramStats);
+
+export const insertBetaUserSchema = createInsertSchema(betaUsers).omit({
+  id: true,
 });
 
 // Types
