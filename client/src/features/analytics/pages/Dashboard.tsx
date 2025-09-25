@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { useLocation } from 'wouter'
@@ -107,64 +107,82 @@ export default function Dashboard() {
     }
   }, [currentOrgId, userRole, jobsLoading, setLocation])
 
-  // Type-safe data extraction with proper fallbacks
-  const jobsArray = Array.isArray(jobs) ? jobs : []
-  const candidatesArray = Array.isArray(candidates) ? candidates : []
-  const clientsArray = Array.isArray(clients) ? clients : []
-  const jobCandidatesArray = Array.isArray(jobCandidates) ? jobCandidates : []
+  // Type-safe data extraction with proper fallbacks - memoized for performance
+  const jobsArray = useMemo(() => Array.isArray(jobs) ? jobs : [], [jobs])
+  const candidatesArray = useMemo(() => Array.isArray(candidates) ? candidates : [], [candidates])
+  const clientsArray = useMemo(() => Array.isArray(clients) ? clients : [], [clients])
+  const jobCandidatesArray = useMemo(() => Array.isArray(jobCandidates) ? jobCandidates : [], [jobCandidates])
 
-  // Calculate real stats from data with type safety
-  const openJobsCount = jobsArray.filter((job: any) => job.status === 'open').length
-  const totalJobsCount = jobsArray.length
-  const totalCandidatesCount = candidatesArray.length
-  const totalClientsCount = clientsArray.length
-  const activeCandidatesCount = jobCandidatesArray.filter((jc: any) => 
-    ['screening', 'interview', 'technical', 'reference'].includes(jc.stage)
-  ).length
-  const hiredThisMonth = jobCandidatesArray.filter((jc: any) => {
-    if (jc.stage !== 'hired') return false
-    const hiredDate = new Date(jc.updated_at)
-    const now = new Date()
-    return hiredDate.getMonth() === now.getMonth() && hiredDate.getFullYear() === now.getFullYear()
-  }).length
+  // Memoized expensive dashboard calculations for better performance
+  const dashboardStats = useMemo(() => {
+    const openJobsCount = jobsArray.filter((job: any) => job.status === 'open').length
+    const totalJobsCount = jobsArray.length
+    const totalCandidatesCount = candidatesArray.length
+    const totalClientsCount = clientsArray.length
+    const activeCandidatesCount = jobCandidatesArray.filter((jc: any) => 
+      ['screening', 'interview', 'technical', 'reference'].includes(jc.stage)
+    ).length
+    
+    const hiredThisMonth = jobCandidatesArray.filter((jc: any) => {
+      if (jc.stage !== 'hired') return false
+      const hiredDate = new Date(jc.updated_at)
+      const now = new Date()
+      return hiredDate.getMonth() === now.getMonth() && hiredDate.getFullYear() === now.getFullYear()
+    }).length
 
-  // Calculate pipeline data with type safety
-  const pipelineStages = ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']
-  const pipelineData = pipelineStages.map(stage => {
-    const count = jobCandidatesArray.filter((jc: any) => jc.stage === stage).length
-    const total = jobCandidatesArray.length || 1
     return {
-      stage: stage.charAt(0).toUpperCase() + stage.slice(1),
-      count,
-      percentage: Math.round((count / total) * 100)
+      openJobsCount,
+      totalJobsCount,
+      totalCandidatesCount,
+      totalClientsCount,
+      activeCandidatesCount,
+      hiredThisMonth
     }
-  })
+  }, [jobsArray, candidatesArray, clientsArray, jobCandidatesArray])
 
-  // Calculate job status data with type safety
-  const jobStatusData = [
+  // Memoized pipeline data calculation
+  const pipelineData = useMemo(() => {
+    const pipelineStages = ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']
+    return pipelineStages.map(stage => {
+      const count = jobCandidatesArray.filter((jc: any) => jc.stage === stage).length
+      const total = jobCandidatesArray.length || 1
+      return {
+        stage: stage.charAt(0).toUpperCase() + stage.slice(1),
+        count,
+        percentage: Math.round((count / total) * 100)
+      }
+    })
+  }, [jobCandidatesArray])
+
+  // Memoized job status data calculation
+  const jobStatusData = useMemo(() => [
     { name: 'Open', value: jobsArray.filter((j: any) => j.status === 'open').length, color: '#22c55e' },
     { name: 'In Progress', value: jobsArray.filter((j: any) => j.status === 'in_progress').length, color: '#3b82f6' },
     { name: 'On Hold', value: jobsArray.filter((j: any) => j.status === 'on_hold').length, color: '#f59e0b' },
     { name: 'Filled', value: jobsArray.filter((j: any) => j.status === 'filled').length, color: '#8b5cf6' },
-  ]
+  ], [jobsArray])
 
-  // Calculate Today's Work data
-  const candidatesNeedingReview = jobCandidatesArray.filter((jc: any) => 
-    jc.stage === 'applied' || jc.stage === 'phone_screen'
-  ).length
-  
-  const interviewsToday = jobCandidatesArray.filter((jc: any) => {
-    // Mock calculation - in real app would check interview schedule
-    return jc.stage === 'interview'
-  }).length
-  
-  const jobsNeedingAttention = jobsArray.filter((job: any) => {
-    // Mock calculation - jobs with no applications in last 7 days
-    const now = new Date()
-    const createdDate = new Date(job.createdAt)
-    const daysSinceCreated = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
-    return job.status === 'open' && daysSinceCreated > 7
-  }).length
+  // Memoized Today's Work calculations
+  const todaysWorkData = useMemo(() => {
+    const candidatesNeedingReview = jobCandidatesArray.filter((jc: any) => 
+      jc.stage === 'applied' || jc.stage === 'phone_screen'
+    ).length
+    
+    const interviewsToday = jobCandidatesArray.filter((jc: any) => {
+      // Mock calculation - in real app would check interview schedule
+      return jc.stage === 'interview'
+    }).length
+    
+    const jobsNeedingAttention = jobsArray.filter((job: any) => {
+      // Mock calculation - jobs with no applications in last 7 days
+      const now = new Date()
+      const createdDate = new Date(job.createdAt)
+      const daysSinceCreated = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
+      return job.status === 'open' && daysSinceCreated > 7
+    }).length
+
+    return { candidatesNeedingReview, interviewsToday, jobsNeedingAttention }
+  }, [jobCandidatesArray, jobsArray])
 
 
 
@@ -196,9 +214,9 @@ export default function Dashboard() {
 
         {/* Today's Work */}
         <TodaysWork 
-          candidatesNeedingReview={candidatesNeedingReview}
-          interviewsToday={interviewsToday}
-          jobsNeedingAttention={jobsNeedingAttention}
+          candidatesNeedingReview={todaysWorkData.candidatesNeedingReview}
+          interviewsToday={todaysWorkData.interviewsToday}
+          jobsNeedingAttention={todaysWorkData.jobsNeedingAttention}
           loading={jobCandidatesLoading}
         />
 
@@ -220,28 +238,28 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <StatCard
               label="Open Positions"
-              value={openJobsCount}
+              value={dashboardStats.openJobsCount}
               icon={Briefcase}
               trend={{ value: 12, label: "from last month" }}
               loading={jobsLoading}
             />
             <StatCard
               label="Total Candidates"
-              value={totalCandidatesCount}
+              value={dashboardStats.totalCandidatesCount}
               icon={Users}
               trend={{ value: 8, label: "from last month" }}
               loading={candidatesLoading}
             />
             <StatCard
               label="Active Candidates"
-              value={activeCandidatesCount}
+              value={dashboardStats.activeCandidatesCount}
               icon={UserCheck}
               trend={{ value: 5, label: "from last month" }}
               loading={jobCandidatesLoading}
             />
             <StatCard
               label="Hired This Month"
-              value={hiredThisMonth}
+              value={dashboardStats.hiredThisMonth}
               icon={TrendingUp}
               trend={{ value: 25, label: "from last month" }}
               loading={jobCandidatesLoading}
