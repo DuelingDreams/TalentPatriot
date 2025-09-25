@@ -18,11 +18,10 @@ import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
 import { normalizeSkills } from '@/lib/skills/normalize'
 import { getOrgSkillSuggestions } from '@/lib/supabase/candidatesSkills'
-import type { Proficiency, SkillsConfig } from '@/lib/skills/types'
+import type { Proficiency } from '@/lib/skills/types'
 
 interface SkillInputProps {
   orgId: string
-  config: SkillsConfig
   onAddSkills: (skills: string[], proficiency?: Proficiency) => Promise<void>
   className?: string
   placeholder?: string
@@ -34,7 +33,6 @@ interface SkillInputProps {
  */
 export function SkillInput({
   orgId,
-  config,
   onAddSkills,
   className,
   placeholder = "Add skills (e.g., React, Python, Project Management)",
@@ -79,14 +77,12 @@ export function SkillInput({
       // Add skills with optional proficiency
       await onAddSkills(
         skillsToAdd, 
-        config.enableProficiencyUI && proficiency ? proficiency as Proficiency : undefined
+        proficiency ? proficiency as Proficiency : undefined
       )
 
       // Clear form
       setInput('')
-      if (config.enableProficiencyUI) {
-        setProficiency('')
-      }
+      setProficiency('')
       setShowSuggestions(false)
       
       // Focus back to input
@@ -96,7 +92,7 @@ export function SkillInput({
     } finally {
       setIsSubmitting(false)
     }
-  }, [input, proficiency, config.enableProficiencyUI, onAddSkills, isSubmitting])
+  }, [input, proficiency, onAddSkills, isSubmitting])
 
   // Handle suggestion click
   const handleSuggestionClick = useCallback((suggestion: string) => {
@@ -161,22 +157,20 @@ export function SkillInput({
             )}
           </div>
 
-          {/* Proficiency selector (if enabled) */}
-          {config.enableProficiencyUI && (
-            <div className="w-36">
-              <Select value={proficiency} onValueChange={setProficiency} disabled={disabled || isSubmitting}>
-                <SelectTrigger data-testid="select-proficiency-level">
-                  <SelectValue placeholder="Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Expert">Expert</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          {/* Proficiency selector */}
+          <div className="w-36">
+            <Select value={proficiency} onValueChange={setProficiency} disabled={disabled || isSubmitting}>
+              <SelectTrigger data-testid="select-proficiency-level">
+                <SelectValue placeholder="Level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Expert">Expert</SelectItem>
+                <SelectItem value="Advanced">Advanced</SelectItem>
+                <SelectItem value="Intermediate">Intermediate</SelectItem>
+                <SelectItem value="Beginner">Beginner</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Add button */}
           <Button

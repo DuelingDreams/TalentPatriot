@@ -186,7 +186,6 @@ export function SkillsSection({
         {/* Skills input */}
         <SkillInput
           orgId={orgId}
-          config={config}
           onAddSkills={addSkills}
           disabled={isLoading}
         />
