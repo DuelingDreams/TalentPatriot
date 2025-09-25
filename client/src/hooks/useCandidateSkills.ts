@@ -81,7 +81,7 @@ export function useCandidateSkills(
   // Configuration object
   const config: SkillsConfig = useMemo(() => ({
     enableProficiencyUI: enableProficiencyUI || envProficiencyEnabled || proficiencyData !== null,
-    hasProficiencyData: proficiencyData !== null
+    hasProficiencyData: proficiencyData !== null && Object.keys(proficiencyData || {}).length > 0
   }), [enableProficiencyUI, envProficiencyEnabled, proficiencyData])
 
   // Final skills and proficiency state (with optimistic updates)
