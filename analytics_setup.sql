@@ -13,7 +13,14 @@
 -- COMPATIBILITY: Supabase PostgreSQL 15+
 
 -- ===============================================
--- 1. ANALYTICS HELPER TABLES
+-- 1. REQUIRED EXTENSIONS
+-- ===============================================
+
+-- Enable pg_trgm extension for full-text search capabilities
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+-- ===============================================
+-- 2. ANALYTICS HELPER TABLES
 -- ===============================================
 
 -- Report scheduling table for automated reports
@@ -78,9 +85,9 @@ CREATE INDEX IF NOT EXISTS idx_interviews_org_status ON interviews(org_id, statu
 CREATE INDEX IF NOT EXISTS idx_email_events_org_created ON email_events(org_id, sent_at);
 
 -- Specialized indexes for skills and metadata analytics
--- Skills column optimization for text[] arrays
-CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(skills) 
-WHERE skills IS NOT NULL AND array_length(skills, 1) > 0;
+-- Skills column full-text search optimization (text column with pg_trgm)
+CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(skills gin_trgm_ops) 
+WHERE skills IS NOT NULL AND skills != '';
 
 -- JSONB indexes for application metadata (only create if columns exist)
 -- Education details JSONB index
@@ -207,7 +214,7 @@ WHERE jc.stage = 'hired' AND jc.status = 'active';
 CREATE MATERIALIZED VIEW IF NOT EXISTS mv_skills_analytics AS
 SELECT 
     c.org_id,
-    skill_item as skill_name,
+    TRIM(skill_item) as skill_name,
     COUNT(*) as candidate_count,
     COUNT(*) FILTER (WHERE jc.stage = 'hired') as hired_with_skill,
     COUNT(*) FILTER (WHERE jc.stage IN ('interview', 'offer', 'hired')) as quality_candidates_with_skill,
@@ -226,10 +233,10 @@ SELECT
     END) as avg_time_to_hire_with_skill
 
 FROM candidates c
-CROSS JOIN LATERAL unnest(c.skills) as skill_item
+CROSS JOIN LATERAL regexp_split_to_table(c.skills, '\s*,\s*|\s*;\s*|\s+') as skill_item
 LEFT JOIN job_candidate jc ON c.id = jc.candidate_id
-WHERE c.skills IS NOT NULL AND array_length(c.skills, 1) > 0
-GROUP BY c.org_id, skill_item
+WHERE c.skills IS NOT NULL AND c.skills != '' AND LENGTH(TRIM(skill_item)) > 1
+GROUP BY c.org_id, TRIM(skill_item)
 HAVING COUNT(*) >= 2; -- Only show skills with at least 2 candidates
 
 -- Recruiter Performance View
