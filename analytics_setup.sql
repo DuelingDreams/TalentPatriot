@@ -493,14 +493,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_client_performance_org_client ON mv_cli
 
 -- Analytics setup verification and completion message
 SELECT 
-    'TalentPatriot Analytics Setup Complete!' as status,
-    (SELECT COUNT(*) FROM information_schema.views WHERE table_name LIKE 'mv_%') as materialized_views_created,
-    (SELECT COUNT(*) FROM pg_indexes WHERE indexname LIKE '%analytics%' OR indexname LIKE '%mv_%') as performance_indexes_created,
-    (SELECT COUNT(*) FROM pg_proc WHERE proname IN ('refresh_analytics_views', 'get_org_analytics', 'create_daily_snapshot')) as analytics_functions_created;
+    'TalentPatriot Analytics Setup Complete' as status,
+    (SELECT COUNT(*) FROM information_schema.views WHERE table_name LIKE 'mv_%') as views_created,
+    (SELECT COUNT(*) FROM pg_indexes WHERE indexname LIKE '%analytics%' OR indexname LIKE '%mv_%') as indexes_created,
+    (SELECT COUNT(*) FROM pg_proc WHERE proname IN ('refresh_analytics_views', 'get_org_analytics', 'create_daily_snapshot')) as functions_created;
 
--- Success message and next steps
-SELECT 
-    'SUCCESS: Analytics infrastructure is now ready!' as message,
-    'Run this command periodically to refresh analytics data:' as next_step_1,
-    'SELECT refresh_analytics_views();' as refresh_command,
-    'Your Reports page will now show comprehensive analytics!' as next_step_2;
+-- Script completion confirmation
+SELECT 'Analytics infrastructure ready' as result;
