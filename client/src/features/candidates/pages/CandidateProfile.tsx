@@ -32,7 +32,7 @@ import { useCandidate } from '@/features/candidates/hooks/useCandidates'
 import { useCandidateApplicationHistory } from '@/features/candidates/hooks/useCandidateApplicationHistory'
 import { useCandidateInterviews } from '@/features/candidates/hooks/useCandidateInterviews'
 import { useAuth } from '@/contexts/AuthContext'
-import { SkillsTab } from '@/components/candidates/skills/SkillsTab'
+import { SkillsSection } from '@/components/candidates/skills/SkillsSection'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { ResumePreview } from '@/components/resume/LazyResumePreview'
 import { CandidateNotes } from '@/components/CandidateNotes'
@@ -359,9 +359,10 @@ export default function CandidateProfile() {
           {/* Skills Tab */}
           <TabsContent value="skills" className="space-y-6">
             {currentOrgId && id ? (
-              <SkillsTab 
+              <SkillsSection 
                 candidateId={id} 
                 orgId={currentOrgId}
+                enableProficiencyUI={false}
                 data-testid="skills-tab-content"
               />
             ) : (

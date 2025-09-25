@@ -62,7 +62,7 @@ export function useCandidateSkills(
     staleTime: 30000 // 30 seconds
   })
 
-  // Query for proficiency map (only if proficiency UI is enabled)
+  // Query for proficiency map (always check if skill_levels column exists)
   const { 
     data: proficiencyData, 
     isLoading: proficiencyLoading,
@@ -71,7 +71,7 @@ export function useCandidateSkills(
   } = useQuery({
     queryKey: ['candidate-proficiency', candidateId],
     queryFn: () => getProficiencyMap(candidateId),
-    enabled: !!candidateId && enableProficiencyUI,
+    enabled: !!candidateId,
     staleTime: 30000 // 30 seconds
   })
 
@@ -80,7 +80,7 @@ export function useCandidateSkills(
 
   // Configuration object
   const config: SkillsConfig = useMemo(() => ({
-    enableProficiencyUI: enableProficiencyUI || envProficiencyEnabled,
+    enableProficiencyUI: enableProficiencyUI || envProficiencyEnabled || proficiencyData !== null,
     hasProficiencyData: proficiencyData !== null
   }), [enableProficiencyUI, envProficiencyEnabled, proficiencyData])
 

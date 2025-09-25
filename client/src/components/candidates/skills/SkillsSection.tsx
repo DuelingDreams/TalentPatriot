@@ -29,6 +29,7 @@ interface SkillsSectionProps {
   compact?: boolean
   className?: string
   enableProficiencyUI?: boolean
+  'data-testid'?: string
 }
 
 /**
@@ -39,7 +40,8 @@ export function SkillsSection({
   orgId,
   compact = false,
   className,
-  enableProficiencyUI = false
+  enableProficiencyUI = false,
+  'data-testid': dataTestId
 }: SkillsSectionProps) {
   const [isManageModalOpen, setIsManageModalOpen] = useState(false)
   const [groupBy, setGroupBy] = useState<'proficiency' | 'alphabetical' | 'none'>('proficiency')
@@ -113,7 +115,7 @@ export function SkillsSection({
 
   // Full skills management interface
   return (
-    <Card className={className}>
+    <Card className={className} data-testid={dataTestId}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-1">
