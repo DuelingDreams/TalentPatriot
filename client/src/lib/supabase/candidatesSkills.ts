@@ -204,11 +204,13 @@ export async function getOrgSkillSuggestions(
 export async function getProficiencyMap(candidateId: string): Promise<Record<string, Proficiency> | null> {
   try {
     const data = await apiRequest<Record<string, Proficiency> | null>(`/api/candidates/${candidateId}/proficiency`)
-    return data
+    // Always return data (empty object if no proficiency data exists)
+    // This enables the simplified always-on proficiency dropdown
+    return data || {}
   } catch (error) {
-    // If there's any error, return null to disable proficiency features
-    console.warn('Proficiency data not available:', error)
-    return null
+    // Even on error, return empty object to enable proficiency features
+    console.warn('Proficiency data not available, enabling with empty state:', error)
+    return {}
   }
 }
 

@@ -2804,26 +2804,28 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(404).json({ error: "Candidate not found" });
       }
 
-      // Get proficiency data using Supabase directly
-      const { data, error } = await supabase
-        .from('candidates')
-        .select('skill_levels')
-        .eq('id', candidateId)
-        .single();
+      // Always return 200 with empty object to enable proficiency UI
+      // This supports the simplified always-on dropdown approach
+      try {
+        const { data, error } = await supabase
+          .from('candidates')
+          .select('skill_levels')
+          .eq('id', candidateId)
+          .single();
 
-      if (error) {
-        // If column doesn't exist or other database issues - return empty object to enable proficiency
-        console.warn('Proficiency query error:', error.code, error.message);
-        if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
+        if (error) {
+          // For any database errors, return empty object to enable proficiency
+          console.warn('Proficiency query error:', error.code, error.message);
           return res.json({});
         }
-        // For other errors, still return empty object to enable proficiency
-        return res.json({});
-      }
 
-      // If column exists but is null/empty, return empty object to enable proficiency UI
-      // This allows users to start adding proficiency data
-      res.json(data?.skill_levels || {});
+        // Return stored proficiency data or empty object to enable proficiency UI
+        res.json(data?.skill_levels || {});
+      } catch (error) {
+        // Fallback: always enable proficiency with empty object
+        console.warn('Proficiency fetch error:', error);
+        res.json({});
+      }
     } catch (error) {
       console.error('Proficiency fetch error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';

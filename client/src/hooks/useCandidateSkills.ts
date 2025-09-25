@@ -78,11 +78,11 @@ export function useCandidateSkills(
   // Check environment variable for proficiency UI
   const envProficiencyEnabled = import.meta.env.ENABLE_PROFICIENCY_UI === 'true'
 
-  // Configuration object
+  // Configuration object - simplified approach: always enable proficiency UI
   const config: SkillsConfig = useMemo(() => ({
-    enableProficiencyUI: enableProficiencyUI || envProficiencyEnabled || proficiencyData !== null,
+    enableProficiencyUI: true, // Always enabled for simplified approach
     hasProficiencyData: proficiencyData !== null && Object.keys(proficiencyData || {}).length > 0
-  }), [enableProficiencyUI, envProficiencyEnabled, proficiencyData])
+  }), [proficiencyData])
 
   // Final skills and proficiency state (with optimistic updates)
   const skills = optimisticSkills ?? skillsData
