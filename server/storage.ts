@@ -589,22 +589,55 @@ export class DatabaseStorage implements IStorage {
 
   // Performance methods
   async getDashboardStats(orgId: string): Promise<DashboardStats> {
-    // For now return empty stats, should be implemented with real data later
-    return {
-      totalJobs: 0,
-      totalCandidates: 0, 
-      totalApplications: 0,
-      totalHires: 0,
-      jobsThisMonth: 0,
-      candidatesThisMonth: 0,
-      applicationsThisMonth: 0,
-      hiresThisMonth: 0
-    };
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // Get total counts
+      const [jobsResult, candidatesResult, applicationsResult, hiresResult] = await Promise.all([
+        supabase.from('jobs').select('id', { count: 'exact' }).eq('org_id', orgId),
+        supabase.from('candidates').select('id', { count: 'exact' }).eq('org_id', orgId),
+        supabase.from('job_applications').select('id', { count: 'exact' }).eq('org_id', orgId),
+        supabase.from('job_applications').select('id', { count: 'exact' }).eq('org_id', orgId).eq('status', 'hired')
+      ]);
+
+      // Get monthly counts
+      const [jobsMonthResult, candidatesMonthResult, applicationsMonthResult, hiresMonthResult] = await Promise.all([
+        supabase.from('jobs').select('id', { count: 'exact' }).eq('org_id', orgId).gte('created_at', startOfMonth.toISOString()),
+        supabase.from('candidates').select('id', { count: 'exact' }).eq('org_id', orgId).gte('created_at', startOfMonth.toISOString()),
+        supabase.from('job_applications').select('id', { count: 'exact' }).eq('org_id', orgId).gte('applied_at', startOfMonth.toISOString()),
+        supabase.from('job_applications').select('id', { count: 'exact' }).eq('org_id', orgId).eq('status', 'hired').gte('applied_at', startOfMonth.toISOString())
+      ]);
+
+      return {
+        totalJobs: jobsResult.count || 0,
+        totalCandidates: candidatesResult.count || 0,
+        totalApplications: applicationsResult.count || 0,
+        totalHires: hiresResult.count || 0,
+        jobsThisMonth: jobsMonthResult.count || 0,
+        candidatesThisMonth: candidatesMonthResult.count || 0,
+        applicationsThisMonth: applicationsMonthResult.count || 0,
+        hiresThisMonth: hiresMonthResult.count || 0
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      // Return zero stats on error rather than failing
+      return {
+        totalJobs: 0,
+        totalCandidates: 0,
+        totalApplications: 0,
+        totalHires: 0,
+        jobsThisMonth: 0,
+        candidatesThisMonth: 0,
+        applicationsThisMonth: 0,
+        hiresThisMonth: 0
+      };
+    }
   }
 
   async getPipelineCandidates(jobId: string, orgId: string): Promise<PipelineCandidate[]> {
-    // For now return empty array, should be implemented with real data later
-    console.log(`Getting pipeline candidates for job ${jobId} in org ${orgId}`);
+    // This method is deprecated - pipeline data is now handled by getJobPipeline
+    // Kept for backward compatibility but returns empty array
     return [];
   }
 

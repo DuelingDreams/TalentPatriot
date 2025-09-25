@@ -218,12 +218,9 @@ app.use("/api", (req, res, next) => {
 
 (async () => {
   // Initialize Supabase Storage setup
-  console.log('🔧 Initializing Supabase Storage...');
   const storageConnected = await testStorageConnection();
   if (storageConnected) {
     await ensureResumesBucket();
-  } else {
-    console.warn('⚠️ Supabase Storage not available. Resume uploads will not work.');
   }
 
   const server = await registerRoutes(app);
