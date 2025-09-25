@@ -1,20 +1,7 @@
 /**
- * Skills normalization utilities for consistent skill management
- */
-
-/**
- * Normalizes skills input into a clean, deduplicated, sorted array
- * 
- * Rules:
- * - Split strings on commas/newlines, trim whitespace
- * - Remove empty items
- * - Title-case words unless they're all-caps acronyms (e.g., AWS, CI/CD)
- * - Preserve proficiency levels in parentheses (e.g., "JavaScript (Advanced)")
- * - Deduplicate case-insensitively 
- * - Return sorted A→Z
- * 
- * @param input - String (comma/newline separated) or array of skills
- * @returns Clean, normalized array of skills
+ * Normalizes skill input into a clean, deduplicated, sorted array
+ * @param input - String of comma/newline separated skills or array of skill strings
+ * @returns Array of normalized skill strings
  */
 export function normalizeSkills(input: string | string[]): string[] {
   if (!input) return []
@@ -22,9 +9,9 @@ export function normalizeSkills(input: string | string[]): string[] {
   // Convert to array if string
   let skillsArray: string[]
   if (typeof input === 'string') {
-    // Split on commas, newlines, and semicolons
+    // Split on commas, newlines, semicolons, and pipes
     skillsArray = input
-      .split(/[,\n\r;]+/)
+      .split(/[,\n\r;|]+/)
       .map(skill => skill.trim())
       .filter(skill => skill.length > 0)
   } else {
@@ -33,10 +20,10 @@ export function normalizeSkills(input: string | string[]): string[] {
       .filter(skill => skill.length > 0)
   }
   
-  // Normalize each skill
+  // Normalize each skill text
   const normalizedSkills = skillsArray.map(skill => normalizeSkillText(skill))
   
-  // Deduplicate case-insensitively
+  // Deduplicate case-insensitively while preserving proper casing
   const uniqueSkills = Array.from(
     new Map(
       normalizedSkills.map(skill => [skill.toLowerCase(), skill])
@@ -48,46 +35,7 @@ export function normalizeSkills(input: string | string[]): string[] {
 }
 
 /**
- * Combines a skill name with proficiency level into a formatted string
- * @param skillName - The skill name (e.g., "JavaScript")
- * @param proficiency - The proficiency level
- * @returns Formatted skill string (e.g., "JavaScript (Advanced)")
- */
-export function combineSkillWithProficiency(skillName: string, proficiency?: string): string {
-  if (!skillName?.trim()) return ''
-  const normalizedName = normalizeSkillText(skillName)
-  if (!proficiency || proficiency === 'Intermediate') {
-    // Don't show "Intermediate" - it's the default
-    return normalizedName
-  }
-  return `${normalizedName} (${proficiency})`
-}
-
-/**
- * Parses a skill string to extract name and proficiency
- * @param skillString - Skill string (e.g., "JavaScript (Advanced)" or "Python")
- * @returns Object with name and proficiency
- */
-export function parseSkillString(skillString: string): { name: string; proficiency?: string } {
-  if (!skillString?.trim()) return { name: '' }
-  
-  const trimmed = skillString.trim()
-  const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)$/)
-  
-  if (match) {
-    const [, name, proficiency] = match
-    return {
-      name: name.trim(),
-      proficiency: proficiency.trim()
-    }
-  }
-  
-  return { name: trimmed, proficiency: 'Intermediate' }
-}
-
-/**
- * Normalizes a single skill text according to title-case rules
- * 
+ * Normalizes a single skill text with proper casing and acronym handling
  * @param skill - Raw skill text
  * @returns Normalized skill text
  */
@@ -99,29 +47,29 @@ function normalizeSkillText(skill: string): string {
   
   // Handle special cases for acronyms and technical terms
   const specialCases = [
-    'API', 'REST', 'API', 'SQL', 'HTML', 'CSS', 'XML', 'JSON', 'HTTP', 'HTTPS',
+    'API', 'REST', 'SQL', 'HTML', 'CSS', 'XML', 'JSON', 'HTTP', 'HTTPS',
     'AWS', 'GCP', 'Azure', 'CI/CD', 'DevOps', 'MLOps', 'UI/UX', 'IoT',
     'AI', 'ML', 'NLP', 'GPU', 'CPU', 'RAM', 'SSD', 'HDD',
     'iOS', 'macOS', 'Android', 'Linux', 'Windows', 'Unix',
-    'PHP', 'SQL', 'NoSQL', 'GraphQL', 'gRPC', 'TCP/IP', 'UDP',
+    'PHP', 'NoSQL', 'GraphQL', 'gRPC', 'TCP/IP', 'UDP',
     'OAuth', 'JWT', 'SAML', 'LDAP', 'RBAC',
     'DOM', 'SPA', 'PWA', 'SEO', 'CMS', 'CRM', 'ERP',
     'VR', 'AR', 'XR', 'VPN', 'CDN', 'DNS', 'SSL', 'TLS'
   ]
   
-  // Check if it's already a known acronym/special case
+  // Check if it's a known acronym/special case
   const upperTrimmed = trimmed.toUpperCase()
   const foundSpecialCase = specialCases.find(sc => sc.toUpperCase() === upperTrimmed)
   if (foundSpecialCase) {
     return foundSpecialCase
   }
   
-  // Check if the entire string is already all caps (likely an acronym)
+  // Check if entire string is all caps (likely an acronym)
   if (trimmed === trimmed.toUpperCase() && trimmed.length <= 6 && !/\s/.test(trimmed)) {
     return trimmed
   }
   
-  // Handle compound technical terms (e.g., "node.js", "vue.js", "c++", "c#")
+  // Handle compound technical terms
   const technicalPatterns = [
     { regex: /^node\.?js$/i, replacement: 'Node.js' },
     { regex: /^react\.?js$/i, replacement: 'React.js' },
@@ -159,12 +107,12 @@ function normalizeSkillText(skill: string): string {
   return trimmed
     .toLowerCase()
     .split(/\s+/)
-    .map(word => {
+    .map((word, index) => {
       if (word.length === 0) return word
       
       // Keep certain small words lowercase in the middle of phrases
       const smallWords = ['and', 'or', 'of', 'the', 'a', 'an', 'in', 'on', 'at', 'by', 'for', 'with', 'to']
-      if (smallWords.includes(word.toLowerCase()) && trimmed.split(/\s+/).indexOf(word) !== 0) {
+      if (smallWords.includes(word.toLowerCase()) && index !== 0) {
         return word.toLowerCase()
       }
       
@@ -175,7 +123,6 @@ function normalizeSkillText(skill: string): string {
 
 /**
  * Validates if a skill is acceptable for adding
- * 
  * @param skill - Skill to validate
  * @returns Object with isValid boolean and error message if invalid
  */
@@ -204,7 +151,6 @@ export function validateSkill(skill: string): { isValid: boolean; error?: string
 
 /**
  * Validates if a skills array is acceptable 
- * 
  * @param skills - Array of skills to validate
  * @param maxCount - Maximum allowed number of skills (default: 100)
  * @returns Object with isValid boolean and error message if invalid

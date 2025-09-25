@@ -1,10 +1,11 @@
 /**
  * Supabase helpers for managing candidate skills
- * Works with the existing candidates.skills text[] column
+ * Works with the existing candidates.skills text[] column and optional skill_levels jsonb column
  */
 
 import { supabase } from '@/lib/supabase'
 import { normalizeSkills, validateSkillsArray } from '@/lib/skills/normalize'
+import type { Proficiency } from '@/lib/skills/types'
 
 /**
  * Fetches skills for a specific candidate
@@ -161,7 +162,7 @@ export async function getOrgSkillSuggestions(
             .flat()
             .filter(Boolean)
 
-          allOrgSkills = [...new Set(normalizeSkills(allSkillsFlat))]
+          allOrgSkills = Array.from(new Set(normalizeSkills(allSkillsFlat)))
             .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
         }
       } catch (error) {
@@ -191,6 +192,64 @@ export async function getOrgSkillSuggestions(
   } catch (error) {
     console.error('Exception in getOrgSkillSuggestions:', error)
     return []
+  }
+}
+
+/**
+ * Gets proficiency map for a candidate (if skill_levels column exists)
+ * @param candidateId - The candidate ID
+ * @returns Proficiency map or null if column doesn't exist
+ */
+export async function getProficiencyMap(candidateId: string): Promise<Record<string, Proficiency> | null> {
+  try {
+    const { data, error } = await supabase
+      .from('candidates')
+      .select('skill_levels')
+      .eq('id', candidateId)
+      .single()
+
+    if (error) {
+      // If column doesn't exist, this will fail - return null
+      if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
+        return null
+      }
+      throw new Error(`Failed to fetch proficiency map: ${error.message}`)
+    }
+
+    return data?.skill_levels || null
+  } catch (error) {
+    // If column doesn't exist or any other error, return null to disable proficiency features
+    console.warn('Proficiency data not available:', error)
+    return null
+  }
+}
+
+/**
+ * Sets proficiency map for a candidate (if skill_levels column exists)
+ * @param candidateId - The candidate ID 
+ * @param map - Proficiency map to save
+ */
+export async function setProficiencyMap(candidateId: string, map: Record<string, Proficiency>): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('candidates')
+      .update({ 
+        skill_levels: map,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', candidateId)
+
+    if (error) {
+      // If column doesn't exist, silently ignore (proficiency feature not enabled)
+      if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
+        console.warn('skill_levels column not found - proficiency updates ignored')
+        return
+      }
+      throw new Error(`Failed to save proficiency map: ${error.message}`)
+    }
+  } catch (error) {
+    console.warn('Error setting proficiency map:', error)
+    // Don't throw - proficiency is optional
   }
 }
 
