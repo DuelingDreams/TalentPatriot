@@ -144,11 +144,30 @@ export async function getOrgSkillSuggestions(
       // Use cached data
       allOrgSkills = cached.skills
     } else {
-      // Fetch fresh data from Supabase - using a simplified approach to avoid RLS issues
-      // For now, return empty array to prevent RLS recursion errors
-      // This can be enhanced later once RLS policies are reviewed
-      console.warn('Org skills suggestions temporarily disabled due to RLS policy issues')
-      allOrgSkills = []
+      // Fetch fresh data from Supabase
+      try {
+        const { data, error } = await supabase
+          .from('candidates')
+          .select('skills')
+          .not('skills', 'is', null)
+
+        if (error) {
+          console.error('Error fetching org skills:', error)
+          allOrgSkills = []
+        } else {
+          // Extract and normalize all unique skills from all candidates
+          const allSkillsFlat = data
+            .map(candidate => candidate.skills || [])
+            .flat()
+            .filter(Boolean)
+
+          allOrgSkills = [...new Set(normalizeSkills(allSkillsFlat))]
+            .sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
+        }
+      } catch (error) {
+        console.error('Exception fetching org skills:', error)
+        allOrgSkills = []
+      }
       
       // Cache the results
       orgSkillsCache[cacheKey] = {
