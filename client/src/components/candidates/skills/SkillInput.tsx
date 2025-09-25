@@ -1,341 +1,225 @@
 /**
- * SkillInput - Advanced input component for adding skills with autocomplete and proficiency
+ * SkillInput - Input component for adding new skills with autocomplete and proficiency selection
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
+import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent } from '@/components/ui/card'
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Plus, Loader2, ChevronDown, Check } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from '@/lib/utils'
-import { getDebouncedOrgSkillSuggestions } from '@/lib/supabase/candidatesSkills'
-import { normalizeSkills, combineSkillWithProficiency } from '@/lib/skills/normalize'
-import type { SkillProficiency } from './SkillChip'
+import { normalizeSkills } from '@/lib/skills/normalize'
+import { getOrgSkillSuggestions } from '@/lib/supabase/candidatesSkills'
+import type { Proficiency, SkillsConfig } from '@/lib/skills/types'
 
 interface SkillInputProps {
   orgId: string
-  onAdd: (skills: string[], proficiency?: SkillProficiency) => void
+  config: SkillsConfig
+  onAddSkills: (skills: string[], proficiency?: Proficiency) => Promise<void>
   className?: string
   placeholder?: string
   disabled?: boolean
 }
 
-interface SkillWithProficiency {
-  name: string
-  proficiency?: SkillProficiency
-}
-
-export function SkillInput({ 
-  orgId, 
-  onAdd, 
+/**
+ * Input component for adding new skills with autocomplete and proficiency selection
+ */
+export function SkillInput({
+  orgId,
+  config,
+  onAddSkills,
   className,
-  placeholder = "Type a skill...",
+  placeholder = "Add skills (e.g., React, Python, Project Management)",
   disabled = false
 }: SkillInputProps) {
-  // State management
-  const [inputValue, setInputValue] = useState('')
-  const [suggestions, setSuggestions] = useState<string[]>([])
-  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false)
-  const [selectedProficiency, setSelectedProficiency] = useState<SkillProficiency>('Intermediate')
-  const [bulkText, setBulkText] = useState('')
-  const [isAddingBulk, setIsAddingBulk] = useState(false)
-  
-  // Refs for focus management
+  const [input, setInput] = useState('')
+  const [proficiency, setProficiency] = useState<Proficiency | ''>('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Debounced suggestions loading
-  const loadSuggestions = useCallback(async (query: string) => {
-    if (!orgId || query.length < 1) {
-      setSuggestions([])
-      return
-    }
+  // Fetch skill suggestions for autocomplete
+  const { data: suggestions = [] } = useQuery({
+    queryKey: ['org-skill-suggestions', orgId],
+    queryFn: () => getOrgSkillSuggestions(orgId),
+    enabled: !!orgId,
+    staleTime: 5 * 60 * 1000 // 5 minutes
+  })
+
+  // Filter suggestions based on current input
+  const filteredSuggestions = suggestions
+    .filter(skill => 
+      skill.toLowerCase().includes(input.toLowerCase().trim()) && 
+      input.trim().length > 0
+    )
+    .slice(0, 8) // Limit to 8 suggestions
+
+  // Handle form submission
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    e?.preventDefault()
     
-    setIsLoadingSuggestions(true)
+    if (!input.trim() || isSubmitting) return
+
     try {
-      const results = await getDebouncedOrgSkillSuggestions(orgId, query, 15)
-      setSuggestions(results)
-    } catch (error) {
-      console.error('Error loading skill suggestions:', error)
-      setSuggestions([])
-    } finally {
-      setIsLoadingSuggestions(false)
-    }
-  }, [orgId])
-
-  // Effect for loading suggestions when input changes
-  useEffect(() => {
-    loadSuggestions(inputValue)
-  }, [inputValue, loadSuggestions])
-
-  // Add single skill
-  const handleAddSingle = useCallback(() => {
-    if (!inputValue.trim()) return
-    
-    // Combine skill with proficiency before normalizing
-    const skillWithProficiency = combineSkillWithProficiency(inputValue.trim(), selectedProficiency)
-    const normalizedSkills = normalizeSkills([skillWithProficiency])
-    
-    if (normalizedSkills.length > 0) {
-      onAdd(normalizedSkills) // Remove proficiency param since it's now encoded in the string
-      setInputValue('')
-      setIsPopoverOpen(false)
+      setIsSubmitting(true)
       
-      // Focus back to input for better UX
-      setTimeout(() => inputRef.current?.focus(), 100)
-    }
-  }, [inputValue, selectedProficiency, onAdd])
+      // Parse and normalize skills (supports comma-separated)
+      const skillsToAdd = normalizeSkills(input.trim())
+      
+      if (skillsToAdd.length === 0) return
 
-  // Add bulk skills
-  const handleAddBulk = useCallback(() => {
-    if (!bulkText.trim()) return
-    
-    setIsAddingBulk(true)
-    try {
-      // Parse skills and add proficiency to each
-      const rawSkills = normalizeSkills(bulkText)
-      const skillsWithProficiency = rawSkills.map(skill => 
-        combineSkillWithProficiency(skill, selectedProficiency)
+      // Add skills with optional proficiency
+      await onAddSkills(
+        skillsToAdd, 
+        config.enableProficiencyUI && proficiency ? proficiency as Proficiency : undefined
       )
-      
-      if (skillsWithProficiency.length > 0) {
-        onAdd(skillsWithProficiency) // Remove proficiency param since it's encoded
-        setBulkText('')
-        
-        // Focus back to input
-        setTimeout(() => inputRef.current?.focus(), 100)
+
+      // Clear form
+      setInput('')
+      if (config.enableProficiencyUI) {
+        setProficiency('')
       }
+      setShowSuggestions(false)
+      
+      // Focus back to input
+      inputRef.current?.focus()
     } catch (error) {
-      console.error('Error adding bulk skills:', error)
+      console.error('Error adding skills:', error)
     } finally {
-      setIsAddingBulk(false)
+      setIsSubmitting(false)
     }
-  }, [bulkText, selectedProficiency, onAdd])
+  }, [input, proficiency, config.enableProficiencyUI, onAddSkills, isSubmitting])
 
-  // Handle key events
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleAddSingle()
-    } else if (e.key === 'Escape') {
-      setIsPopoverOpen(false)
-      inputRef.current?.blur()
+  // Handle suggestion click
+  const handleSuggestionClick = useCallback((suggestion: string) => {
+    setInput(suggestion)
+    setShowSuggestions(false)
+    inputRef.current?.focus()
+  }, [])
+
+  // Handle input change
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setInput(value)
+    setShowSuggestions(value.trim().length > 0 && filteredSuggestions.length > 0)
+  }, [filteredSuggestions.length])
+
+  // Handle input focus
+  const handleInputFocus = useCallback(() => {
+    if (input.trim().length > 0 && filteredSuggestions.length > 0) {
+      setShowSuggestions(true)
     }
-  }, [handleAddSingle])
+  }, [input, filteredSuggestions.length])
 
-  // Handle suggestion selection
-  const handleSuggestionSelect = useCallback((suggestion: string) => {
-    setInputValue(suggestion)
-    setIsPopoverOpen(false)
-    // Auto-add the suggestion
-    setTimeout(() => handleAddSingle(), 50)
-  }, [handleAddSingle])
-
-  // Filter suggestions that don't match current input
-  const filteredSuggestions = suggestions.filter(suggestion =>
-    suggestion.toLowerCase().includes(inputValue.toLowerCase())
-  )
-
-  // Check if current input would create a new skill
-  const isNewSkill = inputValue.trim() && !filteredSuggestions.some(
-    s => s.toLowerCase() === inputValue.toLowerCase()
-  )
+  // Handle input blur (with delay to allow suggestion clicks)
+  const handleInputBlur = useCallback(() => {
+    setTimeout(() => setShowSuggestions(false), 150)
+  }, [])
 
   return (
-    <div className={cn("space-y-4", className)} data-testid="skill-input-container">
-      {/* Single Skill Input with Autocomplete */}
-      <div className="space-y-2">
-        <Label htmlFor="skill-input" className="text-sm font-medium">
-          Add Skill
-        </Label>
-        
+    <div className={cn('space-y-3', className)}>
+      {/* Main input form */}
+      <form onSubmit={handleSubmit} className="space-y-3">
         <div className="flex gap-2">
-          <div className="flex-1 relative">
-            {/* Direct input without Popover wrapper */}
+          <div className="relative flex-1">
             <Input
               ref={inputRef}
-              id="skill-input"
-              value={inputValue}
-              onChange={(e) => {
-                setInputValue(e.target.value)
-                setIsPopoverOpen(true)
-              }}
-              onKeyDown={handleKeyDown}
-              onFocus={() => setIsPopoverOpen(true)}
-              onBlur={() => {
-                // Delay closing to allow suggestion selection
-                setTimeout(() => setIsPopoverOpen(false), 200)
-              }}
+              type="text"
+              value={input}
+              onChange={handleInputChange}
+              onFocus={handleInputFocus}
+              onBlur={handleInputBlur}
               placeholder={placeholder}
-              disabled={disabled}
-              className="pr-8"
-              data-testid="skill-input-field"
-              aria-label="Skill name input"
-              aria-expanded={isPopoverOpen}
-              aria-haspopup="listbox"
-              role="combobox"
+              disabled={disabled || isSubmitting}
+              className="pr-10"
+              data-testid="input-add-skill"
             />
-            {isLoadingSuggestions && (
-              <Loader2 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-            )}
             
             {/* Suggestions dropdown */}
-            {isPopoverOpen && (inputValue.length > 0 || filteredSuggestions.length > 0) && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-border rounded-md shadow-lg">
-                <Command>
-                  <CommandList className="max-h-48">
-                    {isLoadingSuggestions ? (
-                      <div className="p-2 text-sm text-muted-foreground flex items-center gap-2">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Loading suggestions...
-                      </div>
-                    ) : (
-                      <>
-                        {isNewSkill && (
-                          <CommandGroup>
-                            <CommandItem
-                              onSelect={() => handleSuggestionSelect(inputValue)}
-                              className="cursor-pointer"
-                              data-testid="create-new-skill-option"
-                            >
-                              <Plus className="h-4 w-4 mr-2" />
-                              Create "{inputValue}"
-                            </CommandItem>
-                          </CommandGroup>
-                        )}
-                        
-                        {filteredSuggestions.length > 0 && (
-                          <CommandGroup heading="Suggestions from your organization">
-                            {filteredSuggestions.map((suggestion, index) => (
-                              <CommandItem
-                                key={suggestion}
-                                onSelect={() => handleSuggestionSelect(suggestion)}
-                                className="cursor-pointer"
-                                data-testid={`suggestion-${index}`}
-                              >
-                                <Check className="h-4 w-4 mr-2 opacity-0" />
-                                {suggestion}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        )}
-                        
-                        {!isNewSkill && filteredSuggestions.length === 0 && inputValue.length > 0 && (
-                          <CommandEmpty>No skills found.</CommandEmpty>
-                        )}
-                      </>
-                    )}
-                  </CommandList>
-                </Command>
+            {showSuggestions && filteredSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                {filteredSuggestions.map((suggestion, index) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    data-testid={`suggestion-${suggestion.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
               </div>
             )}
           </div>
-          
-          {/* Proficiency Selector */}
-          <Select value={selectedProficiency} onValueChange={(value) => setSelectedProficiency(value as SkillProficiency)}>
-            <SelectTrigger className="w-32" data-testid="proficiency-select">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Beginner">Beginner</SelectItem>
-              <SelectItem value="Intermediate">Intermediate</SelectItem>
-              <SelectItem value="Advanced">Advanced</SelectItem>
-              <SelectItem value="Expert">Expert</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {/* Add Button */}
-          <Button 
-            onClick={handleAddSingle}
-            disabled={!inputValue.trim() || disabled}
-            size="default"
-            data-testid="add-skill-button"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add
-          </Button>
-        </div>
-        
-        <p className="text-xs text-muted-foreground">
-          Org-wide suggestions are learned from existing candidate profiles. Press Enter to add.
-        </p>
-      </div>
 
-      <Separator />
-
-      {/* Bulk Add Section */}
-      <div className="space-y-2">
-        <Label htmlFor="bulk-skills" className="text-sm font-medium">
-          Add Multiple Skills
-        </Label>
-        
-        <Textarea
-          ref={textareaRef}
-          id="bulk-skills"
-          value={bulkText}
-          onChange={(e) => setBulkText(e.target.value)}
-          placeholder="Enter skills separated by commas, newlines, or semicolons&#10;Example: JavaScript, React, Node.js, TypeScript"
-          disabled={disabled}
-          rows={3}
-          className="resize-none"
-          data-testid="bulk-skills-textarea"
-          aria-label="Bulk skills input"
-        />
-        
-        <div className="flex justify-between items-center">
-          <p className="text-xs text-muted-foreground">
-            Add multiple skills at once. They'll be normalized and deduplicated automatically.
-          </p>
-          
-          <Button 
-            onClick={handleAddBulk}
-            disabled={!bulkText.trim() || disabled || isAddingBulk}
-            variant="outline"
-            size="sm"
-            data-testid="add-bulk-skills-button"
-          >
-            {isAddingBulk ? (
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-            ) : (
-              <Plus className="h-4 w-4 mr-1" />
-            )}
-            Add All
-          </Button>
-        </div>
-      </div>
-      
-      {/* Preview of what would be added */}
-      {bulkText.trim() && (
-        <Card className="bg-muted/30">
-          <CardContent className="p-3">
-            <Label className="text-xs font-medium text-muted-foreground">
-              Preview ({normalizeSkills(bulkText).length} skills):
-            </Label>
-            <div className="flex flex-wrap gap-1 mt-2">
-              {normalizeSkills(bulkText).slice(0, 10).map((skill, index) => (
-                <Badge key={index} variant="secondary" className="text-xs">
-                  {skill}
-                </Badge>
-              ))}
-              {normalizeSkills(bulkText).length > 10 && (
-                <Badge variant="outline" className="text-xs">
-                  +{normalizeSkills(bulkText).length - 10} more
-                </Badge>
-              )}
+          {/* Proficiency selector (if enabled) */}
+          {config.enableProficiencyUI && (
+            <div className="w-36">
+              <Select value={proficiency} onValueChange={setProficiency} disabled={disabled || isSubmitting}>
+                <SelectTrigger data-testid="select-proficiency-level">
+                  <SelectValue placeholder="Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Expert">Expert</SelectItem>
+                  <SelectItem value="Advanced">Advanced</SelectItem>
+                  <SelectItem value="Intermediate">Intermediate</SelectItem>
+                  <SelectItem value="Beginner">Beginner</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
+          )}
+
+          {/* Add button */}
+          <Button
+            type="submit"
+            disabled={!input.trim() || isSubmitting}
+            size="default"
+            data-testid="button-add-skills"
+          >
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Plus className="h-4 w-4" />
+            )}
+            <span className="sr-only">Add skills</span>
+          </Button>
+        </div>
+
+        {/* Help text */}
+        <p className="text-xs text-gray-500">
+          Tip: You can add multiple skills separated by commas (e.g., "React, TypeScript, Node.js")
+        </p>
+      </form>
+
+      {/* Quick add suggestions (popular skills) */}
+      {suggestions.length > 0 && input.trim().length === 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-gray-600">Popular skills in your organization:</p>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.slice(0, 6).map((skill) => (
+              <Badge
+                key={skill}
+                variant="outline"
+                className="cursor-pointer hover:bg-gray-50 text-xs"
+                onClick={() => handleSuggestionClick(skill)}
+                data-testid={`quick-add-${skill.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                {skill}
+              </Badge>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   )
 }
-
-export default SkillInput
