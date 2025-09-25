@@ -2802,7 +2802,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       // Handle legacy candidates with undefined orgId - simple fix  
       if (!candidate.orgId) {
         candidate.orgId = orgId; // Set to request orgId for legacy data
-        console.log(`[PROFICIENCY-GET] Set legacy candidate ${candidateId} orgId to: ${orgId}`);
       }
       
       // Ensure user can only access candidates from their organization
@@ -2858,7 +2857,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       // Handle legacy candidates with undefined orgId - simple fix
       if (!candidate.orgId) {
         candidate.orgId = orgId; // Set to request orgId for legacy data
-        console.log(`[PROFICIENCY-PUT] Set legacy candidate ${candidateId} orgId to: ${orgId}`);
       }
       
       // Ensure user can only access candidates from their organization
