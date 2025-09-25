@@ -2812,11 +2812,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         .single();
 
       if (error) {
-        // If column doesn't exist, this will fail - return null to disable feature
+        // If column doesn't exist or other database issues - return empty object to enable proficiency
+        console.warn('Proficiency query error:', error.code, error.message);
         if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
-          return res.json(null);
+          return res.json({});
         }
-        throw new Error(`Failed to fetch proficiency data: ${error.message}`);
+        // For other errors, still return empty object to enable proficiency
+        return res.json({});
       }
 
       // If column exists but is null/empty, return empty object to enable proficiency UI
