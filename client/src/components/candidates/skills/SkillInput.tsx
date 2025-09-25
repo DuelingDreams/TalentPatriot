@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Plus, Loader2, ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getDebouncedOrgSkillSuggestions } from '@/lib/supabase/candidatesSkills'
-import { normalizeSkills } from '@/lib/skills/normalize'
+import { normalizeSkills, combineSkillWithProficiency } from '@/lib/skills/normalize'
 import type { SkillProficiency } from './SkillChip'
 
 interface SkillInputProps {
@@ -80,9 +80,12 @@ export function SkillInput({
   const handleAddSingle = useCallback(() => {
     if (!inputValue.trim()) return
     
-    const normalizedSkills = normalizeSkills([inputValue.trim()])
+    // Combine skill with proficiency before normalizing
+    const skillWithProficiency = combineSkillWithProficiency(inputValue.trim(), selectedProficiency)
+    const normalizedSkills = normalizeSkills([skillWithProficiency])
+    
     if (normalizedSkills.length > 0) {
-      onAdd(normalizedSkills, selectedProficiency)
+      onAdd(normalizedSkills) // Remove proficiency param since it's now encoded in the string
       setInputValue('')
       setIsPopoverOpen(false)
       
@@ -97,9 +100,14 @@ export function SkillInput({
     
     setIsAddingBulk(true)
     try {
-      const normalizedSkills = normalizeSkills(bulkText)
-      if (normalizedSkills.length > 0) {
-        onAdd(normalizedSkills, selectedProficiency)
+      // Parse skills and add proficiency to each
+      const rawSkills = normalizeSkills(bulkText)
+      const skillsWithProficiency = rawSkills.map(skill => 
+        combineSkillWithProficiency(skill, selectedProficiency)
+      )
+      
+      if (skillsWithProficiency.length > 0) {
+        onAdd(skillsWithProficiency) // Remove proficiency param since it's encoded
         setBulkText('')
         
         // Focus back to input

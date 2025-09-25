@@ -36,6 +36,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCandidateSkills, useBulkSkillsOperations } from '@/hooks/useCandidateSkills'
 import { SkillChip, SkillChipList } from './SkillChip'
 import { SkillInput } from './SkillInput'
+import { parseSkillString } from '@/lib/skills/normalize'
 import type { SkillProficiency } from './SkillChip'
 
 interface SkillsTabProps {
@@ -233,7 +234,13 @@ export function SkillsTab({ candidateId, orgId, className }: SkillsTabProps) {
           ) : (
             <ScrollArea className="max-h-[300px]">
               <SkillChipList
-                skills={skills.map(skill => ({ name: skill }))}
+                skills={skills.map(skill => {
+                  const parsed = parseSkillString(skill)
+                  return {
+                    name: parsed.name,
+                    proficiency: parsed.proficiency as SkillProficiency
+                  }
+                })}
                 onRemoveSkill={handleRemoveSkill}
                 className="p-1"
                 data-testid="current-skills-list"

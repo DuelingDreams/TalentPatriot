@@ -9,6 +9,7 @@
  * - Split strings on commas/newlines, trim whitespace
  * - Remove empty items
  * - Title-case words unless they're all-caps acronyms (e.g., AWS, CI/CD)
+ * - Preserve proficiency levels in parentheses (e.g., "JavaScript (Advanced)")
  * - Deduplicate case-insensitively 
  * - Return sorted A→Z
  * 
@@ -44,6 +45,44 @@ export function normalizeSkills(input: string | string[]): string[] {
   
   // Sort A→Z
   return uniqueSkills.sort((a, b) => a.localeCompare(b, 'en', { sensitivity: 'base' }))
+}
+
+/**
+ * Combines a skill name with proficiency level into a formatted string
+ * @param skillName - The skill name (e.g., "JavaScript")
+ * @param proficiency - The proficiency level
+ * @returns Formatted skill string (e.g., "JavaScript (Advanced)")
+ */
+export function combineSkillWithProficiency(skillName: string, proficiency?: string): string {
+  if (!skillName?.trim()) return ''
+  const normalizedName = normalizeSkillText(skillName)
+  if (!proficiency || proficiency === 'Intermediate') {
+    // Don't show "Intermediate" - it's the default
+    return normalizedName
+  }
+  return `${normalizedName} (${proficiency})`
+}
+
+/**
+ * Parses a skill string to extract name and proficiency
+ * @param skillString - Skill string (e.g., "JavaScript (Advanced)" or "Python")
+ * @returns Object with name and proficiency
+ */
+export function parseSkillString(skillString: string): { name: string; proficiency?: string } {
+  if (!skillString?.trim()) return { name: '' }
+  
+  const trimmed = skillString.trim()
+  const match = trimmed.match(/^(.+?)\s*\(([^)]+)\)$/)
+  
+  if (match) {
+    const [, name, proficiency] = match
+    return {
+      name: name.trim(),
+      proficiency: proficiency.trim()
+    }
+  }
+  
+  return { name: trimmed, proficiency: 'Intermediate' }
 }
 
 /**
