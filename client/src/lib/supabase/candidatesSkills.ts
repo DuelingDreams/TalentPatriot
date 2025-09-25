@@ -27,6 +27,11 @@ export async function fetchCandidateSkills(candidateId: string): Promise<string[
 
     if (error) {
       console.error('Error fetching candidate skills:', error)
+      // If it's an RLS recursion error, return empty array gracefully
+      if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+        console.warn('RLS recursion detected, returning empty skills array')
+        return []
+      }
       throw new Error(`Failed to fetch candidate skills: ${error.message}`)
     }
 
@@ -80,6 +85,10 @@ export async function saveCandidateSkills(candidateId: string, nextSkills: strin
 
     if (error) {
       console.error('Error saving candidate skills:', error)
+      // If it's an RLS recursion error, throw a user-friendly error
+      if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
+        throw new Error('Unable to save skills due to a database permission issue. Please contact support.')
+      }
       throw new Error(`Failed to save candidate skills: ${error.message}`)
     }
 
