@@ -500,7 +500,7 @@ SELECT
 
 -- Success message and next steps
 SELECT 
-    '🎉 SUCCESS: Analytics infrastructure is now ready!' as message,
+    'SUCCESS: Analytics infrastructure is now ready!' as message,
     'Run this command periodically to refresh analytics data:' as next_step_1,
     'SELECT refresh_analytics_views();' as refresh_command,
     'Your Reports page will now show comprehensive analytics!' as next_step_2;
