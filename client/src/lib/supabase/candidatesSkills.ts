@@ -6,6 +6,7 @@
 import { supabase } from '@/lib/supabase'
 import { normalizeSkills, validateSkillsArray } from '@/lib/skills/normalize'
 import type { Proficiency } from '@/lib/skills/types'
+import { apiRequest } from '@/lib/queryClient'
 
 /**
  * Fetches skills for a specific candidate
@@ -202,21 +203,7 @@ export async function getOrgSkillSuggestions(
  */
 export async function getProficiencyMap(candidateId: string): Promise<Record<string, Proficiency> | null> {
   try {
-    const response = await fetch(`/api/candidates/${candidateId}/proficiency`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null // Candidate not found or no access
-      }
-      throw new Error(`Failed to fetch proficiency data: ${response.statusText}`)
-    }
-
-    const data = await response.json()
+    const data = await apiRequest<Record<string, Proficiency> | null>(`/api/candidates/${candidateId}/proficiency`)
     return data
   } catch (error) {
     // If there's any error, return null to disable proficiency features
@@ -232,23 +219,10 @@ export async function getProficiencyMap(candidateId: string): Promise<Record<str
  */
 export async function setProficiencyMap(candidateId: string, map: Record<string, Proficiency>): Promise<void> {
   try {
-    const response = await fetch(`/api/candidates/${candidateId}/proficiency`, {
+    const result = await apiRequest<{ success: boolean; message?: string }>(`/api/candidates/${candidateId}/proficiency`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(map),
+      body: JSON.stringify(map)
     })
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        console.warn('Candidate not found or no access')
-        return
-      }
-      throw new Error(`Failed to save proficiency data: ${response.statusText}`)
-    }
-
-    const result = await response.json()
     if (!result.success) {
       console.warn('Proficiency update result:', result.message)
     }
