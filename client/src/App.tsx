@@ -66,29 +66,6 @@ const ResumeParsingDemo = lazy(() => import("@/features/public/pages/ResumeParsi
 const EmailSettingsAdmin = lazy(() => import("@/features/admin/pages/EmailSettingsAdmin"));
 const DataImport = lazy(() => import("@/features/admin/pages/DataImport"));
 
-function AppPrefetch() {
-  useEffect(() => {
-    // Prefetch high-traffic pages to reduce chunk fetch failures
-    // Add retry logic for SSL certificate issues
-    // Prefetch critical pages for performance, but don't break on failures
-    const prefetchPage = async (moduleFactory: () => Promise<any>) => {
-      try {
-        await moduleFactory();
-      } catch (error) {
-        // Silently ignore prefetch failures to avoid console spam
-        // These are performance optimizations, not critical for functionality
-      }
-    };
-
-    // Use proper imports instead of string paths
-    prefetchPage(() => import("@/features/analytics/pages/Dashboard"));
-    prefetchPage(() => import("@/features/jobs/pages/Jobs"));
-    prefetchPage(() => import("@/features/candidates/pages/Candidates"));
-    prefetchPage(() => import("@/features/organization/pages/Clients"));
-    prefetchPage(() => import("@/features/analytics/pages/Reports"));
-  }, []);
-  return null;
-}
 
 // Global error handler for SSL and network issues
 function GlobalErrorHandlerSetup() {
@@ -342,7 +319,6 @@ function App() {
             <Toaster />
             <ToastProvider />
             <AppShell>
-              <AppPrefetch />
               <Router />
               <DemoToggleFooter />
             </AppShell>
