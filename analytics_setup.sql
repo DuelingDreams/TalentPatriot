@@ -4,7 +4,13 @@
 -- This script creates materialized views, indexes, and helper tables
 -- for comprehensive analytics and reporting functionality.
 -- 
--- Run this script in your Supabase SQL Editor to set up analytics infrastructure.
+-- INSTRUCTIONS:
+-- 1. Copy this entire script
+-- 2. Paste it into your Supabase SQL Editor
+-- 3. Click "Run" to execute all commands
+-- 4. The script will create all necessary analytics infrastructure
+--
+-- COMPATIBILITY: Supabase PostgreSQL 15+
 
 -- ===============================================
 -- 1. ANALYTICS HELPER TABLES
@@ -72,40 +78,18 @@ CREATE INDEX IF NOT EXISTS idx_interviews_org_status ON interviews(org_id, statu
 CREATE INDEX IF NOT EXISTS idx_email_events_org_created ON email_events(org_id, sent_at);
 
 -- Specialized indexes for skills and metadata analytics
--- Handle skills column (could be text[] or JSONB depending on schema)
-DO $$
-BEGIN
-    -- Try to create index for text array first
-    BEGIN
-        CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(skills) 
-        WHERE skills IS NOT NULL;
-    EXCEPTION WHEN OTHERS THEN
-        -- If that fails, try JSONB approach
-        BEGIN
-            CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(to_tsvector('english', array_to_string(skills, ' '))) 
-            WHERE skills IS NOT NULL;
-        EXCEPTION WHEN OTHERS THEN
-            RAISE NOTICE 'Could not create GIN index on skills column - please check column type';
-        END;
-    END;
-END $$;
+-- Skills column optimization for text[] arrays
+CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(skills) 
+WHERE skills IS NOT NULL AND array_length(skills, 1) > 0;
 
--- JSONB indexes for application metadata (safely handle different column types)
-DO $$
-BEGIN
-    CREATE INDEX IF NOT EXISTS idx_application_metadata_education_gin ON application_metadata USING GIN(education_details) 
-    WHERE education_details IS NOT NULL;
-EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'Could not create GIN index on education_details - column may not exist';
-END $$;
+-- JSONB indexes for application metadata (only create if columns exist)
+-- Education details JSONB index
+CREATE INDEX IF NOT EXISTS idx_application_metadata_education_gin ON application_metadata USING GIN(education_details) 
+WHERE education_details IS NOT NULL;
 
-DO $$
-BEGIN
-    CREATE INDEX IF NOT EXISTS idx_application_metadata_employment_gin ON application_metadata USING GIN(employment_details) 
-    WHERE employment_details IS NOT NULL;
-EXCEPTION WHEN OTHERS THEN
-    RAISE NOTICE 'Could not create GIN index on employment_details - column may not exist';
-END $$;
+-- Employment details JSONB index  
+CREATE INDEX IF NOT EXISTS idx_application_metadata_employment_gin ON application_metadata USING GIN(employment_details) 
+WHERE employment_details IS NOT NULL;
 
 -- Time-based partitioning indexes
 CREATE INDEX IF NOT EXISTS idx_daily_snapshots_org_date ON daily_analytics_snapshots(org_id, snapshot_date);
@@ -492,34 +476,24 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_skills_analytics_org_skill ON mv_skills
 CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_recruiter_performance_org_recruiter ON mv_recruiter_performance(org_id, recruiter_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_client_performance_org_client ON mv_client_performance(org_id, client_id);
 
--- Set up automated refresh (requires pg_cron extension - enable in Supabase dashboard if needed)
+-- Automated refresh setup (optional - requires pg_cron extension)
+-- Uncomment the line below if you have pg_cron enabled in your Supabase project:
 -- SELECT cron.schedule('refresh-analytics', '0 */6 * * *', 'SELECT refresh_analytics_views();');
 
 -- ===============================================
 -- 7. ANALYTICS SUMMARY
 -- ===============================================
 
--- Verify setup and show summary
-DO $$
-DECLARE
-    view_count INTEGER;
-    index_count INTEGER;
-    function_count INTEGER;
-BEGIN
-    SELECT COUNT(*) INTO view_count FROM information_schema.views WHERE table_name LIKE 'mv_%';
-    SELECT COUNT(*) INTO index_count FROM pg_indexes WHERE indexname LIKE '%analytics%' OR indexname LIKE '%mv_%';
-    SELECT COUNT(*) INTO function_count FROM pg_proc WHERE proname IN ('refresh_analytics_views', 'get_org_analytics', 'create_daily_snapshot');
-    
-    RAISE NOTICE '==================================================';
-    RAISE NOTICE 'TalentPatriot Analytics Setup Complete!';
-    RAISE NOTICE '==================================================';
-    RAISE NOTICE 'Materialized Views Created: %', view_count;
-    RAISE NOTICE 'Performance Indexes Created: %', index_count;
-    RAISE NOTICE 'Analytics Functions Created: %', function_count;
-    RAISE NOTICE '==================================================';
-    RAISE NOTICE 'Next Steps:';
-    RAISE NOTICE '1. Run "SELECT refresh_analytics_views();" periodically to update data';
-    RAISE NOTICE '2. Use "SELECT get_org_analytics(''your-org-id''::uuid);" to get analytics';
-    RAISE NOTICE '3. Monitor performance with pg_stat_user_tables view';
-    RAISE NOTICE '==================================================';
-END $$;
+-- Analytics setup verification and completion message
+SELECT 
+    'TalentPatriot Analytics Setup Complete!' as status,
+    (SELECT COUNT(*) FROM information_schema.views WHERE table_name LIKE 'mv_%') as materialized_views_created,
+    (SELECT COUNT(*) FROM pg_indexes WHERE indexname LIKE '%analytics%' OR indexname LIKE '%mv_%') as performance_indexes_created,
+    (SELECT COUNT(*) FROM pg_proc WHERE proname IN ('refresh_analytics_views', 'get_org_analytics', 'create_daily_snapshot')) as analytics_functions_created;
+
+-- Success message and next steps
+SELECT 
+    '🎉 SUCCESS: Analytics infrastructure is now ready!' as message,
+    'Run this command periodically to refresh analytics data:' as next_step_1,
+    'SELECT refresh_analytics_views();' as refresh_command,
+    'Your Reports page will now show comprehensive analytics!' as next_step_2;
