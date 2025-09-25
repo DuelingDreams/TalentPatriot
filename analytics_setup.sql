@@ -89,13 +89,12 @@ CREATE INDEX IF NOT EXISTS idx_email_events_org_created ON email_events(org_id, 
 CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(skills) 
 WHERE skills IS NOT NULL AND array_length(skills, 1) > 0;
 
--- JSONB indexes for application metadata (only create if columns exist)
--- Education details JSONB index
-CREATE INDEX IF NOT EXISTS idx_application_metadata_education_gin ON application_metadata USING GIN(education_details) 
+-- Additional indexes for application metadata (skipping GIN on potentially text columns)
+-- Use standard B-tree indexes for text columns instead of GIN
+CREATE INDEX IF NOT EXISTS idx_application_metadata_education ON application_metadata(education_details) 
 WHERE education_details IS NOT NULL;
 
--- Employment details JSONB index  
-CREATE INDEX IF NOT EXISTS idx_application_metadata_employment_gin ON application_metadata USING GIN(employment_details) 
+CREATE INDEX IF NOT EXISTS idx_application_metadata_employment ON application_metadata(employment_details) 
 WHERE employment_details IS NOT NULL;
 
 -- Time-based partitioning indexes
@@ -443,10 +442,22 @@ END;
 $$;
 
 -- ===============================================
--- 5. INITIAL DATA POPULATION
+-- 5. MATERIALIZED VIEW INDEXES (Required for concurrent refresh)
 -- ===============================================
 
--- Refresh all materialized views with existing data
+-- Create unique indexes on materialized views for better performance and concurrent refresh
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_pipeline_metrics_org_month ON mv_pipeline_metrics(org_id, period_month);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_candidate_sources_org_source ON mv_candidate_sources(org_id, source);
+CREATE INDEX IF NOT EXISTS idx_mv_time_to_hire_org_month ON mv_time_to_hire(org_id, hire_month);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_skills_analytics_org_skill ON mv_skills_analytics(org_id, skill_name);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_recruiter_performance_org_recruiter ON mv_recruiter_performance(org_id, recruiter_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_client_performance_org_client ON mv_client_performance(org_id, client_id);
+
+-- ===============================================
+-- 6. INITIAL DATA POPULATION
+-- ===============================================
+
+-- Refresh all materialized views with existing data (now that indexes exist)
 SELECT refresh_analytics_views();
 
 -- Create daily snapshots for active organizations
@@ -472,23 +483,15 @@ LEFT JOIN (
 ON CONFLICT (org_id, snapshot_date) DO NOTHING;
 
 -- ===============================================
--- 6. MAINTENANCE & CLEANUP
+-- 7. MAINTENANCE & CLEANUP
 -- ===============================================
-
--- Create indexes on materialized views for better performance
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_pipeline_metrics_org_month ON mv_pipeline_metrics(org_id, period_month);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_candidate_sources_org_source ON mv_candidate_sources(org_id, source);
-CREATE INDEX IF NOT EXISTS idx_mv_time_to_hire_org_month ON mv_time_to_hire(org_id, hire_month);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_skills_analytics_org_skill ON mv_skills_analytics(org_id, skill_name);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_recruiter_performance_org_recruiter ON mv_recruiter_performance(org_id, recruiter_id);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_client_performance_org_client ON mv_client_performance(org_id, client_id);
 
 -- Automated refresh setup (optional - requires pg_cron extension)
 -- Uncomment the line below if you have pg_cron enabled in your Supabase project:
 -- SELECT cron.schedule('refresh-analytics', '0 */6 * * *', 'SELECT refresh_analytics_views();');
 
 -- ===============================================
--- 7. ANALYTICS SUMMARY
+-- 8. ANALYTICS SUMMARY
 -- ===============================================
 
 -- Analytics setup verification and completion message
