@@ -1,6 +1,12 @@
 export type Proficiency = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert' | 'Unspecified'
 
-export const PROFICIENCY_ORDER: Proficiency[] = ['Expert', 'Advanced', 'Intermediate', 'Beginner', 'Unspecified']
+export const PROFICIENCY_ORDER: Record<Proficiency, number> = {
+  Expert: 4,
+  Advanced: 3,
+  Intermediate: 2,
+  Beginner: 1,
+  Unspecified: 0
+}
 
 export const PROFICIENCY_COLORS: Record<Proficiency, string> = {
   Expert: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
