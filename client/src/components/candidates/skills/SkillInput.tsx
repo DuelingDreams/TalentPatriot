@@ -150,42 +150,40 @@ export function SkillInput({
         </Label>
         
         <div className="flex gap-2">
-          <div className="flex-1">
-            <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-              <PopoverTrigger asChild>
-                <div className="relative">
-                  <Input
-                    ref={inputRef}
-                    id="skill-input"
-                    value={inputValue}
-                    onChange={(e) => {
-                      setInputValue(e.target.value)
-                      setIsPopoverOpen(true)
-                    }}
-                    onKeyDown={handleKeyDown}
-                    onFocus={() => setIsPopoverOpen(true)}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    className="pr-8"
-                    data-testid="skill-input-field"
-                    aria-label="Skill name input"
-                    aria-expanded={isPopoverOpen}
-                    aria-haspopup="listbox"
-                    role="combobox"
-                  />
-                  {isLoadingSuggestions && (
-                    <Loader2 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                </div>
-              </PopoverTrigger>
-              
-              <PopoverContent 
-                className="w-[var(--radix-popover-trigger-width)] p-0" 
-                align="start"
-                side="bottom"
-              >
+          <div className="flex-1 relative">
+            {/* Direct input without Popover wrapper */}
+            <Input
+              ref={inputRef}
+              id="skill-input"
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value)
+                setIsPopoverOpen(true)
+              }}
+              onKeyDown={handleKeyDown}
+              onFocus={() => setIsPopoverOpen(true)}
+              onBlur={() => {
+                // Delay closing to allow suggestion selection
+                setTimeout(() => setIsPopoverOpen(false), 200)
+              }}
+              placeholder={placeholder}
+              disabled={disabled}
+              className="pr-8"
+              data-testid="skill-input-field"
+              aria-label="Skill name input"
+              aria-expanded={isPopoverOpen}
+              aria-haspopup="listbox"
+              role="combobox"
+            />
+            {isLoadingSuggestions && (
+              <Loader2 className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+            )}
+            
+            {/* Suggestions dropdown */}
+            {isPopoverOpen && (inputValue.length > 0 || filteredSuggestions.length > 0) && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-border rounded-md shadow-lg">
                 <Command>
-                  <CommandList>
+                  <CommandList className="max-h-48">
                     {isLoadingSuggestions ? (
                       <div className="p-2 text-sm text-muted-foreground flex items-center gap-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
@@ -229,8 +227,8 @@ export function SkillInput({
                     )}
                   </CommandList>
                 </Command>
-              </PopoverContent>
-            </Popover>
+              </div>
+            )}
           </div>
           
           {/* Proficiency Selector */}
