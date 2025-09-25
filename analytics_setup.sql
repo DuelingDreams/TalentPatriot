@@ -71,9 +71,41 @@ CREATE INDEX IF NOT EXISTS idx_application_metadata_org_source ON application_me
 CREATE INDEX IF NOT EXISTS idx_interviews_org_status ON interviews(org_id, status);
 CREATE INDEX IF NOT EXISTS idx_email_events_org_created ON email_events(org_id, sent_at);
 
--- JSONB indexes for skills and diversity analytics
-CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(skills);
-CREATE INDEX IF NOT EXISTS idx_application_metadata_gin ON application_metadata USING GIN(education_details, employment_details);
+-- Specialized indexes for skills and metadata analytics
+-- Handle skills column (could be text[] or JSONB depending on schema)
+DO $$
+BEGIN
+    -- Try to create index for text array first
+    BEGIN
+        CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(skills) 
+        WHERE skills IS NOT NULL;
+    EXCEPTION WHEN OTHERS THEN
+        -- If that fails, try JSONB approach
+        BEGIN
+            CREATE INDEX IF NOT EXISTS idx_candidates_skills_gin ON candidates USING GIN(to_tsvector('english', array_to_string(skills, ' '))) 
+            WHERE skills IS NOT NULL;
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Could not create GIN index on skills column - please check column type';
+        END;
+    END;
+END $$;
+
+-- JSONB indexes for application metadata (safely handle different column types)
+DO $$
+BEGIN
+    CREATE INDEX IF NOT EXISTS idx_application_metadata_education_gin ON application_metadata USING GIN(education_details) 
+    WHERE education_details IS NOT NULL;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Could not create GIN index on education_details - column may not exist';
+END $$;
+
+DO $$
+BEGIN
+    CREATE INDEX IF NOT EXISTS idx_application_metadata_employment_gin ON application_metadata USING GIN(employment_details) 
+    WHERE employment_details IS NOT NULL;
+EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Could not create GIN index on employment_details - column may not exist';
+END $$;
 
 -- Time-based partitioning indexes
 CREATE INDEX IF NOT EXISTS idx_daily_snapshots_org_date ON daily_analytics_snapshots(org_id, snapshot_date);
