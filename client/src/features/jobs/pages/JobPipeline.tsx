@@ -206,7 +206,7 @@ function EnhancedApplicationCard({
           : 'border-slate-200 hover:shadow-md hover:border-blue-300'
         }
       `}>
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           {/* Drag Handle */}
           <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-60 transition-opacity">
             <GripVertical className="w-4 h-4 text-slate-400" />
@@ -258,42 +258,42 @@ function EnhancedApplicationCard({
               </span>
             </div>
 
-            {/* Quick Action Buttons - Resume, Notes, and Reject */}
-            <div className="flex gap-2">
+            {/* Quick Action Buttons - Responsive Layout */}
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="text-xs h-8 flex-1"
+                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 touch-manipulation"
                 onClick={handleViewResume}
                 data-testid={`resume-${applicationId}`}
               >
-                <FileText className="w-3 h-3 mr-1" />
-                {safeResumeUrl ? 'Resume' : 'No Resume'}
+                <FileText className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">{safeResumeUrl ? 'Resume' : 'No Resume'}</span>
               </Button>
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="text-xs h-8 flex-1"
+                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 touch-manipulation"
                 onClick={handleOpenNotes}
                 data-testid={`notes-${applicationId}`}
               >
-                <MessageSquare className="w-3 h-3 mr-1" />
-                Notes
+                <MessageSquare className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
+                <span className="truncate">Notes</span>
               </Button>
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="text-xs h-8 flex-1 hover:bg-red-50 hover:border-red-200 hover:text-red-700"
+                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 hover:bg-red-50 hover:border-red-200 hover:text-red-700 touch-manipulation"
                 onClick={handleRejectCandidate}
                 disabled={rejectCandidate.isPending}
                 data-testid={`reject-${applicationId}`}
               >
                 {rejectCandidate.isPending ? (
-                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  <Loader2 className="w-4 h-4 sm:w-3 sm:h-3 mr-1 animate-spin flex-shrink-0" />
                 ) : (
-                  <UserX className="w-3 h-3 mr-1" />
+                  <UserX className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
                 )}
-                Reject
+                <span className="truncate">Reject</span>
               </Button>
             </div>
           </div>
