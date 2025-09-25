@@ -2799,6 +2799,12 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(404).json({ error: "Candidate not found" });
       }
       
+      // Handle legacy candidates with undefined orgId - simple fix  
+      if (!candidate.orgId) {
+        candidate.orgId = orgId; // Set to request orgId for legacy data
+        console.log(`[PROFICIENCY-GET] Set legacy candidate ${candidateId} orgId to: ${orgId}`);
+      }
+      
       // Ensure user can only access candidates from their organization
       if (candidate.orgId !== orgId) {
         return res.status(404).json({ error: "Candidate not found" });
@@ -2849,18 +2855,10 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(404).json({ error: "Candidate not found" });
       }
       
-      // Debug log to understand orgId issues
-      console.log(`[PROFICIENCY-PUT] Candidate ${candidateId} has orgId: ${candidate.orgId}, request orgId: ${orgId}`);
-      
-      // Update candidate orgId if missing (for legacy data)
+      // Handle legacy candidates with undefined orgId - simple fix
       if (!candidate.orgId) {
-        try {
-          await storage.updateCandidate(candidateId, { orgId });
-          candidate.orgId = orgId; // Update local object
-          console.log(`[PROFICIENCY-PUT] Updated candidate ${candidateId} with orgId: ${orgId}`);
-        } catch (updateError) {
-          console.warn('Failed to update candidate orgId for proficiency:', updateError);
-        }
+        candidate.orgId = orgId; // Set to request orgId for legacy data
+        console.log(`[PROFICIENCY-PUT] Set legacy candidate ${candidateId} orgId to: ${orgId}`);
       }
       
       // Ensure user can only access candidates from their organization
