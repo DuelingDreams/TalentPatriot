@@ -202,23 +202,24 @@ export async function getOrgSkillSuggestions(
  */
 export async function getProficiencyMap(candidateId: string): Promise<Record<string, Proficiency> | null> {
   try {
-    const { data, error } = await supabase
-      .from('candidates')
-      .select('skill_levels')
-      .eq('id', candidateId)
-      .single()
+    const response = await fetch(`/api/candidates/${candidateId}/proficiency`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
 
-    if (error) {
-      // If column doesn't exist, this will fail - return null
-      if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
-        return null
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null // Candidate not found or no access
       }
-      throw new Error(`Failed to fetch proficiency map: ${error.message}`)
+      throw new Error(`Failed to fetch proficiency data: ${response.statusText}`)
     }
 
-    return data?.skill_levels || null
+    const data = await response.json()
+    return data
   } catch (error) {
-    // If column doesn't exist or any other error, return null to disable proficiency features
+    // If there's any error, return null to disable proficiency features
     console.warn('Proficiency data not available:', error)
     return null
   }
@@ -231,21 +232,25 @@ export async function getProficiencyMap(candidateId: string): Promise<Record<str
  */
 export async function setProficiencyMap(candidateId: string, map: Record<string, Proficiency>): Promise<void> {
   try {
-    const { error } = await supabase
-      .from('candidates')
-      .update({ 
-        skill_levels: map,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', candidateId)
+    const response = await fetch(`/api/candidates/${candidateId}/proficiency`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(map),
+    })
 
-    if (error) {
-      // If column doesn't exist, silently ignore (proficiency feature not enabled)
-      if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
-        console.warn('skill_levels column not found - proficiency updates ignored')
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.warn('Candidate not found or no access')
         return
       }
-      throw new Error(`Failed to save proficiency map: ${error.message}`)
+      throw new Error(`Failed to save proficiency data: ${response.statusText}`)
+    }
+
+    const result = await response.json()
+    if (!result.success) {
+      console.warn('Proficiency update result:', result.message)
     }
   } catch (error) {
     console.warn('Error setting proficiency map:', error)

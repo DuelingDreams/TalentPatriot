@@ -2783,6 +2783,95 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Candidate proficiency endpoints
+  app.get("/api/candidates/:id/proficiency", async (req, res) => {
+    try {
+      const { id: candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Get candidate to verify it exists and belongs to the organization
+      const candidate = await storage.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Get proficiency data using Supabase directly
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('skill_levels')
+        .eq('id', candidateId)
+        .single();
+
+      if (error) {
+        // If column doesn't exist, this will fail - return null
+        if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
+          return res.json(null);
+        }
+        throw new Error(`Failed to fetch proficiency data: ${error.message}`);
+      }
+
+      res.json(data?.skill_levels || null);
+    } catch (error) {
+      console.error('Proficiency fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch proficiency data", details: errorMessage });
+    }
+  });
+
+  app.put("/api/candidates/:id/proficiency", writeLimiter, async (req, res) => {
+    try {
+      const { id: candidateId } = req.params;
+      const proficiencyMap = req.body;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Get candidate to verify it exists and belongs to the organization
+      const candidate = await storage.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Update proficiency data using Supabase directly
+      const { error } = await supabase
+        .from('candidates')
+        .update({ 
+          skill_levels: proficiencyMap,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', candidateId);
+
+      if (error) {
+        // If column doesn't exist, silently ignore (proficiency feature not enabled)
+        if (error.code === 'PGRST116' || error.message.includes('column') || error.message.includes('skill_levels')) {
+          console.warn('skill_levels column not found - proficiency updates ignored');
+          return res.json({ success: true, message: 'Proficiency feature not enabled' });
+        }
+        throw new Error(`Failed to save proficiency data: ${error.message}`);
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Proficiency update error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to update proficiency data", details: errorMessage });
+    }
+  });
+
   // Job-Candidate relationships
   app.get("/api/jobs/:jobId/candidates", async (req, res) => {
     try {
