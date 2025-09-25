@@ -31,6 +31,7 @@ import {
   type ImportRecord
 } from "../shared/schema";
 import { createClient } from '@supabase/supabase-js';
+import { supabase } from './lib/supabase';
 import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 import crypto from "crypto";
@@ -490,6 +491,82 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     } catch (error) {
       console.error("Error fetching user organization data:", error);
       res.status(500).json({ error: "Failed to fetch organization data" });
+    }
+  });
+
+  // OPTIMIZED ANALYTICS ENDPOINTS
+  
+  // Skills analytics endpoint - using optimized materialized view
+  app.get("/api/analytics/skills", async (req, res) => {
+    try {
+      const orgId = req.query.org_id as string;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+      
+      // Use optimized skills analytics function
+      const { data, error } = await supabase.rpc('get_top_skills', {
+        target_org_id: orgId,
+        skill_limit: limit
+      });
+      
+      if (error) {
+        console.error('Error fetching skills analytics:', error);
+        throw error;
+      }
+      
+      // Cache for 5 minutes
+      res.setHeader('Cache-Control', 'private, max-age=300');
+      res.setHeader('Vary', 'X-Org-Id');
+      res.json(data || []);
+    } catch (error) {
+      console.error("Error fetching skills analytics:", error);
+      res.status(500).json({ error: "Failed to fetch skills analytics" });
+    }
+  });
+
+  // Optimized candidate search by skills endpoint  
+  app.post("/api/search/candidates/by-skills", async (req, res) => {
+    try {
+      const { orgId, skills } = req.body;
+      
+      if (!orgId || !Array.isArray(skills) || skills.length === 0) {
+        return res.status(400).json({ error: 'Organization ID and skills array required' });
+      }
+      
+      // Use optimized skills search
+      const candidates = await storage.searchCandidatesBySkills(orgId, skills);
+      
+      // Cache for 2 minutes (skills change infrequently)
+      res.setHeader('Cache-Control', 'private, max-age=120');
+      res.setHeader('Vary', 'X-Org-Id');
+      res.json(candidates);
+    } catch (error) {
+      console.error("Error searching candidates by skills:", error);
+      res.status(500).json({ error: "Failed to search candidates by skills" });
+    }
+  });
+
+  // Cache refresh endpoint for analytics
+  app.post("/api/analytics/refresh-cache", writeLimiter, async (req, res) => {
+    try {
+      const { data, error } = await supabase.rpc('refresh_analytics_cache');
+      
+      if (error) {
+        console.error('Error refreshing analytics cache:', error);
+        throw error;
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Analytics cache refreshed successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error refreshing analytics cache:", error);
+      res.status(500).json({ error: "Failed to refresh analytics cache" });
     }
   });
 
