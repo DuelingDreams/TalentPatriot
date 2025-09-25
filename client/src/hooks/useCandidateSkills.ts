@@ -1,262 +1,273 @@
 /**
- * Hook for managing candidate skills with optimistic updates
+ * Hook for managing candidate skills with optional proficiency support
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/contexts/AuthContext'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useToast } from '@/shared/hooks/use-toast'
 import { 
   fetchCandidateSkills, 
   saveCandidateSkills, 
-  clearOrgSkillsCache 
+  getProficiencyMap, 
+  setProficiencyMap 
 } from '@/lib/supabase/candidatesSkills'
-import { normalizeSkills, validateSkillsArray } from '@/lib/skills/normalize'
+import type { Proficiency, SkillsConfig } from '@/lib/skills/types'
 
 interface UseCandidateSkillsOptions {
-  enabled?: boolean
+  enableProficiencyUI?: boolean
 }
 
 interface UseCandidateSkillsReturn {
   skills: string[]
+  profMap: Record<string, Proficiency> | null
+  config: SkillsConfig
   isLoading: boolean
   error: Error | null
-  addSkills: (newSkills: string[]) => Promise<void>
+  addSkills: (newSkills: string[], proficiency?: Proficiency) => Promise<void>
   removeSkill: (skillName: string) => Promise<void>
-  replaceAll: (nextSkills: string[]) => Promise<void>
-  refetch: () => void
+  setSkillProficiency: (skillName: string, proficiency: Proficiency) => Promise<void>
+  refetch: () => Promise<void>
 }
 
 /**
- * Hook for managing candidate skills with optimistic updates and error handling
- * 
- * @param candidateId - UUID of the candidate
- * @param orgId - Organization ID for cache management
+ * Hook for managing candidate skills with optional proficiency support
+ * @param candidateId - The candidate ID
+ * @param orgId - The organization ID (for cache invalidation)
  * @param options - Configuration options
- * @returns Skills management interface
+ * @returns Skills state and management functions
  */
 export function useCandidateSkills(
-  candidateId: string, 
+  candidateId: string,
   orgId: string,
   options: UseCandidateSkillsOptions = {}
 ): UseCandidateSkillsReturn {
-  const { user } = useAuth()
+  const { enableProficiencyUI = false } = options
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  
-  const queryKey = ['candidate-skills', candidateId]
-  
-  // Query for fetching skills
-  const {
-    data: skills = [],
-    isLoading,
-    error,
-    refetch
+
+  // Optimistic update state
+  const [optimisticSkills, setOptimisticSkills] = useState<string[] | null>(null)
+  const [optimisticProfMap, setOptimisticProfMap] = useState<Record<string, Proficiency> | null>(null)
+
+  // Query for skills
+  const { 
+    data: skillsData = [], 
+    isLoading: skillsLoading, 
+    error: skillsError,
+    refetch: refetchSkills
   } = useQuery({
-    queryKey,
+    queryKey: ['candidate-skills', candidateId],
     queryFn: () => fetchCandidateSkills(candidateId),
-    enabled: !!candidateId && !!user && (options.enabled !== false),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !!candidateId,
+    staleTime: 30000 // 30 seconds
   })
 
-  // Mutation for saving skills
-  const saveMutation = useMutation({
-    mutationFn: async (nextSkills: string[]) => {
-      if (!candidateId) {
-        throw new Error('Candidate ID is required')
-      }
-      
-      // Validate before saving
-      const validation = validateSkillsArray(nextSkills, 100)
-      if (!validation.isValid) {
-        throw new Error(validation.error || 'Invalid skills')
-      }
-      
-      await saveCandidateSkills(candidateId, nextSkills)
-      return nextSkills
-    },
-    onMutate: async (nextSkills: string[]) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey })
-      
-      // Snapshot the previous value
-      const previousSkills = queryClient.getQueryData<string[]>(queryKey) || []
-      
-      // Optimistically update to the new value
-      const normalizedSkills = normalizeSkills(nextSkills)
-      queryClient.setQueryData(queryKey, normalizedSkills)
-      
-      // Return context object with snapshot value
-      return { previousSkills }
-    },
-    onSuccess: (savedSkills) => {
-      // Clear org skills cache to refresh suggestions
-      clearOrgSkillsCache(orgId)
-      
-      // Show success toast
-      toast({
-        title: "Skills Updated",
-        description: `Successfully saved ${savedSkills.length} skills`,
-      })
-      
-      // Refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey })
-    },
-    onError: (error: Error, _variables, context) => {
-      // Rollback to previous value on error
-      if (context?.previousSkills) {
-        queryClient.setQueryData(queryKey, context.previousSkills)
-      }
-      
-      // Show error toast
-      toast({
-        title: "Error Updating Skills",
-        description: error.message || "Failed to update skills. Please try again.",
-        variant: "destructive",
-      })
-      
-      console.error('Error saving candidate skills:', error)
-    },
+  // Query for proficiency map (only if proficiency UI is enabled)
+  const { 
+    data: proficiencyData, 
+    isLoading: proficiencyLoading,
+    error: proficiencyError,
+    refetch: refetchProficiency
+  } = useQuery({
+    queryKey: ['candidate-proficiency', candidateId],
+    queryFn: () => getProficiencyMap(candidateId),
+    enabled: !!candidateId && enableProficiencyUI,
+    staleTime: 30000 // 30 seconds
   })
 
-  // Add skills function
-  const addSkills = async (newSkills: string[]): Promise<void> => {
+  // Check environment variable for proficiency UI
+  const envProficiencyEnabled = import.meta.env.ENABLE_PROFICIENCY_UI === 'true'
+
+  // Configuration object
+  const config: SkillsConfig = useMemo(() => ({
+    enableProficiencyUI: enableProficiencyUI || envProficiencyEnabled,
+    hasProficiencyData: proficiencyData !== null
+  }), [enableProficiencyUI, envProficiencyEnabled, proficiencyData])
+
+  // Final skills and proficiency state (with optimistic updates)
+  const skills = optimisticSkills ?? skillsData
+  const profMap = optimisticProfMap ?? (config.enableProficiencyUI ? (proficiencyData ?? null) : null)
+  const isLoading = skillsLoading || (config.enableProficiencyUI && proficiencyLoading)
+  const error = skillsError || proficiencyError
+
+  // Clear optimistic state when real data loads
+  useEffect(() => {
+    if (!skillsLoading && optimisticSkills !== null) {
+      setOptimisticSkills(null)
+    }
+  }, [skillsLoading, optimisticSkills])
+
+  useEffect(() => {
+    if (!proficiencyLoading && optimisticProfMap !== null) {
+      setOptimisticProfMap(null)
+    }
+  }, [proficiencyLoading, optimisticProfMap])
+
+  // Refetch function
+  const refetch = useCallback(async () => {
+    await Promise.all([
+      refetchSkills(),
+      config.enableProficiencyUI ? refetchProficiency() : Promise.resolve()
+    ])
+  }, [refetchSkills, refetchProficiency, config.enableProficiencyUI])
+
+  // Add skills function with optimistic updates
+  const addSkills = useCallback(async (newSkills: string[], proficiency?: Proficiency) => {
     if (!newSkills.length) return
-    
-    try {
-      const currentSkills = queryClient.getQueryData<string[]>(queryKey) || []
-      const normalizedNewSkills = normalizeSkills(newSkills)
-      
-      // Merge with existing skills and remove duplicates
-      const mergedSkills = [...currentSkills, ...normalizedNewSkills]
-      const uniqueSkills = normalizeSkills(mergedSkills)
-      
-      await saveMutation.mutateAsync(uniqueSkills)
-    } catch (error) {
-      // Error is already handled in the mutation
-      throw error
-    }
-  }
 
-  // Remove skill function
-  const removeSkill = async (skillName: string): Promise<void> => {
-    if (!skillName) return
-    
     try {
-      const currentSkills = queryClient.getQueryData<string[]>(queryKey) || []
-      const filteredSkills = currentSkills.filter(
-        skill => skill.toLowerCase() !== skillName.toLowerCase()
-      )
-      
-      await saveMutation.mutateAsync(filteredSkills)
-    } catch (error) {
-      // Error is already handled in the mutation
-      throw error
-    }
-  }
+      // Optimistic update for skills
+      const currentSkills = optimisticSkills ?? skillsData
+      const updatedSkills = [...currentSkills, ...newSkills]
+      setOptimisticSkills(updatedSkills)
 
-  // Replace all skills function
-  const replaceAll = async (nextSkills: string[]): Promise<void> => {
-    try {
-      const normalizedSkills = normalizeSkills(nextSkills)
-      await saveMutation.mutateAsync(normalizedSkills)
+      // Optimistic update for proficiency map if enabled
+      if (config.enableProficiencyUI && proficiency) {
+        const currentProfMap = optimisticProfMap ?? proficiencyData ?? {}
+        const updatedProfMap = { ...currentProfMap }
+        newSkills.forEach(skill => {
+          updatedProfMap[skill] = proficiency
+        })
+        setOptimisticProfMap(updatedProfMap)
+      }
+
+      // Save skills to database
+      await saveCandidateSkills(candidateId, updatedSkills)
+
+      // Save proficiency map if enabled and proficiency provided
+      if (config.enableProficiencyUI && proficiency) {
+        const finalProfMap = { ...(proficiencyData ?? {}), ...Object.fromEntries(newSkills.map(skill => [skill, proficiency])) }
+        await setProficiencyMap(candidateId, finalProfMap)
+      }
+
+      // Invalidate queries to refetch fresh data
+      await queryClient.invalidateQueries({ queryKey: ['candidate-skills', candidateId] })
+      if (config.enableProficiencyUI) {
+        await queryClient.invalidateQueries({ queryKey: ['candidate-proficiency', candidateId] })
+      }
+
+      toast({
+        title: 'Skills Added',
+        description: `Added ${newSkills.length} skill${newSkills.length === 1 ? '' : 's'} successfully.`
+      })
     } catch (error) {
-      // Error is already handled in the mutation
+      console.error('Error adding skills:', error)
+      
+      // Rollback optimistic updates
+      setOptimisticSkills(null)
+      setOptimisticProfMap(null)
+      
+      toast({
+        title: 'Error Adding Skills',
+        description: error instanceof Error ? error.message : 'Failed to add skills',
+        variant: 'destructive'
+      })
+      
       throw error
     }
-  }
+  }, [candidateId, skillsData, proficiencyData, optimisticSkills, optimisticProfMap, config.enableProficiencyUI, queryClient, toast])
+
+  // Remove skill function with optimistic updates
+  const removeSkill = useCallback(async (skillName: string) => {
+    try {
+      // Optimistic update for skills
+      const currentSkills = optimisticSkills ?? skillsData
+      const updatedSkills = currentSkills.filter(skill => skill !== skillName)
+      setOptimisticSkills(updatedSkills)
+
+      // Optimistic update for proficiency map if enabled
+      if (config.enableProficiencyUI && profMap) {
+        const updatedProfMap = { ...profMap }
+        delete updatedProfMap[skillName]
+        setOptimisticProfMap(updatedProfMap)
+      }
+
+      // Save to database
+      await saveCandidateSkills(candidateId, updatedSkills)
+
+      // Update proficiency map if enabled
+      if (config.enableProficiencyUI && profMap) {
+        const updatedProfMap = { ...profMap }
+        delete updatedProfMap[skillName]
+        await setProficiencyMap(candidateId, updatedProfMap)
+      }
+
+      // Invalidate queries
+      await queryClient.invalidateQueries({ queryKey: ['candidate-skills', candidateId] })
+      if (config.enableProficiencyUI) {
+        await queryClient.invalidateQueries({ queryKey: ['candidate-proficiency', candidateId] })
+      }
+
+      toast({
+        title: 'Skill Removed',
+        description: `Removed "${skillName}" successfully.`
+      })
+    } catch (error) {
+      console.error('Error removing skill:', error)
+      
+      // Rollback optimistic updates
+      setOptimisticSkills(null)
+      setOptimisticProfMap(null)
+      
+      toast({
+        title: 'Error Removing Skill',
+        description: error instanceof Error ? error.message : 'Failed to remove skill',
+        variant: 'destructive'
+      })
+      
+      throw error
+    }
+  }, [candidateId, skillsData, profMap, optimisticSkills, optimisticProfMap, config.enableProficiencyUI, queryClient, toast])
+
+  // Set skill proficiency function (only works if proficiency is enabled)
+  const setSkillProficiency = useCallback(async (skillName: string, proficiency: Proficiency) => {
+    if (!config.enableProficiencyUI) {
+      console.warn('Proficiency UI is disabled - skipping proficiency update')
+      return
+    }
+
+    try {
+      // Optimistic update for proficiency map
+      const currentProfMap = optimisticProfMap ?? proficiencyData ?? {}
+      const updatedProfMap = { ...currentProfMap, [skillName]: proficiency }
+      setOptimisticProfMap(updatedProfMap)
+
+      // Save to database
+      await setProficiencyMap(candidateId, updatedProfMap)
+
+      // Invalidate queries
+      await queryClient.invalidateQueries({ queryKey: ['candidate-proficiency', candidateId] })
+
+      toast({
+        title: 'Proficiency Updated',
+        description: `Set "${skillName}" to ${proficiency} level.`
+      })
+    } catch (error) {
+      console.error('Error setting skill proficiency:', error)
+      
+      // Rollback optimistic updates
+      setOptimisticProfMap(null)
+      
+      toast({
+        title: 'Error Updating Proficiency',
+        description: error instanceof Error ? error.message : 'Failed to update proficiency',
+        variant: 'destructive'
+      })
+      
+      throw error
+    }
+  }, [candidateId, proficiencyData, optimisticProfMap, config.enableProficiencyUI, queryClient, toast])
 
   return {
     skills,
-    isLoading: isLoading || saveMutation.isPending,
-    error: error as Error | null,
+    profMap,
+    config,
+    isLoading,
+    error,
     addSkills,
     removeSkill,
-    replaceAll,
-    refetch: () => {
-      refetch()
-    }
+    setSkillProficiency,
+    refetch
   }
 }
 
-/**
- * Specialized hook for adding a single skill with validation
- * 
- * @param candidateId - UUID of the candidate
- * @param orgId - Organization ID
- * @returns Function to add a single skill
- */
-export function useAddSingleSkill(candidateId: string, orgId: string) {
-  const { addSkills } = useCandidateSkills(candidateId, orgId)
-  
-  return async (skillName: string): Promise<void> => {
-    if (!skillName || !skillName.trim()) {
-      throw new Error('Skill name cannot be empty')
-    }
-    
-    await addSkills([skillName.trim()])
-  }
-}
-
-/**
- * Hook for bulk skills operations
- * 
- * @param candidateId - UUID of the candidate  
- * @param orgId - Organization ID
- * @returns Bulk operations interface
- */
-export function useBulkSkillsOperations(candidateId: string, orgId: string) {
-  const { replaceAll, skills } = useCandidateSkills(candidateId, orgId)
-  const { toast } = useToast()
-  
-  const clearAllSkills = async (): Promise<void> => {
-    try {
-      await replaceAll([])
-      toast({
-        title: "Skills Cleared",
-        description: "All skills have been removed",
-      })
-    } catch (error) {
-      // Error handling is done in the mutation
-    }
-  }
-  
-  const addBulkSkills = async (skillsText: string): Promise<void> => {
-    if (!skillsText || !skillsText.trim()) {
-      throw new Error('Skills text cannot be empty')
-    }
-    
-    try {
-      // Parse the bulk text (comma/newline separated)
-      const newSkills = normalizeSkills(skillsText)
-      
-      if (newSkills.length === 0) {
-        throw new Error('No valid skills found in the text')
-      }
-      
-      // Merge with existing skills
-      const mergedSkills = [...skills, ...newSkills]
-      const uniqueSkills = normalizeSkills(mergedSkills)
-      
-      await replaceAll(uniqueSkills)
-      
-      toast({
-        title: "Bulk Skills Added",
-        description: `Successfully added ${newSkills.length} skills`,
-      })
-    } catch (error) {
-      toast({
-        title: "Error Adding Bulk Skills",
-        description: error instanceof Error ? error.message : "Failed to add skills",
-        variant: "destructive",
-      })
-      throw error
-    }
-  }
-  
-  return {
-    clearAllSkills,
-    addBulkSkills,
-    currentSkillsCount: skills.length
-  }
-}
