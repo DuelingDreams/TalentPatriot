@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { DemoCandidates } from '@/components/demo/DemoCandidates'
 import { useCandidates } from '@/features/candidates/hooks/useCandidates'
 import { AddCandidateDialog } from '@/components/dialogs/AddCandidateDialog'
+import { SkillsFilter } from '@/components/candidates/skills/SkillsFilter'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,6 +37,7 @@ export default function Candidates() {
   const [, setLocation] = useLocation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activeTab, setActiveTab] = useState('all')
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const { toast } = useToast()
 
   // Development mode: Always show candidates for testing purposes
@@ -168,25 +170,39 @@ export default function Candidates() {
     )
   }
   
-  // Filter candidates based on search and tab
+  // Filter candidates based on search, tab, and skills
   const candidatesArray = Array.isArray(candidates) ? candidates : []
   const filteredCandidates = candidatesArray.filter((candidate: any) => {
+    // Text search filter
     const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          candidate.email.toLowerCase().includes(searchQuery.toLowerCase())
     
-    if (activeTab === 'all') return matchesSearch
-    if (activeTab === 'active') return matchesSearch && candidate.status === 'active'
+    // Skills filter
+    const matchesSkills = selectedSkills.length === 0 || 
+      (candidate.skills && Array.isArray(candidate.skills) && 
+       selectedSkills.some(selectedSkill => 
+         candidate.skills.some((candidateSkill: string) => 
+           candidateSkill.toLowerCase().includes(selectedSkill.toLowerCase())
+         )
+       ))
+    
+    // Both search and skills must match
+    const matchesAll = matchesSearch && matchesSkills
+    
+    // Apply tab filters
+    if (activeTab === 'all') return matchesAll
+    if (activeTab === 'active') return matchesAll && candidate.status === 'active'
     if (activeTab === 'new') {
       const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       try {
         const candidateDate = new Date(candidate.createdAt)
         if (isNaN(candidateDate.getTime())) return false
-        return matchesSearch && candidateDate >= oneWeekAgo
+        return matchesAll && candidateDate >= oneWeekAgo
       } catch {
         return false
       }
     }
-    return matchesSearch
+    return matchesAll
   }) || []
 
   // Calculate stats
@@ -261,24 +277,43 @@ export default function Candidates() {
         {/* Search and Filters */}
         <Card className="card mb-6">
           <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5C667B]" />
-                <Input
-                  placeholder="Search candidates by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5C667B]" />
+                  <Input
+                    placeholder="Search candidates by name or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                  <TabsList>
+                    <TabsTrigger value="all">All</TabsTrigger>
+                    <TabsTrigger value="active">Active</TabsTrigger>
+                    <TabsTrigger value="new">New</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
               
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-                <TabsList>
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="active">Active</TabsTrigger>
-                  <TabsTrigger value="new">New</TabsTrigger>
-                </TabsList>
-              </Tabs>
+              {/* Skills Filter */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <div className="w-full sm:w-80">
+                  <SkillsFilter
+                    selectedSkills={selectedSkills}
+                    onSkillsChange={setSelectedSkills}
+                    placeholder="Filter by skills..."
+                    data-testid="candidates-skills-filter"
+                  />
+                </div>
+                {selectedSkills.length > 0 && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Showing candidates with any of these skills
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
