@@ -2990,7 +2990,53 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Candidate skills endpoint - with architect's legacy orgId fix
+  // Candidate skills endpoints - with architect's legacy orgId fix
+  app.get("/api/candidates/:id/skills", async (req, res) => {
+    try {
+      const { id: candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Get candidate to verify it exists and belongs to the organization
+      const candidate = await storage.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      // Handle legacy candidates with undefined orgId - architect's simple fix
+      if (!candidate.orgId) {
+        candidate.orgId = orgId; // Set to request orgId for legacy data
+      }
+      
+      // Ensure user can only access candidates from their organization
+      if (candidate.orgId !== orgId) {
+        console.warn(`[SKILLS-GET] OrgId mismatch: candidate.orgId=${candidate.orgId}, request.orgId=${orgId}`);
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      // Fetch skills using Supabase directly (now with proper orgId context)
+      const { data, error } = await supabase
+        .from('candidates')
+        .select('skills')
+        .eq('id', candidateId)
+        .single();
+
+      if (error) {
+        console.warn('Skills query error:', error.code, error.message);
+        return res.json([]); // Return empty array on error
+      }
+
+      // Return skills array or empty array
+      res.json(data?.skills || []);
+    } catch (error) {
+      console.error('Skills fetch error:', error);
+      res.json([]); // Return empty array on error to prevent UI crashes
+    }
+  });
+
   app.put("/api/candidates/:id/skills", writeLimiter, async (req, res) => {
     try {
       const { id: candidateId } = req.params;

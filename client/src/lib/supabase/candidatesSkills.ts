@@ -9,7 +9,7 @@ import type { Proficiency } from '@/lib/skills/types'
 import { apiRequest } from '@/lib/queryClient'
 
 /**
- * Fetches skills for a specific candidate
+ * Fetches skills for a specific candidate using backend API with architect's legacy orgId fix
  * 
  * @param candidateId - UUID of the candidate
  * @returns Array of skills or empty array if none/null
@@ -20,30 +20,17 @@ export async function fetchCandidateSkills(candidateId: string): Promise<string[
       throw new Error('Candidate ID is required')
     }
 
-    const { data, error } = await supabase
-      .from('candidates')
-      .select('skills')
-      .eq('id', candidateId)
-      .limit(1)
-      .single()
-
-    if (error) {
-      console.error('Error fetching candidate skills:', error)
-      // If it's an RLS recursion error, return empty array gracefully
-      if (error.code === '42P17' || error.message?.includes('infinite recursion')) {
-        console.warn('RLS recursion detected, returning empty skills array')
-        return []
-      }
-      throw new Error(`Failed to fetch candidate skills: ${error.message}`)
-    }
+    // Use backend API endpoint instead of direct Supabase call
+    // This ensures architect's legacy orgId fix is applied
+    const data = await apiRequest<string[]>(`/api/candidates/${candidateId}/skills`)
 
     // Handle null/undefined skills - return empty array
-    if (!data?.skills || !Array.isArray(data.skills)) {
+    if (!data || !Array.isArray(data)) {
       return []
     }
 
     // Return normalized skills to ensure consistency
-    return normalizeSkills(data.skills)
+    return normalizeSkills(data)
   } catch (error) {
     console.error('Exception in fetchCandidateSkills:', error)
     // Return empty array rather than throwing to prevent UI crashes
