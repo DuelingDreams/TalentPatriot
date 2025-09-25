@@ -2799,15 +2799,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(404).json({ error: "Candidate not found" });
       }
       
-      // Handle case where candidate orgId might be undefined (during initial setup)
-      // If candidate exists but has no orgId, update it with the current orgId
-      if (!candidate.orgId) {
-        try {
-          await storage.updateCandidate(candidateId, { orgId });
-        } catch (updateError) {
-          console.warn('Failed to update candidate orgId:', updateError);
-        }
-      } else if (candidate.orgId !== orgId) {
+      // Ensure user can only access candidates from their organization
+      if (candidate.orgId !== orgId) {
         return res.status(404).json({ error: "Candidate not found" });
       }
 
@@ -2852,15 +2845,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(404).json({ error: "Candidate not found" });
       }
       
-      // Handle case where candidate orgId might be undefined (during initial setup)
-      // If candidate exists but has no orgId, update it with the current orgId
-      if (!candidate.orgId) {
-        try {
-          await storage.updateCandidate(candidateId, { orgId });
-        } catch (updateError) {
-          console.warn('Failed to update candidate orgId:', updateError);
-        }
-      } else if (candidate.orgId !== orgId) {
+      // Ensure user can only access candidates from their organization
+      if (candidate.orgId !== orgId) {
         return res.status(404).json({ error: "Candidate not found" });
       }
 

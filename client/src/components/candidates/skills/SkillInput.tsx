@@ -159,7 +159,7 @@ export function SkillInput({
 
           {/* Proficiency selector */}
           <div className="w-36">
-            <Select value={proficiency} onValueChange={setProficiency} disabled={disabled || isSubmitting}>
+            <Select value={proficiency} onValueChange={(value) => setProficiency(value as Proficiency | '')} disabled={disabled || isSubmitting}>
               <SelectTrigger data-testid="select-proficiency-level">
                 <SelectValue placeholder="Level" />
               </SelectTrigger>
