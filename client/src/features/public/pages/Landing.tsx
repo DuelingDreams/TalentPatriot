@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { 
   Users, 
   Building2, 
@@ -368,17 +367,15 @@ export default function Landing() {
           <div className="max-w-4xl mx-auto">
             <Card className="overflow-hidden border border-[#D1E7FF] shadow-xl">
               <CardContent className="p-0">
-                <AspectRatio ratio={16 / 9}>
-                  <div className="w-full h-full bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                        <Play className="w-8 h-8 text-[#1F3A5F] ml-1" />
-                      </div>
-                      <p className="text-[#1A1A1A] text-lg font-medium font-[Inter,sans-serif] mb-2">Product Demo Video</p>
-                      <p className="text-[#5C667B] text-sm font-[Inter,sans-serif]">Coming Soon</p>
+                <div className="w-full aspect-video bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <Play className="w-8 h-8 text-[#1F3A5F] ml-1" />
                     </div>
+                    <p className="text-[#1A1A1A] text-lg font-medium font-[Inter,sans-serif] mb-2">Product Demo Video</p>
+                    <p className="text-[#5C667B] text-sm font-[Inter,sans-serif]">Coming Soon</p>
                   </div>
-                </AspectRatio>
+                </div>
               </CardContent>
             </Card>
             
