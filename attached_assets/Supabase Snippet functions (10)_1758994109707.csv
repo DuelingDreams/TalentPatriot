@@ -1,0 +1,57 @@
+schema,function_name,return_type,arguments,language,security_definer
+public,_log_job_candidate_stage_transition,trigger,,plpgsql,false
+public,add_skills_to_candidate_array,boolean,"_candidate_id uuid, _skills text[]",plpgsql,false
+public,assert_authenticated,void,,plpgsql,true
+public,assert_self_or_org_admin,void,p_user_id uuid,plpgsql,true
+public,assign_recruiter_seat,boolean,"target_user_id uuid, target_org_id uuid",plpgsql,true
+public,auto_add_owner_to_user_organizations,trigger,,plpgsql,false
+public,auto_assign_application_column,trigger,,plpgsql,false
+public,check_apply_throttle,void,"p_job_id uuid, p_applicant_email text, p_requester_ip text, p_rate_window_minutes integer DEFAULT 10",plpgsql,true
+public,check_seat_availability,boolean,target_org_id uuid,plpgsql,true
+public,check_user_permission,boolean,"user_id uuid, org_id uuid, required_permissions text[]",plpgsql,true
+public,cleanup_expired_ai_insights_cache,void,,plpgsql,true
+public,complete_user_onboarding,json,"user_id uuid, org_name text, org_slug text DEFAULT NULL::text, user_role text DEFAULT 'hiring_manager'::text, company_size text DEFAULT NULL::text, owner_role text DEFAULT 'admin'::text",plpgsql,true
+public,create_default_pipeline_columns,void,org_id_param uuid,plpgsql,false
+public,create_user_profile,trigger,,plpgsql,true
+public,generate_org_slug,text,org_name text,plpgsql,false
+public,get_active_email_template,"TABLE(template_id uuid, sendgrid_template_id text, fallback_subject text, fallback_html text, fallback_text text, template_variables jsonb)","p_org_id uuid, p_event_type text",sql,false
+public,get_dashboard_stats,"TABLE(total_candidates bigint, active_candidates bigint, recent_candidates bigint, total_jobs bigint, open_jobs bigint, recent_jobs bigint, last_updated timestamp with time zone)",target_org_id uuid,sql,false
+public,get_org_stats,"TABLE(total_jobs bigint, active_jobs bigint, total_candidates bigint, total_applications bigint, this_month_applications bigint)",org_uuid uuid,plpgsql,false
+public,get_pipeline_candidates,"TABLE(candidate_id uuid, candidate_name text, candidate_email text, stage text, notes_count integer, last_update timestamp with time zone)","job_id_param uuid, org_id_param uuid",sql,false
+public,get_seat_usage,"TABLE(seats_used integer, seats_purchased integer, seats_available integer, org_name text)",target_org_id uuid,plpgsql,true
+public,get_timezone_names,TABLE(name text),,sql,false
+public,get_timezone_names_cached,SETOF text,,sql,false
+public,get_timezones_cached,TABLE(name text),,sql,false
+public,get_top_skills,"TABLE(skill_name text, skill_count bigint, skill_rank bigint)","target_org_id uuid, skill_limit integer DEFAULT 10",sql,false
+public,get_user_current_organization,json,user_id uuid,plpgsql,true
+public,get_user_org_ids,uuid[],user_uuid uuid,sql,true
+public,get_user_role,text,,sql,true
+public,get_user_role,text,user_uuid uuid,plpgsql,true
+public,get_user_role_safe,text,user_uuid uuid,plpgsql,false
+public,handle_new_organization,trigger,,plpgsql,true
+public,handle_new_user,trigger,,plpgsql,true
+public,has_recruiter_access,boolean,target_org_id uuid,plpgsql,true
+public,has_role,boolean,required_role text,sql,true
+public,is_authenticated,boolean,,sql,false
+public,is_demo_viewer,boolean,user_id uuid,sql,true
+public,is_org_admin,boolean,target_org_id uuid,plpgsql,true
+public,is_platform_admin,boolean,,plpgsql,true
+public,is_self_or_org_member,boolean,user_uuid uuid,sql,false
+public,link_beta_application,void,"user_email text, user_id_param uuid",plpgsql,true
+public,log_email_event,uuid,"p_org_id uuid, p_event_type text, p_recipient_email text, p_recipient_name text DEFAULT NULL::text, p_sendgrid_message_id text DEFAULT NULL::text, p_template_id uuid DEFAULT NULL::uuid, p_job_id uuid DEFAULT NULL::uuid, p_candidate_id uuid DEFAULT NULL::uuid, p_status text DEFAULT 'sent'::text, p_template_data jsonb DEFAULT '{}'::jsonb, p_metadata jsonb DEFAULT '{}'::jsonb",sql,false
+public,mark_beta_organization,trigger,,plpgsql,false
+public,optimize_session_for_analytics,void,,sql,false
+public,refresh_analytics_cache,void,,plpgsql,false
+public,refresh_dashboard_snapshot,void,,sql,true
+public,refresh_performance_cache,void,,plpgsql,false
+public,refresh_recruitment_metrics,void,,plpgsql,false
+public,refresh_timezone_cache,void,,sql,false
+public,remove_skills_from_candidate_array,boolean,"_candidate_id uuid, _skills_to_remove text[]",plpgsql,false
+public,search_candidates_by_skills,"TABLE(id uuid, name character varying, email character varying, phone character varying, skills text[], experience_level text, total_years_experience integer, matched_skills text[], skill_match_count integer)",_required_skills text[],plpgsql,false
+public,set_organization_slug,trigger,,plpgsql,false
+public,stage_order_of,integer,p_stage text,sql,false
+public,update_candidate_notes_updated_at,trigger,,plpgsql,false
+public,update_candidate_search_content,trigger,,plpgsql,false
+public,update_pipeline_columns_timestamp,trigger,,plpgsql,false
+public,update_updated_at_column,trigger,,plpgsql,false
+public,user_org_context,uuid,,sql,false

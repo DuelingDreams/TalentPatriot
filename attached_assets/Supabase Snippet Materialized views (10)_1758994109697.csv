@@ -1,0 +1,7 @@
+schemaname,matviewname
+public,cached_timezones
+public,mv_dashboard_analytics
+public,mv_dashboard_snapshot
+public,mv_function_metadata
+public,mv_skills_analysis
+public,mv_timezone_names
