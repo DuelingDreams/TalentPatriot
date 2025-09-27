@@ -134,6 +134,24 @@ export const candidates = pgTable("candidates", {
   education: text("education"), // JSON string of education data
   summary: text("summary"),
   searchableContent: text("searchable_content"), // For full-text search
+  // Extended candidate profile fields
+  linkedinUrl: text("linkedin_url"),
+  portfolioUrl: text("portfolio_url"),
+  workAuthorization: varchar("work_authorization", { length: 100 }),
+  visaSponsorship: varchar("visa_sponsorship", { length: 100 }),
+  ageConfirmation: varchar("age_confirmation", { length: 50 }),
+  previousEmployee: varchar("previous_employee", { length: 50 }),
+  referralSource: varchar("referral_source", { length: 100 }),
+  employmentHistory: text("employment_history"),
+  comprehensiveEducation: text("comprehensive_education"),
+  dataPrivacyAck: boolean("data_privacy_ack").default(false),
+  aiAcknowledgment: boolean("ai_acknowledgment").default(false),
+  gender: varchar("gender", { length: 50 }),
+  raceEthnicity: varchar("race_ethnicity", { length: 100 }),
+  veteranStatus: varchar("veteran_status", { length: 50 }),
+  disabilityStatus: varchar("disability_status", { length: 50 }),
+  // CRITICAL: Skills proficiency levels (JSON object mapping skills to levels)
+  skillLevels: jsonb("skill_levels"),
 });
 
 // Pipeline columns for Kanban board (job-specific with backward compatibility)
@@ -478,6 +496,58 @@ export const importRecords = pgTable("import_records", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Job Pipeline Stage Events (stage transition tracking)
+export const jobPipelineStageEvents = pgTable("job_pipeline_stage_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  jobCandidateId: uuid("job_candidate_id").references(() => jobCandidate.id).notNull(),
+  fromStage: text("from_stage"),
+  toStage: text("to_stage").notNull(),
+  changedBy: uuid("changed_by").notNull(),
+  changeReason: text("change_reason"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Notes (general notes table)
+export const notes = pgTable("notes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  entityType: varchar("entity_type", { length: 50 }).notNull(), // 'candidate', 'job', 'client', etc.
+  entityId: uuid("entity_id").notNull(),
+  authorId: uuid("author_id").notNull(),
+  content: text("content").notNull(),
+  isPrivate: boolean("is_private").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Schema Migrations (tracks database migrations)
+export const schemaMigrations = pgTable("schema_migrations", {
+  version: varchar("version", { length: 255 }).primaryKey(),
+  appliedAt: timestamp("applied_at").defaultNow().notNull(),
+});
+
+// Stage Order (defines order of pipeline stages)
+export const stageOrder = pgTable("stage_order", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  stage: text("stage").notNull(),
+  orderIndex: integer("order_index").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Timezone Cache (cached timezone data)
+export const timezoneCache = pgTable("timezone_cache", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  displayName: text("display_name"),
+  offset: varchar("offset", { length: 10 }),
+  region: varchar("region", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueTimezoneName: uniqueIndex("unique_timezone_name").on(table.name),
+}));
+
 
 // Insert schemas
 
@@ -517,6 +587,10 @@ export const insertJobSchema = createInsertSchema(jobs).omit({
 export const insertCandidateSchema = createInsertSchema(candidates).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
+}).extend({
+  skills: z.array(z.string()).optional(),
+  skillLevels: z.record(z.string(), z.number()).optional(), // Map of skill -> proficiency level
 });
 
 export const insertJobCandidateSchema = createInsertSchema(jobCandidate).omit({
@@ -610,6 +684,28 @@ export const insertEmailEventSchema = createInsertSchema(emailEvents).omit({
   deliveredAt: true,
   openedAt: true,
   clickedAt: true,
+});
+
+// Insert schemas for new tables
+export const insertJobPipelineStageEventSchema = createInsertSchema(jobPipelineStageEvents).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNoteSchema = createInsertSchema(notes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStageOrderSchema = createInsertSchema(stageOrder).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTimezoneCacheSchema = createInsertSchema(timezoneCache).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertDataImportSchema = createInsertSchema(dataImports).omit({
@@ -708,6 +804,21 @@ export type InsertDataImport = z.infer<typeof insertDataImportSchema>;
 
 export type ImportRecord = typeof importRecords.$inferSelect;
 export type InsertImportRecord = z.infer<typeof insertImportRecordSchema>;
+
+// Types for new tables
+export type JobPipelineStageEvent = typeof jobPipelineStageEvents.$inferSelect;
+export type InsertJobPipelineStageEvent = z.infer<typeof insertJobPipelineStageEventSchema>;
+
+export type Note = typeof notes.$inferSelect;
+export type InsertNote = z.infer<typeof insertNoteSchema>;
+
+export type SchemaMigration = typeof schemaMigrations.$inferSelect;
+
+export type StageOrder = typeof stageOrder.$inferSelect;
+export type InsertStageOrder = z.infer<typeof insertStageOrderSchema>;
+
+export type TimezoneCache = typeof timezoneCache.$inferSelect;
+export type InsertTimezoneCache = z.infer<typeof insertTimezoneCacheSchema>;
 
 // Pagination Types
 
