@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { 
   Users, 
   Building2, 
@@ -20,12 +20,30 @@ import {
   ChevronRight,
   DollarSign,
   Mail,
-  ChevronDown
+  ChevronDown,
+  Play,
+  Search,
+  Calendar,
+  Archive
 } from 'lucide-react'
 import { Link } from 'wouter'
-import { flags } from '@/lib/flags'
+import { useEffect } from 'react'
 
 export default function Landing() {
+  // Set SEO meta tags
+  useEffect(() => {
+    document.title = "TalentPatriot — SMB ATS with Fast Setup & Fair Pricing"
+    
+    // Set or update meta description
+    let metaDescription = document.querySelector('meta[name="description"]')
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta')
+      metaDescription.setAttribute('name', 'description')
+      document.head.appendChild(metaDescription)
+    }
+    metaDescription.setAttribute('content', 'An SMB-first ATS with fast setup, fair pricing, accessibility-first design, and AI that works. Launch your branded careers page in under a day.')
+  }, [])
+
   return (
     <div className="min-h-screen bg-[#F7F9FC] font-[Inter,sans-serif]">
       {/* Skip to Content Link */}
@@ -77,17 +95,17 @@ export default function Landing() {
         <section className="pt-32 py-16 bg-[#F7F9FC]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#1A1A1A] mb-6 tracking-tight font-[Inter,sans-serif]">
-            SMB-First ATS with Built-In AI & Fair Pricing
+            An ATS Built for SMBs: Fast Setup, Fair Pricing, AI That Works.
           </h1>
           
           <p className="text-lg md:text-xl lg:text-2xl text-[#1F3A5F] font-medium mb-8 max-w-4xl mx-auto font-[Inter,sans-serif]">
-            Post jobs, parse resumes automatically, and launch your branded careers page in under a day—pay only for recruiter seats, while collaborators are always free.
+            Hire Faster. Spend Less. Stay Simple.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Link href="/beta">
               <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Apply for Beta Access
+                Start Free in Beta
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -103,7 +121,7 @@ export default function Landing() {
 
           {/* Trust Note */}
           <p className="text-sm text-[#5C667B] mb-8 font-[Inter,sans-serif]">
-            Trusted by growing SMB teams & boutique agencies. Free during private beta.
+            Trusted by growing SMB teams & boutique staffing agencies.
           </p>
 
           {/* Clarification Text */}
@@ -151,16 +169,16 @@ export default function Landing() {
             Why TalentPatriot
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 overflow-hidden">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <CardContent className="p-8 text-center relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
-                  <Zap className="w-10 h-10 text-[#1F3A5F]" />
+                  <DollarSign className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Built-in AI for parsing & matching</h3>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Fair Pricing</h3>
                 <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Find qualified candidates fast
+                  Only recruiter seats cost. Unlimited collaborators are always free.
                 </p>
               </CardContent>
             </Card>
@@ -169,11 +187,11 @@ export default function Landing() {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <CardContent className="p-8 text-center relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
-                  <DollarSign className="w-10 h-10 text-[#1F3A5F]" />
+                  <Shield className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Only recruiter seats cost</h3>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Accessibility-First</h3>
                 <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Add unlimited hiring managers & viewers for free
+                  WCAG-minded, inclusive by design.
                 </p>
               </CardContent>
             </Card>
@@ -184,9 +202,9 @@ export default function Landing() {
                 <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
                   <Building2 className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Multi-client pipelines</h3>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Multi-client Pipelines</h3>
                 <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Great for small staffing firms and internal HR
+                  Ideal for boutique staffing firms and consultants.
                 </p>
               </CardContent>
             </Card>
@@ -195,24 +213,11 @@ export default function Landing() {
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               <CardContent className="p-8 text-center relative">
                 <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
-                  <Shield className="w-10 h-10 text-[#1F3A5F]" />
-                </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Accessibility-first (WCAG-minded)</h3>
-                <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  Inclusive by design
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <CardContent className="p-8 text-center relative">
-                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
                   <Rocket className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Launch in under a day</h3>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Go Live in Under a Day</h3>
                 <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed font-medium">
-                  5-step onboarding + branded careers page
+                  5-step onboarding + branded careers page.
                 </p>
               </CardContent>
             </Card>
@@ -345,8 +350,8 @@ export default function Landing() {
                 <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
                   <Building2 className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300 leading-tight">CRM-lite for contacts (talent pools)</h3>
-                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Organize and nurture your talent network</p>
+                <h3 className="text-lg sm:text-xl font-bold text-[#0F1419] mb-3 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300 leading-tight">CRM-lite Talent Pools</h3>
+                <p className="text-sm text-[#5C667B] leading-relaxed font-[Inter,sans-serif]">Organize and nurture your candidate network.</p>
               </CardContent>
             </Card>
           </div>
@@ -354,167 +359,117 @@ export default function Landing() {
       </section>
 
       {/* Demo Video Section */}
-      <section id="demo" aria-label="Product demo" className="py-16 bg-[#F7F9FC]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-12">
+      <section id="demo" className="py-16 bg-[#F7F9FC]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
             See TalentPatriot in Action
           </h2>
           
-          <div className="relative w-full max-w-4xl mx-auto aspect-video rounded-2xl overflow-hidden shadow-lg">
-            <video 
-              controls 
-              preload="metadata" 
-              poster="/video-tour.jpg"
-              className="w-full h-full bg-white"
-              aria-describedby="video-description"
-            >
-              <source src="/video-tour.webm" type="video/webm" />
-              <source src="/video-tour.mp4" type="video/mp4" />
-              <track kind="captions" src="/video-tour.vtt" srcLang="en" label="English" default />
-              Your browser does not support the video tag. Please <a href="/video-tour.mp4" className="text-[#1F3A5F] underline">download the video</a> to watch.
-            </video>
-          </div>
-          
-          <div className="text-center mt-6">
-            <p id="video-description" className="text-sm text-[#5C667B] mb-2 font-[Inter,sans-serif]">
-              Two-minute product tour with captions available
-            </p>
-            <a 
-              href="/video-transcript.txt" 
-              className="text-sm text-[#1F3A5F] hover:text-[#264C99] underline font-[Inter,sans-serif] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] focus:ring-offset-2 rounded"
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              View transcript
-            </a>
-          </div>
-          
-          <p className="sr-only">Two-minute tour with captions available.</p>
-        </div>
-      </section>
-
-      {/* Social Proof Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <CardContent className="p-8 sm:p-10 relative">
-                <div className="absolute top-6 left-6 w-8 h-8 bg-gradient-to-br from-[#E6F2FF] to-[#D1E7FF] rounded-full flex items-center justify-center shadow-md border border-[#B8D4FF]">
-                  <span className="text-2xl text-[#1F3A5F] font-serif leading-none">"</span>
-                </div>
-                <blockquote className="mt-6">
-                  <p className="text-lg sm:text-xl text-[#1A1A1A] mb-6 font-[Inter,sans-serif] leading-relaxed italic group-hover:text-[#0F1419] transition-colors duration-300">
-                    We filled roles faster, and didn't pay for hiring manager logins.
-                  </p>
-                  <footer className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#D1E7FF] to-[#E6F2FF] rounded-full flex items-center justify-center border border-[#B8D4FF]">
-                      <UserCheck className="w-5 h-5 text-[#1F3A5F]" />
+          <div className="max-w-4xl mx-auto">
+            <Card className="overflow-hidden border border-[#D1E7FF] shadow-xl">
+              <CardContent className="p-0">
+                <AspectRatio ratio={16 / 9}>
+                  <div className="w-full h-full bg-gradient-to-br from-[#F0F4F8] to-[#E6F0FF] flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <Play className="w-8 h-8 text-[#1F3A5F] ml-1" />
+                      </div>
+                      <p className="text-[#1A1A1A] text-lg font-medium font-[Inter,sans-serif] mb-2">Product Demo Video</p>
+                      <p className="text-[#5C667B] text-sm font-[Inter,sans-serif]">Coming Soon</p>
                     </div>
-                    <cite className="text-sm text-[#5C667B] font-medium not-italic font-[Inter,sans-serif]">
-                      SMB Recruiter
-                    </cite>
-                  </footer>
-                </blockquote>
+                  </div>
+                </AspectRatio>
               </CardContent>
             </Card>
             
-            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1 focus-within:ring-2 focus-within:ring-[#1F3A5F] focus-within:ring-offset-2">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <CardContent className="p-8 sm:p-10 relative">
-                <div className="absolute top-6 left-6 w-8 h-8 bg-gradient-to-br from-[#E6F2FF] to-[#D1E7FF] rounded-full flex items-center justify-center shadow-md border border-[#B8D4FF]">
-                  <span className="text-2xl text-[#1F3A5F] font-serif leading-none">"</span>
+            <div className="text-center mt-4">
+              <p className="text-sm text-[#5C667B] font-[Inter,sans-serif] mb-2">Two-minute product tour with captions available</p>
+              <Link href="/demo-transcript">
+                <Button variant="outline" size="sm" className="text-[#1F3A5F] border-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white">
+                  View transcript
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Strip */}
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] text-center mb-12 font-[Inter,sans-serif]">
+            Enterprise Power. SMB Simplicity.
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-8 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <DollarSign className="w-10 h-10 text-[#1F3A5F]" />
                 </div>
-                <blockquote className="mt-6">
-                  <p className="text-lg sm:text-xl text-[#1A1A1A] mb-6 font-[Inter,sans-serif] leading-relaxed italic group-hover:text-[#0F1419] transition-colors duration-300">
-                    Multi-client pipelines = less chaos for our boutique agency.
-                  </p>
-                  <footer className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#D1E7FF] to-[#E6F2FF] rounded-full flex items-center justify-center border border-[#B8D4FF]">
-                      <Building2 className="w-5 h-5 text-[#1F3A5F]" />
-                    </div>
-                    <cite className="text-sm text-[#5C667B] font-medium not-italic font-[Inter,sans-serif]">
-                      Agency Owner
-                    </cite>
-                  </footer>
-                </blockquote>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Fair Pricing</h3>
+                <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed">
+                  Only recruiter seats pay — unlimited collaborators free
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#1F3A5F] transition-all duration-300 hover:-translate-y-1">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#1F3A5F] to-[#264C99] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-8 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#E8F2FF] to-[#D1E7FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Shield className="w-10 h-10 text-[#1F3A5F]" />
+                </div>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#1F3A5F] transition-colors duration-300">Accessibility-First</h3>
+                <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed">
+                  Accessibility-first (WCAG-minded)
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="group relative bg-white border border-[#D1E7FF] shadow-sm hover:shadow-xl hover:border-[#264C99] transition-all duration-300 hover:-translate-y-1">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#264C99] to-[#1F3A5F] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-8 text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-[#D1E7FF] to-[#E8F2FF] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg border border-[#B8D4FF]">
+                  <Rocket className="w-10 h-10 text-[#1F3A5F]" />
+                </div>
+                <h3 className="text-xl font-bold text-[#0F1419] mb-4 font-[Inter,sans-serif] group-hover:text-[#264C99] transition-colors duration-300">Quick Launch</h3>
+                <p className="text-base text-[#3D4852] font-[Inter,sans-serif] leading-relaxed">
+                  Launch in under a day
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Pricing Teaser Section */}
+      {/* Bottom CTA Section */}
       <section className="py-16 bg-[#F7F9FC]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1A1A1A] mb-6 font-[Inter,sans-serif]">
-            Pricing Designed for SMBs
-          </h2>
-          <p className="text-lg md:text-xl text-[#5C667B] mb-8 font-[Inter,sans-serif]">
-            From $129/month for 3 recruiter seats, unlimited collaborators included.
-          </p>
-          <Link href="/pricing">
-            <Button className="bg-[#1F3A5F] hover:bg-[#264C99] text-white px-8 py-4 rounded-md font-medium text-base transition-colors">
-              View Pricing
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1A1A1A] mb-8 font-[Inter,sans-serif]">
-            Ready to Hire Smarter?
+            Stop Wrestling with Clunky ATSs. Start Hiring Smarter.
           </h2>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/beta">
               <Button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto">
-                Apply for Beta Access
+                Start Free in Beta
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Button 
               variant="outline" 
               className="border-[#1F3A5F] text-[#1F3A5F] hover:bg-[#1F3A5F] hover:text-white px-8 py-4 rounded-md font-medium text-base transition-colors w-full sm:w-auto"
-              onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                // Simple demo request logic - could integrate with calendly or similar
+                window.location.href = 'mailto:demo@talentpatriot.com?subject=Demo Request&body=I would like to request a demo of TalentPatriot.'
+              }}
             >
-              Watch a 2-min Tour
+              Request a Demo
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
-        </div>
-      </section>
-
-      {/* Email Capture Section */}
-      <section className="py-16 bg-gradient-to-br from-[#1F3A5F] to-[#264C99] text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 md:px-12 text-center">
-          <Mail className="w-12 h-12 mx-auto mb-6 opacity-90" />
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white font-[Inter,sans-serif]">
-            Get Early Access Updates
-          </h2>
-          <p className="text-xl mb-8 text-white/95 max-w-2xl mx-auto font-[Inter,sans-serif] leading-relaxed">
-            Not ready for the full beta application? Get notified about product updates, 
-            new features, and early access opportunities.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
-            <Input 
-              type="email" 
-              placeholder="Enter your email address"
-              className="flex-1 bg-white/10 border-white/30 text-white placeholder:text-white/70 focus:bg-white/20 focus:border-white/60 focus:ring-white/20 px-4 py-3 rounded-lg"
-            />
-            <Button className="bg-white text-[#1F3A5F] hover:bg-white/90 px-8 py-3 font-medium whitespace-nowrap rounded-lg shadow-lg hover:shadow-xl transition-all">
-              Get Updates
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-          
-          <p className="text-sm text-white/90 mt-6 font-[Inter,sans-serif]">
-            No spam. Unsubscribe anytime. Updates about TalentPatriot's development only.
-          </p>
         </div>
       </section>
       </main>

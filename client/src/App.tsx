@@ -65,6 +65,7 @@ const BetaApplicationsAdmin = lazy(() => import("@/features/admin/pages/BetaAppl
 const ResumeParsingDemo = lazy(() => import("@/features/public/pages/ResumeParsingDemo"));
 const EmailSettingsAdmin = lazy(() => import("@/features/admin/pages/EmailSettingsAdmin"));
 const DataImport = lazy(() => import("@/features/admin/pages/DataImport"));
+const DemoTranscript = lazy(() => import("@/features/public/pages/DemoTranscript"));
 
 
 // Global error handler for SSL and network issues
@@ -151,6 +152,7 @@ function Router() {
         <Route path="/about" component={About} />
         <Route path="/pricing" component={Pricing} />
         <Route path="/beta" component={BetaProgram} />
+        <Route path="/demo-transcript" component={DemoTranscript} />
 
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={TermsOfService} />
