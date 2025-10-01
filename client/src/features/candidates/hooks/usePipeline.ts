@@ -180,17 +180,16 @@ export function useMoveApplication(jobId: string) {
     onMutate: async ({ applicationId, columnId }) => {
       console.log('[useMoveApplication] Starting optimistic update:', { applicationId, columnId });
       
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ 
         predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
       });
       
-      // Snapshot the previous value for rollback
-      const previousDataFalse = queryClient.getQueryData(['job-pipeline', jobId, { includeCompleted: false }]);
-      const previousDataTrue = queryClient.getQueryData(['job-pipeline', jobId, { includeCompleted: true }]);
+      // Snapshot and update the main query (includeCompleted: false)
+      const previousData = queryClient.getQueryData(['job-pipeline', jobId, { includeCompleted: false }]);
       
-      // Optimistically update both includeCompleted variants
-      const updateFn = (old: any) => {
+      // Optimistically update the cache
+      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], (old: any) => {
         if (!old || !old.applications) return old;
         
         const updatedApplications = old.applications.map((app: any) => {
@@ -206,13 +205,10 @@ export function useMoveApplication(jobId: string) {
         });
         
         return { ...old, applications: updatedApplications };
-      };
+      });
       
-      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], updateFn);
-      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: true }], updateFn);
-      
-      // Return both snapshots for rollback
-      return { previousDataFalse, previousDataTrue };
+      // Return snapshot for rollback
+      return { previousData };
     },
     
     onSuccess: (data: any) => {
@@ -228,14 +224,9 @@ export function useMoveApplication(jobId: string) {
       console.error('[useMoveApplication] Move failed:', error);
       
       // Rollback optimistic update
-      if (context) {
+      if (context?.previousData !== undefined) {
         console.log('[useMoveApplication] Rolling back optimistic update');
-        if (context.previousDataFalse !== undefined) {
-          queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], context.previousDataFalse);
-        }
-        if (context.previousDataTrue !== undefined) {
-          queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: true }], context.previousDataTrue);
-        }
+        queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], context.previousData);
       }
       
       // Re-throw error for the component to handle with user-friendly messages
