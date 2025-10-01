@@ -181,19 +181,21 @@ export function useMoveApplication(jobId: string) {
       console.log('[useMoveApplication] Starting optimistic update:', { applicationId, columnId });
       
       // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ['job-pipeline', jobId] });
+      await queryClient.cancelQueries({ 
+        predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
+      });
       
       // Snapshot the previous value for rollback
-      const previousData = queryClient.getQueryData(['job-pipeline', jobId]);
+      const previousDataFalse = queryClient.getQueryData(['job-pipeline', jobId, { includeCompleted: false }]);
+      const previousDataTrue = queryClient.getQueryData(['job-pipeline', jobId, { includeCompleted: true }]);
       
-      // Optimistically update the data
-      queryClient.setQueryData(['job-pipeline', jobId], (old: any) => {
+      // Optimistically update both includeCompleted variants
+      const updateFn = (old: any) => {
         if (!old || !old.applications) return old;
         
         const updatedApplications = old.applications.map((app: any) => {
-          // Match by applicationId (job_candidate.id) directly
           if (app.id === applicationId) {
-            console.log('[Optimistic Update] Found matching application:', { 
+            console.log('[Optimistic Update] Updating application:', { 
               applicationId, 
               oldColumnId: app.columnId, 
               newColumnId: columnId 
@@ -204,27 +206,36 @@ export function useMoveApplication(jobId: string) {
         });
         
         return { ...old, applications: updatedApplications };
-      });
+      };
       
-      // Return context object with the snapshotted value
-      return { previousData };
+      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], updateFn);
+      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: true }], updateFn);
+      
+      // Return both snapshots for rollback
+      return { previousDataFalse, previousDataTrue };
     },
     
     onSuccess: (data: any) => {
       console.log('[useMoveApplication] Move successful - data updated in database');
       
-      // Invalidate to force a fresh fetch from the server
-      // This ensures we get the exact database state including any server-side updates
-      queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
+      // Invalidate all matching queries to force a fresh fetch from the server
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
+      });
     },
     
     onError: (error, { applicationId }, context) => {
       console.error('[useMoveApplication] Move failed:', error);
       
       // Rollback optimistic update
-      if (context?.previousData) {
+      if (context) {
         console.log('[useMoveApplication] Rolling back optimistic update');
-        queryClient.setQueryData(['job-pipeline', jobId], context.previousData);
+        if (context.previousDataFalse !== undefined) {
+          queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], context.previousDataFalse);
+        }
+        if (context.previousDataTrue !== undefined) {
+          queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: true }], context.previousDataTrue);
+        }
       }
       
       // Re-throw error for the component to handle with user-friendly messages
