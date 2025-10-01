@@ -267,13 +267,12 @@ app.use("/api", (req, res, next) => {
 });
 
 (async () => {
-  // Initialize Supabase Storage setup
-  const storageConnected = await testStorageConnection();
-  if (storageConnected) {
-    await ensureResumesBucket();
-  }
-
   const server = await registerRoutes(app);
+
+  // Add health check endpoint that responds immediately (before heavy initialization)
+  app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
@@ -302,5 +301,18 @@ app.use("/api", (req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Initialize Supabase Storage asynchronously after server starts
+    // This prevents cold start delays from blocking initial requests
+    (async () => {
+      try {
+        const storageConnected = await testStorageConnection();
+        if (storageConnected) {
+          await ensureResumesBucket();
+        }
+      } catch (error) {
+        console.error('Background storage initialization failed:', error);
+      }
+    })();
   });
 })();

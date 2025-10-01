@@ -5,21 +5,23 @@ import type { Database } from '@/types/supabase'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Validate environment variables with safer error handling
-if (!supabaseUrl) {
-  console.error('Missing env.VITE_SUPABASE_URL - Auth features will not work')
+// Validate environment variables - fail fast if missing
+if (!supabaseUrl || !supabaseAnonKey) {
+  const missing = [];
+  if (!supabaseUrl) missing.push('VITE_SUPABASE_URL');
+  if (!supabaseAnonKey) missing.push('VITE_SUPABASE_ANON_KEY');
+  
+  const errorMsg = `FATAL: Missing required environment variables: ${missing.join(', ')}. 
+    
+    For production deployments, ensure these are set in your deployment environment.
+    For local development, add them to your .env file.`;
+  
+  console.error(errorMsg);
+  throw new Error(errorMsg);
 }
 
-if (!supabaseAnonKey) {
-  console.error('Missing env.VITE_SUPABASE_ANON_KEY - Auth features will not work')
-}
-
-// Create a dummy URL if not provided to prevent crashes
-const safeSupabaseUrl = supabaseUrl || 'https://placeholder.supabase.co'
-const safeSupabaseAnonKey = supabaseAnonKey || 'placeholder-key'
-
-// Create and export the Supabase client with error handling
-export const supabase = createClient<Database>(safeSupabaseUrl, safeSupabaseAnonKey, {
+// Create and export the Supabase client
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
