@@ -69,36 +69,70 @@ interface AuthenticatedRequest extends express.Request {
   };
 }
 
-// Middleware to verify Supabase authentication
+// Middleware to verify authentication (supports both development and production)
 async function requireAuth(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
+    const devUserId = req.headers['x-user-id'] as string;
+    const allowDevAuth = process.env.ALLOW_DEV_AUTH === 'true' || process.env.NODE_ENV === 'development';
+
+    // If Bearer token is present, always use production auth path
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      
+      if (!supabaseAdmin) {
+        console.error('[AUTH] Supabase admin client unavailable');
+        return res.status(500).json({ error: 'Authentication system unavailable', code: 'AUTH_SYSTEM_UNAVAILABLE' });
+      }
+
+      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+      if (error || !user) {
+        console.error('[AUTH] Invalid bearer token:', error?.message);
+        return res.status(401).json({ error: 'Invalid authentication token', code: 'INVALID_TOKEN' });
+      }
+
+      // Get user profile for role information
+      const userProfile = await storage.getUserProfile(user.id);
+      
+      req.user = {
+        id: user.id,
+        email: user.email || '',
+        role: userProfile?.role || 'hiring_manager'
+      };
+
+      console.log(`[AUTH] Authenticated user ${user.id} via Bearer token`);
+      return next();
     }
 
-    const token = authHeader.substring(7);
-    if (!supabaseAdmin) {
-      return res.status(500).json({ error: 'Authentication system unavailable', code: 'AUTH_SYSTEM_UNAVAILABLE' });
+    // Development mode: Use x-user-id header only when explicitly allowed and no Bearer token
+    if (allowDevAuth && devUserId && !authHeader) {
+      try {
+        const userProfile = await storage.getUserProfile(devUserId);
+        
+        if (!userProfile) {
+          console.error(`[AUTH] Dev user ${devUserId} not found in database`);
+          return res.status(401).json({ error: 'Invalid development user', code: 'INVALID_DEV_USER' });
+        }
+        
+        req.user = {
+          id: devUserId,
+          email: userProfile.email || `dev-user-${devUserId}@example.com`,
+          role: userProfile.role || 'hiring_manager'
+        };
+
+        console.log(`[AUTH] Development mode: Authenticated user ${devUserId}`);
+        return next();
+      } catch (error) {
+        console.error('[AUTH] Development auth error:', error);
+        return res.status(401).json({ error: 'Invalid development user', code: 'INVALID_DEV_USER' });
+      }
     }
 
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !user) {
-      return res.status(401).json({ error: 'Invalid authentication token', code: 'INVALID_TOKEN' });
-    }
-
-    // Get user profile for role information
-    const userProfile = await storage.getUserProfile(user.id);
-    
-    req.user = {
-      id: user.id,
-      email: user.email || '',
-      role: userProfile?.role || 'hiring_manager'
-    };
-
-    next();
+    // No valid authentication found
+    console.error('[AUTH] No valid authentication: Bearer token missing and dev auth not allowed or x-user-id missing');
+    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
   } catch (error) {
-    console.error('Authentication middleware error:', error);
+    console.error('[AUTH] Authentication middleware error:', error);
     res.status(500).json({ error: 'Authentication check failed', code: 'AUTH_CHECK_FAILED' });
   }
 }
@@ -136,12 +170,14 @@ async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response,
 
   try {
     // Check if user is org admin or owner
-    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
+    const userOrgs = await storage.getUserOrganizations(req.user.id, orgId);
+    const userOrg = userOrgs?.[0]; // Get the first (and should be only) match
     const organization = await storage.getOrganization(orgId);
     
     const isOrgAdmin = userOrg?.role === 'admin' || organization?.ownerId === req.user.id;
     
     if (!isOrgAdmin) {
+      console.error(`[AUTH] User ${req.user.id} denied org admin access to ${orgId}: role=${userOrg?.role}, isOwner=${organization?.ownerId === req.user.id}`);
       return res.status(403).json({ 
         error: 'Organization admin access required', 
         code: 'INSUFFICIENT_PERMISSIONS',
@@ -151,7 +187,7 @@ async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response,
 
     next();
   } catch (error) {
-    console.error('Organization admin check error:', error);
+    console.error('[AUTH] Organization admin check error:', error);
     res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
   }
 }
@@ -168,24 +204,35 @@ async function requireRecruiting(req: AuthenticatedRequest, res: express.Respons
   }
 
   try {
-    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
+    const userOrgs = await storage.getUserOrganizations(req.user.id, orgId);
+    const userOrg = userOrgs?.[0]; // Get the first (and should be only) match
+    
+    if (!userOrg) {
+      console.error(`[AUTH] User ${req.user.id} has no membership in org ${orgId}`);
+      return res.status(403).json({ 
+        error: 'Not a member of this organization', 
+        code: 'NOT_ORG_MEMBER' 
+      });
+    }
     
     // Check if user has recruiting role (recruiter, admin, or hiring_manager with seat)
-    const hasRecruiterRole = userOrg?.role === 'recruiter' || userOrg?.role === 'admin';
-    const hasHiringManagerWithSeat = userOrg?.role === 'hiring_manager' && userOrg?.isRecruiterSeat;
+    const hasRecruiterRole = userOrg.role === 'recruiter' || userOrg.role === 'admin';
+    const hasHiringManagerWithSeat = userOrg.role === 'hiring_manager' && userOrg.isRecruiterSeat;
     
     if (!hasRecruiterRole && !hasHiringManagerWithSeat) {
+      console.error(`[AUTH] User ${req.user.id} denied recruiting access to ${orgId}: role=${userOrg.role}, hasRecruiterSeat=${userOrg.isRecruiterSeat}`);
       return res.status(403).json({ 
         error: 'Recruiting access required', 
         code: 'RECRUITING_ACCESS_REQUIRED',
         message: 'This feature requires a recruiter role or hiring manager with recruiter seat.',
-        userRole: userOrg?.role || 'none',
-        hasRecruiterSeat: userOrg?.isRecruiterSeat || false
+        userRole: userOrg.role,
+        hasRecruiterSeat: userOrg.isRecruiterSeat || false
       });
     }
 
     // For billing purposes, ensure they have a paid seat (unless admin)
-    if (userOrg?.role !== 'admin' && !userOrg?.isRecruiterSeat) {
+    if (userOrg.role !== 'admin' && !userOrg.isRecruiterSeat) {
+      console.error(`[AUTH] User ${req.user.id} denied access - no recruiter seat in ${orgId}`);
       return res.status(403).json({ 
         error: 'Paid recruiter seat required', 
         code: 'RECRUITER_SEAT_REQUIRED',
@@ -195,7 +242,7 @@ async function requireRecruiting(req: AuthenticatedRequest, res: express.Respons
 
     next();
   } catch (error) {
-    console.error('Recruiting access check error:', error);
+    console.error('[AUTH] Recruiting access check error:', error);
     res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
   }
 }
