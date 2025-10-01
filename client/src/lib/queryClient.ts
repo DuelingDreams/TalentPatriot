@@ -183,7 +183,7 @@ function getCurrentOrgId(): string | null {
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn = <T = unknown>(options: {
   on401: UnauthorizedBehavior;
-}): QueryFunction<T> => {
+}): QueryFunction<T | null> => {
   const { on401: unauthorizedBehavior } = options;
   return async ({ queryKey }) => {
     try {

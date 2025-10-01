@@ -81,6 +81,8 @@ const corsOrigins = process.env.CORS_ORIGINS
       'https://*.replit.app',
       'https://*.replit.dev',
       'https://*.replit.co',
+      'http://localhost:5000',
+      'http://127.0.0.1:5000',
     ];
 
 app.use(cors({
@@ -91,8 +93,9 @@ app.use(cors({
     // Check if origin matches any pattern
     const allowed = corsOrigins.some(pattern => {
       if (pattern.includes('*')) {
-        // Convert wildcard pattern to regex
-        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        // Escape regex metacharacters (dots, etc.) then convert wildcard to regex
+        const escapedPattern = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+        const regex = new RegExp('^' + escapedPattern + '$');
         return regex.test(origin);
       }
       return pattern === origin;
@@ -159,14 +162,18 @@ app.use((req, res, next) => {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }
   
-  // Enhanced Content Security Policy
+  // Enhanced Content Security Policy with flexible API origin support
+  // Get API origin from environment for dynamic CSP
+  const apiOrigin = process.env.VITE_API_BASE_URL || process.env.CORS_ORIGINS?.split(',')[0] || '';
+  const apiOriginCsp = apiOrigin ? ` ${apiOrigin}` : '';
+  
   res.setHeader('Content-Security-Policy', 
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.googletagmanager.com; " +
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https: blob:; " +
-    "connect-src 'self' wss: https://*.supabase.co https://*.supabase.com https://*.replit.dev wss://*.replit.dev; " +
+    `connect-src 'self' https: wss: https://*.supabase.co https://*.supabase.com https://*.replit.app https://*.replit.dev https://*.replit.co wss://*.replit.dev${apiOriginCsp}; ` +
     "frame-ancestors 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self';" +
@@ -282,10 +289,10 @@ app.use("/api", (req, res, next) => {
     serveDualPathStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Serve the app on the configured port (default 5000)
+  // This serves both the API and the client.
+  // In production, PORT is set by the hosting platform
+  const port = parseInt(process.env.PORT || '5000', 10);
   server.listen({
     port,
     host: "0.0.0.0",
