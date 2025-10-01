@@ -3813,47 +3813,174 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // NEW: Move application using applicationId (job_candidate.id) - Primary endpoint
-  app.patch("/api/jobs/:jobId/applications/:applicationId/move", writeLimiter, async (req, res) => {
+  app.patch("/api/jobs/:jobId/applications/:applicationId/move", requireAuth, requireRecruiting, writeLimiter, async (req: AuthenticatedRequest, res) => {
     try {
-      const { applicationId } = req.params;
+      const { jobId, applicationId } = req.params;
       const { columnId } = req.body;
       
       if (!columnId) {
-        return res.status(400).json({ error: "Column ID is required" });
+        return res.status(400).json({ error: "Column ID is required", code: "MISSING_COLUMN_ID" });
       }
 
-      console.info('Moving application', applicationId, 'to column', columnId);
+      // Validate UUID format for columnId
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(columnId)) {
+        return res.status(400).json({ 
+          error: "Invalid column ID format - must be a valid UUID", 
+          code: "INVALID_COLUMN_ID_FORMAT" 
+        });
+      }
+
+      console.info('[API] Moving application', applicationId, 'to column', columnId, 'for job', jobId);
+      
+      // Validate that the column exists and belongs to this job/org
+      if (!supabaseAdmin) {
+        return res.status(500).json({ error: "Service unavailable", code: "SERVICE_UNAVAILABLE" });
+      }
+
+      const { data: column, error: columnError } = await supabaseAdmin
+        .from('pipeline_columns')
+        .select('id, job_id, org_id')
+        .eq('id', columnId)
+        .single();
+
+      if (columnError || !column) {
+        console.error('[API] Column validation error:', columnError);
+        return res.status(400).json({ 
+          error: "Invalid or non-existent pipeline column", 
+          code: "INVALID_COLUMN",
+          details: columnError?.message 
+        });
+      }
+
+      // Ensure column belongs to the same job
+      if (column.job_id !== jobId) {
+        return res.status(400).json({ 
+          error: "Pipeline column does not belong to this job", 
+          code: "COLUMN_JOB_MISMATCH" 
+        });
+      }
+
+      // Ensure user has access to this organization
+      const orgId = req.headers['x-org-id'] as string;
+      if (column.org_id !== orgId) {
+        return res.status(403).json({ 
+          error: "Not authorized to move candidates in this organization", 
+          code: "ORG_ACCESS_DENIED" 
+        });
+      }
       
       // Use the storage method to move the job candidate by applicationId
       const updatedJobCandidate = await storage.moveJobCandidate(applicationId, columnId);
+      
+      console.info('[API] Successfully moved application', applicationId, 'to column', columnId);
       
       res.json({ 
         message: "Application moved successfully",
         jobCandidate: updatedJobCandidate
       });
-    } catch (error) {
-      console.error("Error moving application:", error);
-      res.status(500).json({ error: "Failed to move application" });
+    } catch (error: any) {
+      console.error("[API] Error moving application:", error);
+      
+      // Provide specific error messages for common issues
+      if (error.message?.includes('not found')) {
+        return res.status(404).json({ 
+          error: "Application not found", 
+          code: "APPLICATION_NOT_FOUND" 
+        });
+      }
+      
+      if (error.message?.includes('permission') || error.message?.includes('policy')) {
+        return res.status(403).json({ 
+          error: "Not authorized to move this application", 
+          code: "MOVE_PERMISSION_DENIED",
+          details: error.message 
+        });
+      }
+      
+      res.status(500).json({ 
+        error: "Failed to move application", 
+        code: "MOVE_FAILED",
+        details: error.message 
+      });
     }
   });
 
   // NEW: Reject candidate endpoint
-  app.patch("/api/jobs/:jobId/applications/:applicationId/reject", writeLimiter, async (req, res) => {
+  app.patch("/api/jobs/:jobId/applications/:applicationId/reject", requireAuth, requireRecruiting, writeLimiter, async (req: AuthenticatedRequest, res) => {
     try {
-      const { applicationId } = req.params;
+      const { jobId, applicationId } = req.params;
 
-      console.info('Rejecting application', applicationId);
+      console.info('[API] Rejecting application', applicationId, 'for job', jobId);
+      
+      // Verify the application belongs to a job in the user's organization
+      if (!supabaseAdmin) {
+        return res.status(500).json({ error: "Service unavailable", code: "SERVICE_UNAVAILABLE" });
+      }
+
+      const { data: jobCandidate, error: jcError } = await supabaseAdmin
+        .from('job_candidate')
+        .select('id, job_id, org_id')
+        .eq('id', applicationId)
+        .single();
+
+      if (jcError || !jobCandidate) {
+        console.error('[API] Job candidate validation error:', jcError);
+        return res.status(404).json({ 
+          error: "Application not found", 
+          code: "APPLICATION_NOT_FOUND" 
+        });
+      }
+
+      // Ensure application belongs to the specified job
+      if (jobCandidate.job_id !== jobId) {
+        return res.status(400).json({ 
+          error: "Application does not belong to this job", 
+          code: "APPLICATION_JOB_MISMATCH" 
+        });
+      }
+
+      // Ensure user has access to this organization
+      const orgId = req.headers['x-org-id'] as string;
+      if (jobCandidate.org_id !== orgId) {
+        return res.status(403).json({ 
+          error: "Not authorized to reject candidates in this organization", 
+          code: "ORG_ACCESS_DENIED" 
+        });
+      }
       
       // Use the storage method to reject the job candidate
       const updatedJobCandidate = await storage.rejectJobCandidate(applicationId);
+      
+      console.info('[API] Successfully rejected application', applicationId);
       
       res.json({ 
         message: "Candidate rejected successfully",
         jobCandidate: updatedJobCandidate
       });
-    } catch (error) {
-      console.error("Error rejecting application:", error);
-      res.status(500).json({ error: "Failed to reject candidate" });
+    } catch (error: any) {
+      console.error("[API] Error rejecting application:", error);
+      
+      if (error.message?.includes('not found')) {
+        return res.status(404).json({ 
+          error: "Application not found", 
+          code: "APPLICATION_NOT_FOUND" 
+        });
+      }
+      
+      if (error.message?.includes('permission') || error.message?.includes('policy')) {
+        return res.status(403).json({ 
+          error: "Not authorized to reject this application", 
+          code: "REJECT_PERMISSION_DENIED",
+          details: error.message 
+        });
+      }
+      
+      res.status(500).json({ 
+        error: "Failed to reject candidate", 
+        code: "REJECT_FAILED",
+        details: error.message 
+      });
     }
   });
 
