@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
+import cors from "cors";
 import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import path from "path";
@@ -72,6 +73,45 @@ app.use(speedLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
+// CORS Configuration for cross-origin requests
+// Allow frontend on different domain to access API
+const corsOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : [
+      'https://*.replit.app',
+      'https://*.replit.dev',
+      'https://*.replit.co',
+    ];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin matches any pattern
+    const allowed = corsOrigins.some(pattern => {
+      if (pattern.includes('*')) {
+        // Convert wildcard pattern to regex
+        const regex = new RegExp('^' + pattern.replace(/\*/g, '.*') + '$');
+        return regex.test(origin);
+      }
+      return pattern === origin;
+    });
+    
+    if (allowed) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-org-id', 'x-user-id'],
+  exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset'],
+  maxAge: 86400, // 24 hours
+}));
+
 // Serve uploaded files (resumes) statically
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
@@ -126,7 +166,7 @@ app.use((req, res, next) => {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; " +
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https: blob:; " +
-    "connect-src 'self' https://*.supabase.co https://*.supabase.com; " +
+    "connect-src 'self' wss: https://*.supabase.co https://*.supabase.com https://*.replit.dev wss://*.replit.dev; " +
     "frame-ancestors 'none'; " +
     "base-uri 'self'; " +
     "form-action 'self';" +

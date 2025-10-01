@@ -6,6 +6,34 @@ function isHttpError(error: unknown): error is Error & { status?: number, messag
   return error instanceof Error && 'message' in error;
 }
 
+// Get API base URL from environment or default to current origin
+function getApiBaseUrl(): string {
+  const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envBaseUrl) {
+    return envBaseUrl;
+  }
+  
+  // In development or when no base URL is set, use same origin (relative paths)
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  
+  return '';
+}
+
+// Build full URL from relative or absolute path
+function buildUrl(url: string): string {
+  // If URL is already absolute, return as-is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  const baseUrl = getApiBaseUrl();
+  // Ensure URL starts with /
+  const path = url.startsWith('/') ? url : `/${url}`;
+  return `${baseUrl}${path}`;
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -85,7 +113,8 @@ export async function apiRequest<T = unknown>(
       }
     }
 
-    const res = await fetch(url, {
+    const fullUrl = buildUrl(url);
+    const res = await fetch(fullUrl, {
       method,
       headers,
       body: finalBody,
@@ -191,7 +220,8 @@ export const getQueryFn = <T = unknown>(options: {
         ...(currentUserId ? { "x-user-id": currentUserId } : {})
       };
 
-      const res = await fetch(url, {
+      const fullUrl = buildUrl(url);
+      const res = await fetch(fullUrl, {
         headers,
         credentials: "include",
       });
