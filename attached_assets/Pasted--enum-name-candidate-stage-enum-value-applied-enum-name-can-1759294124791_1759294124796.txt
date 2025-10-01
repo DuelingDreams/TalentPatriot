@@ -1,0 +1,302 @@
+[
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "applied"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "phone_screen"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "interview"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "technical"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "final"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "offer"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "hired"
+  },
+  {
+    "enum_name": "candidate_stage",
+    "enum_value": "rejected"
+  },
+  {
+    "enum_name": "experience_level",
+    "enum_value": "entry"
+  },
+  {
+    "enum_name": "experience_level",
+    "enum_value": "mid"
+  },
+  {
+    "enum_name": "experience_level",
+    "enum_value": "senior"
+  },
+  {
+    "enum_name": "experience_level",
+    "enum_value": "executive"
+  },
+  {
+    "enum_name": "import_status",
+    "enum_value": "pending"
+  },
+  {
+    "enum_name": "import_status",
+    "enum_value": "processing"
+  },
+  {
+    "enum_name": "import_status",
+    "enum_value": "completed"
+  },
+  {
+    "enum_name": "import_status",
+    "enum_value": "failed"
+  },
+  {
+    "enum_name": "import_status",
+    "enum_value": "cancelled"
+  },
+  {
+    "enum_name": "import_type",
+    "enum_value": "candidates"
+  },
+  {
+    "enum_name": "import_type",
+    "enum_value": "jobs"
+  },
+  {
+    "enum_name": "import_type",
+    "enum_value": "both"
+  },
+  {
+    "enum_name": "interview_status",
+    "enum_value": "scheduled"
+  },
+  {
+    "enum_name": "interview_status",
+    "enum_value": "completed"
+  },
+  {
+    "enum_name": "interview_status",
+    "enum_value": "cancelled"
+  },
+  {
+    "enum_name": "interview_status",
+    "enum_value": "no_show"
+  },
+  {
+    "enum_name": "interview_type",
+    "enum_value": "phone"
+  },
+  {
+    "enum_name": "interview_type",
+    "enum_value": "video"
+  },
+  {
+    "enum_name": "interview_type",
+    "enum_value": "in_person"
+  },
+  {
+    "enum_name": "interview_type",
+    "enum_value": "technical"
+  },
+  {
+    "enum_name": "job_status",
+    "enum_value": "draft"
+  },
+  {
+    "enum_name": "job_status",
+    "enum_value": "open"
+  },
+  {
+    "enum_name": "job_status",
+    "enum_value": "closed"
+  },
+  {
+    "enum_name": "job_status",
+    "enum_value": "on_hold"
+  },
+  {
+    "enum_name": "job_status",
+    "enum_value": "filled"
+  },
+  {
+    "enum_name": "job_type",
+    "enum_value": "full-time"
+  },
+  {
+    "enum_name": "job_type",
+    "enum_value": "part-time"
+  },
+  {
+    "enum_name": "job_type",
+    "enum_value": "contract"
+  },
+  {
+    "enum_name": "job_type",
+    "enum_value": "freelance"
+  },
+  {
+    "enum_name": "job_type",
+    "enum_value": "internship"
+  },
+  {
+    "enum_name": "message_priority",
+    "enum_value": "low"
+  },
+  {
+    "enum_name": "message_priority",
+    "enum_value": "normal"
+  },
+  {
+    "enum_name": "message_priority",
+    "enum_value": "high"
+  },
+  {
+    "enum_name": "message_priority",
+    "enum_value": "urgent"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "general"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "interview"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "application"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "team"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "internal"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "client"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "candidate"
+  },
+  {
+    "enum_name": "message_type",
+    "enum_value": "system"
+  },
+  {
+    "enum_name": "org_role",
+    "enum_value": "owner"
+  },
+  {
+    "enum_name": "org_role",
+    "enum_value": "admin"
+  },
+  {
+    "enum_name": "org_role",
+    "enum_value": "hiring_manager"
+  },
+  {
+    "enum_name": "org_role",
+    "enum_value": "recruiter"
+  },
+  {
+    "enum_name": "org_role",
+    "enum_value": "interviewer"
+  },
+  {
+    "enum_name": "org_role",
+    "enum_value": "viewer"
+  },
+  {
+    "enum_name": "organization_role",
+    "enum_value": "owner"
+  },
+  {
+    "enum_name": "organization_role",
+    "enum_value": "admin"
+  },
+  {
+    "enum_name": "organization_role",
+    "enum_value": "recruiter"
+  },
+  {
+    "enum_name": "organization_role",
+    "enum_value": "viewer"
+  },
+  {
+    "enum_name": "organization_role",
+    "enum_value": "hiring_manager"
+  },
+  {
+    "enum_name": "organization_role",
+    "enum_value": "interviewer"
+  },
+  {
+    "enum_name": "record_status",
+    "enum_value": "active"
+  },
+  {
+    "enum_name": "record_status",
+    "enum_value": "inactive"
+  },
+  {
+    "enum_name": "record_status",
+    "enum_value": "demo"
+  },
+  {
+    "enum_name": "remote_option",
+    "enum_value": "onsite"
+  },
+  {
+    "enum_name": "remote_option",
+    "enum_value": "remote"
+  },
+  {
+    "enum_name": "remote_option",
+    "enum_value": "hybrid"
+  },
+  {
+    "enum_name": "user_role",
+    "enum_value": "hiring_manager"
+  },
+  {
+    "enum_name": "user_role",
+    "enum_value": "recruiter"
+  },
+  {
+    "enum_name": "user_role",
+    "enum_value": "admin"
+  },
+  {
+    "enum_name": "user_role",
+    "enum_value": "interviewer"
+  },
+  {
+    "enum_name": "user_role",
+    "enum_value": "demo_viewer"
+  },
+  {
+    "enum_name": "user_role",
+    "enum_value": "platform_admin"
+  },
+  {
+    "enum_name": "user_role",
+    "enum_value": "user"
+  }
+]
