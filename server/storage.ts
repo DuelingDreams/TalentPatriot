@@ -1469,12 +1469,11 @@ export class DatabaseStorage implements IStorage {
     });
     
     // Database update with proper error handling
-    // NOTE: Temporarily removed stage update due to missing candidate_stage enum in database
-    // The pipeline_column_id is sufficient for Kanban board functionality
     const { data, error } = await supabase
       .from('job_candidate')
       .update({
         pipeline_column_id: newColumnId,
+        stage: stage,
         updated_at: new Date().toISOString()
       })
       .eq('id', jobCandidateId)
@@ -1515,13 +1514,12 @@ export class DatabaseStorage implements IStorage {
   async rejectJobCandidate(jobCandidateId: string): Promise<JobCandidate> {
     console.log(`[rejectJobCandidate] Rejecting candidate: ${jobCandidateId}`);
     
-    // Update candidate status to rejected and remove from pipeline column
-    // NOTE: Temporarily removed stage update due to missing candidate_stage enum in database
+    // Update candidate stage to 'rejected' and remove from pipeline column
     const { data, error } = await supabase
       .from('job_candidate')
       .update({
         pipeline_column_id: null, // Remove from kanban board
-        status: 'inactive', // Mark as inactive instead of using stage enum
+        stage: 'rejected',
         updated_at: new Date().toISOString()
       })
       .eq('id', jobCandidateId)

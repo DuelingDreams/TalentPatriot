@@ -69,70 +69,36 @@ interface AuthenticatedRequest extends express.Request {
   };
 }
 
-// Middleware to verify authentication (supports both development and production)
+// Middleware to verify Supabase authentication
 async function requireAuth(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
   try {
     const authHeader = req.headers.authorization;
-    const devUserId = req.headers['x-user-id'] as string;
-    const allowDevAuth = process.env.ALLOW_DEV_AUTH === 'true' || process.env.NODE_ENV === 'development';
-
-    // If Bearer token is present, always use production auth path
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      
-      if (!supabaseAdmin) {
-        console.error('[AUTH] Supabase admin client unavailable');
-        return res.status(500).json({ error: 'Authentication system unavailable', code: 'AUTH_SYSTEM_UNAVAILABLE' });
-      }
-
-      const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-      if (error || !user) {
-        console.error('[AUTH] Invalid bearer token:', error?.message);
-        return res.status(401).json({ error: 'Invalid authentication token', code: 'INVALID_TOKEN' });
-      }
-
-      // Get user profile for role information
-      const userProfile = await storage.getUserProfile(user.id);
-      
-      req.user = {
-        id: user.id,
-        email: user.email || '',
-        role: userProfile?.role || 'hiring_manager'
-      };
-
-      console.log(`[AUTH] Authenticated user ${user.id} via Bearer token`);
-      return next();
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
     }
 
-    // Development mode: Use x-user-id header only when explicitly allowed and no Bearer token
-    if (allowDevAuth && devUserId && !authHeader) {
-      try {
-        const userProfile = await storage.getUserProfile(devUserId);
-        
-        if (!userProfile) {
-          console.error(`[AUTH] Dev user ${devUserId} not found in database`);
-          return res.status(401).json({ error: 'Invalid development user', code: 'INVALID_DEV_USER' });
-        }
-        
-        req.user = {
-          id: devUserId,
-          email: userProfile.email || `dev-user-${devUserId}@example.com`,
-          role: userProfile.role || 'hiring_manager'
-        };
-
-        console.log(`[AUTH] Development mode: Authenticated user ${devUserId}`);
-        return next();
-      } catch (error) {
-        console.error('[AUTH] Development auth error:', error);
-        return res.status(401).json({ error: 'Invalid development user', code: 'INVALID_DEV_USER' });
-      }
+    const token = authHeader.substring(7);
+    if (!supabaseAdmin) {
+      return res.status(500).json({ error: 'Authentication system unavailable', code: 'AUTH_SYSTEM_UNAVAILABLE' });
     }
 
-    // No valid authentication found
-    console.error('[AUTH] No valid authentication: Bearer token missing and dev auth not allowed or x-user-id missing');
-    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
+    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !user) {
+      return res.status(401).json({ error: 'Invalid authentication token', code: 'INVALID_TOKEN' });
+    }
+
+    // Get user profile for role information
+    const userProfile = await storage.getUserProfile(user.id);
+    
+    req.user = {
+      id: user.id,
+      email: user.email || '',
+      role: userProfile?.role || 'hiring_manager'
+    };
+
+    next();
   } catch (error) {
-    console.error('[AUTH] Authentication middleware error:', error);
+    console.error('Authentication middleware error:', error);
     res.status(500).json({ error: 'Authentication check failed', code: 'AUTH_CHECK_FAILED' });
   }
 }
@@ -170,14 +136,12 @@ async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response,
 
   try {
     // Check if user is org admin or owner
-    const userOrgs = await storage.getUserOrganizations(req.user.id, orgId);
-    const userOrg = userOrgs?.[0]; // Get the first (and should be only) match
+    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
     const organization = await storage.getOrganization(orgId);
     
     const isOrgAdmin = userOrg?.role === 'admin' || organization?.ownerId === req.user.id;
     
     if (!isOrgAdmin) {
-      console.error(`[AUTH] User ${req.user.id} denied org admin access to ${orgId}: role=${userOrg?.role}, isOwner=${organization?.ownerId === req.user.id}`);
       return res.status(403).json({ 
         error: 'Organization admin access required', 
         code: 'INSUFFICIENT_PERMISSIONS',
@@ -187,7 +151,7 @@ async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response,
 
     next();
   } catch (error) {
-    console.error('[AUTH] Organization admin check error:', error);
+    console.error('Organization admin check error:', error);
     res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
   }
 }
@@ -204,35 +168,24 @@ async function requireRecruiting(req: AuthenticatedRequest, res: express.Respons
   }
 
   try {
-    const userOrgs = await storage.getUserOrganizations(req.user.id, orgId);
-    const userOrg = userOrgs?.[0]; // Get the first (and should be only) match
-    
-    if (!userOrg) {
-      console.error(`[AUTH] User ${req.user.id} has no membership in org ${orgId}`);
-      return res.status(403).json({ 
-        error: 'Not a member of this organization', 
-        code: 'NOT_ORG_MEMBER' 
-      });
-    }
+    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
     
     // Check if user has recruiting role (recruiter, admin, or hiring_manager with seat)
-    const hasRecruiterRole = userOrg.role === 'recruiter' || userOrg.role === 'admin';
-    const hasHiringManagerWithSeat = userOrg.role === 'hiring_manager' && userOrg.isRecruiterSeat;
+    const hasRecruiterRole = userOrg?.role === 'recruiter' || userOrg?.role === 'admin';
+    const hasHiringManagerWithSeat = userOrg?.role === 'hiring_manager' && userOrg?.isRecruiterSeat;
     
     if (!hasRecruiterRole && !hasHiringManagerWithSeat) {
-      console.error(`[AUTH] User ${req.user.id} denied recruiting access to ${orgId}: role=${userOrg.role}, hasRecruiterSeat=${userOrg.isRecruiterSeat}`);
       return res.status(403).json({ 
         error: 'Recruiting access required', 
         code: 'RECRUITING_ACCESS_REQUIRED',
         message: 'This feature requires a recruiter role or hiring manager with recruiter seat.',
-        userRole: userOrg.role,
-        hasRecruiterSeat: userOrg.isRecruiterSeat || false
+        userRole: userOrg?.role || 'none',
+        hasRecruiterSeat: userOrg?.isRecruiterSeat || false
       });
     }
 
     // For billing purposes, ensure they have a paid seat (unless admin)
-    if (userOrg.role !== 'admin' && !userOrg.isRecruiterSeat) {
-      console.error(`[AUTH] User ${req.user.id} denied access - no recruiter seat in ${orgId}`);
+    if (userOrg?.role !== 'admin' && !userOrg?.isRecruiterSeat) {
       return res.status(403).json({ 
         error: 'Paid recruiter seat required', 
         code: 'RECRUITER_SEAT_REQUIRED',
@@ -242,7 +195,7 @@ async function requireRecruiting(req: AuthenticatedRequest, res: express.Respons
 
     next();
   } catch (error) {
-    console.error('[AUTH] Recruiting access check error:', error);
+    console.error('Recruiting access check error:', error);
     res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
   }
 }
@@ -3860,174 +3813,47 @@ Expires: 2025-12-31T23:59:59.000Z
   });
 
   // NEW: Move application using applicationId (job_candidate.id) - Primary endpoint
-  app.patch("/api/jobs/:jobId/applications/:applicationId/move", requireAuth, requireRecruiting, writeLimiter, async (req: AuthenticatedRequest, res) => {
+  app.patch("/api/jobs/:jobId/applications/:applicationId/move", writeLimiter, async (req, res) => {
     try {
-      const { jobId, applicationId } = req.params;
+      const { applicationId } = req.params;
       const { columnId } = req.body;
       
       if (!columnId) {
-        return res.status(400).json({ error: "Column ID is required", code: "MISSING_COLUMN_ID" });
+        return res.status(400).json({ error: "Column ID is required" });
       }
 
-      // Validate UUID format for columnId
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(columnId)) {
-        return res.status(400).json({ 
-          error: "Invalid column ID format - must be a valid UUID", 
-          code: "INVALID_COLUMN_ID_FORMAT" 
-        });
-      }
-
-      console.info('[API] Moving application', applicationId, 'to column', columnId, 'for job', jobId);
-      
-      // Validate that the column exists and belongs to this job/org
-      if (!supabaseAdmin) {
-        return res.status(500).json({ error: "Service unavailable", code: "SERVICE_UNAVAILABLE" });
-      }
-
-      const { data: column, error: columnError } = await supabaseAdmin
-        .from('pipeline_columns')
-        .select('id, job_id, org_id')
-        .eq('id', columnId)
-        .single();
-
-      if (columnError || !column) {
-        console.error('[API] Column validation error:', columnError);
-        return res.status(400).json({ 
-          error: "Invalid or non-existent pipeline column", 
-          code: "INVALID_COLUMN",
-          details: columnError?.message 
-        });
-      }
-
-      // Ensure column belongs to the same job
-      if (column.job_id !== jobId) {
-        return res.status(400).json({ 
-          error: "Pipeline column does not belong to this job", 
-          code: "COLUMN_JOB_MISMATCH" 
-        });
-      }
-
-      // Ensure user has access to this organization
-      const orgId = req.headers['x-org-id'] as string;
-      if (column.org_id !== orgId) {
-        return res.status(403).json({ 
-          error: "Not authorized to move candidates in this organization", 
-          code: "ORG_ACCESS_DENIED" 
-        });
-      }
+      console.info('Moving application', applicationId, 'to column', columnId);
       
       // Use the storage method to move the job candidate by applicationId
       const updatedJobCandidate = await storage.moveJobCandidate(applicationId, columnId);
-      
-      console.info('[API] Successfully moved application', applicationId, 'to column', columnId);
       
       res.json({ 
         message: "Application moved successfully",
         jobCandidate: updatedJobCandidate
       });
-    } catch (error: any) {
-      console.error("[API] Error moving application:", error);
-      
-      // Provide specific error messages for common issues
-      if (error.message?.includes('not found')) {
-        return res.status(404).json({ 
-          error: "Application not found", 
-          code: "APPLICATION_NOT_FOUND" 
-        });
-      }
-      
-      if (error.message?.includes('permission') || error.message?.includes('policy')) {
-        return res.status(403).json({ 
-          error: "Not authorized to move this application", 
-          code: "MOVE_PERMISSION_DENIED",
-          details: error.message 
-        });
-      }
-      
-      res.status(500).json({ 
-        error: "Failed to move application", 
-        code: "MOVE_FAILED",
-        details: error.message 
-      });
+    } catch (error) {
+      console.error("Error moving application:", error);
+      res.status(500).json({ error: "Failed to move application" });
     }
   });
 
   // NEW: Reject candidate endpoint
-  app.patch("/api/jobs/:jobId/applications/:applicationId/reject", requireAuth, requireRecruiting, writeLimiter, async (req: AuthenticatedRequest, res) => {
+  app.patch("/api/jobs/:jobId/applications/:applicationId/reject", writeLimiter, async (req, res) => {
     try {
-      const { jobId, applicationId } = req.params;
+      const { applicationId } = req.params;
 
-      console.info('[API] Rejecting application', applicationId, 'for job', jobId);
-      
-      // Verify the application belongs to a job in the user's organization
-      if (!supabaseAdmin) {
-        return res.status(500).json({ error: "Service unavailable", code: "SERVICE_UNAVAILABLE" });
-      }
-
-      const { data: jobCandidate, error: jcError } = await supabaseAdmin
-        .from('job_candidate')
-        .select('id, job_id, org_id')
-        .eq('id', applicationId)
-        .single();
-
-      if (jcError || !jobCandidate) {
-        console.error('[API] Job candidate validation error:', jcError);
-        return res.status(404).json({ 
-          error: "Application not found", 
-          code: "APPLICATION_NOT_FOUND" 
-        });
-      }
-
-      // Ensure application belongs to the specified job
-      if (jobCandidate.job_id !== jobId) {
-        return res.status(400).json({ 
-          error: "Application does not belong to this job", 
-          code: "APPLICATION_JOB_MISMATCH" 
-        });
-      }
-
-      // Ensure user has access to this organization
-      const orgId = req.headers['x-org-id'] as string;
-      if (jobCandidate.org_id !== orgId) {
-        return res.status(403).json({ 
-          error: "Not authorized to reject candidates in this organization", 
-          code: "ORG_ACCESS_DENIED" 
-        });
-      }
+      console.info('Rejecting application', applicationId);
       
       // Use the storage method to reject the job candidate
       const updatedJobCandidate = await storage.rejectJobCandidate(applicationId);
-      
-      console.info('[API] Successfully rejected application', applicationId);
       
       res.json({ 
         message: "Candidate rejected successfully",
         jobCandidate: updatedJobCandidate
       });
-    } catch (error: any) {
-      console.error("[API] Error rejecting application:", error);
-      
-      if (error.message?.includes('not found')) {
-        return res.status(404).json({ 
-          error: "Application not found", 
-          code: "APPLICATION_NOT_FOUND" 
-        });
-      }
-      
-      if (error.message?.includes('permission') || error.message?.includes('policy')) {
-        return res.status(403).json({ 
-          error: "Not authorized to reject this application", 
-          code: "REJECT_PERMISSION_DENIED",
-          details: error.message 
-        });
-      }
-      
-      res.status(500).json({ 
-        error: "Failed to reject candidate", 
-        code: "REJECT_FAILED",
-        details: error.message 
-      });
+    } catch (error) {
+      console.error("Error rejecting application:", error);
+      res.status(500).json({ error: "Failed to reject candidate" });
     }
   });
 
