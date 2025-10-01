@@ -81,6 +81,8 @@ const corsOrigins = process.env.CORS_ORIGINS
       'https://*.replit.app',
       'https://*.replit.dev',
       'https://*.replit.co',
+      'https://talentpatriot.com',
+      'https://www.talentpatriot.com',
       'http://localhost:5000',
       'http://127.0.0.1:5000',
     ];
@@ -163,9 +165,10 @@ app.use((req, res, next) => {
   }
   
   // Enhanced Content Security Policy with flexible API origin support
-  // Get API origin from environment for dynamic CSP
-  const apiOrigin = process.env.VITE_API_BASE_URL || process.env.CORS_ORIGINS?.split(',')[0] || '';
-  const apiOriginCsp = apiOrigin ? ` ${apiOrigin}` : '';
+  // Get API origin from environment for dynamic CSP (avoid wildcards)
+  const apiOrigin = process.env.VITE_API_BASE_URL || '';
+  // Only add to CSP if it's a valid URL without wildcards
+  const apiOriginCsp = (apiOrigin && !apiOrigin.includes('*')) ? ` ${apiOrigin}` : '';
   
   res.setHeader('Content-Security-Policy', 
     "default-src 'self'; " +
