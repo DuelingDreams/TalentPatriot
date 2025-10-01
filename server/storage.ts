@@ -513,7 +513,7 @@ export class DatabaseStorage implements IStorage {
       console.warn('Failed to create user profile:', errorMessage);
       
       // If it's a foreign key constraint error, the user doesn't exist in auth.users
-      if (error?.message?.includes('foreign key constraint') || error?.message?.includes('violates foreign key')) {
+      if (errorMessage.includes('foreign key constraint') || errorMessage.includes('violates foreign key')) {
         throw new Error(`User ${userId} does not exist in authentication system. User must be registered through Supabase Auth first.`);
       }
       
@@ -523,7 +523,7 @@ export class DatabaseStorage implements IStorage {
         return retryProfile;
       }
       
-      throw new Error(`Failed to ensure user profile exists for user ${userId}: ${error?.message}`);
+      throw new Error(`Failed to ensure user profile exists for user ${userId}: ${errorMessage}`);
     }
   }
 
@@ -2778,18 +2778,18 @@ export class DatabaseStorage implements IStorage {
       console.log(`[getJobPipelineData] Found ${columns?.length || 0} columns and ${applications?.length || 0} applications`);
       
       // Log applications for debugging
-      applications?.forEach((app: unknown) => {
+      applications?.forEach((app: any) => {
         console.log(`[getJobPipelineData] Application ${app.id}: candidateName="${app.candidate?.name}", columnId="${app.pipeline_column_id}"`);
       });
 
       // Transform data to match frontend interface
       const pipelineData = {
-        columns: columns?.map((col: unknown) => ({
+        columns: columns?.map((col: any) => ({
           id: col.id,
           title: col.title,
           position: col.position.toString()
         })) || [],
-        applications: applications?.map((app: unknown) => ({
+        applications: applications?.map((app: any) => ({
           id: app.id,
           jobId: app.job_id,
           candidateId: app.candidate_id,
@@ -2943,8 +2943,8 @@ export class DatabaseStorage implements IStorage {
         const organization = await this.getOrganization(job.orgId);
         if (organization) {
           // Get team members who should be notified (hiring managers, recruiters, admins)
-          const teamMembers = await this.getUserOrganizations(job.orgId);
-          const notificationRecipients = teamMembers.filter((member: unknown) => 
+          const teamMembers = await this.getUserOrganizations(undefined, job.orgId);
+          const notificationRecipients = teamMembers.filter((member: any) => 
             ['hiring_manager', 'recruiter', 'admin'].includes(member.role || '')
           );
 
@@ -2969,7 +2969,7 @@ export class DatabaseStorage implements IStorage {
                     resumeUrl: candidate.resumeUrl || undefined,
                     candidateProfileUrl: undefined, // Could be a frontend URL
                     organizationLogo: undefined, // Could be added to organization model
-                    organizationAddress: organization.address || undefined,
+                    organizationAddress: undefined, // Could be added to organization model
                   }
                 );
                 console.log(`Email notification sent to ${email} for new application by ${candidate.name}`);
