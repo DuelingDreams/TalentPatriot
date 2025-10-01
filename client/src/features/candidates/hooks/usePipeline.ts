@@ -213,32 +213,8 @@ export function useMoveApplication(jobId: string) {
     onSuccess: (data: any) => {
       console.log('[useMoveApplication] Move successful - data updated in database');
       
-      // Directly update the cache with the returned data to ensure UI stays consistent
-      queryClient.setQueryData(['job-pipeline', jobId], (old: any) => {
-        if (!old || !old.applications) return old;
-        
-        const updatedApplications = old.applications.map((app: any) => {
-          if (app.id === data.jobCandidate?.id) {
-            console.log('[useMoveApplication] Updating cache with server response:', {
-              oldColumnId: app.columnId,
-              newColumnId: data.jobCandidate.pipeline_column_id,
-              stage: data.jobCandidate.stage
-            });
-            return { 
-              ...app, 
-              columnId: data.jobCandidate.pipeline_column_id,
-              stage: data.jobCandidate.stage,
-              updatedAt: data.jobCandidate.updated_at
-            };
-          }
-          return app;
-        });
-        
-        console.log('[useMoveApplication] Cache updated successfully');
-        return { ...old, applications: updatedApplications };
-      });
-      
-      // Also invalidate to trigger background refresh
+      // Invalidate to force a fresh fetch from the server
+      // This ensures we get the exact database state including any server-side updates
       queryClient.invalidateQueries({ queryKey: ['job-pipeline', jobId] });
     },
     
