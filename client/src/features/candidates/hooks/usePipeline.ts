@@ -211,13 +211,23 @@ export function useMoveApplication(jobId: string) {
       return { previousData };
     },
     
-    onSuccess: (data: any) => {
-      console.log('[useMoveApplication] Move successful - data updated in database');
+    onSuccess: async (data: any) => {
+      console.log('[useMoveApplication] Move successful - refreshing pipeline data');
       
-      // Invalidate all matching queries to force a fresh fetch from the server
-      queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
+      // Force immediate refetch of pipeline data - more reliable than invalidation
+      // This ensures UI updates immediately after database update succeeds
+      await queryClient.refetchQueries({ 
+        queryKey: ['job-pipeline', jobId, { includeCompleted: false }],
+        exact: true
       });
+      
+      // Also refetch the includeCompleted view if it exists
+      await queryClient.refetchQueries({ 
+        queryKey: ['job-pipeline', jobId, { includeCompleted: true }],
+        exact: true
+      });
+      
+      console.log('[useMoveApplication] Pipeline data refreshed successfully');
     },
     
     onError: (error, { applicationId }, context) => {
