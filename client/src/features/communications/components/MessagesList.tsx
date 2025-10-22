@@ -18,13 +18,17 @@ interface MessagesListProps {
     jobId?: string
     candidateId?: string
   }
+  messages?: Message[]  // Allow parent to provide pre-filtered messages
 }
 
-export function MessagesList({ selectedMessage, onMessageSelect, filterContext }: MessagesListProps) {
+export function MessagesList({ selectedMessage, onMessageSelect, filterContext, messages: propMessages }: MessagesListProps) {
   const { user } = useAuth()
-  const { data: messages = [], isLoading } = useMessages(user?.id)
+  const { data: fetchedMessages = [], isLoading } = useMessages(user?.id)
   const markAsReadMutation = useMarkMessageAsRead()
   const archiveMutation = useArchiveMessage()
+  
+  // Use prop messages if provided, otherwise use fetched messages
+  const messages = propMessages || fetchedMessages
   
   const [sortBy, setSortBy] = useState<'date' | 'priority'>('date')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')

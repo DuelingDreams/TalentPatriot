@@ -1,28 +1,25 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MessageSquare, Plus, Users, Bell, Archive, Send, Filter, Mail } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { MessageSquare, Plus, Users, Bell, Archive, Send, Filter, Mail, Video, Calendar, Clock } from 'lucide-react'
 import { MessagesList } from '@/features/communications/components/MessagesList'
-import { MessageComposer } from '@/features/communications/components/MessageComposer'
-import { EmailComposer } from '@/features/communications/components/google/EmailComposer'
-import { VideoDropdown } from '@/features/communications/components/google/VideoDropdown'
-import { AvailabilityDrawer } from '@/features/communications/components/google/AvailabilityDrawer'
 import { ThreadTimeline } from '@/features/communications/components/google/ThreadTimeline'
 import { useMessages, useUnreadMessageCount } from '@/features/communications/hooks/useMessages'
 import { useAuth } from '@/contexts/AuthContext'
 import { format } from 'date-fns'
 import type { Message } from '@/../../shared/schema'
 import { DemoMessages } from '@/components/demo/DemoMessages'
-
-// Google integration is always enabled in this component
-// (This is the enhanced Messages page with email/calendar features)
-const ENABLE_GOOGLE_INTEGRATION = true
+import { useQuery } from '@tanstack/react-query'
+import { apiRequest } from '@/lib/queryClient'
 
 export default function Messages() {
-  const { user, userRole } = useAuth()
+  const { user, userRole, currentOrgId } = useAuth()
   
   // Show demo messages for demo viewers
   if (userRole === 'demo_viewer') {
@@ -34,84 +31,108 @@ export default function Messages() {
       </DashboardLayout>
     )
   }
+
   const { data: allMessages = [] } = useMessages(user?.id)
   const { data: unreadData } = useUnreadMessageCount(user?.id)
   const unreadCount = unreadData?.count || 0
 
+  // Check if Google is connected
+  const { data: googleStatus } = useQuery({
+    queryKey: ['/api/google/connection-status'],
+    queryFn: async () => {
+      const response = await apiRequest('/api/google/connection-status')
+      return response as { connected: boolean; email?: string }
+    },
+  })
+
+  const [composeTab, setComposeTab] = useState<'internal' | 'email' | 'client_portal'>('internal')
   const [selectedMessage, setSelectedMessage] = useState<Message | undefined>(undefined)
-  const [activeTab, setActiveTab] = useState(ENABLE_GOOGLE_INTEGRATION ? 'internal' : 'all')
-  const [showComposer, setShowComposer] = useState(false)
-  const [showEmailComposer, setShowEmailComposer] = useState(false)
+  const [viewTab, setViewTab] = useState<'internal' | 'email' | 'client_portal'>('internal')
 
-  // Filter messages by type (existing logic - preserved for backward compatibility)
-  const internalMessages = allMessages.filter(m => m.type === 'internal')
-  const clientMessages = allMessages.filter(m => m.type === 'client')
-  const candidateMessages = allMessages.filter(m => m.type === 'candidate')
-  const unreadMessages = allMessages.filter(m => !m.isRead)
+  // Separate compose form state for each tab
+  const [internalForm, setInternalForm] = useState({ subject: '', message: '' })
+  const [emailForm, setEmailForm] = useState({ to: '', subject: '', message: '' })
+  const [portalForm, setPortalForm] = useState({ subject: '', message: '' })
 
-  // New: Filter messages by channel type (for Google integration)
+  // Update email "from" when Google status changes
+  const [emailFrom, setEmailFrom] = useState('me@talentpatriot.com')
+  useEffect(() => {
+    if (googleStatus?.email) {
+      setEmailFrom(googleStatus.email)
+    }
+  }, [googleStatus?.email])
+
+  // Filter messages by type
+  const internalMessages = allMessages.filter(m => m.channelType === 'internal' || m.type === 'internal')
   const emailMessages = allMessages.filter(m => m.channelType === 'email')
   const clientPortalMessages = allMessages.filter(m => m.channelType === 'client_portal')
 
-  const getTabMessages = () => {
-    if (ENABLE_GOOGLE_INTEGRATION) {
-      // New tab structure
-      switch (activeTab) {
-        case 'internal': return internalMessages
-        case 'email': return emailMessages
-        case 'client_portal': return clientPortalMessages
-        default: return internalMessages
-      }
-    } else {
-      // Original tab structure
-      switch (activeTab) {
-        case 'internal': return internalMessages
-        case 'clients': return clientMessages
-        case 'candidates': return candidateMessages
-        case 'unread': return unreadMessages
-        default: return allMessages
-      }
+  // Get messages for current view tab
+  const getViewMessages = () => {
+    switch (viewTab) {
+      case 'internal': return internalMessages
+      case 'email': return emailMessages
+      case 'client_portal': return clientPortalMessages
+      default: return internalMessages
     }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-100 text-red-800 border-red-200'
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'normal': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'low': return 'bg-gray-100 text-gray-800 border-gray-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
-
-  const handleMessageSent = () => {
-    setShowComposer(false)
-    setShowEmailComposer(false)
-  }
-
-  const handleMeetCreated = (meetUrl: string, eventId: string) => {
-    console.log('Google Meet created:', { meetUrl, eventId })
-    // TODO: Optionally add Meet link to message or thread
-  }
-
-  const handleTimeSelected = (start: Date, end: Date) => {
-    console.log('Time selected:', { start, end })
-    // TODO: Create calendar invitation
-  }
-
-  // Mock timeline data for demonstration
-  const mockTimelineEvents = selectedMessage ? [
-    {
-      id: '1',
-      type: 'email' as const,
-      title: 'Email sent',
+  // Generate timeline events from selected message
+  const getTimelineEvents = () => {
+    if (!selectedMessage) return []
+    
+    // Convert message to timeline event
+    return [{
+      id: selectedMessage.id,
+      type: 'email' as const, // ThreadTimeline accepts: 'email' | 'invite' | 'meet'
+      title: selectedMessage.subject || 'Message',
+      subtitle: selectedMessage.channelType || selectedMessage.type,
       timestamp: new Date(selectedMessage.createdAt),
       metadata: {
-        to: 'candidate@example.com',
-        subject: selectedMessage.subject,
+        to: selectedMessage.recipientId || '',
+        subject: selectedMessage.subject || '',
       },
-    },
-  ] : []
+    }]
+  }
+
+  const handleSendInternal = () => {
+    console.log('Sending internal message:', internalForm)
+    // TODO: Implement send logic via API
+    setInternalForm({ subject: '', message: '' })
+  }
+
+  const handleSendEmail = () => {
+    console.log('Sending email:', { from: emailFrom, ...emailForm })
+    // TODO: Implement email send logic via API
+    setEmailForm({ to: '', subject: '', message: '' })
+  }
+
+  const handleSendWithInvite = () => {
+    console.log('Sending email with calendar invite:', { from: emailFrom, ...emailForm })
+    // TODO: Implement send with invite logic via API
+    setEmailForm({ to: '', subject: '', message: '' })
+  }
+
+  const handlePostToPortal = () => {
+    console.log('Posting to client portal:', portalForm)
+    // TODO: Implement portal post logic via API
+    setPortalForm({ subject: '', message: '' })
+  }
+
+  const handleProposeTimes = () => {
+    console.log('Opening availability picker...')
+    // TODO: Open AvailabilityDrawer component
+  }
+
+  const handleAddCalendarInvite = () => {
+    console.log('Adding calendar invite...')
+    // TODO: Create calendar event via Google Calendar API
+  }
+
+  const handleCreateVideo = () => {
+    console.log('Creating Google Meet link...')
+    // TODO: Create Meet link via Google Calendar API
+  }
 
   return (
     <DashboardLayout pageTitle="Messages & Communication">
@@ -122,35 +143,12 @@ export default function Messages() {
             <div className="flex items-center gap-2">
               <MessageSquare className="h-6 w-6" />
               <h1 className="text-2xl font-bold">Messages</h1>
-              {unreadCount > 0 && (
-                <Badge variant="destructive" className="ml-2">
-                  {unreadCount} unread
-                </Badge>
-              )}
-              {ENABLE_GOOGLE_INTEGRATION && (
-                <Badge variant="outline" className="ml-2 text-xs">
-                  Google Integration Enabled
-                </Badge>
-              )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {ENABLE_GOOGLE_INTEGRATION && activeTab === 'email' ? (
-              <>
-                <VideoDropdown onMeetCreated={handleMeetCreated} />
-                <AvailabilityDrawer onTimeSelected={handleTimeSelected} />
-                <Button onClick={() => setShowEmailComposer(!showEmailComposer)} className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Compose Email
-                </Button>
-              </>
-            ) : (
-              <Button onClick={() => setShowComposer(!showComposer)} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                New Message
-              </Button>
-            )}
-          </div>
+          <Button className="flex items-center gap-2" data-testid="button-new-message">
+            <Plus className="h-4 w-4" />
+            New Message
+          </Button>
         </div>
 
         {/* Stats Cards */}
@@ -158,7 +156,7 @@ export default function Messages() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Messages</p>
+                <p className="text-sm font-medium text-muted-foreground">Total</p>
                 <p className="text-2xl font-bold">{allMessages.length}</p>
               </div>
               <MessageSquare className="h-8 w-8 text-muted-foreground" />
@@ -178,9 +176,7 @@ export default function Messages() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {ENABLE_GOOGLE_INTEGRATION ? 'Internal' : 'Team Messages'}
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">Team</p>
                 <p className="text-2xl font-bold">{internalMessages.length}</p>
               </div>
               <Users className="h-8 w-8 text-muted-foreground" />
@@ -190,195 +186,248 @@ export default function Messages() {
           <Card>
             <CardContent className="flex items-center justify-between p-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {ENABLE_GOOGLE_INTEGRATION ? 'Emails' : 'Client Messages'}
-                </p>
-                <p className="text-2xl font-bold">
-                  {ENABLE_GOOGLE_INTEGRATION ? emailMessages.length : clientMessages.length}
-                </p>
+                <p className="text-sm font-medium text-muted-foreground">Client</p>
+                <p className="text-2xl font-bold">{clientPortalMessages.length}</p>
               </div>
-              {ENABLE_GOOGLE_INTEGRATION ? (
-                <Mail className="h-8 w-8 text-muted-foreground" />
-              ) : (
-                <Send className="h-8 w-8 text-muted-foreground" />
-              )}
+              <Archive className="h-8 w-8 text-muted-foreground" />
             </CardContent>
           </Card>
         </div>
 
-        {/* Message Composer - Original */}
-        {!ENABLE_GOOGLE_INTEGRATION && showComposer && (
-          <MessageComposer onMessageSent={handleMessageSent} />
-        )}
-
-        {/* Email Composer - Google Integration */}
-        {ENABLE_GOOGLE_INTEGRATION && showEmailComposer && (
-          <EmailComposer onSent={handleMessageSent} />
-        )}
-
-        {/* Message Tabs and List */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Messages List */}
-          <div className="lg:col-span-2">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className={`grid w-full ${ENABLE_GOOGLE_INTEGRATION ? 'grid-cols-3' : 'grid-cols-5'}`}>
-                {ENABLE_GOOGLE_INTEGRATION ? (
-                  // New tab structure for Google integration
-                  <>
-                    <TabsTrigger value="internal" className="flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Internal
-                      <Badge variant="secondary" className="text-xs">
-                        {internalMessages.length}
-                      </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="email" className="flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email
-                      <Badge variant="secondary" className="text-xs">
-                        {emailMessages.length}
-                      </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="client_portal" className="flex items-center gap-2">
-                      <Send className="h-4 w-4" />
-                      Client Portal
-                      <Badge variant="secondary" className="text-xs">
-                        {clientPortalMessages.length}
-                      </Badge>
-                    </TabsTrigger>
-                  </>
-                ) : (
-                  // Original tab structure
-                  <>
-                    <TabsTrigger value="all" className="flex items-center gap-2">
-                      All
-                      <Badge variant="secondary" className="text-xs">
-                        {allMessages.length}
-                      </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="unread" className="flex items-center gap-2">
-                      Unread
-                      {unreadCount > 0 && (
-                        <Badge variant="destructive" className="text-xs">
-                          {unreadCount}
-                        </Badge>
-                      )}
-                    </TabsTrigger>
-                    <TabsTrigger value="internal" className="flex items-center gap-2">
-                      Team
-                      <Badge variant="secondary" className="text-xs">
-                        {internalMessages.length}
-                      </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="clients" className="flex items-center gap-2">
-                      Clients
-                      <Badge variant="secondary" className="text-xs">
-                        {clientMessages.length}
-                      </Badge>
-                    </TabsTrigger>
-                    <TabsTrigger value="candidates" className="flex items-center gap-2">
-                      Candidates
-                      <Badge variant="secondary" className="text-xs">
-                        {candidateMessages.length}
-                      </Badge>
-                    </TabsTrigger>
-                  </>
-                )}
+        {/* Compose Message Section - Always Visible */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Compose Message</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={composeTab} onValueChange={(v) => setComposeTab(v as any)}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="internal" data-testid="tab-internal">Internal</TabsTrigger>
+                <TabsTrigger value="email" data-testid="tab-email">Email</TabsTrigger>
+                <TabsTrigger value="client_portal" data-testid="tab-client-portal">Client Portal</TabsTrigger>
               </TabsList>
 
-              <TabsContent value={activeTab} className="mt-4">
+              {/* Internal Tab */}
+              <TabsContent value="internal" className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="internal-subject">Subject</Label>
+                  <Input
+                    id="internal-subject"
+                    placeholder="Subject"
+                    value={internalForm.subject}
+                    onChange={(e) => setInternalForm(prev => ({ ...prev, subject: e.target.value }))}
+                    data-testid="input-subject"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="internal-message">Message</Label>
+                  <Textarea
+                    id="internal-message"
+                    placeholder="Message..."
+                    value={internalForm.message}
+                    onChange={(e) => setInternalForm(prev => ({ ...prev, message: e.target.value }))}
+                    rows={4}
+                    data-testid="textarea-message"
+                  />
+                </div>
+
+                <Button onClick={handleSendInternal} data-testid="button-send-internal">
+                  Send Internal Note
+                </Button>
+              </TabsContent>
+
+              {/* Email Tab */}
+              <TabsContent value="email" className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email-from">From</Label>
+                  <Input
+                    id="email-from"
+                    value={emailFrom}
+                    disabled
+                    data-testid="input-email-from"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-to">To (candidate/client)</Label>
+                  <Input
+                    id="email-to"
+                    placeholder="To (candidate/client)"
+                    value={emailForm.to}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, to: e.target.value }))}
+                    data-testid="input-email-to"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-subject">Subject</Label>
+                  <Input
+                    id="email-subject"
+                    placeholder="Subject"
+                    value={emailForm.subject}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, subject: e.target.value }))}
+                    data-testid="input-email-subject"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email-body">Message</Label>
+                  <Textarea
+                    id="email-body"
+                    placeholder="Write your email..."
+                    value={emailForm.message}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, message: e.target.value }))}
+                    rows={6}
+                    data-testid="textarea-email-body"
+                  />
+                </div>
+
+                {/* Google Integration Buttons */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleProposeTimes}
+                    className="flex items-center gap-2"
+                    data-testid="button-propose-times"
+                  >
+                    <Clock className="h-4 w-4" />
+                    Propose Times
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddCalendarInvite}
+                    className="flex items-center gap-2"
+                    data-testid="button-add-calendar-invite"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Add Calendar Invite
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCreateVideo}
+                    className="flex items-center gap-2"
+                    data-testid="button-create-video"
+                  >
+                    <Video className="h-4 w-4" />
+                    Create Video
+                  </Button>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <Button onClick={handleSendEmail} data-testid="button-send-email">
+                    Send Email
+                  </Button>
+                  <Button onClick={handleSendWithInvite} variant="outline" data-testid="button-send-invite">
+                    Send + Invite
+                  </Button>
+                </div>
+              </TabsContent>
+
+              {/* Client Portal Tab */}
+              <TabsContent value="client_portal" className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="portal-subject">Subject</Label>
+                  <Input
+                    id="portal-subject"
+                    placeholder="Subject"
+                    value={portalForm.subject}
+                    onChange={(e) => setPortalForm(prev => ({ ...prev, subject: e.target.value }))}
+                    data-testid="input-portal-subject"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="portal-message">Message</Label>
+                  <Textarea
+                    id="portal-message"
+                    placeholder="Message to client portal..."
+                    value={portalForm.message}
+                    onChange={(e) => setPortalForm(prev => ({ ...prev, message: e.target.value }))}
+                    rows={4}
+                    data-testid="textarea-portal-message"
+                  />
+                </div>
+
+                <Button onClick={handlePostToPortal} data-testid="button-post-portal">
+                  Post to Portal
+                </Button>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Quick Filters */}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Filter className="h-4 w-4" />
+            Has Open Invite
+          </Button>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            Needs Reply
+          </Button>
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            Upcoming Meetings
+          </Button>
+        </div>
+
+        {/* Thread Timeline Section */}
+        {selectedMessage && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Thread Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ThreadTimeline events={getTimelineEvents()} />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Messages List Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as any)}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="internal" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Internal
+                  <Badge variant="secondary" className="text-xs">
+                    {internalMessages.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                  <Badge variant="secondary" className="text-xs">
+                    {emailMessages.length}
+                  </Badge>
+                </TabsTrigger>
+                <TabsTrigger value="client_portal" className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Client Portal
+                  <Badge variant="secondary" className="text-xs">
+                    {clientPortalMessages.length}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value={viewTab} className="mt-4">
                 <MessagesList
+                  messages={getViewMessages()}
                   selectedMessage={selectedMessage}
                   onMessageSelect={setSelectedMessage}
                 />
               </TabsContent>
             </Tabs>
-          </div>
-
-          {/* Message Detail */}
-          <div className="lg:col-span-1 space-y-4">
-            {selectedMessage ? (
-              <>
-                <Card className="h-auto">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg">{selectedMessage.subject}</CardTitle>
-                        <div className="flex items-center gap-2">
-                          <Badge className={`text-xs ${getPriorityColor(selectedMessage.priority)}`}>
-                            {selectedMessage.priority}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {selectedMessage.type}
-                          </Badge>
-                          {!selectedMessage.isRead && (
-                            <Badge variant="secondary" className="text-xs">
-                              Unread
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="text-sm text-muted-foreground">
-                      <p className="font-medium mb-2">Sent {format(new Date(selectedMessage.createdAt), 'PPp')}</p>
-                    </div>
-                    
-                    <div className="prose prose-sm max-w-none">
-                      <p className="whitespace-pre-wrap">{selectedMessage.content}</p>
-                    </div>
-
-                    {selectedMessage.tags && selectedMessage.tags.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-muted-foreground">Tags</p>
-                        <div className="flex flex-wrap gap-1">
-                          {selectedMessage.tags.map((tag, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Context Information */}
-                    {(selectedMessage.clientId || selectedMessage.jobId || selectedMessage.candidateId) && (
-                      <div className="space-y-2 pt-4 border-t">
-                        <p className="text-sm font-medium text-muted-foreground">Related To</p>
-                        <div className="space-y-1 text-sm">
-                          {selectedMessage.clientId && (
-                            <p className="text-muted-foreground">Client: ID {selectedMessage.clientId}</p>
-                          )}
-                          {selectedMessage.jobId && (
-                            <p className="text-muted-foreground">Job: ID {selectedMessage.jobId}</p>
-                          )}
-                          {selectedMessage.candidateId && (
-                            <p className="text-muted-foreground">Candidate: ID {selectedMessage.candidateId}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Timeline - Google Integration Only */}
-                {ENABLE_GOOGLE_INTEGRATION && activeTab === 'email' && (
-                  <ThreadTimeline events={mockTimelineEvents} />
-                )}
-              </>
-            ) : (
-              <Card className="h-full">
-                <CardContent className="flex items-center justify-center h-full text-center">
-                  <div className="space-y-2">
-                    <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <p className="text-muted-foreground">Select a message to view details</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   )
