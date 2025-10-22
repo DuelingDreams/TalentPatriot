@@ -7,6 +7,37 @@ import type {
   InsertPipelineColumn
 } from "@shared/schema";
 
+// Additional types for lib/jobService compatibility
+export interface UserContext {
+  userId: string;
+  orgId: string;
+}
+
+export interface ApplicantData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  coverLetter?: string;
+  resumeUrl?: string;
+}
+
+export interface ApplicationResult {
+  candidateId: string;
+  applicationId: string;
+  success: boolean;
+}
+
+export interface PublishResult {
+  publicUrl: string;
+  job: {
+    id: string;
+    slug: string | null;
+    status: string;
+    published_at: string | null;
+  };
+}
+
 // Jobs domain repository interface
 export interface IJobsRepository {
   // Clients
@@ -18,21 +49,41 @@ export interface IJobsRepository {
   deleteClient(id: string): Promise<void>;
   searchClients(searchTerm: string, orgId: string): Promise<Client[]>;
   
-  // Jobs
+  // Jobs - Basic CRUD
   getJob(id: string): Promise<Job | undefined>;
   getJobs(): Promise<Job[]>;
   getJobsByOrg(orgId: string): Promise<Job[]>;
   getJobsByClient(clientId: string): Promise<Job[]>;
   createJob(job: InsertJob): Promise<Job>;
-  publishJob(jobId: string): Promise<Job>;
   updateJob(id: string, data: Partial<InsertJob>): Promise<Job>;
   deleteJob(id: string): Promise<void>;
   searchJobs(searchTerm: string, orgId: string): Promise<Job[]>;
   
+  // Jobs - Advanced operations (from lib/jobService)
+  createJobWithContext(data: {
+    title: string;
+    description?: string;
+    clientId?: string;
+    orgId: string;
+    location?: string;
+    jobType?: string;
+    remoteOption?: string;
+    salaryRange?: string;
+    experienceLevel?: string;
+    postingTargets?: string[];
+    autoPost?: boolean;
+  }, userContext: UserContext): Promise<Job>;
+  publishJob(jobId: string, userContext?: UserContext): Promise<PublishResult>;
+  applyToJob(params: { jobId: string; applicant: ApplicantData }, requestContext?: { orgId?: string }): Promise<ApplicationResult>;
+  
   // Public job access (no authentication required)
-  getPublicJobs(): Promise<Job[]>;
+  getPublicJobs(orgId?: string): Promise<Job[]>;
   getPublicJobsByOrg(orgId: string): Promise<Job[]>;
   getPublicJob(id: string): Promise<Job | undefined>;
+  
+  // Job Candidates (from lib/jobService - candidate management)
+  getJobCandidatesByOrg(orgId: string): Promise<any[]>;
+  updateJobCandidateStage(jobCandidateId: string, newStage: string): Promise<any>;
   
   // Pipeline Columns
   getPipelineColumns(orgId: string): Promise<PipelineColumn[]>;
