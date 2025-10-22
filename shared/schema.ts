@@ -292,8 +292,11 @@ export const connectedAccounts = pgTable("connected_accounts", {
   providerEmail: text("provider_email"),
   scopes: text("scopes").array().default(sql`ARRAY[]::text[]`),
   connectorAccountId: text("connector_account_id"), // Replit connector reference
+  encryptedRefreshToken: text("encrypted_refresh_token"), // Encrypted OAuth refresh token
   accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  lastUsedAt: timestamp("last_used_at"),
   isActive: boolean("is_active").default(true).notNull(),
+  connectedAt: timestamp("connected_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

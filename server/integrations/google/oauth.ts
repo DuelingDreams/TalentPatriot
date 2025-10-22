@@ -70,9 +70,13 @@ export async function exchangeCodeForTokens(code: string): Promise<{
  * Generate a secure state parameter for OAuth flow
  */
 export function generateState(userId: string, orgId: string): string {
+  if (!process.env.APP_JWT_SECRET) {
+    throw new Error('APP_JWT_SECRET environment variable is required for secure OAuth state signing');
+  }
+  
   const data = JSON.stringify({ userId, orgId, timestamp: Date.now() });
   const signature = crypto
-    .createHmac('sha256', process.env.APP_JWT_SECRET || 'default-secret')
+    .createHmac('sha256', process.env.APP_JWT_SECRET)
     .update(data)
     .digest('hex');
   
@@ -83,13 +87,18 @@ export function generateState(userId: string, orgId: string): string {
  * Verify and parse state parameter
  */
 export function verifyState(state: string): { userId: string; orgId: string } | null {
+  if (!process.env.APP_JWT_SECRET) {
+    console.error('APP_JWT_SECRET not configured');
+    return null;
+  }
+  
   try {
     const decoded = JSON.parse(Buffer.from(state, 'base64url').toString());
     const { data, signature } = decoded;
     
     // Verify signature
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.APP_JWT_SECRET || 'default-secret')
+      .createHmac('sha256', process.env.APP_JWT_SECRET)
       .update(data)
       .digest('hex');
     

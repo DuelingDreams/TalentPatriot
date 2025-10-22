@@ -1,6 +1,8 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { z } from 'zod';
 import { createCalendarEvent, getFreeBusy } from '../integrations/google/calendar-client';
+import { getValidAccessToken } from '../integrations/google/token-manager';
+import { extractAuthUser, requireAuth, requireOrgContext, type AuthenticatedRequest } from '../middleware/auth';
 import type { IStorage } from '../storage';
 
 const createMeetSchema = z.object({
@@ -21,44 +23,24 @@ const freeBusySchema = z.object({
 export function createGoogleCalendarRoutes(storage: IStorage) {
   const router = Router();
 
+  // Apply authentication middleware to all routes
+  router.use(extractAuthUser);
+
   /**
    * POST /api/google/meet
    * Create a Google Calendar event with Google Meet link
    */
-  router.post('/meet', async (req: Request, res: Response) => {
+  router.post('/meet', requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // TODO: Get userId and orgId from authenticated session
-      const userId = req.body.userId || req.headers['x-user-id'];
-      const orgId = req.body.orgId || req.headers['x-org-id'];
-
-      if (!userId || !orgId) {
-        return res.status(401).json({ 
-          error: 'Authentication required. userId and orgId must be provided.' 
-        });
-      }
+      // Get userId and orgId from authenticated session
+      const userId = req.user!.id;
+      const orgId = req.user!.orgId!;
 
       // Validate request body
       const validatedData = createMeetSchema.parse(req.body);
 
-      // Get connected Google account
-      const account = await storage.communications.getConnectedAccount(
-        userId as string,
-        orgId as string,
-        'google'
-      );
-
-      if (!account || !account.isActive) {
-        return res.status(403).json({ 
-          error: 'Google Calendar not connected. Please connect your Google account first.',
-          action: 'connect_google'
-        });
-      }
-
-      // TODO: Get valid access token (handle refresh if expired)
-      // For now, this is a placeholder - in production, retrieve from secure storage
-      const accessToken = 'PLACEHOLDER_ACCESS_TOKEN';
-      
-      console.warn('TODO: Implement secure token retrieval and refresh logic');
+      // Get valid access token (automatically refreshes if expired)
+      const { accessToken } = await getValidAccessToken(storage, userId, orgId);
 
       // Create calendar event with Google Meet
       const event = await createCalendarEvent(accessToken, {
@@ -117,35 +99,17 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
    * GET /api/google/freebusy
    * Fetch user's calendar availability for scheduling
    */
-  router.get('/freebusy', async (req: Request, res: Response) => {
+  router.get('/freebusy', requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // TODO: Get userId and orgId from authenticated session
-      const userId = req.query.userId || req.headers['x-user-id'];
-      const orgId = req.query.orgId || req.headers['x-org-id'];
-
-      if (!userId || !orgId) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
+      // Get userId and orgId from authenticated session
+      const userId = req.user!.id;
+      const orgId = req.user!.orgId!;
 
       // Validate query params
       const validatedQuery = freeBusySchema.parse(req.query);
 
-      // Get connected Google account
-      const account = await storage.communications.getConnectedAccount(
-        userId as string,
-        orgId as string,
-        'google'
-      );
-
-      if (!account || !account.isActive) {
-        return res.status(403).json({ 
-          error: 'Google Calendar not connected',
-          action: 'connect_google'
-        });
-      }
-
-      // TODO: Get valid access token
-      const accessToken = 'PLACEHOLDER_ACCESS_TOKEN';
+      // Get valid access token (automatically refreshes if expired)
+      const { accessToken } = await getValidAccessToken(storage, userId, orgId);
 
       // Fetch free/busy data
       const freeBusyData = await getFreeBusy(accessToken, validatedQuery);
@@ -177,20 +141,17 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
    * GET /api/google/connection-status
    * Check if user has connected their Google account
    */
-  router.get('/connection-status', async (req: Request, res: Response) => {
+  router.get('/connection-status', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const userId = req.query.userId || req.headers['x-user-id'];
-      const orgId = req.query.orgId || req.headers['x-org-id'];
+      // Allow this endpoint without auth for frontend to check status
+      const userId = req.user?.id;
+      const orgId = req.user?.orgId;
 
       if (!userId || !orgId) {
         return res.json({ connected: false });
       }
 
-      const account = await storage.communications.getConnectedAccount(
-        userId as string,
-        orgId as string,
-        'google'
-      );
+      const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
 
       res.json({
         connected: !!account && account.isActive,

@@ -1,24 +1,28 @@
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { getAuthUrl, exchangeCodeForTokens, generateState, verifyState } from '../integrations/google/oauth';
+import { storeOAuthTokens } from '../integrations/google/token-manager';
+import { extractAuthUser, requireAuth, type AuthenticatedRequest } from '../middleware/auth';
 import type { IStorage } from '../storage';
 
 export function createGoogleAuthRoutes(storage: IStorage) {
   const router = Router();
 
+  // Apply authentication middleware to all routes
+  router.use(extractAuthUser);
+
   /**
    * GET /auth/google/login
    * Redirects user to Google OAuth consent screen
    */
-  router.get('/login', (req: Request, res: Response) => {
+  router.get('/login', requireAuth, (req: AuthenticatedRequest, res: Response) => {
     try {
-      // TODO: Get userId and orgId from authenticated session
-      // For now, accept as query params (DEV ONLY - replace with proper auth)
-      const userId = req.query.user_id as string;
-      const orgId = req.query.org_id as string;
+      // Get userId and orgId from authenticated session
+      const userId = req.user!.id;
+      const orgId = req.user!.orgId || req.query.org_id as string;
 
-      if (!userId || !orgId) {
+      if (!orgId) {
         return res.status(400).json({ 
-          error: 'Missing user_id or org_id. These will come from authenticated session in production.' 
+          error: 'Organization context required. Please select an organization.' 
         });
       }
 
@@ -38,9 +42,9 @@ export function createGoogleAuthRoutes(storage: IStorage) {
 
   /**
    * GET /auth/google/callback
-   * OAuth callback endpoint - exchanges code for tokens and stores them
+   * OAuth callback endpoint - exchanges code for tokens and stores them securely
    */
-  router.get('/callback', async (req: Request, res: Response) => {
+  router.get('/callback', async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { code, state, error } = req.query;
 
@@ -65,32 +69,8 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       // Exchange authorization code for tokens
       const tokens = await exchangeCodeForTokens(code as string);
 
-      // Calculate token expiry
-      const expiresAt = tokens.expiry_date 
-        ? new Date(tokens.expiry_date)
-        : new Date(Date.now() + 3600 * 1000); // Default 1 hour
-
-      // Store connected account (without raw tokens - they would be encrypted in production)
-      await storage.communications.createConnectedAccount({
-        userId,
-        orgId,
-        provider: 'google',
-        providerEmail: tokens.email,
-        scopes: [
-          'calendar',
-          'calendar.events',
-          'userinfo.email',
-          'userinfo.profile',
-        ],
-        // In production, store encrypted refresh_token via separate encryption service
-        connectorAccountId: `google_${userId}_${Date.now()}`,
-        accessTokenExpiresAt: expiresAt,
-        isActive: true,
-      });
-
-      // TODO: In production, securely store tokens in encrypted storage
-      // For now, log warning about token storage
-      console.warn('TODO: Implement secure token storage with encryption');
+      // Store tokens securely with encryption
+      await storeOAuthTokens(storage, userId, orgId, tokens);
 
       // Redirect back to integrations page with success
       res.redirect('/settings/integrations?google=connected');
@@ -104,12 +84,14 @@ export function createGoogleAuthRoutes(storage: IStorage) {
    * DELETE /auth/google/disconnect
    * Disconnect Google account
    */
-  router.delete('/disconnect', async (req: Request, res: Response) => {
+  router.delete('/disconnect', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { userId, orgId } = req.body;
+      // Get userId and orgId from authenticated session
+      const userId = req.user!.id;
+      const orgId = req.user!.orgId || req.body.orgId;
 
-      if (!userId || !orgId) {
-        return res.status(400).json({ error: 'Missing userId or orgId' });
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization context required' });
       }
 
       // Get connected account
