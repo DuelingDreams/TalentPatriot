@@ -791,12 +791,11 @@ export class CandidatesRepository implements ICandidatesRepository {
       }
 
       // Create the job-candidate relationship (application)
-      const jobCandidateData: InsertJobCandidate = {
+      const jobCandidateData = {
         jobId: applicationData.jobId,
         candidateId: candidate.id,
-        stage: 'applied',
-        status: 'active',
-        resumeUrl: applicationData.resumeUrl,
+        stage: 'applied' as const,
+        status: 'active' as const,
         orgId: job.org_id
       };
 
@@ -1011,7 +1010,7 @@ export class CandidatesRepository implements ICandidatesRepository {
       const results = hasMore ? data.slice(0, limit) : data;
 
       return {
-        data: results as Candidate[],
+        data: results as unknown as Candidate[],
         pagination: {
           hasMore,
           totalCount: count || 0,

@@ -4,7 +4,7 @@ import rateLimit from "express-rate-limit";
 import { createServer, type Server } from "http";
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { storage } from "./storage";
+import { storage } from "./storage/index";
 import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
 // Unused pipeline imports removed - using job-specific functions instead
