@@ -35,7 +35,7 @@ COMMENT ON COLUMN message_threads.participants IS 'Array of participant user IDs
 -- Tokens should be encrypted and stored in a separate secure vault
 CREATE TABLE IF NOT EXISTS connected_accounts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   provider VARCHAR(50) NOT NULL, -- 'google', 'microsoft', etc.
   provider_email VARCHAR(255),
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS calendar_events (
   conference_url TEXT, -- Google Meet link, Zoom link, etc.
   attendees JSONB DEFAULT '[]'::jsonb, -- Array of attendee objects
   status VARCHAR(50) DEFAULT 'confirmed', -- 'confirmed', 'cancelled', 'tentative'
-  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   metadata JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
