@@ -15,7 +15,8 @@ import {
   HelpCircle, 
   BarChart3,
   Globe,
-  Mail
+  Mail,
+  Settings
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -44,6 +45,7 @@ const navigationItems = [
 ]
 
 const secondaryItems = [
+  { label: 'Integrations', href: '/settings/integrations', icon: Settings },
   { label: 'Help', href: '/help', icon: HelpCircle },
 ]
 
