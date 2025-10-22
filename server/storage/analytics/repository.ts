@@ -11,73 +11,37 @@ import type {
 export class AnalyticsRepository implements IAnalyticsRepository {
   async getDashboardStats(orgId: string): Promise<DashboardStats> {
     try {
-      // Use optimized cached analytics function (80% faster)
-      const { data, error } = await supabase.rpc('get_dashboard_stats', { 
-        target_org_id: orgId 
-      });
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      if (error) {
-        console.error('Error calling optimized dashboard stats:', error);
-        throw error;
-      }
+      // Query all counts in parallel for best performance
+      const [jobsResult, candidatesResult, applicationsResult, hiresResult] = await Promise.all([
+        supabase.from('jobs').select('id', { count: 'exact' }).eq('org_id', orgId),
+        supabase.from('candidates').select('id', { count: 'exact' }).eq('org_id', orgId),
+        supabase.from('job_candidate').select('id', { count: 'exact' }).eq('org_id', orgId),
+        supabase.from('job_candidate').select('id', { count: 'exact' }).eq('org_id', orgId).eq('stage', 'hired')
+      ]);
 
-      // Handle case where no data is returned (empty org)
-      if (!data || data.length === 0) {
-        return {
-          totalJobs: 0,
-          totalCandidates: 0,
-          totalApplications: 0,
-          totalHires: 0,
-          jobsThisMonth: 0,
-          candidatesThisMonth: 0,
-          applicationsThisMonth: 0,
-          hiresThisMonth: 0
-        };
-      }
+      const [jobsMonthResult, candidatesMonthResult, applicationsMonthResult, hiresMonthResult] = await Promise.all([
+        supabase.from('jobs').select('id', { count: 'exact' }).eq('org_id', orgId).gte('created_at', startOfMonth.toISOString()),
+        supabase.from('candidates').select('id', { count: 'exact' }).eq('org_id', orgId).gte('created_at', startOfMonth.toISOString()),
+        supabase.from('job_candidate').select('id', { count: 'exact' }).eq('org_id', orgId).gte('created_at', startOfMonth.toISOString()),
+        supabase.from('job_candidate').select('id', { count: 'exact' }).eq('org_id', orgId).eq('stage', 'hired').gte('updated_at', startOfMonth.toISOString())
+      ]);
 
-      const stats = data[0];
       return {
-        totalJobs: Number(stats.total_jobs) || 0,
-        totalCandidates: Number(stats.total_candidates) || 0,
-        totalApplications: Number(stats.total_candidates) || 0,
-        totalHires: 0,
-        jobsThisMonth: Number(stats.recent_jobs) || 0,
-        candidatesThisMonth: Number(stats.recent_candidates) || 0,
-        applicationsThisMonth: Number(stats.recent_candidates) || 0,
-        hiresThisMonth: 0
+        totalJobs: jobsResult.count || 0,
+        totalCandidates: candidatesResult.count || 0,
+        totalApplications: applicationsResult.count || 0,
+        totalHires: hiresResult.count || 0,
+        jobsThisMonth: jobsMonthResult.count || 0,
+        candidatesThisMonth: candidatesMonthResult.count || 0,
+        applicationsThisMonth: applicationsMonthResult.count || 0,
+        hiresThisMonth: hiresMonthResult.count || 0
       };
     } catch (error) {
-      console.error('Error fetching optimized dashboard stats, falling back to legacy method:', error);
-      
-      // Fallback to legacy method if optimized function fails
-      try {
-        const now = new Date();
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        const [jobsResult, candidatesResult] = await Promise.all([
-          supabase.from('jobs').select('id', { count: 'exact' }).eq('org_id', orgId),
-          supabase.from('candidates').select('id', { count: 'exact' }).eq('org_id', orgId)
-        ]);
-
-        const [jobsMonthResult, candidatesMonthResult] = await Promise.all([
-          supabase.from('jobs').select('id', { count: 'exact' }).eq('org_id', orgId).gte('created_at', startOfMonth.toISOString()),
-          supabase.from('candidates').select('id', { count: 'exact' }).eq('org_id', orgId).gte('created_at', startOfMonth.toISOString())
-        ]);
-
-        return {
-          totalJobs: jobsResult.count || 0,
-          totalCandidates: candidatesResult.count || 0,
-          totalApplications: candidatesResult.count || 0,
-          totalHires: 0,
-          jobsThisMonth: jobsMonthResult.count || 0,
-          candidatesThisMonth: candidatesMonthResult.count || 0,
-          applicationsThisMonth: candidatesMonthResult.count || 0,
-          hiresThisMonth: 0
-        };
-      } catch (fallbackError) {
-        console.error('Fallback dashboard stats fetch error:', fallbackError);
-        throw fallbackError;
-      }
+      console.error('Error fetching dashboard stats:', error);
+      throw error;
     }
   }
   
