@@ -47,7 +47,14 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - **Candidate Notes System**: Comprehensive notes management for pipeline candidates with privacy controls.
 - **Interview Scheduling**: Advanced calendar interface.
 - **Onboarding Workflow**: 5-step user onboarding process.
-- **Internal Communication**: Team messaging system.
+- **Internal Communication**: Team messaging system with Google integration.
+- **Google Workspace Integration** (NEW):
+  - Manual OAuth 2.0 implementation (not using Replit connectors per user preference)
+  - Google Calendar API integration for creating events with Google Meet links
+  - FreeBusy API for availability checking
+  - Thread-based email messaging architecture
+  - New database tables: `connected_accounts`, `calendar_events`, `message_threads`
+  - Feature flag controlled rollout (`ENABLE_GOOGLE_INTEGRATION`)
 - **Reporting & Analytics**: Dashboard with key statistics and performance overview.
 - **Resume Management**: Upload, preview, and organization-based storage of resumes.
 - **Dynamic Dashboard Quick Actions**: Live data computation for key metrics.
@@ -70,6 +77,27 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - **Charting**: Recharts
 - **Image Upload**: Multer (backend)
 - **Security**: HaveIBeenPwned.org
-- **OAuth Providers**: Google, Microsoft
+- **OAuth Providers**: Google (manual OAuth 2.0), Microsoft
 - **Email Service**: SendGrid
 - **AI**: OpenAI GPT-4o
+- **Google APIs**: googleapis npm package for Calendar and Meet integration
+
+## Google Integration Setup Notes
+**Required Environment Variables:**
+- `GOOGLE_CLIENT_ID` - OAuth 2.0 client ID from Google Cloud Console
+- `GOOGLE_CLIENT_SECRET` - OAuth 2.0 client secret
+- `GOOGLE_REDIRECT_URI` - OAuth callback URL (e.g., https://your-app.replit.app/auth/google/callback)
+- `APP_JWT_SECRET` - Secret for signing OAuth state parameters
+
+**OAuth Scopes Used:**
+- `https://www.googleapis.com/auth/calendar` - Create and manage calendar events
+- `https://www.googleapis.com/auth/calendar.events` - Calendar events access
+- `https://www.googleapis.com/auth/userinfo.email` - User email address
+- `https://www.googleapis.com/auth/userinfo.profile` - Basic profile information
+
+**Database Migration:**
+Run the provided SQL script in Supabase SQL Editor to create:
+- `connected_accounts` table (stores OAuth connections without raw tokens)
+- `calendar_events` table (tracks Google Calendar/Meet events)
+- `message_threads` table (email conversation grouping)
+- Updated `messages` table (added `thread_id`, `channel_type`, `external_message_id`)
