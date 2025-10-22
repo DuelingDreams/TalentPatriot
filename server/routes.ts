@@ -87,7 +87,7 @@ async function requireAuth(req: AuthenticatedRequest, res: express.Response, nex
     }
 
     // Get user profile for role information
-    const userProfile = await storage.getUserProfile(user.id);
+    const userProfile = await storage.auth.getUserProfile(user.id);
     
     req.user = {
       id: user.id,
@@ -135,7 +135,7 @@ async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response,
 
   try {
     // Check if user is org admin or owner
-    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
+    const userOrg = await storage.auth.getUserOrganization(req.user.id, orgId);
     const organization = await storage.getOrganization(orgId);
     
     const isOrgAdmin = userOrg?.role === 'admin' || organization?.ownerId === req.user.id;
@@ -167,7 +167,7 @@ async function requireRecruiting(req: AuthenticatedRequest, res: express.Respons
   }
 
   try {
-    const userOrg = await storage.getUserOrganization(req.user.id, orgId);
+    const userOrg = await storage.auth.getUserOrganization(req.user.id, orgId);
     
     // Check if user has recruiting role (recruiter, admin, or hiring_manager with seat)
     const hasRecruiterRole = userOrg?.role === 'recruiter' || userOrg?.role === 'admin';
@@ -403,7 +403,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   // User Profile routes
   app.get("/api/user-profiles/:id", async (req, res) => {
     try {
-      const userProfile = await storage.getUserProfile(req.params.id);
+      const userProfile = await storage.auth.getUserProfile(req.params.id);
       if (!userProfile) {
         return res.status(404).json({ error: 'User profile not found' });
       }
@@ -416,7 +416,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/user-profiles", writeLimiter, async (req, res) => {
     try {
-      const userProfile = await storage.createUserProfile(req.body);
+      const userProfile = await storage.auth.createUserProfile(req.body);
       res.status(201).json(userProfile);
     } catch (error) {
       console.error("Error creating user profile:", error);
@@ -426,7 +426,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/user-profiles/:id", writeLimiter, async (req, res) => {
     try {
-      const userProfile = await storage.updateUserProfile(req.params.id, req.body);
+      const userProfile = await storage.auth.updateUserProfile(req.params.id, req.body);
       res.json(userProfile);
     } catch (error) {
       console.error("Error updating user profile:", error);
@@ -443,7 +443,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       // Use optimized single-query function
-      const stats = await storage.getDashboardStats(orgId);
+      const stats = await storage.analytics.getDashboardStats(orgId);
       
       // Cache for 1 minute (private for security)
       res.setHeader('Cache-Control', 'private, max-age=60, must-revalidate');
@@ -463,7 +463,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Job ID and Organization ID required' });
       }
       
-      const candidates = await storage.getPipelineCandidates(job_id as string, org_id as string);
+      const candidates = await storage.candidates.getPipelineCandidates(job_id as string, org_id as string);
       
       // Cache for 2 minutes
       res.setHeader('Cache-Control', 'public, max-age=120');
@@ -478,8 +478,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/user/:id/organization-data", async (req, res) => {
     try {
       const userId = req.params.id;
-      const userOrgs = await storage.getUserOrganizationsByUser(userId);
-      const currentOrg = userOrgs.length > 0 ? await storage.getOrganization(userOrgs[0].orgId) : null;
+      const userOrgs = await storage.auth.getUserOrganizationsByUser(userId);
+      const currentOrg = userOrgs.length > 0 ? await storage.auth.getOrganization(userOrgs[0].orgId) : null;
       
       // Cache for 15 minutes
       res.setHeader('Cache-Control', 'public, max-age=900');
@@ -536,7 +536,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       // Use optimized skills search
-      const candidates = await storage.searchCandidatesBySkills(orgId, skills);
+      const candidates = await storage.candidates.searchCandidatesBySkills(orgId, skills);
       
       // Cache for 2 minutes (skills change infrequently)
       res.setHeader('Cache-Control', 'private, max-age=120');
@@ -578,10 +578,10 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       const [jobs, candidates, clients, jobCandidates] = await Promise.all([
-        storage.getJobsByOrg(orgId),
-        storage.getCandidatesByOrg(orgId),
-        storage.getClientsByOrg(orgId),
-        storage.getJobCandidatesByOrg(orgId)
+        storage.jobs.getJobsByOrg(orgId),
+        storage.candidates.getCandidatesByOrg(orgId),
+        storage.jobs.getClientsByOrg(orgId),
+        storage.candidates.getJobCandidatesByOrg(orgId)
       ]);
       
       res.setHeader('Cache-Control', 'public, max-age=60'); // 1 minute cache
@@ -611,13 +611,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       let results = [];
       switch (type) {
         case 'clients':
-          results = await storage.searchClients(searchTerm as string, org_id as string);
+          results = await storage.jobs.searchClients(searchTerm as string, org_id as string);
           break;
         case 'jobs':
-          results = await storage.searchJobs(searchTerm as string, org_id as string);
+          results = await storage.jobs.searchJobs(searchTerm as string, org_id as string);
           break;
         case 'candidates':
-          results = await storage.searchCandidates(searchTerm as string, org_id as string);
+          results = await storage.candidates.searchCandidates(searchTerm as string, org_id as string);
           break;
         default:
           return res.status(400).json({ error: 'Invalid search type' });
@@ -636,7 +636,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/organizations", async (req, res) => {
     try {
       const ownerId = req.query.ownerId as string;
-      const organizations = await storage.getOrganizations(ownerId);
+      const organizations = await storage.auth.getOrganizations(ownerId);
       res.json(organizations);
     } catch (error) {
       console.error("Error fetching organizations:", error);
@@ -646,7 +646,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/organizations/:id", async (req, res) => {
     try {
-      const organization = await storage.getOrganization(req.params.id);
+      const organization = await storage.auth.getOrganization(req.params.id);
       if (!organization) {
         res.status(404).json({ error: "Organization not found" });
         return;
@@ -707,7 +707,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       // Step 3: Create the organization
-      const organization = await storage.createOrganization({
+      const organization = await storage.auth.createOrganization({
         name,
         ownerId,
         slug
@@ -745,7 +745,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/organizations/:id", writeLimiter, async (req, res) => {
     try {
-      const organization = await storage.updateOrganization(req.params.id, req.body);
+      const organization = await storage.auth.updateOrganization(req.params.id, req.body);
       res.json(organization);
     } catch (error) {
       console.error("Error updating organization:", error);
@@ -755,7 +755,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.delete("/api/organizations/:id", writeLimiter, async (req, res) => {
     try {
-      await storage.deleteOrganization(req.params.id);
+      await storage.auth.deleteOrganization(req.params.id);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting organization:", error);
@@ -831,7 +831,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     try {
       const userId = req.query.userId as string;
       const orgId = req.query.orgId as string;
-      const userOrganizations = await storage.getUserOrganizations(userId, orgId);
+      const userOrganizations = await storage.auth.getUserOrganizations(userId, orgId);
       res.json(userOrganizations);
     } catch (error) {
       console.error("Error fetching user organizations:", error);
@@ -841,7 +841,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/user-organizations/:id", async (req, res) => {
     try {
-      const userOrganization = await storage.getUserOrganization(req.params.id);
+      const userOrganization = await storage.auth.getUserOrganization(req.params.id);
       if (!userOrganization) {
         res.status(404).json({ error: "User organization not found" });
         return;
@@ -855,7 +855,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/users/:userId/organizations", async (req, res) => {
     try {
-      const userOrganizations = await storage.getUserOrganizationsByUser(req.params.userId);
+      const userOrganizations = await storage.auth.getUserOrganizationsByUser(req.params.userId);
       res.json(userOrganizations);
     } catch (error) {
       console.error("Error fetching user organizations by user:", error);
@@ -865,7 +865,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/organizations/:orgId/users", async (req, res) => {
     try {
-      const userOrganizations = await storage.getUserOrganizationsByOrg(req.params.orgId);
+      const userOrganizations = await storage.auth.getUserOrganizationsByOrg(req.params.orgId);
       res.json(userOrganizations);
     } catch (error) {
       console.error("Error fetching user organizations by org:", error);
@@ -875,7 +875,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/user-organizations", writeLimiter, async (req, res) => {
     try {
-      const userOrganization = await storage.createUserOrganization(req.body);
+      const userOrganization = await storage.auth.createUserOrganization(req.body);
       res.status(201).json(userOrganization);
     } catch (error) {
       console.error("Error creating user organization:", error);
@@ -885,7 +885,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/user-organizations/:id", writeLimiter, async (req, res) => {
     try {
-      const userOrganization = await storage.updateUserOrganization(req.params.id, req.body);
+      const userOrganization = await storage.auth.updateUserOrganization(req.params.id, req.body);
       res.json(userOrganization);
     } catch (error) {
       console.error("Error updating user organization:", error);
@@ -895,7 +895,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.delete("/api/user-organizations/:id", writeLimiter, async (req, res) => {
     try {
-      await storage.deleteUserOrganization(req.params.id);
+      await storage.auth.deleteUserOrganization(req.params.id);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting user organization:", error);
@@ -905,7 +905,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.delete("/api/users/:userId/organizations/:orgId", writeLimiter, async (req, res) => {
     try {
-      await storage.deleteUserOrganizationByUserAndOrg(req.params.userId, req.params.orgId);
+      await storage.auth.deleteUserOrganizationByUserAndOrg(req.params.userId, req.params.orgId);
       res.status(204).send();
     } catch (error) {
       console.error("Error removing user from organization:", error);
@@ -1003,7 +1003,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get('/api/organizations/:orgId/email-settings', requireAuth, requireOrgAdmin, async (req, res) => {
     try {
       const { orgId } = req.params;
-      const settings = await storage.getOrganizationEmailSettings(orgId);
+      const settings = await storage.communications.getOrganizationEmailSettings(orgId);
       res.json(settings);
     } catch (error) {
       console.error('Error fetching email settings:', error);
@@ -1020,7 +1020,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { insertOrganizationEmailSettingsSchema } = await import('@shared/schema');
       const validatedData = insertOrganizationEmailSettingsSchema.parse(req.body);
       
-      const settings = await storage.updateOrganizationEmailSettings(orgId, validatedData);
+      const settings = await storage.communications.updateOrganizationEmailSettings(orgId, validatedData);
       res.json(settings);
     } catch (error) {
       console.error('Error updating email settings:', error);
@@ -1036,7 +1036,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get('/api/organizations/:orgId/email-templates', requireAuth, requireRecruiting, async (req, res) => {
     try {
       const { orgId } = req.params;
-      const templates = await storage.getEmailTemplates(orgId);
+      const templates = await storage.communications.getEmailTemplates(orgId);
       res.json(templates);
     } catch (error) {
       console.error('Error fetching email templates:', error);
@@ -1053,7 +1053,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { insertEmailTemplateSchema } = await import('@shared/schema');
       const validatedData = insertEmailTemplateSchema.parse({ ...req.body, orgId });
       
-      const template = await storage.createEmailTemplate(validatedData);
+      const template = await storage.communications.createEmailTemplate(validatedData);
       res.status(201).json(template);
     } catch (error) {
       console.error('Error creating email template:', error);
@@ -1074,7 +1074,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { insertEmailTemplateSchema } = await import('@shared/schema');
       const validatedData = insertEmailTemplateSchema.partial().parse(req.body);
       
-      const template = await storage.updateEmailTemplate(templateId, orgId, validatedData);
+      const template = await storage.communications.updateEmailTemplate(templateId, orgId, validatedData);
       res.json(template);
     } catch (error) {
       console.error('Error updating email template:', error);
@@ -1090,7 +1090,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.delete('/api/organizations/:orgId/email-templates/:templateId', requireAuth, requireOrgAdmin, async (req, res) => {
     try {
       const { orgId, templateId } = req.params;
-      await storage.deleteEmailTemplate(templateId, orgId);
+      await storage.communications.deleteEmailTemplate(templateId, orgId);
       res.status(204).send();
     } catch (error) {
       console.error('Error deleting email template:', error);
@@ -1103,7 +1103,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     try {
       const { orgId } = req.params;
       const { limit = 50, eventType, status } = req.query;
-      const events = await storage.getEmailEvents(orgId, {
+      const events = await storage.communications.getEmailEvents(orgId, {
         limit: Number(limit),
         eventType: eventType as string,
         status: status as string
@@ -1447,7 +1447,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       const limitNum = limit ? parseInt(limit, 10) : 10
-      const data = await storage.getPipelineSnapshot(orgId, limitNum)
+      const data = await storage.analytics.getPipelineSnapshot(orgId, limitNum)
       
       res.setHeader('Cache-Control', 'private, max-age=30, must-revalidate')
       res.setHeader('Vary', 'X-Org-Id')
@@ -1466,7 +1466,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID is required' })
       }
 
-      const data = await storage.getStageTimeAnalytics(orgId, jobId)
+      const data = await storage.analytics.getStageTimeAnalytics(orgId, jobId)
       
       res.setHeader('Cache-Control', 'private, max-age=60, must-revalidate')
       res.setHeader('Vary', 'X-Org-Id')
@@ -1485,7 +1485,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID is required' })
       }
 
-      const data = await storage.getJobHealthData(orgId)
+      const data = await storage.analytics.getJobHealthData(orgId)
       
       res.setHeader('Cache-Control', 'private, max-age=120, must-revalidate')
       res.setHeader('Vary', 'X-Org-Id')
@@ -1505,7 +1505,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       const limitNum = limit ? parseInt(limit, 10) : 50
-      const data = await storage.getDashboardActivity(orgId, limitNum)
+      const data = await storage.analytics.getDashboardActivity(orgId, limitNum)
       
       res.setHeader('Cache-Control', 'private, max-age=15, must-revalidate')
       res.setHeader('Vary', 'X-Org-Id')
@@ -1534,8 +1534,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { DatabaseStorage } = await import('./storage')
       const storage = new DatabaseStorage()
       const [jobs, candidates] = await Promise.all([
-        storage.getJobsByOrg(orgId),
-        storage.getCandidatesByOrg(orgId)
+        storage.jobs.getJobsByOrg(orgId),
+        storage.candidates.getCandidatesByOrg(orgId)
       ])
       
       // Get applications if method exists, otherwise use empty array
@@ -1709,7 +1709,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(401).json({ error: 'Invalid authentication' });
       }
 
-      const profile = await storage.getUserProfile(user.id);
+      const profile = await storage.auth.getUserProfile(user.id);
       
       res.json({
         id: user.id,
@@ -1751,7 +1751,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         bio: req.body.bio,
       };
 
-      const updatedProfile = await storage.updateUserProfile(user.id, profileData);
+      const updatedProfile = await storage.auth.updateUserProfile(user.id, profileData);
       res.json(updatedProfile);
     } catch (error) {
       console.error('Error updating user profile:', error);
@@ -1778,7 +1778,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(401).json({ error: 'Invalid authentication' });
       }
 
-      const settings = await storage.getUserSettings(user.id);
+      const settings = await storage.auth.getUserSettings(user.id);
       res.json(settings);
     } catch (error) {
       console.error('Error fetching user settings:', error);
@@ -1813,7 +1813,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         publicProfile: req.body.publicProfile,
       };
 
-      const updatedSettings = await storage.updateUserSettings(user.id, settingsData);
+      const updatedSettings = await storage.auth.updateUserSettings(user.id, settingsData);
       res.json(updatedSettings);
     } catch (error) {
       console.error('Error updating user settings:', error);
@@ -1865,7 +1865,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         res.status(400).json({ error: "Organization ID is required" });
         return;
       }
-      const clients = await storage.getClientsByOrg(orgId);
+      const clients = await storage.jobs.getClientsByOrg(orgId);
       res.json(clients);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch clients" });
@@ -2005,7 +2005,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         res.json(result);
       } else {
         // Backward compatibility: return non-paginated results
-        const jobs = await storage.getJobsByOrg(orgId);
+        const jobs = await storage.jobs.getJobsByOrg(orgId);
         
         // Add candidate counts to each job
         const jobsWithCounts = await Promise.all(
@@ -2418,7 +2418,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     console.info('[API]', req.method, req.url);
     try {
       const validatedData = skillsSearchSchema.parse(req.body);
-      const results = await storage.searchCandidatesBySkills(validatedData.orgId, validatedData.skills);
+      const results = await storage.candidates.searchCandidatesBySkills(validatedData.orgId, validatedData.skills);
       res.json(results);
     } catch (error) {
       console.error('Skills search error:', error);
@@ -2583,7 +2583,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       // If orgSlug is provided, look up the organization
       if (orgSlug) {
         try {
-          const organizations = await storage.getOrganizations();
+          const organizations = await storage.auth.getOrganizations();
           const organization = organizations.find(org => 
             org.slug === orgSlug || 
             org.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === orgSlug ||
@@ -2647,7 +2647,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       // If orgSlug is provided, look up the organization
       if (orgSlug) {
         try {
-          const organizations = await storage.getOrganizations();
+          const organizations = await storage.auth.getOrganizations();
           const organization = organizations.find(org => 
             org.slug === orgSlug || 
             org.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === orgSlug
@@ -2777,7 +2777,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         res.json(result);
       } else {
         // Backward compatibility: return non-paginated results
-        const candidates = await storage.getCandidatesByOrg(orgId);
+        const candidates = await storage.candidates.getCandidatesByOrg(orgId);
         
         // Generate ETag for response
         const etag = generateETag(candidates);
@@ -3741,7 +3741,7 @@ Expires: 2025-12-31T23:59:59.000Z
       const columns = await storage.getPipelineColumns(orgId);
       
       // Get job candidates for the organization
-      const jobCandidates = await storage.getJobCandidatesByOrg(orgId);
+      const jobCandidates = await storage.candidates.getJobCandidatesByOrg(orgId);
       
       // Organize the pipeline data
       const pipeline = {
@@ -4332,7 +4332,7 @@ Expires: 2025-12-31T23:59:59.000Z
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
@@ -4354,14 +4354,14 @@ Expires: 2025-12-31T23:59:59.000Z
     console.info('[API]', req.method, req.url);
     try {
       const { id } = req.params;
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
+      const userProfile = await storage.auth.getUserProfile(req.user?.id || '');
       
       if (!userProfile?.orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, userProfile.orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
@@ -4390,13 +4390,13 @@ Expires: 2025-12-31T23:59:59.000Z
   app.post("/api/imports", requireAuth, writeLimiter, upload.single('file'), async (req: AuthenticatedRequest, res) => {
     console.info('[API]', req.method, req.url);
     try {
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
+      const userProfile = await storage.auth.getUserProfile(req.user?.id || '');
       if (!userProfile?.orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, userProfile.orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
@@ -4462,14 +4462,14 @@ Expires: 2025-12-31T23:59:59.000Z
     console.info('[API]', req.method, req.url);
     try {
       const { id } = req.params;
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
+      const userProfile = await storage.auth.getUserProfile(req.user?.id || '');
       
       if (!userProfile?.orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, userProfile.orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
@@ -4501,14 +4501,14 @@ Expires: 2025-12-31T23:59:59.000Z
     console.info('[API]', req.method, req.url);
     try {
       const { id } = req.params;
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
+      const userProfile = await storage.auth.getUserProfile(req.user?.id || '');
       
       if (!userProfile?.orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, userProfile.orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
@@ -4541,14 +4541,14 @@ Expires: 2025-12-31T23:59:59.000Z
     try {
       const { id } = req.params;
       const { status } = req.query;
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
+      const userProfile = await storage.auth.getUserProfile(req.user?.id || '');
       
       if (!userProfile?.orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, userProfile.orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
@@ -4585,14 +4585,14 @@ Expires: 2025-12-31T23:59:59.000Z
     console.info('[API]', req.method, req.url);
     try {
       const { id } = req.params;
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
+      const userProfile = await storage.auth.getUserProfile(req.user?.id || '');
       
       if (!userProfile?.orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, userProfile.orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
@@ -4635,14 +4635,14 @@ Expires: 2025-12-31T23:59:59.000Z
     console.info('[API]', req.method, req.url);
     try {
       const { importId, recordId } = req.params;
-      const userProfile = await storage.getUserProfile(req.user?.id || '');
+      const userProfile = await storage.auth.getUserProfile(req.user?.id || '');
       
       if (!userProfile?.orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
       // Get user's organization role and check admin access
-      const userOrgs = await storage.getUserOrganizations(req.user?.id, userProfile.orgId);
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, userProfile.orgId);
       const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
       if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
         return res.status(403).json({ error: 'Admin access required' });
