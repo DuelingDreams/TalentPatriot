@@ -1,3 +1,21 @@
+// Import all domain interfaces
+import type { IAuthRepository } from './auth/interface';
+import type { IJobsRepository } from './jobs/interface';
+import type { ICandidatesRepository } from './candidates/interface';
+import type { ICommunicationsRepository } from './communications/interface';
+import type { IImportsRepository } from './imports/interface';
+import type { IAnalyticsRepository } from './analytics/interface';
+import type { IBetaRepository } from './beta/interface';
+
+// Import all domain implementations
+import { AuthRepository } from './auth/repository';
+import { JobsRepository } from './jobs/repository';
+import { CandidatesRepository } from './candidates/repository';
+import { CommunicationsRepository } from './communications/repository';
+import { ImportsRepository } from './imports/repository';
+import { AnalyticsRepository } from './analytics/repository';
+import { BetaRepository } from './beta/repository';
+
 // Main storage interface aggregating all domain repositories
 export interface IStorage {
   // Domain repositories will be exposed through this interface

@@ -5,7 +5,6 @@ import { createServer, type Server } from "http";
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { storage } from "./storage";
-import * as jobService from "../lib/jobService";
 import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
 // Unused pipeline imports removed - using job-specific functions instead
@@ -2069,9 +2068,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // REWRITTEN JOB ROUTES - Clean implementation with Zod validation using jobService
-  const { createJob: createJobService, publishJob: publishJobService } = await import('../lib/jobService');
-  
+  // REWRITTEN JOB ROUTES - Clean implementation with Zod validation using jobs repository
   const createJobSchema = z.object({
     title: z.string().min(1, "Job title is required"),
     description: z.string().optional(),
@@ -2109,7 +2106,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         orgId: validatedData.orgId
       };
       
-      const job = await createJobService(validatedData, userContext);
+      const job = await storage.jobs.createJobWithContext(validatedData, userContext);
       
       // Ensure pipeline is initialized for the job
       try {
@@ -2134,7 +2131,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Publish job - Clean implementation using jobService
+  // Publish job - Clean implementation using jobs repository
   const publishJobSchema = z.object({
     jobId: z.string().uuid("Invalid job ID format")
   });
@@ -2158,7 +2155,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         orgId: req.headers['x-org-id'] as string || ''
       };
       
-      const result = await publishJobService(jobId, userContext);
+      const result = await storage.jobs.publishJob(jobId, userContext);
       console.info('[API] POST /api/jobs/:jobId/publish →', { success: true, jobId, status: result.job.status });
       res.json(result);
     } catch (error) {
@@ -2273,7 +2270,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // CANDIDATE ROUTES - Clean implementation using jobService
+  // CANDIDATE ROUTES - Clean implementation using candidates repository
   const createCandidateSchema = z.object({
     name: z.string().min(1, "Candidate name is required"),
     email: z.string().email("Valid email is required"),
@@ -2286,7 +2283,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     console.info('[API]', req.method, req.url);
     try {
       const validatedData = createCandidateSchema.parse(req.body);
-      const candidate = await jobService.createCandidate(validatedData);
+      const candidate = await storage.candidates.createCandidate(validatedData);
       console.info('[API] POST /api/candidates →', { success: true, candidateId: candidate.id, email: candidate.email });
       res.status(201).json(candidate);
     } catch (error) {
@@ -2435,7 +2432,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // JOB APPLICATION ROUTE - Complete flow using jobService
+  // JOB APPLICATION ROUTE - Complete flow using jobs repository
   const jobApplicationParamsSchema = z.object({
     jobId: z.string().uuid("Invalid job ID format")
   });
@@ -2509,8 +2506,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { jobId } = paramsParse.data;
       const applicantData = bodyParse.data;
 
-      // Use jobService applyToJob function with service role key for RLS bypass
-      const result = await jobService.applyToJob({
+      // Use jobs repository applyToJob function with service role key for RLS bypass
+      const result = await storage.jobs.applyToJob({
         jobId,
         applicant: {
           firstName: applicantData.firstName,
@@ -2604,7 +2601,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       // Get jobs with optional organization filtering
-      const openJobs = await jobService.getPublicJobs(orgId);
+      const openJobs = await storage.jobs.getPublicJobs(orgId);
       res.json(openJobs.map(mapPublicJobRow));
     } catch (error) {
       console.error('Error fetching public jobs:', error);
@@ -2668,7 +2665,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       // Get jobs with optional organization filtering
-      const allJobs = await jobService.getPublicJobs(orgId);
+      const allJobs = await storage.jobs.getPublicJobs(orgId);
       const job = allJobs.find(job => job.public_slug === slug && job.status === 'open');
       
       console.log(`[API] Found jobs: ${allJobs.length}, Looking for slug: ${slug}`);
@@ -2869,7 +2866,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // These routes use older storage methods - deprecated in favor of jobService routes above
+  // These routes use older storage methods - deprecated in favor of jobs repository routes above
 
   app.put("/api/candidates/:id", writeLimiter, async (req, res) => {
     try {
@@ -3886,7 +3883,7 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get("/api/job-candidates/:orgId", async (req, res) => {
     try {
       const { orgId } = req.params;
-      const jobCandidates = await jobService.getJobCandidatesByOrg(orgId);
+      const jobCandidates = await storage.jobs.getJobCandidatesByOrg(orgId);
       res.json(jobCandidates);
     } catch (error) {
       console.error("Error fetching job candidates:", error);
@@ -3943,7 +3940,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: "Stage is required" });
       }
       
-      const updatedJobCandidate = await jobService.updateJobCandidateStage(id, stage);
+      const updatedJobCandidate = await storage.jobs.updateJobCandidateStage(id, stage);
       res.json(updatedJobCandidate);
     } catch (error) {
       console.error("Error updating job candidate stage:", error);

@@ -7,7 +7,87 @@ import type {
   InsertJob,
   InsertPipelineColumn
 } from "@shared/schema";
-import type { IJobsRepository } from './interface';
+import type { IJobsRepository, UserContext, ApplicantData, ApplicationResult, PublishResult } from './interface';
+
+// Helper functions migrated from lib/jobService.ts
+
+// Resume URL validation function
+function validateResumeUrl(resumeUrl: string): boolean {
+  if (!resumeUrl) return true; // Optional field
+  
+  try {
+    const url = new URL(resumeUrl);
+    
+    // Check if it's a Supabase storage URL
+    if (url.hostname.includes('supabase')) {
+      return true;
+    }
+    
+    // Check if it's a valid HTTPS URL (for other cloud providers)
+    if (url.protocol === 'https:') {
+      return true;
+    }
+    
+    // Check if it's a local file path (for development/uploads)
+    if (url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname.includes('replit'))) {
+      return true;
+    }
+    
+    return false;
+  } catch (error) {
+    // If URL parsing fails, check if it's a local file path
+    if (resumeUrl.startsWith('/uploads/') || resumeUrl.startsWith('uploads/')) {
+      return true;
+    }
+    console.error('Invalid resume URL format:', resumeUrl);
+    return false;
+  }
+}
+
+// Generate unique slug for job
+async function generateUniqueSlug(title: string, jobId?: string): Promise<string> {
+  // Create base slug from title
+  const baseSlug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 50);
+  
+  if (!baseSlug) {
+    throw new Error('Invalid title - cannot generate slug');
+  }
+  
+  // If we have a jobId, use it for uniqueness
+  if (jobId) {
+    const slugWithId = `${baseSlug}-${jobId.slice(0, 8)}`;
+    return slugWithId;
+  }
+  
+  // For new jobs, find next available slug
+  let counter = 0;
+  let slugCandidate = baseSlug;
+  
+  while (true) {
+    const { data } = await supabase
+      .from('jobs')
+      .select('id')
+      .eq('public_slug', slugCandidate)
+      .limit(1);
+    
+    if (!data || data.length === 0) {
+      return slugCandidate;
+    }
+    
+    counter++;
+    slugCandidate = `${baseSlug}-${counter}`;
+    
+    if (counter > 100) {
+      throw new Error('Unable to generate unique slug');
+    }
+  }
+}
 
 export class JobsRepository implements IJobsRepository {
   // Placeholder implementation - will extract methods from original storage.ts
@@ -201,23 +281,6 @@ export class JobsRepository implements IJobsRepository {
     }
   }
 
-  async publishJob(jobId: string): Promise<Job> {
-    const { data, error } = await supabase
-      .from('jobs')
-      .update({ 
-        status: 'open',
-        published_at: new Date().toISOString()
-      })
-      .eq('id', jobId)
-      .select()
-      .single();
-    
-    if (error) {
-      throw new Error(`Failed to publish job: ${error.message}`);
-    }
-    
-    return data as Job;
-  }
 
   async updateJob(id: string, updateData: Partial<InsertJob>): Promise<Job> {
     try {
@@ -276,20 +339,28 @@ export class JobsRepository implements IJobsRepository {
     return data as Job[];
   }
 
-  async getPublicJobs(): Promise<Job[]> {
-    const { data, error } = await supabase
+  async getPublicJobs(orgId?: string): Promise<Job[]> {
+    let query = supabase
       .from('jobs')
       .select('*')
       .eq('status', 'open')
-      .not('published_at', 'is', null)
-      .eq('record_status', 'active')
-      .order('created_at', { ascending: false });
+      .not('published_at', 'is', null);
+
+    // Filter by organization if orgId is provided
+    if (orgId) {
+      query = query.eq('org_id', orgId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
     
     if (error) {
-      throw new Error(error.message);
+      console.error('Public jobs fetch error:', error);
+      throw new Error(`Failed to fetch public jobs: ${error.message}`);
     }
     
-    return data as Job[];
+    console.log(`[JobsRepository] getPublicJobs found ${data?.length || 0} jobs${orgId ? ` for org ${orgId}` : ''}`);
+    
+    return data || [];
   }
 
   async getPublicJobsByOrg(orgId: string): Promise<Job[]> {
@@ -639,5 +710,415 @@ export class JobsRepository implements IJobsRepository {
       console.error('Error in getJobsPaginated:', error);
       throw error;
     }
+  }
+
+  // Migrated from lib/jobService.ts - Advanced job operations with UserContext
+
+  async createJobWithContext(data: {
+    title: string;
+    description?: string;
+    clientId?: string;
+    orgId: string;
+    location?: string;
+    jobType?: string;
+    remoteOption?: string;
+    salaryRange?: string;
+    experienceLevel?: string;
+    postingTargets?: string[];
+    autoPost?: boolean;
+  }, userContext: UserContext): Promise<Job> {
+    // Validate required fields for creation
+    if (!data.title?.trim()) {
+      throw new Error('Job title is required');
+    }
+    
+    if (!data.orgId) {
+      throw new Error('Organization ID is required');
+    }
+    
+    // Verify user has access to organization
+    const { data: userOrg } = await supabase
+      .from('user_organizations')
+      .select('id')
+      .eq('user_id', userContext.userId)
+      .eq('org_id', data.orgId)
+      .single();
+    
+    // If not found, also check if user is the organization owner (fallback for development)
+    if (!userOrg) {
+      const { data: orgOwner } = await supabase
+        .from('organizations')
+        .select('owner_id')
+        .eq('id', data.orgId)
+        .single();
+      
+      if (!orgOwner || orgOwner.owner_id !== userContext.userId) {
+        throw new Error('Access denied: User not authorized for this organization');
+      }
+    }
+    
+    // Generate unique slug
+    const slug = await generateUniqueSlug(data.title);
+    
+    const { data: result, error } = await supabase
+      .from('jobs')
+      .insert([{ 
+        title: data.title.trim(),
+        description: data.description?.trim() || null,
+        location: data.location?.trim() || null,
+        job_type: data.jobType || 'full-time',
+        remote_option: data.remoteOption || 'onsite',
+        salary_range: data.salaryRange?.trim() || null,
+        experience_level: data.experienceLevel || 'mid',
+        client_id: data.clientId || null,
+        org_id: data.orgId,
+        status: 'draft', // Always create as draft
+        record_status: 'active',
+        public_slug: slug,
+        created_by: userContext.userId
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Job creation error:', error);
+      throw new Error(`Failed to create job: ${error.message}`);
+    }
+    
+    return result as Job;
+  }
+
+  async publishJob(jobId: string, userContext?: UserContext): Promise<PublishResult> {
+    // Fetch job and validate ownership/access
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .select(`
+        *,
+        organization:organizations(id, name, slug)
+      `)
+      .eq('id', jobId)
+      .single();
+
+    if (jobError || !job) {
+      throw new Error('Job not found');
+    }
+
+    // Verify user has access if userContext provided
+    if (userContext) {
+      if (job.org_id !== userContext.orgId) {
+        throw new Error('Access denied: Job does not belong to user organization');
+      }
+    }
+
+    // Validate required fields for publishing
+    if (!job.title) {
+      throw new Error('Cannot publish: Job title is required');
+    }
+
+    // Only allow publishing draft jobs
+    if (job.status !== 'draft') {
+      throw new Error('Job is already published or closed');
+    }
+
+    // Ensure slug exists
+    let slug = job.public_slug;
+    if (!slug) {
+      slug = await generateUniqueSlug(job.title, job.id);
+    }
+
+    // Update job status to 'open' and set published_at timestamp
+    const { data: updatedJob, error: updateError } = await supabase
+      .from('jobs')
+      .update({
+        status: 'open',
+        published_at: new Date().toISOString(),
+        public_slug: slug,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId)
+      .select()
+      .single();
+
+    if (updateError) {
+      console.error('Job publishing error:', updateError);
+      throw new Error(`Failed to publish job: ${updateError.message}`);
+    }
+
+    // Try to post to external job boards if configured
+    try {
+      if (updatedJob.posting_targets && updatedJob.posting_targets.length > 0) {
+        const org = job.organization;
+        if (org) {
+          const { postJobToTargets } = await import('../../integrations/jobBoards');
+          await postJobToTargets({
+            job: { 
+              id: updatedJob.id, 
+              title: updatedJob.title, 
+              description: updatedJob.description, 
+              location: updatedJob.location, 
+              slug: updatedJob.public_slug 
+            },
+            org,
+            targets: updatedJob.posting_targets || [],
+          });
+        }
+      }
+    } catch (externalPostError) {
+      console.warn('External job board posting failed, but job published successfully:', externalPostError);
+    }
+    
+    return {
+      publicUrl: `/careers/${updatedJob.public_slug}`,
+      job: {
+        id: updatedJob.id,
+        slug: updatedJob.public_slug,
+        status: updatedJob.status,
+        published_at: updatedJob.published_at
+      }
+    };
+  }
+
+  async applyToJob(
+    { jobId, applicant }: { jobId: string; applicant: ApplicantData }, 
+    requestContext?: { orgId?: string }
+  ): Promise<ApplicationResult> {
+    console.log('[JobsRepository] Starting job application process', { jobId, email: applicant.email });
+    
+    // Server-side validation
+    if (!applicant.firstName || !applicant.lastName || !applicant.email) {
+      console.error('[JobsRepository] Missing required fields:', { 
+        firstName: applicant.firstName, 
+        lastName: applicant.lastName, 
+        email: applicant.email 
+      });
+      throw new Error('Missing required fields: firstName, lastName, and email are required');
+    }
+    
+    // Validate that firstName and lastName are not just whitespace
+    if (!applicant.firstName.trim() || !applicant.lastName.trim()) {
+      console.error('[JobsRepository] Empty name fields after trim');
+      throw new Error('First name and last name cannot be empty');
+    }
+    
+    // Validate resume URL if provided
+    if (applicant.resumeUrl && !validateResumeUrl(applicant.resumeUrl)) {
+      console.error('[JobsRepository] Invalid resume URL:', applicant.resumeUrl);
+      throw new Error('Invalid resume URL. Please upload your resume through the provided interface.');
+    }
+    
+    console.log('[JobsRepository] Validation passed for application:', { 
+      jobId, 
+      email: applicant.email,
+      hasResume: !!applicant.resumeUrl 
+    });
+    
+    // Validate job exists and is open for applications
+    const { data: jobData, error: jobError } = await supabase
+      .from('jobs')
+      .select(`
+        id,
+        org_id,
+        title,
+        status,
+        published_at,
+        organization:organizations(id, name)
+      `)
+      .eq('id', jobId)
+      .eq('status', 'open')
+      .not('published_at', 'is', null)
+      .single();
+
+    if (jobError || !jobData) {
+      console.error('[JobsRepository] Job validation failed:', jobError);
+      throw new Error('Job not found or not available for applications');
+    }
+
+    const orgId = jobData.org_id;
+    console.log('[JobsRepository] Job validated for org:', orgId);
+
+    try {
+      // Step 1: Check if candidate already exists for this organization
+      let candidateId: string;
+      const fullName = `${applicant.firstName.trim()} ${applicant.lastName.trim()}`.trim();
+      
+      console.log('[JobsRepository] Creating candidate with name:', {
+        firstName: applicant.firstName,
+        lastName: applicant.lastName,
+        fullName: fullName,
+        fullNameLength: fullName.length
+      });
+
+      const { data: existingCandidate, error: candidateCheckError } = await supabase
+        .from('candidates')
+        .select('id, name, email')
+        .eq('org_id', orgId)
+        .eq('email', applicant.email.toLowerCase())
+        .single();
+
+      if (candidateCheckError && candidateCheckError.code !== 'PGRST116') {
+        console.error('[JobsRepository] Error checking existing candidate:', candidateCheckError);
+        throw new Error('Database error during candidate lookup');
+      }
+
+      if (existingCandidate) {
+        // Candidate exists, reuse
+        candidateId = existingCandidate.id;
+        console.log('[JobsRepository] Reusing existing candidate:', candidateId);
+        
+        // Optionally update candidate info if provided
+        if (applicant.resumeUrl || applicant.phone) {
+          const updates: any = { updated_at: new Date().toISOString() };
+          if (applicant.resumeUrl) updates.resume_url = applicant.resumeUrl;
+          if (applicant.phone) updates.phone = applicant.phone;
+          
+          await supabase
+            .from('candidates')
+            .update(updates)
+            .eq('id', candidateId);
+        }
+      } else {
+        // Create new candidate
+        const { data: newCandidate, error: createCandidateError } = await supabase
+          .from('candidates')
+          .insert({
+            org_id: orgId,
+            name: fullName,
+            email: applicant.email.toLowerCase(),
+            phone: applicant.phone,
+            resume_url: applicant.resumeUrl,
+            status: 'active',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select('id')
+          .single();
+
+        if (createCandidateError) {
+          console.error('[JobsRepository] Error creating candidate:', createCandidateError);
+          throw new Error('Failed to create candidate profile');
+        }
+
+        candidateId = newCandidate.id;
+        console.log('[JobsRepository] Created new candidate:', {
+          candidateId: candidateId,
+          nameSet: fullName,
+          email: applicant.email.toLowerCase()
+        });
+      }
+
+      // Step 2: Check if application already exists
+      const { data: existingApplication, error: applicationCheckError } = await supabase
+        .from('job_candidate')
+        .select('id')
+        .eq('job_id', jobId)
+        .eq('candidate_id', candidateId)
+        .single();
+
+      if (applicationCheckError && applicationCheckError.code !== 'PGRST116') {
+        console.error('[JobsRepository] Error checking existing application:', applicationCheckError);
+        throw new Error('Database error during application lookup');
+      }
+
+      if (existingApplication) {
+        console.log('[JobsRepository] Application already exists:', existingApplication.id);
+        return {
+          candidateId,
+          applicationId: existingApplication.id,
+          success: true
+        };
+      }
+
+      // Step 3: Get first pipeline column for this specific job
+      const { getFirstColumnId } = await import('../../lib/pipelineService');
+      
+      let firstColumnId: string;
+      try {
+        firstColumnId = await getFirstColumnId({ 
+          jobId, 
+          organizationId: orgId 
+        });
+        console.log('[JobsRepository] Got first column ID for job application:', firstColumnId);
+      } catch (columnError) {
+        console.error('[JobsRepository] Error getting first column for job:', columnError);
+        throw new Error('Failed to initialize job pipeline for application');
+      }
+
+      // Step 4: Create job_candidate application record
+      const { data: application, error: applicationError } = await supabase
+        .from('job_candidate')
+        .insert({
+          org_id: orgId,
+          job_id: jobId,
+          candidate_id: candidateId,
+          pipeline_column_id: firstColumnId,
+          stage: 'applied',
+          notes: applicant.coverLetter || null,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select('id')
+        .single();
+
+      if (applicationError) {
+        console.error('[JobsRepository] Error creating application:', applicationError);
+        throw new Error('Failed to submit job application');
+      }
+
+      console.log('[JobsRepository] Job application completed successfully', {
+        candidateId,
+        applicationId: application.id,
+        firstColumnId
+      });
+
+      return {
+        candidateId,
+        applicationId: application.id,
+        success: true
+      };
+
+    } catch (error) {
+      console.error('[JobsRepository] Job application transaction failed:', error);
+      throw error;
+    }
+  }
+
+  async getJobCandidatesByOrg(orgId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .select(`
+        *,
+        job:jobs(*),
+        candidate:candidates(*)
+      `)
+      .eq('org_id', orgId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+      
+    if (error) {
+      console.error('Job candidates fetch error:', error);
+      throw new Error(`Failed to fetch job candidates: ${error.message}`);
+    }
+    
+    return data;
+  }
+
+  async updateJobCandidateStage(jobCandidateId: string, newStage: string): Promise<any> {
+    const { data, error } = await supabase
+      .from('job_candidate')
+      .update({ 
+        stage: newStage,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', jobCandidateId)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error('Job candidate stage update error:', error);
+      throw new Error(`Failed to update job candidate stage: ${error.message}`);
+    }
+    
+    return data;
   }
 }
