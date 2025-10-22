@@ -136,7 +136,7 @@ async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response,
   try {
     // Check if user is org admin or owner
     const userOrg = await storage.auth.getUserOrganization(req.user.id, orgId);
-    const organization = await storage.getOrganization(orgId);
+    const organization = await storage.auth.getOrganization(orgId);
     
     const isOrgAdmin = userOrg?.role === 'admin' || organization?.ownerId === req.user.id;
     
@@ -696,7 +696,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       // Step 2: Ensure user profile exists (now we know user exists in auth)
       try {
-        await storage.ensureUserProfile(ownerId);
+        await storage.auth.ensureUserProfile(ownerId);
         console.log('User profile ensured for:', ownerId);
       } catch (userError: unknown) {
         console.error('Failed to ensure user profile:', userError?.message);
@@ -1875,7 +1875,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/clients/:id", async (req, res) => {
     try {
       const orgId = req.query.orgId as string;
-      const client = await storage.getClient(req.params.id);
+      const client = await storage.jobs.getClient(req.params.id);
       if (!client) {
         return res.status(404).json({ error: "Client not found" });
       }
@@ -1891,7 +1891,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/clients", writeLimiter, async (req, res) => {
     try {
-      const client = await storage.createClient(req.body);
+      const client = await storage.jobs.createClient(req.body);
       res.status(201).json(client);
     } catch (error) {
       console.error('Client creation error:', error);
@@ -1902,7 +1902,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/clients/:id", writeLimiter, async (req, res) => {
     try {
-      const client = await storage.updateClient(req.params.id, req.body);
+      const client = await storage.jobs.updateClient(req.params.id, req.body);
       res.json(client);
     } catch (error) {
       res.status(400).json({ error: "Failed to update client" });
@@ -1911,7 +1911,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.delete("/api/clients/:id", writeLimiter, async (req, res) => {
     try {
-      await storage.deleteClient(req.params.id);
+      await storage.jobs.deleteClient(req.params.id);
       res.status(204).send();
     } catch (error) {
       res.status(400).json({ error: "Failed to delete client" });
@@ -1969,7 +1969,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         }
 
         // Get paginated results
-        const result = await storage.getJobsPaginated({
+        const result = await storage.jobs.getJobsPaginated({
           orgId,
           limit,
           cursor,
@@ -2011,7 +2011,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         const jobsWithCounts = await Promise.all(
           jobs.map(async (job: any) => {
             try {
-              const jobCandidates = await storage.getJobCandidatesByJob(job.id);
+              const jobCandidates = await storage.candidates.getJobCandidatesByJob(job.id);
               return {
                 ...job,
                 candidateCount: jobCandidates.length
@@ -2054,7 +2054,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/jobs/:id", async (req, res) => {
     try {
       const orgId = req.query.orgId as string;
-      const job = await storage.getJob(req.params.id);
+      const job = await storage.jobs.getJob(req.params.id);
       if (!job) {
         return res.status(404).json({ error: "Job not found" });
       }
@@ -2198,7 +2198,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const validatedData = updateJobSchema.parse(req.body);
 
       // Get existing job to verify ownership and status
-      const existingJob = await storage.getJob(jobId);
+      const existingJob = await storage.jobs.getJob(jobId);
       if (!existingJob) {
         return res.status(404).json({ error: "Job not found" });
       }
@@ -2212,7 +2212,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: "Only draft jobs can be edited" });
       }
 
-      const updatedJob = await storage.updateJob(jobId, {
+      const updatedJob = await storage.jobs.updateJob(jobId, {
         ...validatedData,
         updatedAt: new Date(),
       });
@@ -2249,7 +2249,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Get existing job to verify ownership
-      const existingJob = await storage.getJob(jobId);
+      const existingJob = await storage.jobs.getJob(jobId);
       if (!existingJob) {
         return res.status(404).json({ error: "Job not found" });
       }
@@ -2259,7 +2259,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Delete the job and related data
-      await storage.deleteJob(jobId);
+      await storage.jobs.deleteJob(jobId);
 
       console.info('[API] DELETE /api/jobs/:jobId →', { success: true, jobId });
       res.json({ message: "Job deleted successfully" });
@@ -2341,7 +2341,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         };
       }
 
-      const results = await storage.searchCandidatesAdvanced(filters);
+      const results = await storage.candidates.searchCandidatesAdvanced(filters);
       res.json(results);
     } catch (error) {
       console.error('Candidate search error:', error);
@@ -2369,7 +2369,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         remoteOption: validatedData.remoteOption
       };
 
-      const results = await storage.searchJobsAdvanced(filters);
+      const results = await storage.jobs.searchJobsAdvanced(filters);
       res.json(results);
     } catch (error) {
       console.error('Job search error:', error);
@@ -2394,7 +2394,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { candidateId } = req.params;
       const validatedData = resumeParsingSchema.parse(req.body);
 
-      const updatedCandidate = await storage.parseAndUpdateCandidate(candidateId, validatedData.resumeText);
+      const updatedCandidate = await storage.candidates.parseAndUpdateCandidate(candidateId, validatedData.resumeText);
       res.json({ success: true, candidate: updatedCandidate });
     } catch (error) {
       console.error('Resume parsing error:', error);
@@ -2740,7 +2740,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         }
 
         // Get paginated results
-        const result = await storage.getCandidatesPaginated({
+        const result = await storage.candidates.getCandidatesPaginated({
           orgId,
           limit,
           cursor,
@@ -2815,7 +2815,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       console.log(`[API] Fetching candidate ${req.params.id} for orgId: ${orgId}`);
       
-      const candidate = await storage.getCandidate(req.params.id);
+      const candidate = await storage.candidates.getCandidate(req.params.id);
       if (!candidate) {
         console.log(`[API] Candidate ${req.params.id} not found in database`);
         return res.status(404).json({ error: "Candidate not found" });
@@ -2870,7 +2870,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/candidates/:id", writeLimiter, async (req, res) => {
     try {
-      const candidate = await storage.updateCandidate(req.params.id, req.body);
+      const candidate = await storage.candidates.updateCandidate(req.params.id, req.body);
       res.json(candidate);
     } catch (error) {
       console.error('Candidate update error:', error);
@@ -2890,7 +2890,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Get candidate to verify it exists and belongs to the organization
-      const candidate = await storage.getCandidate(candidateId);
+      const candidate = await storage.candidates.getCandidate(candidateId);
       if (!candidate) {
         return res.status(404).json({ error: "Candidate not found" });
       }
@@ -2945,7 +2945,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Get candidate to verify it exists and belongs to the organization
-      const candidate = await storage.getCandidate(candidateId);
+      const candidate = await storage.candidates.getCandidate(candidateId);
       if (!candidate) {
         return res.status(404).json({ error: "Candidate not found" });
       }
@@ -2998,7 +2998,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Get candidate to verify it exists and belongs to the organization
-      const candidate = await storage.getCandidate(candidateId);
+      const candidate = await storage.candidates.getCandidate(candidateId);
       if (!candidate) {
         return res.status(404).json({ error: "Candidate not found" });
       }
@@ -3045,7 +3045,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // Get candidate to verify it exists and belongs to the organization
-      const candidate = await storage.getCandidate(candidateId);
+      const candidate = await storage.candidates.getCandidate(candidateId);
       if (!candidate) {
         return res.status(404).json({ error: "Candidate not found" });
       }
@@ -3086,7 +3086,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   // Job-Candidate relationships
   app.get("/api/jobs/:jobId/candidates", async (req, res) => {
     try {
-      const jobCandidates = await storage.getJobCandidatesByJob(req.params.jobId);
+      const jobCandidates = await storage.candidates.getJobCandidatesByJob(req.params.jobId);
       res.json(jobCandidates);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch job candidates" });
@@ -3095,7 +3095,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/job-candidates", writeLimiter, async (req, res) => {
     try {
-      const jobCandidate = await storage.createJobCandidate(req.body);
+      const jobCandidate = await storage.candidates.createJobCandidate(req.body);
       res.status(201).json(jobCandidate);
     } catch (error) {
       console.error('Job candidate creation error:', error);
@@ -3106,7 +3106,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/job-candidates/:id", writeLimiter, async (req, res) => {
     try {
-      const jobCandidate = await storage.updateJobCandidate(req.params.id, req.body);
+      const jobCandidate = await storage.candidates.updateJobCandidate(req.params.id, req.body);
       res.json(jobCandidate);
     } catch (error) {
       console.error('Job candidate update error:', error);
@@ -3123,7 +3123,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.log('[Pipeline Route] Fetching pipeline for job:', jobId, 'includeCompleted:', includeCompleted);
 
       // Get job details to verify it exists and get organization ID
-      const job = await storage.getJob(jobId);
+      const job = await storage.jobs.getJob(jobId);
       if (!job) {
         return res.status(404).json({ error: "Job not found" });
       }
@@ -3143,7 +3143,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       // Use storage layer method to ensure database consistency
       // This uses the same Supabase client as the move operations
-      const pipelineData = await storage.getJobPipelineData(jobId, orgId, includeCompleted);
+      const pipelineData = await storage.jobs.getJobPipelineData(jobId, orgId, includeCompleted);
 
       console.log('[Pipeline Route] Pipeline data fetched successfully:', {
         columnsCount: pipelineData.columns.length,
@@ -3171,7 +3171,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.log('Fetching pipeline columns for job:', jobId);
 
       // Get job details to verify it exists and get organization ID
-      const job = await storage.getJob(jobId);
+      const job = await storage.jobs.getJob(jobId);
       if (!job) {
         return res.status(404).json({ error: "Job not found" });
       }
@@ -3222,7 +3222,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const { jobCandidateId } = req.params;
       console.log('Fetching notes for job candidate:', jobCandidateId);
       
-      const notes = await storage.getCandidateNotes(jobCandidateId);
+      const notes = await storage.candidates.getCandidateNotes(jobCandidateId);
       console.log('Found notes:', notes?.length || 0);
       
       res.json(notes || []);
@@ -3255,7 +3255,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       console.log('[NOTES_API] All required fields present, creating note...');
-      const note = await storage.createCandidateNote(req.body);
+      const note = await storage.candidates.createCandidateNote(req.body);
       console.log('[NOTES_API] Note created successfully:', { id: note.id, orgId: note.orgId });
       res.status(201).json(note);
     } catch (error: unknown) {
@@ -3312,7 +3312,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         }
 
         // Get paginated results
-        const result = await storage.getMessagesPaginated({
+        const result = await storage.communications.getMessagesPaginated({
           userId,
           limit,
           cursor,
@@ -3352,7 +3352,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       } else {
         // Backward compatibility: return non-paginated results
         const userId = req.query.userId as string;
-        const messages = await storage.getMessages(userId);
+        const messages = await storage.communications.getMessages(userId);
         
         // Generate ETag for response
         const etag = generateETag(messages);
@@ -3381,7 +3381,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/messages/thread/:threadId", async (req, res) => {
     try {
-      const messages = await storage.getMessagesByThread(req.params.threadId);
+      const messages = await storage.communications.getMessagesByThread(req.params.threadId);
       res.json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch thread messages" });
@@ -3391,7 +3391,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/messages/context", async (req, res) => {
     try {
       const { clientId, jobId, candidateId } = req.query as Record<string, string>;
-      const messages = await storage.getMessagesByContext({ clientId, jobId, candidateId });
+      const messages = await storage.communications.getMessagesByContext({ clientId, jobId, candidateId });
       res.json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch context messages" });
@@ -3401,7 +3401,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/messages/unread-count", async (req, res) => {
     try {
       const userId = req.query.userId as string;
-      const count = await storage.getUnreadMessageCount(userId);
+      const count = await storage.communications.getUnreadMessageCount(userId);
       res.json({ count });
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch unread count" });
@@ -3410,7 +3410,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/messages", writeLimiter, async (req, res) => {
     try {
-      const message = await storage.createMessage(req.body);
+      const message = await storage.communications.createMessage(req.body);
       res.status(201).json(message);
     } catch (error) {
       res.status(400).json({ error: "Failed to create message" });
@@ -3419,7 +3419,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.patch("/api/messages/:id", writeLimiter, async (req, res) => {
     try {
-      const message = await storage.updateMessage(req.params.id, req.body);
+      const message = await storage.communications.updateMessage(req.params.id, req.body);
       res.json(message);
     } catch (error) {
       res.status(400).json({ error: "Failed to update message" });
@@ -3429,7 +3429,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.post("/api/messages/:id/read", writeLimiter, async (req, res) => {
     try {
       const { userId } = req.body;
-      await storage.markMessageAsRead(req.params.id, userId);
+      await storage.communications.markMessageAsRead(req.params.id, userId);
       res.status(204).send();
     } catch (error) {
       res.status(400).json({ error: "Failed to mark message as read" });
@@ -3438,7 +3438,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/messages/:id/archive", writeLimiter, async (req, res) => {
     try {
-      await storage.archiveMessage(req.params.id);
+      await storage.communications.archiveMessage(req.params.id);
       res.status(204).send();
     } catch (error) {
       res.status(400).json({ error: "Failed to archive message" });
@@ -3453,7 +3453,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID is required' });
       }
       
-      const interviews = await storage.getInterviews();
+      const interviews = await storage.candidates.getInterviews();
       // Filter by organization (interviews should have orgId field)
       const orgInterviews = interviews.filter(interview => interview.orgId === org_id);
       res.json(orgInterviews);
@@ -3465,7 +3465,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/interviews/:id", async (req, res) => {
     try {
-      const interview = await storage.getInterview(req.params.id);
+      const interview = await storage.candidates.getInterview(req.params.id);
       if (!interview) {
         return res.status(404).json({ error: 'Interview not found' });
       }
@@ -3478,7 +3478,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/interviews", writeLimiter, async (req, res) => {
     try {
-      const interview = await storage.createInterview(req.body);
+      const interview = await storage.candidates.createInterview(req.body);
       res.status(201).json(interview);
     } catch (error) {
       console.error("Error creating interview:", error);
@@ -3488,7 +3488,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/interviews/:id", writeLimiter, async (req, res) => {
     try {
-      const interview = await storage.updateInterview(req.params.id, req.body);
+      const interview = await storage.candidates.updateInterview(req.params.id, req.body);
       res.json(interview);
     } catch (error) {
       console.error("Error updating interview:", error);
@@ -3498,7 +3498,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.delete("/api/interviews/:id", writeLimiter, async (req, res) => {
     try {
-      await storage.deleteInterview(req.params.id);
+      await storage.candidates.deleteInterview(req.params.id);
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting interview:", error);
@@ -3508,7 +3508,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/interviews/job-candidate/:jobCandidateId", async (req, res) => {
     try {
-      const interviews = await storage.getInterviewsByJobCandidate(req.params.jobCandidateId);
+      const interviews = await storage.candidates.getInterviewsByJobCandidate(req.params.jobCandidateId);
       res.json(interviews);
     } catch (error) {
       console.error("Error fetching interviews by job candidate:", error);
@@ -3526,13 +3526,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       if (jobCandidateId) {
         console.log('[NOTES_API] Fetching notes for jobCandidateId:', jobCandidateId);
-        const notes = await storage.getCandidateNotes(jobCandidateId);
+        const notes = await storage.candidates.getCandidateNotes(jobCandidateId);
         console.log('[NOTES_API] Found notes:', notes?.length || 0);
         res.json(notes);
       } else if (candidateId) {
         // Fallback for candidate-based lookup
         console.log('[NOTES_API] Fetching notes for candidateId:', candidateId);
-        const notes = await storage.getCandidateNotes(candidateId);
+        const notes = await storage.candidates.getCandidateNotes(candidateId);
         console.log('[NOTES_API] Found notes:', notes?.length || 0);
         res.json(notes);
       } else {
@@ -3563,7 +3563,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
       console.log('[NOTES_API] GET /api/candidate-notes/batch - Fetching for', candidateIds.length, 'candidates');
       
-      const batchedNotes = await storage.getBatchedCandidateNotes(candidateIds);
+      const batchedNotes = await storage.candidates.getBatchedCandidateNotes(candidateIds);
       
       console.log('[NOTES_API] Batched notes fetched successfully');
       res.json(batchedNotes);
@@ -3577,7 +3577,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.get("/api/messages", async (req, res) => {
     try {
       const userId = req.query.userId as string;
-      const messages = await storage.getMessages(userId);
+      const messages = await storage.communications.getMessages(userId);
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -3587,7 +3587,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/messages/:id", async (req, res) => {
     try {
-      const message = await storage.getMessage(req.params.id);
+      const message = await storage.communications.getMessage(req.params.id);
       if (!message) {
         return res.status(404).json({ error: "Message not found" });
       }
@@ -3600,7 +3600,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.post("/api/messages", writeLimiter, async (req, res) => {
     try {
-      const message = await storage.createMessage(req.body);
+      const message = await storage.communications.createMessage(req.body);
       res.status(201).json(message);
     } catch (error) {
       console.error("Error creating message:", error);
@@ -3610,7 +3610,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.put("/api/messages/:id", writeLimiter, async (req, res) => {
     try {
-      const message = await storage.updateMessage(req.params.id, req.body);
+      const message = await storage.communications.updateMessage(req.params.id, req.body);
       res.json(message);
     } catch (error) {
       console.error("Error updating message:", error);
@@ -3621,7 +3621,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.patch("/api/messages/:id/read", writeLimiter, async (req, res) => {
     try {
       const { userId } = req.body;
-      await storage.markMessageAsRead(req.params.id, userId);
+      await storage.communications.markMessageAsRead(req.params.id, userId);
       res.json({ success: true });
     } catch (error) {
       console.error("Error marking message as read:", error);
@@ -3712,7 +3712,7 @@ Expires: 2025-12-31T23:59:59.000Z
       if (!orgId) {
         return res.status(400).json({ error: "Organization ID is required" });
       }
-      const columns = await storage.getPipelineColumns(orgId);
+      const columns = await storage.jobs.getPipelineColumns(orgId);
       res.json(columns);
     } catch (error) {
       console.error("Error fetching pipeline columns:", error);
@@ -3722,7 +3722,7 @@ Expires: 2025-12-31T23:59:59.000Z
 
   app.post("/api/pipeline-columns", writeLimiter, async (req, res) => {
     try {
-      const column = await storage.createPipelineColumn(req.body);
+      const column = await storage.jobs.createPipelineColumn(req.body);
       res.status(201).json(column);
     } catch (error) {
       console.error("Error creating pipeline column:", error);
@@ -3738,7 +3738,7 @@ Expires: 2025-12-31T23:59:59.000Z
       const { orgId } = req.params;
       
       // Get pipeline columns
-      const columns = await storage.getPipelineColumns(orgId);
+      const columns = await storage.jobs.getPipelineColumns(orgId);
       
       // Get job candidates for the organization
       const jobCandidates = await storage.candidates.getJobCandidatesByOrg(orgId);
@@ -3822,7 +3822,7 @@ Expires: 2025-12-31T23:59:59.000Z
       console.info('Moving application', applicationId, 'to column', columnId);
       
       // Use the storage method to move the job candidate by applicationId
-      const updatedJobCandidate = await storage.moveJobCandidate(applicationId, columnId);
+      const updatedJobCandidate = await storage.candidates.moveJobCandidate(applicationId, columnId);
       
       res.json({ 
         message: "Application moved successfully",
@@ -3842,7 +3842,7 @@ Expires: 2025-12-31T23:59:59.000Z
       console.info('Rejecting application', applicationId);
       
       // Use the storage method to reject the job candidate
-      const updatedJobCandidate = await storage.rejectJobCandidate(applicationId);
+      const updatedJobCandidate = await storage.candidates.rejectJobCandidate(applicationId);
       
       res.json({ 
         message: "Candidate rejected successfully",
@@ -3867,7 +3867,7 @@ Expires: 2025-12-31T23:59:59.000Z
       console.info('Moving job candidate (legacy)', candidateId, 'to column', columnId);
       
       // Use the storage method to move the job candidate
-      const updatedJobCandidate = await storage.moveJobCandidate(candidateId, columnId);
+      const updatedJobCandidate = await storage.candidates.moveJobCandidate(candidateId, columnId);
       
       res.json({ 
         message: "Job candidate moved successfully",
@@ -3961,14 +3961,14 @@ Expires: 2025-12-31T23:59:59.000Z
       const validatedData = createCandidateSchema.parse(req.body);
       
       // Check if candidate already exists
-      const existingCandidate = await storage.getCandidateByEmail(validatedData.email, validatedData.orgId);
+      const existingCandidate = await storage.candidates.getCandidateByEmail(validatedData.email, validatedData.orgId);
       if (existingCandidate) {
         return res.status(409).json({ 
           error: "Candidate with this email already exists in your organization" 
         });
       }
       
-      const candidate = await storage.createCandidate(validatedData);
+      const candidate = await storage.candidates.createCandidate(validatedData);
       res.status(201).json(candidate);
     } catch (error: unknown) {
       console.error("Error creating candidate:", error);
@@ -4168,7 +4168,7 @@ Expires: 2025-12-31T23:59:59.000Z
     try {
       const validatedData = betaApplicationSchema.parse(req.body);
       
-      const betaApplication = await storage.createBetaApplication({
+      const betaApplication = await storage.beta.createBetaApplication({
         ...validatedData,
         status: 'pending',
       });
@@ -4196,7 +4196,7 @@ Expires: 2025-12-31T23:59:59.000Z
   app.get("/api/beta/applications", requireAuth, requirePlatformAdmin, async (req: AuthenticatedRequest, res) => {
     console.info('[API]', req.method, req.url, 'User:', req.user?.email);
     try {
-      const betaApplications = await storage.getBetaApplications();
+      const betaApplications = await storage.beta.getBetaApplications();
       
       // Return applications as-is (storage layer handles normalization)
       const normalizedApplications = betaApplications;
@@ -4220,7 +4220,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: "Application ID is required" });
       }
       
-      const betaApplication = await storage.getBetaApplication(id);
+      const betaApplication = await storage.beta.getBetaApplication(id);
       
       if (!betaApplication) {
         return res.status(404).json({ error: "Beta application not found" });
@@ -4263,7 +4263,7 @@ Expires: 2025-12-31T23:59:59.000Z
         (updateData as any).reviewedBy = req.user?.id;
       }
       
-      const updatedApplication = await storage.updateBetaApplication(id, updateData);
+      const updatedApplication = await storage.beta.updateBetaApplication(id, updateData);
       
       // Return the application data as-is (storage layer handles normalization)
       const normalizedApplication = updatedApplication;
@@ -4300,7 +4300,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(400).json({ error: "Application ID is required" });
       }
       
-      await storage.deleteBetaApplication(id);
+      await storage.beta.deleteBetaApplication(id);
       
       console.info('[API] DELETE /api/beta/applications/:id →', { success: true, id });
       res.json({ 
@@ -4338,7 +4338,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const imports = await storage.getDataImports(orgId);
+      const imports = await storage.imports.getDataImports(orgId);
       
       console.info('[API] GET /api/imports →', { success: true, count: imports.length });
       res.json(imports);
@@ -4367,7 +4367,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const importData = await storage.getDataImport(id);
+      const importData = await storage.imports.getDataImport(id);
       if (!importData) {
         return res.status(404).json({ error: 'Import not found' });
       }
@@ -4417,7 +4417,7 @@ Expires: 2025-12-31T23:59:59.000Z
       }
 
       // Create the import record
-      const newImport = await storage.createDataImport({
+      const newImport = await storage.imports.createDataImport({
         orgId: userProfile.orgId,
         userId: req.user?.id || '',
         importType: importType as 'candidates' | 'jobs',
@@ -4475,7 +4475,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const existingImport = await storage.getDataImport(id);
+      const existingImport = await storage.imports.getDataImport(id);
       if (!existingImport) {
         return res.status(404).json({ error: 'Import not found' });
       }
@@ -4485,7 +4485,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Access denied' });
       }
 
-      const updatedImport = await storage.updateDataImport(id, req.body);
+      const updatedImport = await storage.imports.updateDataImport(id, req.body);
       
       console.info('[API] PATCH /api/imports/:id →', { success: true, id });
       res.json(updatedImport);
@@ -4514,7 +4514,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const existingImport = await storage.getDataImport(id);
+      const existingImport = await storage.imports.getDataImport(id);
       if (!existingImport) {
         return res.status(404).json({ error: 'Import not found' });
       }
@@ -4554,7 +4554,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const existingImport = await storage.getDataImport(id);
+      const existingImport = await storage.imports.getDataImport(id);
       if (!existingImport) {
         return res.status(404).json({ error: 'Import not found' });
       }
@@ -4598,7 +4598,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const existingImport = await storage.getDataImport(id);
+      const existingImport = await storage.imports.getDataImport(id);
       if (!existingImport) {
         return res.status(404).json({ error: 'Import not found' });
       }
@@ -4648,7 +4648,7 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(403).json({ error: 'Admin access required' });
       }
 
-      const existingImport = await storage.getDataImport(importId);
+      const existingImport = await storage.imports.getDataImport(importId);
       if (!existingImport) {
         return res.status(404).json({ error: 'Import not found' });
       }

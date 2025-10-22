@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { DatabaseStorage } from '../storage';
+import { storage } from '../storage/index';
 
 // Extend Express Request to include organization data
 declare global {
@@ -13,8 +13,6 @@ declare global {
     }
   }
 }
-
-const storage = new DatabaseStorage();
 
 /**
  * Middleware to resolve organization from subdomain
@@ -43,7 +41,7 @@ export async function subdomainResolver(req: Request, res: Response, next: NextF
     }
 
     // Find organization by slug (subdomain)
-    const organizations = await storage.getOrganizations();
+    const organizations = await storage.auth.getOrganizations();
     const organization = organizations.find(org => 
       org.slug === subdomain || 
       org.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === subdomain

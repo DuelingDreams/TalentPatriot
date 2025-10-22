@@ -1,7 +1,7 @@
 import { parse } from 'csv-parse';
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
-import { storage } from '../storage';
+import { storage } from '../storage/index';
 import { 
   insertCandidateSchema, 
   insertJobSchema,
@@ -350,7 +350,7 @@ export class ImportService {
       console.log(`[ImportService] Starting processing for import ${importData.id}`);
       
       // Update import status to processing
-      await storage.updateDataImport(importData.id, {
+      await storage.imports.updateDataImport(importData.id, {
         status: 'processing',
         processingStartedAt: new Date()
       });
@@ -374,7 +374,7 @@ export class ImportService {
       console.log(`[ImportService] Parsed ${records.length} records from file`);
       
       // Update total records count
-      await storage.updateDataImport(importData.id, {
+      await storage.imports.updateDataImport(importData.id, {
         totalRecords: records.length
       });
       
@@ -399,14 +399,14 @@ export class ImportService {
               validationResult = this.validateCandidateRecord(record, importData.orgId);
               
               if (validationResult.isValid && validationResult.data) {
-                const candidate = await storage.createCandidate(validationResult.data);
+                const candidate = await storage.candidates.createCandidate(validationResult.data);
                 entityId = candidate.id;
               }
             } else if (importData.importType === 'jobs') {
               validationResult = this.validateJobRecord(record, importData.orgId);
               
               if (validationResult.isValid && validationResult.data) {
-                const job = await storage.createJob(validationResult.data);
+                const job = await storage.jobs.createJob(validationResult.data);
                 entityId = job.id;
               }
             } else {
@@ -414,7 +414,7 @@ export class ImportService {
             }
             
             // Create import record
-            await storage.createImportRecord({
+            await storage.imports.createImportRecord({
               importId: importData.id,
               rowNumber,
               originalData: record,
@@ -434,7 +434,7 @@ export class ImportService {
           } catch (error) {
             failureCount++;
             
-            await storage.createImportRecord({
+            await storage.imports.createImportRecord({
               importId: importData.id,
               rowNumber,
               originalData: record,
@@ -448,7 +448,7 @@ export class ImportService {
         }
         
         // Update progress after each batch
-        await storage.updateDataImport(importData.id, {
+        await storage.imports.updateDataImport(importData.id, {
           successfulRecords: successCount,
           failedRecords: failureCount
         });
@@ -461,7 +461,7 @@ export class ImportService {
       const errorSummary = failureCount > 0 ? 
         `${failureCount} out of ${records.length} records failed to import` : null;
       
-      await storage.updateDataImport(importData.id, {
+      await storage.imports.updateDataImport(importData.id, {
         status: finalStatus,
         successfulRecords: successCount,
         failedRecords: failureCount,
@@ -480,7 +480,7 @@ export class ImportService {
       console.error(`[ImportService] Import ${importData.id} failed:`, error);
       
       // Update import status to failed
-      await storage.updateDataImport(importData.id, {
+      await storage.imports.updateDataImport(importData.id, {
         status: 'failed',
         errorSummary: error instanceof Error ? error.message : 'Unknown processing error',
         processingCompletedAt: new Date()
