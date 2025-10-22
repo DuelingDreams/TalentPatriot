@@ -87,7 +87,7 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - `GOOGLE_CLIENT_ID` - OAuth 2.0 client ID from Google Cloud Console
 - `GOOGLE_CLIENT_SECRET` - OAuth 2.0 client secret
 - `GOOGLE_REDIRECT_URI` - OAuth callback URL (e.g., https://your-app.replit.app/auth/google/callback)
-- `APP_JWT_SECRET` - Secret for signing OAuth state parameters
+- `APP_JWT_SECRET` - Secret for signing OAuth state parameters (✅ CONFIGURED)
 
 **OAuth Scopes Used:**
 - `https://www.googleapis.com/auth/calendar` - Create and manage calendar events
@@ -96,8 +96,35 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - `https://www.googleapis.com/auth/userinfo.profile` - Basic profile information
 
 **Database Migration:**
-Run the provided SQL script in Supabase SQL Editor to create:
-- `connected_accounts` table (stores OAuth connections without raw tokens)
+✅ Completed - All tables created in Supabase:
+- `connected_accounts` table (stores encrypted OAuth refresh tokens using AES-256-GCM)
 - `calendar_events` table (tracks Google Calendar/Meet events)
 - `message_threads` table (email conversation grouping)
 - Updated `messages` table (added `thread_id`, `channel_type`, `external_message_id`)
+
+**Security Implementation (Production-Ready):**
+✅ **Authentication & Authorization:**
+- All OAuth routes require authenticated session via Bearer token
+- Organization context validated from trusted session data only
+- No fallback to request parameters (query/body) for user/org identification
+- Explicit org membership validation before all OAuth operations
+- Account ownership verification on disconnect operations
+
+✅ **Token Security:**
+- AES-256-GCM authenticated encryption for refresh tokens
+- PBKDF2 key derivation with 100,000 iterations
+- Automatic token refresh with expiry checking
+- Encrypted storage in database (never stored in plaintext)
+
+✅ **OAuth State Protection:**
+- HMAC-signed state parameters with 5-minute expiry
+- No fallback to insecure default secrets (fails fast if APP_JWT_SECRET missing)
+- State verification prevents CSRF and replay attacks
+
+**Testing Checklist:**
+- [ ] Configure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI in Replit Secrets
+- [ ] Test OAuth flow: /settings/integrations → Connect Google → Callback success
+- [ ] Test Google Meet creation from Messages page
+- [ ] Test availability checking with FreeBusy API
+- [ ] Test token auto-refresh (expires_in > 0 check)
+- [ ] Test disconnect flow with proper cleanup
