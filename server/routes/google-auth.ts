@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import { getAuthUrl, exchangeCodeForTokens, generateState, verifyState } from '../integrations/google/oauth';
 import { storeOAuthTokens } from '../integrations/google/token-manager';
-import { extractAuthUser, requireAuth, type AuthenticatedRequest } from '../middleware/auth';
+import { extractAuthUser, requireAuth, requireOrgContext, type AuthenticatedRequest } from '../middleware/auth';
 import type { IStorage } from '../storage';
 
 export function createGoogleAuthRoutes(storage: IStorage) {
@@ -14,15 +14,18 @@ export function createGoogleAuthRoutes(storage: IStorage) {
    * GET /auth/google/login
    * Redirects user to Google OAuth consent screen
    */
-  router.get('/login', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+  router.get('/login', requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Get userId and orgId from authenticated session
+      // Get userId and orgId from authenticated session ONLY (no fallbacks)
       const userId = req.user!.id;
-      const orgId = req.user!.orgId || req.query.org_id as string;
+      const orgId = req.user!.orgId!;
 
-      if (!orgId) {
-        return res.status(400).json({ 
-          error: 'Organization context required. Please select an organization.' 
+      // Verify user is a member of this organization
+      const userOrg = await storage.auth.getUserOrganization(userId, orgId);
+      if (!userOrg) {
+        return res.status(403).json({ 
+          error: 'You are not a member of this organization',
+          code: 'NOT_ORG_MEMBER'
         });
       }
 
@@ -84,21 +87,34 @@ export function createGoogleAuthRoutes(storage: IStorage) {
    * DELETE /auth/google/disconnect
    * Disconnect Google account
    */
-  router.delete('/disconnect', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  router.delete('/disconnect', requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Get userId and orgId from authenticated session
+      // Get userId and orgId from authenticated session ONLY (no fallbacks)
       const userId = req.user!.id;
-      const orgId = req.user!.orgId || req.body.orgId;
+      const orgId = req.user!.orgId!;
 
-      if (!orgId) {
-        return res.status(400).json({ error: 'Organization context required' });
+      // Verify user is a member of this organization
+      const userOrg = await storage.auth.getUserOrganization(userId, orgId);
+      if (!userOrg) {
+        return res.status(403).json({ 
+          error: 'You are not a member of this organization',
+          code: 'NOT_ORG_MEMBER'
+        });
       }
 
-      // Get connected account
+      // Get connected account (must belong to this user in this org)
       const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
       
       if (!account) {
         return res.status(404).json({ error: 'No Google account connected' });
+      }
+
+      // Verify ownership - account must belong to the authenticated user
+      if (account.userId !== userId) {
+        return res.status(403).json({ 
+          error: 'Cannot disconnect another user\'s Google account',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
       }
 
       // Delete connected account

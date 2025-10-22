@@ -56,9 +56,9 @@ export async function exchangeCodeForTokens(code: string): Promise<{
 
     return {
       access_token: tokens.access_token!,
-      refresh_token: tokens.refresh_token,
-      expiry_date: tokens.expiry_date,
-      email: userInfo.data.email || undefined,
+      refresh_token: tokens.refresh_token ?? undefined,
+      expiry_date: tokens.expiry_date ?? undefined,
+      email: userInfo.data.email ?? undefined,
     };
   } catch (error: any) {
     console.error('Error exchanging code for tokens:', error.message);
