@@ -51,6 +51,7 @@ export interface ICandidatesRepository {
   
   // Candidate Notes
   getCandidateNotes(jobCandidateId: string): Promise<CandidateNotes[]>;
+  getBatchedCandidateNotes(jobCandidateIds: string[]): Promise<Record<string, CandidateNotes[]>>;
   createCandidateNote(note: InsertCandidateNotes): Promise<CandidateNotes>;
   
   // Interviews
