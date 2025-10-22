@@ -758,16 +758,36 @@ export class CandidatesRepository implements ICandidatesRepository {
   
   async submitJobApplication(applicationData: {
     jobId: string;
-    candidateData: InsertCandidate;
+    name: string;
+    email: string;
+    phone?: string;
     resumeUrl?: string;
-    coverLetter?: string;
   }): Promise<{ candidateId: string; applicationId: string }> {
     try {
+      // Get the job to determine the orgId
+      const { data: job } = await supabase
+        .from('jobs')
+        .select('org_id')
+        .eq('id', applicationData.jobId)
+        .single();
+      
+      if (!job) {
+        throw new Error('Job not found');
+      }
+      
       // First create or find the candidate
-      let candidate = await this.getCandidateByEmail(applicationData.candidateData.email, applicationData.candidateData.orgId);
+      let candidate = await this.getCandidateByEmail(applicationData.email, job.org_id);
       
       if (!candidate) {
-        candidate = await this.createCandidate(applicationData.candidateData);
+        const candidateData: InsertCandidate = {
+          name: applicationData.name,
+          email: applicationData.email,
+          phone: applicationData.phone || null,
+          orgId: job.org_id,
+          status: 'active',
+          resumeUrl: applicationData.resumeUrl || null
+        };
+        candidate = await this.createCandidate(candidateData);
       }
 
       // Create the job-candidate relationship (application)
@@ -777,8 +797,7 @@ export class CandidatesRepository implements ICandidatesRepository {
         stage: 'applied',
         status: 'active',
         resumeUrl: applicationData.resumeUrl,
-        coverLetter: applicationData.coverLetter,
-        orgId: applicationData.candidateData.orgId
+        orgId: job.org_id
       };
 
       const jobCandidate = await this.createJobCandidate(jobCandidateData);
