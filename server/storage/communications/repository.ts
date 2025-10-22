@@ -22,43 +22,165 @@ import type {
 export class CommunicationsRepository implements ICommunicationsRepository {
   // TODO: Extract methods from original storage.ts
   async getMessage(id: string): Promise<Message | undefined> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return undefined;
+      console.error('Error fetching message:', error);
+      throw new Error(`Failed to fetch message: ${error.message}`);
+    }
+
+    return data;
   }
   
   async getMessages(userId?: string): Promise<Message[]> {
-    throw new Error('Method not implemented.');
+    let query = supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (userId) {
+      query = query.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching messages:', error);
+      throw new Error(`Failed to fetch messages: ${error.message}`);
+    }
+
+    return data || [];
   }
   
   async getMessagesByThread(threadId: string): Promise<Message[]> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching messages by thread:', error);
+      throw new Error(`Failed to fetch messages by thread: ${error.message}`);
+    }
+
+    return data || [];
   }
   
   async getMessagesByContext(params: any): Promise<Message[]> {
-    throw new Error('Method not implemented.');
+    let query = supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (params.clientId) query = query.eq('client_id', params.clientId);
+    if (params.jobId) query = query.eq('job_id', params.jobId);
+    if (params.candidateId) query = query.eq('candidate_id', params.candidateId);
+    if (params.orgId) query = query.eq('org_id', params.orgId);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching messages by context:', error);
+      throw new Error(`Failed to fetch messages by context: ${error.message}`);
+    }
+
+    return data || [];
   }
   
   async createMessage(message: InsertMessage): Promise<Message> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('messages')
+      .insert(message)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating message:', error);
+      throw new Error(`Failed to create message: ${error.message}`);
+    }
+
+    return data;
   }
   
   async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('messages')
+      .update(message)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating message:', error);
+      throw new Error(`Failed to update message: ${error.message}`);
+    }
+
+    return data;
   }
   
   async markMessageAsRead(messageId: string, userId: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    const { error } = await supabase
+      .from('messages')
+      .update({ is_read: true })
+      .eq('id', messageId)
+      .eq('recipient_id', userId);
+
+    if (error) {
+      console.error('Error marking message as read:', error);
+      throw new Error(`Failed to mark message as read: ${error.message}`);
+    }
   }
   
   async archiveMessage(messageId: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    const { error } = await supabase
+      .from('messages')
+      .update({ is_archived: true })
+      .eq('id', messageId);
+
+    if (error) {
+      console.error('Error archiving message:', error);
+      throw new Error(`Failed to archive message: ${error.message}`);
+    }
   }
   
   async addMessageRecipients(messageId: string, recipientIds: string[]): Promise<MessageRecipient[]> {
-    throw new Error('Method not implemented.');
+    const recipients = recipientIds.map(id => ({
+      message_id: messageId,
+      recipient_id: id,
+    }));
+
+    const { data, error } = await supabase
+      .from('message_recipients')
+      .insert(recipients)
+      .select();
+
+    if (error) {
+      console.error('Error adding message recipients:', error);
+      throw new Error(`Failed to add message recipients: ${error.message}`);
+    }
+
+    return data || [];
   }
   
   async getUnreadMessageCount(userId: string): Promise<number> {
-    throw new Error('Method not implemented.');
+    const { count, error } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('recipient_id', userId)
+      .eq('is_read', false);
+
+    if (error) {
+      console.error('Error counting unread messages:', error);
+      throw new Error(`Failed to count unread messages: ${error.message}`);
+    }
+
+    return count || 0;
   }
   
   async getOrganizationEmailSettings(orgId: string): Promise<OrganizationEmailSettings | undefined> {

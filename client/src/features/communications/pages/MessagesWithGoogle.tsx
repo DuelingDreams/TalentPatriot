@@ -95,16 +95,78 @@ export default function Messages() {
     }]
   }
 
-  const handleSendInternal = () => {
-    console.log('Sending internal message:', internalForm)
-    // TODO: Implement send logic via API
-    setInternalForm({ subject: '', message: '' })
+  const handleSendInternal = async () => {
+    if (!internalForm.subject || !internalForm.message) {
+      alert('Please fill in subject and message')
+      return
+    }
+
+    try {
+      await apiRequest('/api/messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          org_id: currentOrgId,
+          sender_id: user?.id,
+          type: 'internal',
+          channel_type: 'internal',
+          priority: 'normal',
+          subject: internalForm.subject,
+          content: internalForm.message,
+          is_read: false,
+          is_archived: false,
+        }),
+      })
+
+      setInternalForm({ subject: '', message: '' })
+      alert('Internal message sent successfully!')
+    } catch (error: any) {
+      console.error('Failed to send internal message:', error)
+      alert('Failed to send message. Please try again.')
+    }
   }
 
-  const handleSendEmail = () => {
-    console.log('Sending email:', { from: emailFrom, ...emailForm })
-    // TODO: Implement email send logic via API
-    setEmailForm({ to: '', subject: '', message: '' })
+  const handleSendEmail = async () => {
+    if (!emailForm.to || !emailForm.subject || !emailForm.message) {
+      alert('Please fill in all email fields')
+      return
+    }
+
+    if (!googleStatus?.connected) {
+      alert('Please connect your Google account first (Settings → Integrations)')
+      return
+    }
+
+    try {
+      // Create message record in database
+      await apiRequest('/api/messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          org_id: currentOrgId,
+          sender_id: user?.id,
+          type: 'client',
+          channel_type: 'email',
+          priority: 'normal',
+          subject: emailForm.subject,
+          content: emailForm.message,
+          is_read: false,
+          is_archived: false,
+          // Note: recipient_id expects UUID, for now storing email address
+          // TODO: Map email to actual user UUID or create separate recipient_email field
+          external_message_id: emailForm.to, // Store email address temporarily
+        }),
+      })
+
+      // TODO: Actually send email via Gmail API using googleapis package
+      // This would require implementing Gmail.users.messages.send()
+      // For now, message is saved to database for tracking
+      console.log('Message saved. Email to:', emailForm.to)
+      
+      setEmailForm({ to: '', subject: '', message: '' })
+      alert('Message saved! (Gmail API sending coming soon)')
+    } catch (error: any) {
+      console.error('Failed to send email:', error)
+      alert('Failed to send email. Please try again.')
+    }
   }
 
   const handleSendWithInvite = () => {
@@ -113,25 +175,127 @@ export default function Messages() {
     setEmailForm({ to: '', subject: '', message: '' })
   }
 
-  const handlePostToPortal = () => {
-    console.log('Posting to client portal:', portalForm)
-    // TODO: Implement portal post logic via API
-    setPortalForm({ subject: '', message: '' })
+  const handlePostToPortal = async () => {
+    if (!portalForm.subject || !portalForm.message) {
+      alert('Please fill in subject and message')
+      return
+    }
+
+    try {
+      await apiRequest('/api/messages', {
+        method: 'POST',
+        body: JSON.stringify({
+          org_id: currentOrgId,
+          sender_id: user?.id,
+          type: 'client',
+          channel_type: 'client_portal',
+          priority: 'normal',
+          subject: portalForm.subject,
+          content: portalForm.message,
+          is_read: false,
+          is_archived: false,
+        }),
+      })
+
+      setPortalForm({ subject: '', message: '' })
+      alert('Posted to client portal successfully!')
+    } catch (error: any) {
+      console.error('Failed to post to client portal:', error)
+      alert('Failed to post. Please try again.')
+    }
   }
 
-  const handleProposeTimes = () => {
+  const handleProposeTimes = async () => {
     console.log('Opening availability picker...')
-    // TODO: Open AvailabilityDrawer component
+    
+    // Fetch user's availability for the next 7 days
+    const start = new Date()
+    const end = new Date()
+    end.setDate(end.getDate() + 7)
+    
+    try {
+      const response = await apiRequest(
+        `/api/google/freebusy?start=${start.toISOString()}&end=${end.toISOString()}`,
+        { method: 'GET' }
+      ) as { success: boolean; busy?: any[] }
+      
+      console.log('FreeBusy data:', response)
+      // TODO: Open AvailabilityDrawer component with this data
+      alert(`Found ${response.busy?.length || 0} busy time slots. Availability picker UI coming soon!`)
+    } catch (error: any) {
+      console.error('Failed to fetch availability:', error)
+      alert('Failed to fetch availability. Please ensure your Google account is connected.')
+    }
   }
 
-  const handleAddCalendarInvite = () => {
+  const handleAddCalendarInvite = async () => {
     console.log('Adding calendar invite...')
-    // TODO: Create calendar event via Google Calendar API
+    
+    // Prompt user for meeting time (for now, create tomorrow at 2 PM)
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(14, 0, 0, 0)
+    const oneHourLater = new Date(tomorrow.getTime() + 60 * 60 * 1000)
+    
+    try {
+      const response = await apiRequest('/api/google/meet', {
+        method: 'POST',
+        body: JSON.stringify({
+          summary: emailForm.subject || 'Calendar Event',
+          description: emailForm.message || '',
+          start: tomorrow.toISOString(),
+          end: oneHourLater.toISOString(),
+          attendees: emailForm.to ? [emailForm.to] : [],
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
+      }) as { success: boolean; meetUrl?: string; eventId?: string }
+      
+      if (response.meetUrl) {
+        // Add calendar invite info to email
+        setEmailForm(prev => ({
+          ...prev,
+          message: prev.message + `\n\nCalendar invite sent for ${tomorrow.toLocaleDateString()} at 2:00 PM\nJoin meeting: ${response.meetUrl}`,
+        }))
+        console.log('Calendar invite created:', response)
+      }
+    } catch (error: any) {
+      console.error('Failed to create calendar invite:', error)
+      alert('Failed to create calendar invite. Please ensure your Google account is connected.')
+    }
   }
 
-  const handleCreateVideo = () => {
+  const handleCreateVideo = async () => {
     console.log('Creating Google Meet link...')
-    // TODO: Create Meet link via Google Calendar API
+    
+    // Create a 1-hour meeting starting now
+    const now = new Date()
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
+    
+    try {
+      const response = await apiRequest('/api/google/meet', {
+        method: 'POST',
+        body: JSON.stringify({
+          summary: emailForm.subject || 'Meeting',
+          description: emailForm.message || '',
+          start: now.toISOString(),
+          end: oneHourLater.toISOString(),
+          attendees: emailForm.to ? [emailForm.to] : [],
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        }),
+      }) as { success: boolean; meetUrl?: string; eventId?: string }
+      
+      if (response.meetUrl) {
+        // Add Meet link to email body
+        setEmailForm(prev => ({
+          ...prev,
+          message: prev.message + `\n\nJoin meeting: ${response.meetUrl}`,
+        }))
+        console.log('Google Meet created:', response.meetUrl)
+      }
+    } catch (error: any) {
+      console.error('Failed to create Google Meet:', error)
+      alert('Failed to create Google Meet. Please ensure your Google account is connected.')
+    }
   }
 
   return (
