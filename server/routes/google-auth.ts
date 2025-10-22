@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { getAuthUrl, exchangeCodeForTokens, generateState, verifyState } from '../integrations/google/oauth';
-import type { Storage } from '../storage';
+import type { IStorage } from '../storage';
 
-export function createGoogleAuthRoutes(storage: Storage) {
+export function createGoogleAuthRoutes(storage: IStorage) {
   const router = Router();
 
   /**

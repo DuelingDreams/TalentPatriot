@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import { createCalendarEvent, getFreeBusy } from '../integrations/google/calendar-client';
-import type { Storage } from '../storage';
+import type { IStorage } from '../storage';
 
 const createMeetSchema = z.object({
   summary: z.string().min(1, 'Summary is required'),
@@ -18,7 +18,7 @@ const freeBusySchema = z.object({
   timezone: z.string().optional(),
 });
 
-export function createGoogleCalendarRoutes(storage: Storage) {
+export function createGoogleCalendarRoutes(storage: IStorage) {
   const router = Router();
 
   /**

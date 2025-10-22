@@ -7,6 +7,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { storage } from "./storage/index";
 import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
+import { createGoogleAuthRoutes } from "./routes/google-auth";
+import { createGoogleCalendarRoutes } from "./routes/google-calendar";
 // Unused pipeline imports removed - using job-specific functions instead
 import { 
   insertCandidateSchema, 
@@ -4674,6 +4676,11 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // ==================== Google Integration Routes ====================
+  // Mount Google OAuth and Calendar routes
+  app.use('/auth/google', createGoogleAuthRoutes(storage));
+  app.use('/api/google', createGoogleCalendarRoutes(storage));
+  console.log('✅ Mounted Google integration routes');
 
   const httpServer = createServer(app);
 
