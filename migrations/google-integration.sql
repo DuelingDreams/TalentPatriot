@@ -143,26 +143,31 @@ COMMENT ON COLUMN messages.external_message_id IS 'ID from external system (Gmai
 -- Connected Accounts RLS
 ALTER TABLE connected_accounts ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "Users can view their own connected accounts"
+DROP POLICY IF EXISTS "Users can view their own connected accounts" ON connected_accounts;
+CREATE POLICY "Users can view their own connected accounts"
   ON connected_accounts FOR SELECT
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can insert their own connected accounts"
+DROP POLICY IF EXISTS "Users can insert their own connected accounts" ON connected_accounts;
+CREATE POLICY "Users can insert their own connected accounts"
   ON connected_accounts FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can update their own connected accounts"
+DROP POLICY IF EXISTS "Users can update their own connected accounts" ON connected_accounts;
+CREATE POLICY "Users can update their own connected accounts"
   ON connected_accounts FOR UPDATE
   USING (auth.uid() = user_id);
 
-CREATE POLICY IF NOT EXISTS "Users can delete their own connected accounts"
+DROP POLICY IF EXISTS "Users can delete their own connected accounts" ON connected_accounts;
+CREATE POLICY "Users can delete their own connected accounts"
   ON connected_accounts FOR DELETE
   USING (auth.uid() = user_id);
 
 -- Calendar Events RLS
 ALTER TABLE calendar_events ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "Users can view calendar events in their org"
+DROP POLICY IF EXISTS "Users can view calendar events in their org" ON calendar_events;
+CREATE POLICY "Users can view calendar events in their org"
   ON calendar_events FOR SELECT
   USING (
     org_id IN (
@@ -170,7 +175,8 @@ CREATE POLICY IF NOT EXISTS "Users can view calendar events in their org"
     )
   );
 
-CREATE POLICY IF NOT EXISTS "Users can create calendar events in their org"
+DROP POLICY IF EXISTS "Users can create calendar events in their org" ON calendar_events;
+CREATE POLICY "Users can create calendar events in their org"
   ON calendar_events FOR INSERT
   WITH CHECK (
     org_id IN (
@@ -178,18 +184,21 @@ CREATE POLICY IF NOT EXISTS "Users can create calendar events in their org"
     )
   );
 
-CREATE POLICY IF NOT EXISTS "Users can update calendar events they created"
+DROP POLICY IF EXISTS "Users can update calendar events they created" ON calendar_events;
+CREATE POLICY "Users can update calendar events they created"
   ON calendar_events FOR UPDATE
   USING (created_by = auth.uid());
 
-CREATE POLICY IF NOT EXISTS "Users can delete calendar events they created"
+DROP POLICY IF EXISTS "Users can delete calendar events they created" ON calendar_events;
+CREATE POLICY "Users can delete calendar events they created"
   ON calendar_events FOR DELETE
   USING (created_by = auth.uid());
 
 -- Message Threads RLS
 ALTER TABLE message_threads ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "Users can view message threads in their org"
+DROP POLICY IF EXISTS "Users can view message threads in their org" ON message_threads;
+CREATE POLICY "Users can view message threads in their org"
   ON message_threads FOR SELECT
   USING (
     org_id IN (
@@ -197,7 +206,8 @@ CREATE POLICY IF NOT EXISTS "Users can view message threads in their org"
     )
   );
 
-CREATE POLICY IF NOT EXISTS "Users can create message threads in their org"
+DROP POLICY IF EXISTS "Users can create message threads in their org" ON message_threads;
+CREATE POLICY "Users can create message threads in their org"
   ON message_threads FOR INSERT
   WITH CHECK (
     org_id IN (
@@ -205,7 +215,8 @@ CREATE POLICY IF NOT EXISTS "Users can create message threads in their org"
     )
   );
 
-CREATE POLICY IF NOT EXISTS "Users can update message threads in their org"
+DROP POLICY IF EXISTS "Users can update message threads in their org" ON message_threads;
+CREATE POLICY "Users can update message threads in their org"
   ON message_threads FOR UPDATE
   USING (
     org_id IN (
