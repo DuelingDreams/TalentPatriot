@@ -33,12 +33,9 @@ export default function Integrations() {
   // Disconnect mutation
   const disconnectMutation = useMutation({
     mutationFn: async (provider: string) => {
+      // Note: userId and orgId are extracted from authenticated session by middleware
       return await apiRequest(`/auth/${provider}/disconnect`, {
         method: 'DELETE',
-        body: JSON.stringify({
-          userId: user?.id,
-          orgId: currentOrgId,
-        }),
       })
     },
     onSuccess: () => {
@@ -61,7 +58,8 @@ export default function Integrations() {
 
   const handleConnect = (provider: string) => {
     // Redirect to OAuth flow
-    const authUrl = `/auth/${provider}/login?user_id=${user?.id}&org_id=${currentOrgId}`
+    // Note: user_id and org_id are extracted from authenticated session by middleware
+    const authUrl = `/auth/${provider}/login`
     window.location.href = authUrl
   }
 
