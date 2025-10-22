@@ -8,7 +8,7 @@ import { storage } from "./storage";
 import * as jobService from "../lib/jobService";
 import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
-import { getFirstPipelineColumn, ensureDefaultPipeline } from "./lib/pipelineService";
+// Unused pipeline imports removed - using job-specific functions instead
 import { 
   insertCandidateSchema, 
   insertJobSchema, 
