@@ -1,11 +1,17 @@
 import type {
   Message,
   MessageRecipient,
+  MessageThread,
+  ConnectedAccount,
+  CalendarEvent,
   OrganizationEmailSettings,
   EmailTemplate,
   EmailEvent,
   InsertMessage,
   InsertMessageRecipient,
+  InsertMessageThread,
+  InsertConnectedAccount,
+  InsertCalendarEvent,
   InsertOrganizationEmailSettings,
   InsertEmailTemplate,
   InsertEmailEvent
@@ -58,4 +64,24 @@ export interface ICommunicationsRepository {
       limit: number;
     };
   }>;
+  
+  // Message Threads (Google integration)
+  getThreads(orgId: string, params?: { channelType?: string; limit?: number }): Promise<MessageThread[]>;
+  getThread(id: string): Promise<MessageThread | undefined>;
+  createThread(thread: InsertMessageThread): Promise<MessageThread>;
+  updateThread(id: string, thread: Partial<InsertMessageThread>): Promise<MessageThread>;
+  
+  // Connected Accounts (OAuth providers)
+  getConnectedAccount(userId: string, orgId: string, provider: string): Promise<ConnectedAccount | undefined>;
+  getConnectedAccounts(userId: string, orgId: string): Promise<ConnectedAccount[]>;
+  createConnectedAccount(account: InsertConnectedAccount): Promise<ConnectedAccount>;
+  updateConnectedAccount(id: string, account: Partial<InsertConnectedAccount>): Promise<ConnectedAccount>;
+  deleteConnectedAccount(id: string): Promise<void>;
+  
+  // Calendar Events (Google Calendar/Meet)
+  getCalendarEvents(orgId: string, params?: { startDate?: Date; endDate?: Date; provider?: string }): Promise<CalendarEvent[]>;
+  getCalendarEvent(id: string): Promise<CalendarEvent | undefined>;
+  createCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent>;
+  updateCalendarEvent(id: string, event: Partial<InsertCalendarEvent>): Promise<CalendarEvent>;
+  deleteCalendarEvent(id: string): Promise<void>;
 }

@@ -22,6 +22,9 @@ export const experienceLevelEnum = pgEnum('experience_level', ['entry', 'mid', '
 export const remoteOptionEnum = pgEnum('remote_option', ['onsite', 'remote', 'hybrid']);
 export const importStatusEnum = pgEnum('import_status', ['pending', 'processing', 'completed', 'failed', 'cancelled']);
 export const importTypeEnum = pgEnum('import_type', ['candidates', 'jobs', 'both']);
+export const providerEnum = pgEnum('provider', ['google', 'microsoft', 'zoom']);
+export const channelTypeEnum = pgEnum('channel_type', ['internal', 'email', 'client_portal']);
+export const calendarEventStatusEnum = pgEnum('calendar_event_status', ['confirmed', 'tentative', 'cancelled']);
 
 // Tables
 export const organizations = pgTable("organizations", {
@@ -238,8 +241,12 @@ export const messages = pgTable("messages", {
   isArchived: boolean("is_archived").default(false).notNull(),
   
   // Thread support
-  threadId: uuid("thread_id"), // References parent message
+  threadId: uuid("thread_id"), // References message_threads table
   replyToId: uuid("reply_to_id"), // References message being replied to
+  
+  // Google integration fields
+  channelType: channelTypeEnum("channel_type"), // internal, email, client_portal
+  externalMessageId: text("external_message_id"), // Gmail message ID or other provider reference
   
   // Metadata
   attachments: text("attachments").array(), // JSON array of file URLs
@@ -259,6 +266,67 @@ export const messageRecipients = pgTable("message_recipients", {
   readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// Message Threads (for email conversation grouping)
+export const messageThreads = pgTable("message_threads", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  subject: text("subject"),
+  channelType: channelTypeEnum("channel_type"),
+  externalThreadId: text("external_thread_id"), // Gmail thread ID or other provider reference
+  participantIds: text("participant_ids").array().default(sql`ARRAY[]::text[]`),
+  lastMessageAt: timestamp("last_message_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  externalThreadIdx: index("idx_message_threads_external_id").on(table.externalThreadId),
+  lastMessageIdx: index("idx_message_threads_last_message").on(table.lastMessageAt),
+}));
+
+// Connected Accounts (OAuth provider connections)
+export const connectedAccounts = pgTable("connected_accounts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull(), // References auth.users(id)
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  provider: providerEnum("provider").notNull(),
+  providerEmail: text("provider_email"),
+  scopes: text("scopes").array().default(sql`ARRAY[]::text[]`),
+  connectorAccountId: text("connector_account_id"), // Replit connector reference
+  accessTokenExpiresAt: timestamp("access_token_expires_at"),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueUserProvider: uniqueIndex("unique_user_provider").on(table.userId, table.orgId, table.provider),
+  userIdx: index("idx_connected_accounts_user_id").on(table.userId),
+  providerIdx: index("idx_connected_accounts_provider").on(table.provider),
+}));
+
+// Calendar Events (Google Calendar/Meet event tracking)
+export const calendarEvents = pgTable("calendar_events", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  provider: providerEnum("provider").notNull(),
+  providerEventId: text("provider_event_id").notNull(),
+  threadId: uuid("thread_id").references(() => messageThreads.id),
+  summary: text("summary").notNull(),
+  description: text("description"),
+  startAt: timestamp("start_at").notNull(),
+  endAt: timestamp("end_at").notNull(),
+  timezone: text("timezone").default('UTC'),
+  conferenceUrl: text("conference_url"),
+  attendees: jsonb("attendees").default(sql`'[]'::jsonb`),
+  status: calendarEventStatusEnum("status").default('confirmed'),
+  createdBy: uuid("created_by").notNull(), // References auth.users(id)
+  deletedAt: timestamp("deleted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueProviderEvent: uniqueIndex("unique_provider_event").on(table.provider, table.providerEventId),
+  createdByIdx: index("idx_calendar_events_created_by").on(table.createdBy),
+  startAtIdx: index("idx_calendar_events_start_at").on(table.startAt),
+  threadIdx: index("idx_calendar_events_thread_id").on(table.threadId),
+}));
 
 // Beta Applications (for beta access control workflow)
 export const betaApplications = pgTable("beta_applications", {
@@ -627,6 +695,24 @@ export const insertMessageRecipientSchema = createInsertSchema(messageRecipients
   createdAt: true,
 });
 
+export const insertMessageThreadSchema = createInsertSchema(messageThreads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertConnectedAccountSchema = createInsertSchema(connectedAccounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCalendarEventSchema = createInsertSchema(calendarEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertBetaApplicationSchema = createInsertSchema(betaApplications).omit({
   id: true,
   createdAt: true,
@@ -765,6 +851,15 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 export type MessageRecipient = typeof messageRecipients.$inferSelect;
 export type InsertMessageRecipient = z.infer<typeof insertMessageRecipientSchema>;
+
+export type MessageThread = typeof messageThreads.$inferSelect;
+export type InsertMessageThread = z.infer<typeof insertMessageThreadSchema>;
+
+export type ConnectedAccount = typeof connectedAccounts.$inferSelect;
+export type InsertConnectedAccount = z.infer<typeof insertConnectedAccountSchema>;
+
+export type CalendarEvent = typeof calendarEvents.$inferSelect;
+export type InsertCalendarEvent = z.infer<typeof insertCalendarEventSchema>;
 
 export type UserSettings = typeof userSettings.$inferSelect;
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
