@@ -17,8 +17,9 @@ import { format } from 'date-fns'
 import type { Message } from '@/../../shared/schema'
 import { DemoMessages } from '@/components/demo/DemoMessages'
 
-// Feature flag for Google integration
-const ENABLE_GOOGLE_INTEGRATION = import.meta.env.VITE_ENABLE_GOOGLE_INTEGRATION === 'true'
+// Google integration is always enabled in this component
+// (This is the enhanced Messages page with email/calendar features)
+const ENABLE_GOOGLE_INTEGRATION = true
 
 export default function Messages() {
   const { user, userRole } = useAuth()

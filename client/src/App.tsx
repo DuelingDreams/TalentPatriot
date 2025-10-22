@@ -30,7 +30,8 @@ const Candidates = lazy(() => import("@/features/candidates/pages/Candidates"));
 const ProfessionalCandidates = lazy(() => import("@/features/candidates/pages/ProfessionalCandidates"));
 const CandidateProfile = lazy(() => import("@/features/candidates/pages/CandidateProfile"));
 const Calendar = lazy(() => import("@/features/public/pages/Calendar"));
-const Messages = lazy(() => import("@/features/communications/pages/Messages"));
+// Use Google-integrated Messages page with email/calendar features
+const Messages = lazy(() => import("@/features/communications/pages/MessagesWithGoogle"));
 const Reports = lazy(() => import("@/features/analytics/pages/Reports"));
 const Login = lazy(() => import("@/features/auth/pages/Login"));
 const Signup = lazy(() => import("@/features/auth/pages/Signup"));
