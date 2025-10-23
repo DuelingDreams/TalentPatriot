@@ -39,9 +39,22 @@ export default function IntegrationsSettings() {
   })
 
   // Connect Google mutation
-  const handleConnectGoogle = () => {
-    // Redirect to Google OAuth flow
-    window.location.href = '/auth/google/login'
+  const handleConnectGoogle = async () => {
+    try {
+      // Step 1: Call /init endpoint to set session cookie
+      const response = await apiRequest<{ redirectUrl: string }>('/auth/google/init', { method: 'POST' });
+      
+      // Step 2: Redirect to Google OAuth flow using the returned URL
+      if (response?.redirectUrl) {
+        window.location.href = response.redirectUrl;
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Failed to initialize Google authentication',
+        description: error.message || 'Please try again later.',
+        variant: 'destructive',
+      });
+    }
   }
 
   // Disconnect Google mutation

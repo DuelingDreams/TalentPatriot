@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import compression from "compression";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import slowDown from "express-slow-down";
 import path from "path";
@@ -70,6 +71,13 @@ app.use(compression({
 
 app.use(generalLimiter);
 app.use(speedLimiter);
+// Parse cookies with signature verification for OAuth session management
+// Uses APP_JWT_SECRET for signing cookies to prevent forgery
+const cookieSecret = process.env.APP_JWT_SECRET;
+if (!cookieSecret) {
+  throw new Error('APP_JWT_SECRET environment variable is required for secure cookie signing');
+}
+app.use(cookieParser(cookieSecret));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 

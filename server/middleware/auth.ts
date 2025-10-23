@@ -17,6 +17,7 @@ export interface AuthenticatedRequest extends Request {
 /**
  * Middleware to extract authenticated user from session
  * Sets req.user with userId, email, role, and orgId
+ * Supports both Bearer tokens (API calls) and cookies (browser redirects)
  */
 export async function extractAuthUser(
   req: AuthenticatedRequest,
@@ -24,13 +25,47 @@ export async function extractAuthUser(
   next: NextFunction
 ): Promise<void> {
   try {
-    const authHeader = req.headers.authorization;
+    let token: string | undefined;
     
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next(); // Continue without auth - routes can choose to require it
+    // Try to get token from Authorization header first (API calls)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
     }
-
-    const token = authHeader.substring(7);
+    
+    // If no Bearer token, try to extract from Supabase cookies (browser redirects for OAuth)
+    if (!token) {
+      // Supabase stores access token in cookies with name like 'sb-{project-ref}-auth-token'
+      const cookieHeader = req.headers.cookie;
+      if (cookieHeader) {
+        // Parse cookies and look for Supabase auth token
+        const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          acc[key] = value;
+          return acc;
+        }, {} as Record<string, string>);
+        
+        // Look for Supabase auth cookie (format: sb-{project-ref}-auth-token)
+        const authCookieKey = Object.keys(cookies).find(key => 
+          key.startsWith('sb-') && key.endsWith('-auth-token')
+        );
+        
+        if (authCookieKey) {
+          try {
+            const cookieValue = decodeURIComponent(cookies[authCookieKey]);
+            const sessionData = JSON.parse(cookieValue);
+            token = sessionData?.access_token || sessionData?.[0];
+          } catch (e) {
+            // Cookie parsing failed, continue without auth
+          }
+        }
+      }
+    }
+    
+    // If still no token, continue without auth
+    if (!token) {
+      return next();
+    }
     
     // Get user from Supabase auth token
     const { data: { user }, error } = await supabase.auth.getUser(token);
