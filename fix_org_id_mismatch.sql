@@ -3,11 +3,10 @@
 
 BEGIN;
 
--- Hildebrand Enterprises org_id (update this if verification shows a different ID)
--- Replace this with the correct org_id from the verification query
+-- Hildebrand Consulting Services org_id (from verification query)
 DO $$
 DECLARE
-  correct_org_id UUID := 'd0156d8c-939b-488d-b256-e3924349f427'; -- Hildebrand Enterprises
+  correct_org_id UUID := '64eea1fa-1993-4966-bbd8-3d5109957c20'; -- Hildebrand Consulting Services
 BEGIN
   -- Update application_metadata to use correct org_id
   UPDATE application_metadata
@@ -37,7 +36,7 @@ SELECT
   total_applications,
   hire_rate
 FROM mv_candidate_sources
-WHERE org_id = 'd0156d8c-939b-488d-b256-e3924349f427'
+WHERE org_id = '64eea1fa-1993-4966-bbd8-3d5109957c20'
 ORDER BY total_applications DESC;
 
 COMMIT;
