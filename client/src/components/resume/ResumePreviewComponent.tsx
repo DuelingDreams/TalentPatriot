@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,6 +14,7 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react'
+import { getResumeSignedUrl, isStoragePath, openResumeInNewTab } from '@/lib/resumeUtils'
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`
@@ -29,6 +30,30 @@ export default function ResumePreviewComponent({ resumeUrl, candidateName }: Res
   const [scale, setScale] = useState<number>(1.0)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [signedUrl, setSignedUrl] = useState<string | null>(null)
+
+  // Generate signed URL if resumeUrl is a storage path
+  useEffect(() => {
+    async function fetchSignedUrl() {
+      if (isStoragePath(resumeUrl)) {
+        try {
+          setLoading(true)
+          const url = await getResumeSignedUrl(resumeUrl)
+          setSignedUrl(url)
+          setLoading(false)
+        } catch (err) {
+          console.error('Failed to generate signed URL:', err)
+          setError('Failed to load resume. The file may not be accessible.')
+          setLoading(false)
+        }
+      } else {
+        // It's already a full URL (legacy data)
+        setSignedUrl(resumeUrl)
+        setLoading(false)
+      }
+    }
+    fetchSignedUrl()
+  }, [resumeUrl])
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages)
@@ -58,11 +83,13 @@ export default function ResumePreviewComponent({ resumeUrl, candidateName }: Res
     setScale(scale => Math.max(0.5, scale - 0.2))
   }
 
-  const downloadResume = () => {
+  const downloadResume = async () => {
+    if (!signedUrl) return
     const link = document.createElement('a')
-    link.href = resumeUrl
-    // Extract file extension from URL or default to generic name
-    const urlParts = resumeUrl.split('.')
+    link.href = signedUrl
+    // Extract file extension from URL or storage path
+    const pathOrUrl = signedUrl || resumeUrl
+    const urlParts = pathOrUrl.split('.')
     const extension = urlParts.length > 1 ? urlParts.pop() : ''
     const fileName = extension ? 
       `${candidateName.replace(/\s+/g, '_')}_Resume.${extension}` : 
@@ -73,12 +100,44 @@ export default function ResumePreviewComponent({ resumeUrl, candidateName }: Res
     document.body.removeChild(link)
   }
 
-  const openInNewTab = () => {
-    window.open(resumeUrl, '_blank')
+  const openInNewTab = async () => {
+    try {
+      await openResumeInNewTab(resumeUrl)
+    } catch (err) {
+      console.error('Failed to open resume:', err)
+      setError('Failed to open resume. Please try again.')
+    }
   }
 
   // Check if the file is a PDF
-  const isPDF = resumeUrl.toLowerCase().includes('.pdf') || resumeUrl.includes('application/pdf')
+  const isPDF = (resumeUrl.toLowerCase().includes('.pdf') || resumeUrl.includes('application/pdf')) || 
+                (signedUrl?.toLowerCase().includes('.pdf') ?? false)
+
+  if (loading && !signedUrl) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <Loader2 className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
+          <p className="text-sm text-gray-600">Loading resume...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-12 text-center">
+          <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
+          <p className="text-sm text-gray-600 mb-4">{error}</p>
+          <Button variant="outline" onClick={openInNewTab}>
+            <ExternalLink className="w-4 h-4 mr-2" />
+            Try Opening in New Tab
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (!isPDF) {
     return (
@@ -184,20 +243,22 @@ export default function ResumePreviewComponent({ resumeUrl, candidateName }: Res
                 </div>
               )}
               
-              <Document
-                file={resumeUrl}
-                onLoadSuccess={onDocumentLoadSuccess}
-                onLoadError={onDocumentLoadError}
-                className="flex justify-center"
-              >
-                <Page
-                  pageNumber={pageNumber}
-                  scale={scale}
-                  renderAnnotationLayer={false}
-                  renderTextLayer={false}
-                  className="shadow-lg"
-                />
-              </Document>
+              {signedUrl && (
+                <Document
+                  file={signedUrl}
+                  onLoadSuccess={onDocumentLoadSuccess}
+                  onLoadError={onDocumentLoadError}
+                  className="flex justify-center"
+                >
+                  <Page
+                    pageNumber={pageNumber}
+                    scale={scale}
+                    renderAnnotationLayer={false}
+                    renderTextLayer={false}
+                    className="shadow-lg"
+                  />
+                </Document>
+              )}
             </div>
           </div>
         )}
