@@ -34,15 +34,34 @@ export default function IntegrationsSettings() {
   // Fetch Google connection status
   const { data: googleStatus, isLoading } = useQuery<GoogleConnectionStatus>({
     queryKey: ['/api/google/connection-status'],
-    queryFn: () => apiRequest('/api/google/connection-status'),
+    queryFn: () => apiRequest('/api/google/connection-status', {
+      headers: {
+        'Authorization': `Bearer ${session?.access_token || ''}`
+      }
+    }),
     enabled: !!user && !!session?.access_token,
   })
 
   // Connect Google mutation
   const handleConnectGoogle = async () => {
     try {
-      // Step 1: Call /init endpoint to set session cookie
-      const response = await apiRequest<{ redirectUrl: string }>('/auth/google/init', { method: 'POST' });
+      // Ensure we have a valid session token
+      if (!session?.access_token) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in again to connect your Google account.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Step 1: Call /init endpoint to set session cookie with Bearer token
+      const response = await apiRequest<{ redirectUrl: string }>('/auth/google/init', { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
       
       // Step 2: Redirect to Google OAuth flow using the returned URL
       if (response?.redirectUrl) {
@@ -59,7 +78,12 @@ export default function IntegrationsSettings() {
 
   // Disconnect Google mutation
   const disconnectMutation = useMutation({
-    mutationFn: () => apiRequest('/auth/google/disconnect', { method: 'DELETE' }),
+    mutationFn: () => apiRequest('/auth/google/disconnect', { 
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${session?.access_token || ''}`
+      }
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
       toast({

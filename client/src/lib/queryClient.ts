@@ -51,12 +51,13 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest<T = unknown>(
-  urlOrOptions: string | { method: string; url: string; body?: string },
-  options?: { method?: string; body?: string }
+  urlOrOptions: string | { method: string; url: string; body?: string; headers?: Record<string, string> },
+  options?: { method?: string; body?: string; headers?: Record<string, string> }
 ): Promise<T> {
   let url: string;
   let method: string = 'GET';
   let body: string | undefined;
+  let customHeaders: Record<string, string> = {};
 
   // Handle both parameter styles
   if (typeof urlOrOptions === 'string') {
@@ -64,11 +65,13 @@ export async function apiRequest<T = unknown>(
     if (options) {
       method = options.method || 'GET';
       body = options.body;
+      customHeaders = options.headers || {};
     }
   } else {
     url = urlOrOptions.url;
     method = urlOrOptions.method;
     body = urlOrOptions.body;
+    customHeaders = urlOrOptions.headers || {};
   }
 
   // Get organization ID from session storage
@@ -97,7 +100,8 @@ export async function apiRequest<T = unknown>(
     const headers: Record<string, string> = {
       ...(body ? { "Content-Type": "application/json" } : {}),
       ...(currentOrgId ? { "x-org-id": currentOrgId } : {}),
-      ...(currentUserId ? { "x-user-id": currentUserId } : {})
+      ...(currentUserId ? { "x-user-id": currentUserId } : {}),
+      ...customHeaders // Merge in any custom headers (like Authorization)
     };
 
     // For POST/PUT/DELETE operations with JSON body, include orgId in the body
