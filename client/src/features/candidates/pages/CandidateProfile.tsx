@@ -224,6 +224,7 @@ export default function CandidateProfile() {
               <div className="lg:col-span-2 space-y-4">
                 <ResumeUpload 
                   candidateId={id!}
+                  orgId={candidate?.orgId || ''}
                   currentResumeUrl={candidate?.resume_url}
                   onUploadSuccess={(resumeUrl) => {
                     // Trigger a refetch of candidate data

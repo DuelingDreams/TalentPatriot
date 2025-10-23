@@ -107,6 +107,11 @@ export default function JobApplicationForm() {
       const formData = new FormData();
       formData.append('resume', file);
       formData.append('candidateId', 'temp-job-application'); // Temporary ID for job applications
+      
+      // Include organization ID from job posting for secure storage
+      if (job?.orgId) {
+        formData.append('orgId', job.orgId);
+      }
 
       // Start progress simulation
       const progressInterval = setInterval(() => {

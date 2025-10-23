@@ -19,9 +19,9 @@ export async function ensureResumesBucket(): Promise<void> {
     if (!resumesBucket) {
       console.log('Creating "resumes" storage bucket...');
       
-      // Create the bucket with public access for resume downloads
+      // Create PRIVATE bucket - access controlled through RLS policies
       const { data, error } = await supabase.storage.createBucket('resumes', {
-        public: true,  // Allow public read access to resume files
+        public: false,  // SECURITY: Private bucket - authenticated access only
         allowedMimeTypes: [
           'application/pdf',
           'application/msword',

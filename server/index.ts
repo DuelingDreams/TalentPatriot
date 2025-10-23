@@ -125,8 +125,8 @@ app.use(cors({
   maxAge: 86400, // 24 hours
 }));
 
-// Serve uploaded files (resumes) statically
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+// SECURITY: Resumes are stored in Supabase Storage with authenticated access
+// Public static serving of /uploads has been removed to prevent PII leaks
 
 // Enhanced performance optimizations and cache control headers
 app.use((req, res, next) => {

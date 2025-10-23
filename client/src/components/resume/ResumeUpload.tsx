@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 
 interface ResumeUploadProps {
   candidateId: string
+  orgId: string  // Required for secure file storage
   onUploadSuccess: (resumeUrl: string) => void
   currentResumeUrl?: string
   // Additional props for enhanced functionality
@@ -30,6 +31,7 @@ interface ResumeUploadProps {
 
 export function ResumeUpload({
   candidateId,
+  orgId,
   onUploadSuccess,
   currentResumeUrl,
   candidateName = 'Candidate',
@@ -113,6 +115,7 @@ export function ResumeUpload({
     const formData = new FormData()
     formData.append('resume', file)
     formData.append('candidateId', candidateId)
+    formData.append('orgId', orgId)  // Required for secure storage
 
     const response = await fetch('/api/upload/resume', {
       method: 'POST',

@@ -274,6 +274,7 @@ export function TestFeatures() {
           </h2>
           <ResumeUpload 
             candidateId="test-candidate-1"
+            orgId={currentOrgId || "00000000-0000-0000-0000-000000000000"}
             onUploadSuccess={(fileUrl: string) => {
               toast({
                 title: "Upload Complete",
