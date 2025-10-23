@@ -1,7 +1,19 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import multer from 'multer'
 import { nanoid } from 'nanoid'
 import { createClient } from '@supabase/supabase-js'
+
+// Extend Express Request to include authentication context
+declare global {
+  namespace Express {
+    interface Request {
+      authContext?: {
+        userId: string
+        orgId: string
+      }
+    }
+  }
+}
 
 const router = Router()
 
@@ -36,8 +48,92 @@ if (!supabaseUrl || !supabaseServiceKey) {
 
 const supabase = createClient(supabaseUrl!, supabaseServiceKey!)
 
-// Resume upload endpoint - uploads to Supabase Storage
-router.post('/resume', upload.single('resume'), async (req, res) => {
+// REAL authentication middleware that verifies Supabase session
+const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Get Authorization header
+    const authHeader = req.headers.authorization
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      })
+    }
+
+    const token = authHeader.substring(7) // Remove 'Bearer ' prefix
+
+    // Verify token with Supabase
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+
+    if (authError || !user) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Invalid or expired authentication token'
+      })
+    }
+
+    // Get user's organizations from database
+    const { data: userOrgs, error: orgsError } = await supabase
+      .from('user_organizations')
+      .select('org_id')
+      .eq('user_id', user.id)
+
+    if (orgsError) {
+      console.error('Failed to fetch user organizations:', orgsError)
+      return res.status(500).json({
+        error: 'Authentication failed',
+        message: 'Failed to verify organization membership'
+      })
+    }
+
+    if (!userOrgs || userOrgs.length === 0) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You are not a member of any organization'
+      })
+    }
+
+    // Get requested org ID from header or query
+    const requestedOrgId = req.headers['x-org-id'] as string || req.query.orgId as string
+
+    let validatedOrgId: string
+
+    // If specific org requested, verify user is a member
+    if (requestedOrgId) {
+      const isMember = userOrgs.some(org => org.org_id === requestedOrgId)
+      
+      if (!isMember) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You are not a member of this organization'
+        })
+      }
+      
+      validatedOrgId = requestedOrgId
+    } else {
+      // Use first org if none specified (for backward compatibility)
+      validatedOrgId = userOrgs[0].org_id
+    }
+
+    // Store auth context in dedicated property (NOT req.body - multer overwrites it!)
+    req.authContext = {
+      userId: user.id,
+      orgId: validatedOrgId
+    }
+
+    next()
+  } catch (error) {
+    console.error('Auth middleware error:', error)
+    res.status(500).json({ 
+      error: 'Authentication failed',
+      message: 'Internal server error'
+    })
+  }
+}
+
+// Resume upload endpoint - REQUIRES AUTHENTICATION
+router.post('/resume', requireAuth, upload.single('resume'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ 
@@ -46,12 +142,14 @@ router.post('/resume', upload.single('resume'), async (req, res) => {
       })
     }
 
-    const { candidateId, orgId } = req.body
+    const { candidateId } = req.body
+    // Get validated orgId from authentication context (protected from multer overwrite)
+    const orgId = req.authContext?.orgId
     
     if (!orgId) {
-      return res.status(400).json({
-        error: 'Organization ID required',
-        message: 'Resume uploads must be associated with an organization'
+      return res.status(500).json({
+        error: 'Internal error',
+        message: 'Organization context not available'
       })
     }
 
@@ -77,14 +175,22 @@ router.post('/resume', upload.single('resume'), async (req, res) => {
       })
     }
 
-    // Get the public URL (requires RLS policy for authenticated access)
-    const { data: urlData } = supabase.storage
+    // Create signed URL for secure access (expires in 24 hours)
+    const { data: signedUrlData, error: signedError } = await supabase.storage
       .from('resumes')
-      .getPublicUrl(filename)
+      .createSignedUrl(filename, 86400) // 24 hours expiry
+    
+    if (signedError) {
+      console.error('Failed to create signed URL:', signedError)
+      return res.status(500).json({
+        error: 'Upload completed but failed to generate secure URL',
+        message: 'Please contact support'
+      })
+    }
     
     res.json({
       success: true,
-      fileUrl: urlData.publicUrl,
+      fileUrl: signedUrlData.signedUrl,
       filename: filename,
       originalName: req.file.originalname,
       size: req.file.size,
@@ -102,10 +208,29 @@ router.post('/resume', upload.single('resume'), async (req, res) => {
   }
 })
 
-// Resume deletion endpoint - deletes from Supabase Storage
-router.delete('/resume/:filename(*)', async (req, res) => {
+// Resume deletion endpoint - REQUIRES AUTHENTICATION
+router.delete('/resume/:filename(*)', requireAuth, async (req, res) => {
   try {
     const { filename } = req.params
+    const validatedOrgId = req.authContext?.orgId
+    
+    if (!validatedOrgId) {
+      return res.status(500).json({
+        error: 'Internal error',
+        message: 'Organization context not available'
+      })
+    }
+    
+    // Extract orgId from filename (format: orgId/resume_*.ext)
+    const fileOrgId = filename.split('/')[0]
+    
+    // Ensure user can only delete files from their own organization
+    if (fileOrgId !== validatedOrgId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only delete files from your own organization'
+      })
+    }
     
     const { error } = await supabase.storage
       .from('resumes')
@@ -132,12 +257,31 @@ router.delete('/resume/:filename(*)', async (req, res) => {
   }
 })
 
-// Authenticated resume download endpoint
-router.get('/resume/:filename(*)', async (req, res) => {
+// Authenticated resume download endpoint - REQUIRES AUTHENTICATION
+router.get('/resume/:filename(*)', requireAuth, async (req, res) => {
   try {
     const { filename } = req.params
+    const validatedOrgId = req.authContext?.orgId
     
-    // Download file from Supabase Storage
+    if (!validatedOrgId) {
+      return res.status(500).json({
+        error: 'Internal error',
+        message: 'Organization context not available'
+      })
+    }
+    
+    // Extract orgId from filename (format: orgId/resume_*.ext)
+    const fileOrgId = filename.split('/')[0]
+    
+    // Ensure user can only access files from their own organization
+    if (fileOrgId !== validatedOrgId) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only access files from your own organization'
+      })
+    }
+    
+    // Download file from Supabase Storage using service role
     const { data, error } = await supabase.storage
       .from('resumes')
       .download(filename)
