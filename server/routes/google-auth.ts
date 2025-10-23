@@ -1,5 +1,5 @@
 import { Router, Response } from 'express';
-import { getAuthUrl, exchangeCodeForTokens, generateState, verifyState } from '../integrations/google/oauth';
+import { getAuthUrl, exchangeCodeForTokens, generateState, verifyState, getRedirectUri } from '../integrations/google/oauth';
 import { storeOAuthTokens } from '../integrations/google/token-manager';
 import { extractAuthUser, requireAuth, requireOrgContext, type AuthenticatedRequest } from '../middleware/auth';
 import type { IStorage } from '../storage';
@@ -20,12 +20,15 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
 
+      // Compute dynamic redirect URI based on current host
+      const redirectUri = getRedirectUri(req.headers.host);
+
       // User already verified via requireOrgContext middleware
       // Generate secure state parameter
       const state = generateState(userId, orgId);
 
-      // Get Google OAuth URL
-      const authUrl = getAuthUrl(state);
+      // Get Google OAuth URL with dynamic redirect
+      const authUrl = getAuthUrl(state, redirectUri);
 
       // Redirect to Google
       res.redirect(authUrl);
@@ -61,8 +64,11 @@ export function createGoogleAuthRoutes(storage: IStorage) {
 
       const { userId, orgId } = stateData;
 
-      // Exchange authorization code for tokens
-      const tokens = await exchangeCodeForTokens(code as string);
+      // Compute dynamic redirect URI (must match what was used in /login)
+      const redirectUri = getRedirectUri(req.headers.host);
+
+      // Exchange authorization code for tokens using same redirect URI
+      const tokens = await exchangeCodeForTokens(code as string, redirectUri);
 
       // Store tokens securely with encryption
       await storeOAuthTokens(storage, userId, orgId, tokens);

@@ -14,13 +14,49 @@ const SCOPES = [
 ];
 
 /**
- * Generate OAuth2 authorization URL
+ * Allowed domains for OAuth redirect URIs
+ * Add both production and development domains
  */
-export function getAuthUrl(state: string): string {
+const ALLOWED_REDIRECT_HOSTS = [
+  'talentpatriot.com',
+  'www.talentpatriot.com',
+  'talentpatriot.replit.app',
+];
+
+/**
+ * Compute redirect URI from request host with security allowlist
+ * @param host - The host header from the request
+ * @returns Full redirect URI (e.g., https://talentpatriot.com/auth/google/callback)
+ * @throws Error if host is not in allowlist
+ */
+export function getRedirectUri(host: string | undefined): string {
+  if (!host) {
+    throw new Error('Host header is required to compute redirect URI');
+  }
+
+  // Remove port if present (e.g., localhost:3000 -> localhost)
+  const cleanHost = host.split(':')[0];
+
+  // Security check: only allow known domains
+  if (!ALLOWED_REDIRECT_HOSTS.includes(cleanHost)) {
+    throw new Error(`Host "${cleanHost}" is not allowed for OAuth redirect. Allowed hosts: ${ALLOWED_REDIRECT_HOSTS.join(', ')}`);
+  }
+
+  // Always use HTTPS for production domains
+  const protocol = 'https';
+  return `${protocol}://${cleanHost}/auth/google/callback`;
+}
+
+/**
+ * Generate OAuth2 authorization URL
+ * @param state - Signed state parameter containing userId and orgId
+ * @param redirectUri - Dynamic redirect URI based on current host
+ */
+export function getAuthUrl(state: string, redirectUri: string): string {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+    redirectUri
   );
 
   return oauth2Client.generateAuthUrl({
@@ -33,8 +69,10 @@ export function getAuthUrl(state: string): string {
 
 /**
  * Exchange authorization code for tokens
+ * @param code - Authorization code from Google
+ * @param redirectUri - Same redirect URI used in getAuthUrl (must match exactly)
  */
-export async function exchangeCodeForTokens(code: string): Promise<{
+export async function exchangeCodeForTokens(code: string, redirectUri: string): Promise<{
   access_token: string;
   refresh_token?: string;
   expiry_date?: number;
@@ -43,7 +81,7 @@ export async function exchangeCodeForTokens(code: string): Promise<{
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+    redirectUri
   );
 
   try {
