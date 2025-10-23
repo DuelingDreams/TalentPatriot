@@ -1,0 +1,413 @@
+schemaname,matviewname,matviewowner,tablespace,hasindexes,ispopulated,definition
+public,cached_timezones,postgres,null,true,true," SELECT name
+   FROM pg_timezone_names
+  ORDER BY name;"
+public,mv_candidate_sources,postgres,null,true,true," SELECT am.org_id,
+    COALESCE(am.application_source, 'direct'::character varying) AS source,
+    count(*) AS total_applications,
+    count(
+        CASE
+            WHEN (jc.stage = 'hired'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS hired_count,
+    count(
+        CASE
+            WHEN (jc.stage = ANY (ARRAY['interview'::candidate_stage, 'offer'::candidate_stage, 'hired'::candidate_stage])) THEN 1
+            ELSE NULL::integer
+        END) AS quality_candidates,
+        CASE
+            WHEN (count(*) > 0) THEN (((count(
+            CASE
+                WHEN (jc.stage = 'hired'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(*))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS hire_rate,
+        CASE
+            WHEN (count(*) > 0) THEN (((count(
+            CASE
+                WHEN (jc.stage = ANY (ARRAY['interview'::candidate_stage, 'offer'::candidate_stage, 'hired'::candidate_stage])) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(*))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS quality_rate,
+    avg(
+        CASE
+            WHEN (jc.stage = 'hired'::candidate_stage) THEN EXTRACT(days FROM (jc.updated_at - jc.created_at))
+            ELSE NULL::numeric
+        END) AS avg_time_to_hire
+   FROM (application_metadata am
+     JOIN job_candidate jc ON (((am.candidate_id = jc.candidate_id) AND (am.job_id = jc.job_id))))
+  WHERE (jc.status = 'active'::record_status)
+  GROUP BY am.org_id, am.application_source;"
+public,mv_client_performance,postgres,null,true,true," SELECT j.org_id,
+    j.client_id,
+    c.name AS client_name,
+    c.industry,
+    count(DISTINCT j.id) AS total_jobs,
+    count(DISTINCT
+        CASE
+            WHEN (j.status = 'open'::job_status) THEN j.id
+            ELSE NULL::uuid
+        END) AS active_jobs,
+    count(DISTINCT
+        CASE
+            WHEN (j.status = 'filled'::job_status) THEN j.id
+            ELSE NULL::uuid
+        END) AS filled_jobs,
+    count(jc.id) AS total_applications,
+    count(
+        CASE
+            WHEN (jc.stage = 'hired'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS total_hires,
+        CASE
+            WHEN (count(DISTINCT j.id) > 0) THEN (((count(DISTINCT
+            CASE
+                WHEN (j.status = 'filled'::job_status) THEN j.id
+                ELSE NULL::uuid
+            END))::double precision / (count(DISTINCT j.id))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS fill_rate,
+    avg(
+        CASE
+            WHEN (j.status = 'filled'::job_status) THEN EXTRACT(days FROM (j.updated_at - j.created_at))
+            ELSE NULL::numeric
+        END) AS avg_time_to_fill,
+    count(DISTINCT
+        CASE
+            WHEN ((j.status = 'open'::job_status) AND (j.created_at < (CURRENT_DATE - '30 days'::interval))) THEN j.id
+            ELSE NULL::uuid
+        END) AS aging_jobs_30_days,
+    count(DISTINCT
+        CASE
+            WHEN ((j.status = 'open'::job_status) AND (j.created_at < (CURRENT_DATE - '60 days'::interval))) THEN j.id
+            ELSE NULL::uuid
+        END) AS aging_jobs_60_days
+   FROM ((jobs j
+     LEFT JOIN clients c ON ((j.client_id = c.id)))
+     LEFT JOIN job_candidate jc ON (((j.id = jc.job_id) AND (jc.status = 'active'::record_status))))
+  WHERE (j.client_id IS NOT NULL)
+  GROUP BY j.org_id, j.client_id, c.name, c.industry;"
+public,mv_dashboard_analytics,postgres,null,true,true," WITH org_stats AS (
+         SELECT candidates.org_id,
+            count(*) AS total_candidates,
+            count(
+                CASE
+                    WHEN (candidates.status = 'active'::record_status) THEN 1
+                    ELSE NULL::integer
+                END) AS active_candidates,
+            count(
+                CASE
+                    WHEN (candidates.created_at >= (CURRENT_DATE - '30 days'::interval)) THEN 1
+                    ELSE NULL::integer
+                END) AS recent_candidates
+           FROM candidates
+          GROUP BY candidates.org_id
+        ), job_stats AS (
+         SELECT jobs.org_id,
+            count(*) AS total_jobs,
+            count(
+                CASE
+                    WHEN (jobs.status = 'open'::job_status) THEN 1
+                    ELSE NULL::integer
+                END) AS open_jobs,
+            count(
+                CASE
+                    WHEN (jobs.created_at >= (CURRENT_DATE - '30 days'::interval)) THEN 1
+                    ELSE NULL::integer
+                END) AS recent_jobs
+           FROM jobs
+          GROUP BY jobs.org_id
+        )
+ SELECT COALESCE(o.org_id, j.org_id) AS org_id,
+    COALESCE(o.total_candidates, (0)::bigint) AS total_candidates,
+    COALESCE(o.active_candidates, (0)::bigint) AS active_candidates,
+    COALESCE(o.recent_candidates, (0)::bigint) AS recent_candidates,
+    COALESCE(j.total_jobs, (0)::bigint) AS total_jobs,
+    COALESCE(j.open_jobs, (0)::bigint) AS open_jobs,
+    COALESCE(j.recent_jobs, (0)::bigint) AS recent_jobs,
+    now() AS last_updated
+   FROM (org_stats o
+     FULL JOIN job_stats j ON ((o.org_id = j.org_id)));"
+public,mv_dashboard_snapshot,postgres,null,true,true," SELECT job_id,
+    job_title,
+    org_id,
+    job_status,
+    applied,
+    phone_screen,
+    interview,
+    technical,
+    final,
+    offer,
+    hired,
+    rejected,
+    total_candidates,
+    created_at,
+    updated_at
+   FROM v_dashboard_pipeline_snapshot;"
+public,mv_function_metadata,postgres,null,true,true," SELECT (p.oid)::bigint AS id,
+    n.nspname AS schema,
+    p.proname AS name,
+    l.lanname AS language,
+    p.prosrc AS definition,
+    pg_get_functiondef(p.oid) AS complete_statement,
+    pg_get_function_arguments(p.oid) AS argument_types,
+    pg_get_function_result(p.oid) AS return_type,
+    p.proretset AS is_set_returning_function,
+        CASE
+            WHEN (p.provolatile = 'i'::""char"") THEN 'immutable'::text
+            WHEN (p.provolatile = 's'::""char"") THEN 'stable'::text
+            WHEN (p.provolatile = 'v'::""char"") THEN 'volatile'::text
+            ELSE NULL::text
+        END AS behavior,
+    p.prosecdef AS security_definer
+   FROM ((pg_proc p
+     LEFT JOIN pg_namespace n ON ((p.pronamespace = n.oid)))
+     LEFT JOIN pg_language l ON ((p.prolang = l.oid)))
+  WHERE (n.nspname <> ALL (ARRAY['information_schema'::name, 'pg_catalog'::name, 'pg_toast'::name]));"
+public,mv_pipeline_metrics,postgres,null,true,true," SELECT org_id,
+    date_trunc('month'::text, created_at) AS period_month,
+    count(*) AS total_applications,
+    count(
+        CASE
+            WHEN (stage = 'applied'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS applied_count,
+    count(
+        CASE
+            WHEN (stage = 'phone_screen'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS screening_count,
+    count(
+        CASE
+            WHEN (stage = 'interview'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS interview_count,
+    count(
+        CASE
+            WHEN (stage = 'offer'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS offer_count,
+    count(
+        CASE
+            WHEN (stage = 'hired'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS hired_count,
+    count(
+        CASE
+            WHEN (stage = 'rejected'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS rejected_count,
+        CASE
+            WHEN (count(
+            CASE
+                WHEN (stage = 'applied'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END) > 0) THEN (((count(
+            CASE
+                WHEN (stage = 'phone_screen'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(
+            CASE
+                WHEN (stage = 'applied'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS applied_to_screening_rate,
+        CASE
+            WHEN (count(
+            CASE
+                WHEN (stage = 'phone_screen'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END) > 0) THEN (((count(
+            CASE
+                WHEN (stage = 'interview'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(
+            CASE
+                WHEN (stage = 'phone_screen'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS screening_to_interview_rate,
+        CASE
+            WHEN (count(
+            CASE
+                WHEN (stage = 'interview'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END) > 0) THEN (((count(
+            CASE
+                WHEN (stage = 'offer'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(
+            CASE
+                WHEN (stage = 'interview'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS interview_to_offer_rate,
+        CASE
+            WHEN (count(
+            CASE
+                WHEN (stage = 'offer'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END) > 0) THEN (((count(
+            CASE
+                WHEN (stage = 'hired'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(
+            CASE
+                WHEN (stage = 'offer'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS offer_acceptance_rate,
+        CASE
+            WHEN (count(*) > 0) THEN (((count(
+            CASE
+                WHEN (stage = 'hired'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(*))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS overall_conversion_rate
+   FROM job_candidate jc
+  WHERE (status = 'active'::record_status)
+  GROUP BY org_id, (date_trunc('month'::text, created_at));"
+public,mv_recruiter_performance,postgres,null,true,true," SELECT j.org_id,
+    j.assigned_to AS recruiter_id,
+    COALESCE((((up.first_name)::text || ' '::text) || (up.last_name)::text), 'Unknown'::text) AS recruiter_name,
+    count(DISTINCT j.id) AS jobs_managed,
+    count(DISTINCT
+        CASE
+            WHEN (j.status = 'open'::job_status) THEN j.id
+            ELSE NULL::uuid
+        END) AS active_jobs,
+    count(DISTINCT
+        CASE
+            WHEN (j.status = 'filled'::job_status) THEN j.id
+            ELSE NULL::uuid
+        END) AS closed_jobs,
+    count(jc.id) AS total_candidates,
+    count(
+        CASE
+            WHEN (jc.stage = 'hired'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS candidates_hired,
+    count(
+        CASE
+            WHEN (jc.stage = ANY (ARRAY['interview'::candidate_stage, 'offer'::candidate_stage])) THEN 1
+            ELSE NULL::integer
+        END) AS candidates_in_final_stages,
+        CASE
+            WHEN (count(jc.id) > 0) THEN (((count(
+            CASE
+                WHEN (jc.stage = 'hired'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(jc.id))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS conversion_rate,
+    avg(
+        CASE
+            WHEN (jc.stage = 'hired'::candidate_stage) THEN EXTRACT(days FROM (jc.updated_at - jc.created_at))
+            ELSE NULL::numeric
+        END) AS avg_time_to_hire,
+    count(DISTINCT
+        CASE
+            WHEN (jc.created_at >= (CURRENT_DATE - '30 days'::interval)) THEN jc.id
+            ELSE NULL::uuid
+        END) AS candidates_last_30_days,
+    count(DISTINCT
+        CASE
+            WHEN (j.created_at >= (CURRENT_DATE - '30 days'::interval)) THEN j.id
+            ELSE NULL::uuid
+        END) AS jobs_created_last_30_days
+   FROM ((jobs j
+     LEFT JOIN job_candidate jc ON (((j.id = jc.job_id) AND (jc.status = 'active'::record_status))))
+     LEFT JOIN user_profiles up ON ((j.assigned_to = up.id)))
+  WHERE (j.assigned_to IS NOT NULL)
+  GROUP BY j.org_id, j.assigned_to, up.first_name, up.last_name;"
+public,mv_skills_analysis,postgres,null,true,true," WITH skill_breakdown AS (
+         SELECT candidates.org_id,
+            unnest(candidates.skills) AS skill_name,
+            count(*) AS skill_count
+           FROM candidates
+          WHERE ((candidates.status = 'active'::record_status) AND (candidates.skills IS NOT NULL) AND (array_length(candidates.skills, 1) > 0))
+          GROUP BY candidates.org_id, (unnest(candidates.skills))
+        )
+ SELECT org_id,
+    skill_name,
+    skill_count,
+    rank() OVER (PARTITION BY org_id ORDER BY skill_count DESC) AS skill_rank
+   FROM skill_breakdown
+  WHERE ((skill_name IS NOT NULL) AND (TRIM(BOTH FROM skill_name) <> ''::text));"
+public,mv_skills_analytics,postgres,null,true,true," SELECT c.org_id,
+    skill_item.skill_item AS skill_name,
+    count(*) AS candidate_count,
+    count(
+        CASE
+            WHEN (jc.stage = 'hired'::candidate_stage) THEN 1
+            ELSE NULL::integer
+        END) AS hired_with_skill,
+    count(
+        CASE
+            WHEN (jc.stage = ANY (ARRAY['interview'::candidate_stage, 'offer'::candidate_stage, 'hired'::candidate_stage])) THEN 1
+            ELSE NULL::integer
+        END) AS quality_candidates_with_skill,
+        CASE
+            WHEN (count(*) > 0) THEN (((count(
+            CASE
+                WHEN (jc.stage = 'hired'::candidate_stage) THEN 1
+                ELSE NULL::integer
+            END))::double precision / (count(*))::double precision) * (100)::double precision)
+            ELSE (0)::double precision
+        END AS skill_hire_rate,
+    avg(
+        CASE
+            WHEN (jc.stage = 'hired'::candidate_stage) THEN EXTRACT(days FROM (jc.updated_at - jc.created_at))
+            ELSE NULL::numeric
+        END) AS avg_time_to_hire_with_skill,
+    avg(
+        CASE
+            WHEN ((c.skill_levels IS NOT NULL) AND (c.skill_levels ? skill_item.skill_item)) THEN
+            CASE (c.skill_levels ->> skill_item.skill_item)
+                WHEN 'Beginner'::text THEN 1
+                WHEN 'Intermediate'::text THEN 2
+                WHEN 'Advanced'::text THEN 3
+                WHEN 'Expert'::text THEN 4
+                ELSE
+                CASE
+                    WHEN ((c.skill_levels ->> skill_item.skill_item) ~ '^[0-9]+$'::text) THEN ((c.skill_levels ->> skill_item.skill_item))::integer
+                    ELSE NULL::integer
+                END
+            END
+            ELSE NULL::integer
+        END) AS avg_proficiency_level,
+    mode() WITHIN GROUP (ORDER BY
+        CASE
+            WHEN ((c.skill_levels IS NOT NULL) AND (c.skill_levels ? skill_item.skill_item)) THEN (c.skill_levels ->> skill_item.skill_item)
+            ELSE NULL::text
+        END) AS most_common_proficiency
+   FROM ((candidates c
+     CROSS JOIN LATERAL unnest(c.skills) skill_item(skill_item))
+     LEFT JOIN job_candidate jc ON ((c.id = jc.candidate_id)))
+  WHERE ((c.skills IS NOT NULL) AND (array_length(c.skills, 1) > 0))
+  GROUP BY c.org_id, skill_item.skill_item
+ HAVING (count(*) >= 2);"
+public,mv_time_to_hire,postgres,null,true,true," SELECT jc.org_id,
+    j.title AS job_title,
+    j.client_id,
+    c.name AS client_name,
+    date_trunc('month'::text, jc.created_at) AS hire_month,
+    EXTRACT(days FROM (jc.updated_at - jc.created_at)) AS days_to_hire,
+    EXTRACT(days FROM (jc.created_at - j.created_at)) AS days_from_job_creation,
+    jc.created_at AS application_date,
+    jc.updated_at AS final_stage_date,
+    jc.stage AS final_stage
+   FROM ((job_candidate jc
+     JOIN jobs j ON ((jc.job_id = j.id)))
+     LEFT JOIN clients c ON ((j.client_id = c.id)))
+  WHERE ((jc.stage = 'hired'::candidate_stage) AND (jc.status = 'active'::record_status));"
+public,mv_timezone_names,postgres,null,true,true," SELECT name
+   FROM pg_timezone_names
+  ORDER BY name;"
