@@ -120,7 +120,9 @@ Add these redirect URIs to your OAuth 2.0 credentials:
 
 **Security Implementation (Production-Ready):**
 ✅ **Authentication & Authorization:**
-- All OAuth routes require authenticated session via Bearer token
+- Two-step OAuth flow: POST /auth/google/init (Bearer token) → signed cookie → GET /auth/google/login (browser redirect)
+- Signed HTTP-only cookies (oauth_session) prevent forgery attacks using APP_JWT_SECRET
+- Single-use cookie lifecycle with 10-minute expiration and automatic cleanup
 - Organization context validated from trusted session data only
 - No fallback to request parameters (query/body) for user/org identification
 - Explicit org membership validation before all OAuth operations
@@ -136,6 +138,13 @@ Add these redirect URIs to your OAuth 2.0 credentials:
 - HMAC-signed state parameters with 5-minute expiry
 - No fallback to insecure default secrets (fails fast if APP_JWT_SECRET missing)
 - State verification prevents CSRF and replay attacks
+
+✅ **Cookie Security:**
+- Cryptographically signed cookies using cookie-parser with APP_JWT_SECRET
+- Signature verification via req.signedCookies prevents tampering
+- Single-use cookies cleared after OAuth state generation
+- Cookie cleanup on errors, expiration, and callback completion
+- httpOnly, secure (production), sameSite:lax, path:/auth/google
 
 **Testing Checklist:**
 - [x] Configure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET in Replit Secrets
