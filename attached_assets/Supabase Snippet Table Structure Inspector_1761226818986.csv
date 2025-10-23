@@ -1,0 +1,89 @@
+table_name,column_name,ordinal_position,data_type,is_nullable,column_default,character_maximum_length,numeric_precision,udt_name
+application_metadata,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+application_metadata,org_id,2,uuid,NO,null,null,null,uuid
+application_metadata,candidate_id,3,uuid,NO,null,null,null,uuid
+application_metadata,job_id,4,uuid,NO,null,null,null,uuid
+application_metadata,education_details,5,text,YES,null,null,null,text
+application_metadata,employment_details,6,text,YES,null,null,null,text
+application_metadata,application_source,7,character varying,YES,null,50,null,varchar
+application_metadata,submission_timestamp,8,timestamp without time zone,YES,CURRENT_TIMESTAMP,null,null,timestamp
+application_metadata,form_version,9,character varying,YES,'v1.0'::character varying,10,null,varchar
+application_metadata,created_at,10,timestamp without time zone,YES,CURRENT_TIMESTAMP,null,null,timestamp
+application_metadata,updated_at,11,timestamp without time zone,YES,CURRENT_TIMESTAMP,null,null,timestamp
+apply_events,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+apply_events,job_id,2,uuid,NO,null,null,null,uuid
+apply_events,applicant_email,3,text,NO,null,null,null,text
+apply_events,requester_ip,4,inet,YES,null,null,null,inet
+apply_events,created_at,5,timestamp with time zone,NO,now(),null,null,timestamptz
+beta_users,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+beta_users,email,2,character varying,NO,null,255,null,varchar
+beta_users,full_name,3,character varying,NO,null,255,null,varchar
+beta_users,company_name,4,character varying,YES,null,255,null,varchar
+beta_users,company_size,5,character varying,YES,null,50,null,varchar
+beta_users,current_ats,6,character varying,YES,null,255,null,varchar
+beta_users,pain_points,7,text,YES,null,null,null,text
+beta_users,features_interested,8,ARRAY,YES,null,null,null,_text
+beta_users,contact_preference,9,character varying,YES,'email'::character varying,50,null,varchar
+beta_users,referral_source,10,character varying,YES,null,255,null,varchar
+beta_users,additional_comments,11,text,YES,null,null,null,text
+beta_users,status,12,character varying,YES,'pending'::character varying,50,null,varchar
+beta_users,priority_score,13,integer,YES,0,null,32,int4
+beta_users,contacted_at,14,timestamp with time zone,YES,null,null,null,timestamptz
+beta_users,onboarded_at,15,timestamp with time zone,YES,null,null,null,timestamptz
+beta_users,created_at,16,timestamp with time zone,YES,now(),null,null,timestamptz
+beta_users,updated_at,17,timestamp with time zone,YES,now(),null,null,timestamptz
+daily_analytics_snapshots,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+daily_analytics_snapshots,org_id,2,uuid,NO,null,null,null,uuid
+daily_analytics_snapshots,snapshot_date,3,date,NO,null,null,null,date
+daily_analytics_snapshots,total_jobs,4,integer,YES,0,null,32,int4
+daily_analytics_snapshots,active_jobs,5,integer,YES,0,null,32,int4
+daily_analytics_snapshots,total_candidates,6,integer,YES,0,null,32,int4
+daily_analytics_snapshots,total_applications,7,integer,YES,0,null,32,int4
+daily_analytics_snapshots,applications_today,8,integer,YES,0,null,32,int4
+daily_analytics_snapshots,hires_today,9,integer,YES,0,null,32,int4
+daily_analytics_snapshots,metrics,10,jsonb,YES,'{}'::jsonb,null,null,jsonb
+daily_analytics_snapshots,created_at,11,timestamp with time zone,YES,now(),null,null,timestamptz
+notes,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+notes,content,2,text,NO,null,null,null,text
+notes,created_at,3,timestamp without time zone,YES,now(),null,null,timestamp
+notes,created_by,4,uuid,YES,null,null,null,uuid
+notes,job_id,5,uuid,YES,null,null,null,uuid
+notes,candidate_id,6,uuid,YES,null,null,null,uuid
+notes,org_id,7,uuid,YES,null,null,null,uuid
+notes,is_demo,8,boolean,YES,false,null,null,bool
+report_queue,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+report_queue,org_id,2,uuid,NO,null,null,null,uuid
+report_queue,report_type,3,character varying,NO,null,50,null,varchar
+report_queue,format,4,character varying,NO,null,10,null,varchar
+report_queue,period,5,character varying,NO,null,20,null,varchar
+report_queue,status,6,character varying,YES,'pending'::character varying,20,null,varchar
+report_queue,file_url,7,text,YES,null,null,null,text
+report_queue,error_message,8,text,YES,null,null,null,text
+report_queue,requested_by,9,uuid,YES,null,null,null,uuid
+report_queue,created_at,10,timestamp with time zone,YES,now(),null,null,timestamptz
+report_queue,completed_at,11,timestamp with time zone,YES,null,null,null,timestamptz
+report_schedules,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+report_schedules,org_id,2,uuid,NO,null,null,null,uuid
+report_schedules,report_type,3,character varying,NO,null,50,null,varchar
+report_schedules,frequency,4,character varying,NO,null,20,null,varchar
+report_schedules,format,5,character varying,NO,null,10,null,varchar
+report_schedules,recipients,6,ARRAY,NO,null,null,null,_text
+report_schedules,filter_config,7,jsonb,YES,'{}'::jsonb,null,null,jsonb
+report_schedules,enabled,8,boolean,YES,true,null,null,bool
+report_schedules,last_sent,9,timestamp with time zone,YES,null,null,null,timestamptz
+report_schedules,next_scheduled,10,timestamp with time zone,YES,null,null,null,timestamptz
+report_schedules,created_at,11,timestamp with time zone,YES,now(),null,null,timestamptz
+report_schedules,updated_at,12,timestamp with time zone,YES,now(),null,null,timestamptz
+schema_migrations,version,1,character varying,NO,null,255,null,varchar
+schema_migrations,applied_at,2,timestamp with time zone,YES,now(),null,null,timestamptz
+timezone_cache,name,1,text,NO,null,null,null,text
+timezone_cache,created_at,2,timestamp with time zone,YES,now(),null,null,timestamptz
+user_settings,id,1,uuid,NO,gen_random_uuid(),null,null,uuid
+user_settings,user_id,2,uuid,NO,null,null,null,uuid
+user_settings,email_notifications,3,boolean,YES,true,null,null,bool
+user_settings,browser_notifications,4,boolean,YES,true,null,null,bool
+user_settings,weekly_reports,5,boolean,YES,false,null,null,bool
+user_settings,team_invites,6,boolean,YES,true,null,null,bool
+user_settings,public_profile,7,boolean,YES,false,null,null,bool
+user_settings,created_at,8,timestamp with time zone,YES,now(),null,null,timestamptz
+user_settings,updated_at,9,timestamp with time zone,YES,now(),null,null,timestamptz

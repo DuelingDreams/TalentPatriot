@@ -1,0 +1,11 @@
+schemaname,tablename,rls_status
+public,application_metadata,RLS Enabled: YES
+public,apply_events,RLS Enabled: YES
+public,beta_users,RLS Enabled: YES
+public,daily_analytics_snapshots,RLS Enabled: YES
+public,notes,RLS Enabled: YES
+public,report_queue,RLS Enabled: YES
+public,report_schedules,RLS Enabled: YES
+public,schema_migrations,RLS Enabled: YES
+public,timezone_cache,RLS Enabled: YES
+public,user_settings,RLS Enabled: YES
