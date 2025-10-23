@@ -89,21 +89,23 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - `APP_JWT_SECRET` - Secret for signing OAuth state parameters (✅ CONFIGURED)
 
 **Dynamic Redirect URI Implementation:**
-✅ **Production Domain** - The OAuth flow automatically detects the redirect URI from the request host header. The app is deployed exclusively on `https://talentpatriot.com`, so Google OAuth redirects always return to the same domain, preventing cross-origin session issues.
+✅ **Multi-Tenant Subdomain Support** - The OAuth flow automatically detects the redirect URI from the request host header and supports both the root domain and organization subdomains (e.g., `acme.talentpatriot.com`). This enables organizations to connect Google from their branded careers pages.
 
-**Security Allowlist:**
-Only the production domain is permitted for OAuth redirects (hardcoded in `server/integrations/google/oauth.ts`):
-- `talentpatriot.com`
-- `www.talentpatriot.com`
+**Security Validation:**
+The OAuth redirect URI validator accepts (hardcoded in `server/integrations/google/oauth.ts`):
+- `talentpatriot.com` (root domain)
+- `www.talentpatriot.com` (www subdomain)
+- `*.talentpatriot.com` (organization subdomains, alphanumeric + hyphens only)
 
 **Google Cloud Console Setup:**
-Add these redirect URIs to your OAuth 2.0 credentials:
+Add a wildcard redirect URI to your OAuth 2.0 credentials to support all subdomains:
 - `https://talentpatriot.com/auth/google/callback`
 - `https://www.talentpatriot.com/auth/google/callback`
+- `https://*.talentpatriot.com/auth/google/callback` (wildcard for all organization subdomains)
 
-**Important:** If you add new domains, you must:
-1. Add the domain to `ALLOWED_REDIRECT_HOSTS` in `server/integrations/google/oauth.ts`
-2. Add the redirect URI to Google Cloud Console OAuth credentials
+**Note:** Google Cloud Console supports wildcard redirect URIs for production apps with verified domains. Ensure your domain is verified in Google Search Console first.
+
+**Important:** The security validator uses regex to ensure subdomains are valid (alphanumeric and hyphens only) and prevents malicious redirect attempts to non-talentpatriot.com domains.
 
 **OAuth Scopes Used:**
 - `https://www.googleapis.com/auth/calendar` - Create and manage calendar events

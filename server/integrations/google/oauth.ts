@@ -14,19 +14,16 @@ const SCOPES = [
 ];
 
 /**
- * Allowed domains for OAuth redirect URIs
- * Production domain only - users access the app exclusively on talentpatriot.com
+ * Production domain for OAuth redirects
+ * Supports both root domain and organization subdomains (e.g., acme.talentpatriot.com)
  */
-const ALLOWED_REDIRECT_HOSTS = [
-  'talentpatriot.com',
-  'www.talentpatriot.com',
-];
+const PRODUCTION_DOMAIN = 'talentpatriot.com';
 
 /**
- * Compute redirect URI from request host with security allowlist
+ * Compute redirect URI from request host with security validation
  * @param host - The host header from the request
  * @returns Full redirect URI (e.g., https://talentpatriot.com/auth/google/callback)
- * @throws Error if host is not in allowlist
+ * @throws Error if host is not a valid talentpatriot.com domain
  */
 export function getRedirectUri(host: string | undefined): string {
   if (!host) {
@@ -36,9 +33,20 @@ export function getRedirectUri(host: string | undefined): string {
   // Remove port if present (e.g., localhost:3000 -> localhost)
   const cleanHost = host.split(':')[0];
 
-  // Security check: only allow known domains
-  if (!ALLOWED_REDIRECT_HOSTS.includes(cleanHost)) {
-    throw new Error(`Host "${cleanHost}" is not allowed for OAuth redirect. Allowed hosts: ${ALLOWED_REDIRECT_HOSTS.join(', ')}`);
+  // Security check: validate host is talentpatriot.com or a subdomain
+  const isRootDomain = cleanHost === PRODUCTION_DOMAIN;
+  const isWwwDomain = cleanHost === `www.${PRODUCTION_DOMAIN}`;
+  const isValidSubdomain = cleanHost.endsWith(`.${PRODUCTION_DOMAIN}`) && 
+    // Ensure it's not just ".talentpatriot.com" and has a valid subdomain
+    cleanHost.length > PRODUCTION_DOMAIN.length + 1 &&
+    // Validate subdomain format (alphanumeric and hyphens only)
+    /^[a-z0-9\-]+\.talentpatriot\.com$/.test(cleanHost);
+
+  if (!isRootDomain && !isWwwDomain && !isValidSubdomain) {
+    throw new Error(
+      `Host "${cleanHost}" is not a valid ${PRODUCTION_DOMAIN} domain. ` +
+      `Must be ${PRODUCTION_DOMAIN}, www.${PRODUCTION_DOMAIN}, or a subdomain like org.${PRODUCTION_DOMAIN}`
+    );
   }
 
   // Always use HTTPS for production domains
