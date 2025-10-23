@@ -36,7 +36,7 @@ interface MobilePipelineProps {
 export function MobilePipeline({ columns, candidates, jobId }: MobilePipelineProps) {
   const [selectedCandidate, setSelectedCandidate] = useState<JobCandidate | null>(null)
   const [selectedColumn, setSelectedColumn] = useState<string>('')
-  const moveApplication = useMoveApplication()
+  const moveApplication = useMoveApplication(jobId)
 
   const handleMoveCandidate = async (candidateId: string, newColumnId: string) => {
     try {
@@ -175,11 +175,17 @@ export function MobilePipeline({ columns, candidates, jobId }: MobilePipelinePro
                           {candidate.candidate.resumeUrl && (
                             <div>
                               <h3 className="font-medium text-gray-900 dark:text-white mb-3">Resume</h3>
-                              <Button variant="outline" size="sm" className="w-full" asChild>
-                                <a href={candidate.candidate.resumeUrl} target="_blank" rel="noopener noreferrer">
-                                  <FileText className="h-4 w-4 mr-2" />
-                                  View Resume
-                                </a>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full"
+                                onClick={async () => {
+                                  const { openResumeInNewTab } = await import('@/lib/resumeUtils')
+                                  await openResumeInNewTab(candidate.candidate.resumeUrl!)
+                                }}
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                View Resume
                               </Button>
                             </div>
                           )}

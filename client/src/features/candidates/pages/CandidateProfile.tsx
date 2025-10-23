@@ -158,7 +158,13 @@ export default function CandidateProfile() {
             
             <div className="flex flex-wrap gap-2">
               {candidate?.resume_url && (
-                <Button variant="outline" onClick={() => window.open(`http://localhost:5000${candidate.resume_url}`, '_blank')}>
+                <Button 
+                  variant="outline" 
+                  onClick={async () => {
+                    const { openResumeInNewTab } = await import('@/lib/resumeUtils')
+                    await openResumeInNewTab(candidate.resume_url!)
+                  }}
+                >
                   <Download className="w-4 h-4 mr-2" />
                   Download Resume
                 </Button>
