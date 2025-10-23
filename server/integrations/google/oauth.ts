@@ -15,12 +15,11 @@ const SCOPES = [
 
 /**
  * Allowed domains for OAuth redirect URIs
- * Add both production and development domains
+ * Production domain only - users access the app exclusively on talentpatriot.com
  */
 const ALLOWED_REDIRECT_HOSTS = [
   'talentpatriot.com',
   'www.talentpatriot.com',
-  'talentpatriot.replit.app',
 ];
 
 /**

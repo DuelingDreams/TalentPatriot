@@ -89,19 +89,21 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - `APP_JWT_SECRET` - Secret for signing OAuth state parameters (✅ CONFIGURED)
 
 **Dynamic Redirect URI Implementation:**
-✅ **Multi-Domain Support** - The OAuth flow now automatically detects the redirect URI from the request host header, eliminating the need for a static `GOOGLE_REDIRECT_URI` environment variable. This allows the app to work seamlessly on both:
-- `https://talentpatriot.com` (Production)
-- `https://talentpatriot.replit.app` (Replit hosting)
+✅ **Production Domain** - The OAuth flow automatically detects the redirect URI from the request host header. The app is deployed exclusively on `https://talentpatriot.com`, so Google OAuth redirects always return to the same domain, preventing cross-origin session issues.
 
 **Security Allowlist:**
-Only these domains are permitted for OAuth redirects (hardcoded in `server/integrations/google/oauth.ts`):
+Only the production domain is permitted for OAuth redirects (hardcoded in `server/integrations/google/oauth.ts`):
 - `talentpatriot.com`
 - `www.talentpatriot.com`
-- `talentpatriot.replit.app`
+
+**Google Cloud Console Setup:**
+Add these redirect URIs to your OAuth 2.0 credentials:
+- `https://talentpatriot.com/auth/google/callback`
+- `https://www.talentpatriot.com/auth/google/callback`
 
 **Important:** If you add new domains, you must:
 1. Add the domain to `ALLOWED_REDIRECT_HOSTS` in `server/integrations/google/oauth.ts`
-2. Add the redirect URI to Google Cloud Console OAuth credentials (e.g., `https://newdomain.com/auth/google/callback`)
+2. Add the redirect URI to Google Cloud Console OAuth credentials
 
 **OAuth Scopes Used:**
 - `https://www.googleapis.com/auth/calendar` - Create and manage calendar events
@@ -137,10 +139,9 @@ Only these domains are permitted for OAuth redirects (hardcoded in `server/integ
 
 **Testing Checklist:**
 - [x] Configure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET in Replit Secrets
-- [x] Add all redirect URIs to Google Cloud Console (talentpatriot.com, talentpatriot.replit.app)
+- [x] Add redirect URIs to Google Cloud Console (talentpatriot.com, www.talentpatriot.com)
 - [x] Implement dynamic redirect URI detection from request host
 - [ ] Test OAuth flow on talentpatriot.com: /settings/integrations → Connect Google → Callback success
-- [ ] Test OAuth flow on talentpatriot.replit.app: /settings/integrations → Connect Google → Callback success
 - [ ] Verify no cross-domain session issues (user stays logged in after OAuth callback)
 - [ ] Test Google Meet creation from Messages page
 - [ ] Test availability checking with FreeBusy API
