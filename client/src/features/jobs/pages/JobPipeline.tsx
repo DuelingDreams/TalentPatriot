@@ -27,6 +27,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX, Eye, EyeOff } from 'lucide-react'
 import { CandidateNotesDialog } from '@/components/dialogs/CandidateNotesDialog'
 import { Link } from 'wouter'
+import { openResumeInNewTab } from '@/lib/resumeUtils'
 
 
 // NEW APPLICATION CARD for the new pipeline system
@@ -113,11 +114,12 @@ function EnhancedApplicationCard({
   }
 
   // Quick Actions handlers focused on Resume and Notes as requested
-  const handleViewResume = (e: React.MouseEvent) => {
+  const handleViewResume = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (safeResumeUrl && safeResumeUrl.trim() !== '') {
       try {
-        window.open(safeResumeUrl, '_blank')
+        // Use utility function that handles both storage paths and legacy URLs
+        await openResumeInNewTab(safeResumeUrl)
         toast({
           title: "Opening Resume",
           description: `Opening resume for ${safeCandidateName}`,

@@ -106,11 +106,12 @@ export default function JobApplicationForm() {
       // Create FormData for multipart upload
       const formData = new FormData();
       formData.append('resume', file);
-      formData.append('candidateId', 'temp-job-application'); // Temporary ID for job applications
       
-      // Include organization ID from job posting for secure storage
-      if (job?.orgId) {
-        formData.append('orgId', job.orgId);
+      // Include job ID for validation and org lookup
+      if (job?.id) {
+        formData.append('jobId', job.id);
+      } else {
+        throw new Error('Job ID not available');
       }
 
       // Start progress simulation
@@ -121,8 +122,8 @@ export default function JobApplicationForm() {
         }));
       }, 200);
 
-      // Upload to backend API
-      const response = await fetch('/api/upload/resume', {
+      // Upload to PUBLIC backend API (no authentication required)
+      const response = await fetch('/api/upload/public/resume', {
         method: 'POST',
         body: formData,
       });
@@ -140,11 +141,11 @@ export default function JobApplicationForm() {
         ...prev,
         isUploading: false,
         progress: 100,
-        uploadedUrl: result.fileUrl,
+        uploadedUrl: result.storagePath, // Now stores permanent path instead of expiring URL
         uploadError: null
       }));
 
-      return result.fileUrl;
+      return result.storagePath; // Return storage path to be saved in database
 
     } catch (error) {
       console.error('Upload error:', error);

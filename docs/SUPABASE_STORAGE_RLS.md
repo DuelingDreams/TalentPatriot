@@ -1,15 +1,27 @@
-# Supabase Storage RLS Configuration for Resumes
+# Supabase Storage Configuration for Resumes
 
-## Critical Security Fix
+## ⚠️ CRITICAL: Fix Bucket Privacy Settings IMMEDIATELY
 
-**BEFORE DEPLOYMENT**: The `resumes` storage bucket must have proper Row Level Security (RLS) policies configured to prevent unauthorized access to candidate PII.
+**ACTION REQUIRED**: Your Supabase Storage buckets are currently set to PUBLIC. This must be fixed before deployment.
 
-## Required Configuration
+### Step 1: Make ALL Buckets Private
 
-### 1. Make Bucket Private
+Navigate to: **Supabase Dashboard → Storage**
 
-In your Supabase Dashboard → Storage → resumes bucket:
-- Ensure `Public bucket` is set to **OFF** (unchecked)
+For EACH bucket (resumes, email-brand-assets, email-templates, email-attachments):
+1. Click on the bucket name
+2. Click **Settings** (gear icon)
+3. **UNCHECK** "Public bucket"
+4. Click **Save**
+
+**Visual Confirmation**: The badge next to each bucket name should change from "Public" to "Private"
+
+### Step 2: Verify Privacy Settings
+
+After changing settings, verify:
+- All buckets show "Private" badge (not "Public")
+- Direct URL access to files returns 404/403 errors
+- Only authenticated requests with valid service role keys can access files
 
 ### 2. Configure RLS Policies
 
@@ -64,44 +76,98 @@ Resumes are stored with the following path structure:
 ```
 resumes/
   └── {org_id}/
-      ├── resume_{unique_id}.pdf
-      ├── resume_{unique_id}.docx
-      └── ...
+      └── {job_id}/
+          ├── resume_{unique_id}.pdf
+          ├── resume_{unique_id}.docx
+          └── ...
 ```
 
 ## API Endpoints
 
-### Upload Resume
+### Public Resume Upload (For Job Applications)
 ```
-POST /api/upload/resume
+POST /api/upload/public/resume
 Content-Type: multipart/form-data
 
 Body:
+- resume: File (PDF, DOC, DOCX, max 10MB)
+- jobId: string (required - validates job exists and gets org_id)
+
+Response:
+{
+  "success": true,
+  "storagePath": "{org_id}/{job_id}/resume_{unique_id}.pdf",
+  "originalName": "resume.pdf",
+  "size": 123456,
+  "mimetype": "application/pdf",
+  "jobId": "...",
+  "orgId": "...",
+  "message": "Resume uploaded successfully"
+}
+
+Features:
+- NO AUTHENTICATION REQUIRED (public job applicants)
+- Rate limited: 10 uploads per IP per 15 minutes
+- Validates job exists and is published
+- Automatically derives org_id from job
+- Returns STORAGE PATH (not expiring URL)
+- Prevents cross-org data injection
+```
+
+### Authenticated Resume Upload (For Internal Use)
+```
+POST /api/upload/resume
+Content-Type: multipart/form-data
+Authorization: Bearer {supabase_jwt_token}
+x-org-id: {organization_id}
+
+Body:
 - resume: File (PDF, DOC, DOCX)
-- orgId: string (required)
 - candidateId: string (optional)
+
+Response:
+{
+  "success": true,
+  "fileUrl": "https://...signed-url...",  // 24-hour expiry
+  "filename": "{org_id}/resume_{unique_id}.pdf"
+}
 ```
 
 ### Download Resume (Authenticated)
 ```
-GET /api/upload/resume/{org_id}/resume_{unique_id}.pdf
+GET /api/upload/resume/{org_id}/{job_id}/resume_{unique_id}.pdf
 Authorization: Bearer {token}
+x-org-id: {organization_id}
 ```
 
-### Delete Resume
+### Delete Resume (Authenticated)
 ```
-DELETE /api/upload/resume/{org_id}/resume_{unique_id}.pdf
+DELETE /api/upload/resume/{org_id}/{job_id}/resume_{unique_id}.pdf
+Authorization: Bearer {token}
+x-org-id: {organization_id}
 ```
 
-## Migration from Local Storage
+## Why Resumes Bucket Was Empty
 
-If you have existing resumes in local `uploads/` directory:
+**Root Cause**: The authenticated upload endpoint (`/api/upload/resume`) requires a valid Supabase JWT token. Public job applicants don't have authentication tokens, so ALL public resume uploads were failing with 401 Unauthorized errors.
 
-1. **DO NOT** deploy until migration is complete
-2. Use the Supabase Storage UI to manually upload existing files
-3. Update candidate records with new Supabase Storage URLs
-4. Verify all resumes are accessible through new endpoint
-5. Only then deploy with the updated code
+**Fix**: Created separate `/api/upload/public/resume` endpoint that:
+- Doesn't require authentication
+- Validates job ID and organization
+- Stores permanent paths (not 24-hour expiring URLs)
+- Has rate limiting to prevent abuse
+
+## Important: Storage Paths vs. URLs
+
+**Old (Broken) Pattern:**
+- Stored 24-hour expiring signed URLs in database
+- URLs became invalid after 24 hours
+- Required re-generating URLs constantly
+
+**New (Fixed) Pattern:**
+- Store permanent STORAGE PATH in database: `{org_id}/{job_id}/resume_{unique_id}.pdf`
+- Generate signed URLs ON-DEMAND when viewing
+- URLs never expire in database (only temporary viewing URLs expire)
 
 ## Testing Checklist
 

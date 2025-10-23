@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express'
 import multer from 'multer'
 import { nanoid } from 'nanoid'
 import { createClient } from '@supabase/supabase-js'
+import rateLimit from 'express-rate-limit'
 
 // Extend Express Request to include authentication context
 declare global {
@@ -16,6 +17,17 @@ declare global {
 }
 
 const router = Router()
+
+// Rate limiter for public resume uploads (prevents abuse)
+const publicUploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 uploads per 15 minutes
+  message: {
+    error: 'Too many file uploads from this IP, please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 // Configure multer for in-memory file uploads (will upload to Supabase Storage)
 const upload = multer({
@@ -132,7 +144,99 @@ const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-// Resume upload endpoint - REQUIRES AUTHENTICATION
+// PUBLIC resume upload endpoint for job applications (NO AUTHENTICATION REQUIRED)
+// This is used by public job application forms on careers pages
+router.post('/public/resume', publicUploadLimiter, upload.single('resume'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'No file uploaded',
+        message: 'Please select a resume file to upload'
+      })
+    }
+
+    const { jobId } = req.body
+    
+    // Validate jobId is provided
+    if (!jobId) {
+      return res.status(400).json({
+        error: 'Invalid request',
+        message: 'Job ID is required'
+      })
+    }
+
+    // Fetch job to get organization ID (validates job exists and gets org_id)
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .select('id, org_id, title, status')
+      .eq('id', jobId)
+      .single()
+
+    if (jobError || !job) {
+      console.error('Job lookup error:', jobError)
+      return res.status(404).json({
+        error: 'Job not found',
+        message: 'The specified job posting does not exist'
+      })
+    }
+
+    // Verify job is published (only allow uploads for active job postings)
+    if (job.status !== 'published') {
+      return res.status(403).json({
+        error: 'Job not available',
+        message: 'This job posting is not currently accepting applications'
+      })
+    }
+
+    const orgId = job.org_id
+
+    // Generate unique filename with original extension
+    const uniqueId = nanoid()
+    const ext = req.file.originalname.split('.').pop()
+    // Store as: {orgId}/{jobId}/resume_{uniqueId}.{ext}
+    const storagePath = `${orgId}/${jobId}/resume_${uniqueId}.${ext}`
+
+    // Upload to Supabase Storage (PRIVATE bucket)
+    const { data, error } = await supabase.storage
+      .from('resumes')
+      .upload(storagePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) {
+      console.error('Supabase storage upload error:', error)
+      return res.status(500).json({
+        error: 'Upload failed',
+        message: 'Failed to upload resume. Please try again.'
+      })
+    }
+
+    // Return STORAGE PATH (not signed URL)
+    // Frontend will store this path in database
+    // Signed URLs will be generated on-demand when viewing
+    res.json({
+      success: true,
+      storagePath: storagePath,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      jobId: jobId,
+      orgId: orgId,
+      message: 'Resume uploaded successfully'
+    })
+
+  } catch (error) {
+    console.error('Public resume upload error:', error)
+    res.status(500).json({ 
+      error: 'Upload failed',
+      message: error instanceof Error ? error.message : 'Internal server error'
+    })
+  }
+})
+
+// Resume upload endpoint - REQUIRES AUTHENTICATION (for internal use)
 router.post('/resume', requireAuth, upload.single('resume'), async (req, res) => {
   try {
     if (!req.file) {
@@ -252,6 +356,56 @@ router.delete('/resume/:filename(*)', requireAuth, async (req, res) => {
     console.error('Resume deletion error:', error)
     res.status(500).json({ 
       error: 'Deletion failed',
+      message: error instanceof Error ? error.message : 'Internal server error'
+    })
+  }
+})
+
+// Generate signed URL for resume viewing (PUBLIC - for viewing uploaded resumes)
+// Takes a storage path and returns a 24-hour signed URL
+router.post('/resume/signed-url', async (req, res) => {
+  try {
+    const { storagePath } = req.body
+
+    if (!storagePath) {
+      return res.status(400).json({
+        error: 'Invalid request',
+        message: 'Storage path is required'
+      })
+    }
+
+    // Validate storagePath format: {orgId}/{jobId}/resume_{id}.{ext} or {orgId}/resume_{id}.{ext}
+    const pathParts = storagePath.split('/')
+    if (pathParts.length < 2) {
+      return res.status(400).json({
+        error: 'Invalid storage path',
+        message: 'Storage path format is invalid'
+      })
+    }
+
+    // Generate signed URL (24 hours)
+    const { data, error } = await supabase.storage
+      .from('resumes')
+      .createSignedUrl(storagePath, 86400) // 24 hour expiry
+
+    if (error) {
+      console.error('Failed to create signed URL:', error)
+      return res.status(500).json({
+        error: 'Failed to generate URL',
+        message: 'Could not generate signed URL for resume'
+      })
+    }
+
+    res.json({
+      success: true,
+      signedUrl: data.signedUrl,
+      expiresIn: 86400
+    })
+
+  } catch (error) {
+    console.error('Signed URL generation error:', error)
+    res.status(500).json({
+      error: 'Failed to generate URL',
       message: error instanceof Error ? error.message : 'Internal server error'
     })
   }
