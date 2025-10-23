@@ -15,43 +15,52 @@ const SCOPES = [
 
 /**
  * Production domain for OAuth redirects
- * Supports both root domain and organization subdomains (e.g., acme.talentpatriot.com)
+ * Uses centralized callback pattern - Google OAuth does NOT support wildcard redirect URIs
  */
 const PRODUCTION_DOMAIN = 'talentpatriot.com';
 
 /**
- * Compute redirect URI from request host with security validation
- * @param host - The host header from the request
- * @returns Full redirect URI (e.g., https://talentpatriot.com/auth/google/callback)
+ * Centralized OAuth redirect URI
+ * Google Cloud Console Configuration: https://talentpatriot.com/auth/google/callback
+ * 
+ * NOTE: Google does NOT support wildcard redirect URIs (*.talentpatriot.com)
+ * We use a single callback URL and handle subdomain redirects server-side
+ */
+const OAUTH_REDIRECT_URI = `https://${PRODUCTION_DOMAIN}/auth/google/callback`;
+
+/**
+ * Get the centralized OAuth redirect URI
+ * Always returns the same URL regardless of which subdomain initiated the flow
+ * 
+ * @param host - The host header from the request (used for validation only)
+ * @returns Centralized redirect URI (https://talentpatriot.com/auth/google/callback)
  * @throws Error if host is not a valid talentpatriot.com domain
  */
 export function getRedirectUri(host: string | undefined): string {
   if (!host) {
-    throw new Error('Host header is required to compute redirect URI');
+    throw new Error('Host header is required for OAuth security validation');
   }
 
   // Remove port if present (e.g., localhost:3000 -> localhost)
   const cleanHost = host.split(':')[0];
 
-  // Security check: validate host is talentpatriot.com or a subdomain
+  // Security check: validate host is talentpatriot.com or a valid subdomain
   const isRootDomain = cleanHost === PRODUCTION_DOMAIN;
   const isWwwDomain = cleanHost === `www.${PRODUCTION_DOMAIN}`;
   const isValidSubdomain = cleanHost.endsWith(`.${PRODUCTION_DOMAIN}`) && 
-    // Ensure it's not just ".talentpatriot.com" and has a valid subdomain
     cleanHost.length > PRODUCTION_DOMAIN.length + 1 &&
-    // Validate subdomain format (alphanumeric and hyphens only)
     /^[a-z0-9\-]+\.talentpatriot\.com$/.test(cleanHost);
 
   if (!isRootDomain && !isWwwDomain && !isValidSubdomain) {
     throw new Error(
       `Host "${cleanHost}" is not a valid ${PRODUCTION_DOMAIN} domain. ` +
-      `Must be ${PRODUCTION_DOMAIN}, www.${PRODUCTION_DOMAIN}, or a subdomain like org.${PRODUCTION_DOMAIN}`
+      `OAuth requests must originate from ${PRODUCTION_DOMAIN} or organization subdomains.`
     );
   }
 
-  // Always use HTTPS for production domains
-  const protocol = 'https';
-  return `${protocol}://${cleanHost}/auth/google/callback`;
+  // Always return the centralized callback URI
+  // The original subdomain is preserved in the OAuth state parameter
+  return OAUTH_REDIRECT_URI;
 }
 
 /**
@@ -113,13 +122,19 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string): 
 
 /**
  * Generate a secure state parameter for OAuth flow
+ * Includes original host for post-OAuth redirect
  */
-export function generateState(userId: string, orgId: string): string {
+export function generateState(userId: string, orgId: string, originalHost?: string): string {
   if (!process.env.APP_JWT_SECRET) {
     throw new Error('APP_JWT_SECRET environment variable is required for secure OAuth state signing');
   }
   
-  const data = JSON.stringify({ userId, orgId, timestamp: Date.now() });
+  const data = JSON.stringify({ 
+    userId, 
+    orgId, 
+    originalHost,
+    timestamp: Date.now() 
+  });
   const signature = crypto
     .createHmac('sha256', process.env.APP_JWT_SECRET)
     .update(data)
@@ -131,7 +146,7 @@ export function generateState(userId: string, orgId: string): string {
 /**
  * Verify and parse state parameter
  */
-export function verifyState(state: string): { userId: string; orgId: string } | null {
+export function verifyState(state: string): { userId: string; orgId: string; originalHost?: string } | null {
   if (!process.env.APP_JWT_SECRET) {
     console.error('APP_JWT_SECRET not configured');
     return null;
@@ -160,7 +175,11 @@ export function verifyState(state: string): { userId: string; orgId: string } | 
       return null;
     }
     
-    return { userId: parsed.userId, orgId: parsed.orgId };
+    return { 
+      userId: parsed.userId, 
+      orgId: parsed.orgId,
+      originalHost: parsed.originalHost 
+    };
   } catch (error) {
     console.error('Error verifying state:', error);
     return null;

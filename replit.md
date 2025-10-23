@@ -89,23 +89,32 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - `APP_JWT_SECRET` - Secret for signing OAuth state parameters (✅ CONFIGURED)
 
 **Dynamic Redirect URI Implementation:**
-✅ **Multi-Tenant Subdomain Support** - The OAuth flow automatically detects the redirect URI from the request host header and supports both the root domain and organization subdomains (e.g., `acme.talentpatriot.com`). This enables organizations to connect Google from their branded careers pages.
+✅ **Centralized Callback Pattern** - The OAuth flow uses a single centralized redirect URI (`https://talentpatriot.com/auth/google/callback`) and handles subdomain redirects server-side. Google OAuth does NOT support wildcard redirect URIs (e.g., `*.talentpatriot.com`).
+
+**How Multi-Tenant OAuth Works:**
+1. User initiates OAuth from any subdomain (e.g., `acme.talentpatriot.com`)
+2. Original subdomain is preserved in the OAuth `state` parameter (cryptographically signed)
+3. Google redirects to centralized callback: `https://talentpatriot.com/auth/google/callback`
+4. After authentication, user is redirected back to their original subdomain automatically
 
 **Security Validation:**
-The OAuth redirect URI validator accepts (hardcoded in `server/integrations/google/oauth.ts`):
+The OAuth redirect URI validator accepts requests from (validated in `server/integrations/google/oauth.ts`):
 - `talentpatriot.com` (root domain)
 - `www.talentpatriot.com` (www subdomain)
 - `*.talentpatriot.com` (organization subdomains, alphanumeric + hyphens only)
 
 **Google Cloud Console Setup:**
-Add a wildcard redirect URI to your OAuth 2.0 credentials to support all subdomains:
-- `https://talentpatriot.com/auth/google/callback`
-- `https://www.talentpatriot.com/auth/google/callback`
-- `https://*.talentpatriot.com/auth/google/callback` (wildcard for all organization subdomains)
+Add ONLY the centralized redirect URI to your OAuth 2.0 credentials:
+```
+https://talentpatriot.com/auth/google/callback
+```
 
-**Note:** Google Cloud Console supports wildcard redirect URIs for production apps with verified domains. Ensure your domain is verified in Google Search Console first.
+⚠️ **IMPORTANT:** Google does NOT support wildcard redirect URIs. Do NOT add `https://*.talentpatriot.com/auth/google/callback` - it will be rejected.
 
-**Important:** The security validator uses regex to ensure subdomains are valid (alphanumeric and hyphens only) and prevents malicious redirect attempts to non-talentpatriot.com domains.
+**Security Features:**
+- HMAC-signed state parameters with 5-minute expiry prevent tampering
+- Original subdomain validated before post-OAuth redirect
+- Only alphanumeric + hyphen subdomains allowed (prevents injection attacks)
 
 **OAuth Scopes Used:**
 - `https://www.googleapis.com/auth/calendar` - Create and manage calendar events
