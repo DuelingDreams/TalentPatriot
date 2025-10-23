@@ -1,0 +1,6 @@
+status,source,total_applications,hire_rate
+Materialized View Data,Company Website,4,25
+Materialized View Data,Indeed,3,33.3333333333333
+Materialized View Data,LinkedIn,3,33.3333333333333
+Materialized View Data,Referral,2,0
+Materialized View Data,Job Board,1,0
