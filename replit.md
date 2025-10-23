@@ -57,6 +57,12 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
   - Feature flag controlled rollout (`ENABLE_GOOGLE_INTEGRATION`)
 - **Reporting & Analytics**: Dashboard with key statistics and performance overview.
 - **Resume Management**: Upload, preview, and organization-based storage of resumes.
+  - ✅ **SECURITY FIX (Oct 23, 2025)**: Migrated from public static files to private Supabase Storage
+  - All resume endpoints (POST, GET, DELETE) now require Supabase JWT authentication
+  - Organization membership validated from database (prevents cross-org access)
+  - Uses `req.authContext` to protect from multer req.body overwrite attacks
+  - Returns signed URLs (24-hour expiry) instead of public URLs
+  - Private storage bucket with RLS policies enforcing organization isolation
 - **Dynamic Dashboard Quick Actions**: Live data computation for key metrics.
 - **Email Notifications**: Automated notifications via SendGrid.
 - **Enhanced Search**: Advanced filtering for candidates and jobs.
