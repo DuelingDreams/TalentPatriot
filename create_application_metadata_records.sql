@@ -14,7 +14,7 @@ INSERT INTO application_metadata (
   updated_at
 )
 SELECT 
-  jc.org_id,
+  j.org_id,  -- Get org_id from jobs table instead of job_candidate
   jc.candidate_id,
   jc.job_id,
   COALESCE(c.source, 'direct') as application_source,  -- Use candidate source or default to 'direct'
@@ -23,6 +23,7 @@ SELECT
   NOW()
 FROM job_candidate jc
 INNER JOIN candidates c ON jc.candidate_id = c.id
+INNER JOIN jobs j ON jc.job_id = j.id  -- Join jobs table to get org_id
 WHERE NOT EXISTS (
   -- Don't create duplicates if record already exists
   SELECT 1 FROM application_metadata am
