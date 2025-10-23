@@ -20,15 +20,7 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
 
-      // Verify user is a member of this organization
-      const userOrg = await storage.auth.getUserOrganization(userId, orgId);
-      if (!userOrg) {
-        return res.status(403).json({ 
-          error: 'You are not a member of this organization',
-          code: 'NOT_ORG_MEMBER'
-        });
-      }
-
+      // User already verified via requireOrgContext middleware
       // Generate secure state parameter
       const state = generateState(userId, orgId);
 
@@ -93,15 +85,7 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
 
-      // Verify user is a member of this organization
-      const userOrg = await storage.auth.getUserOrganization(userId, orgId);
-      if (!userOrg) {
-        return res.status(403).json({ 
-          error: 'You are not a member of this organization',
-          code: 'NOT_ORG_MEMBER'
-        });
-      }
-
+      // User already verified via requireOrgContext middleware
       // Get connected account (must belong to this user in this org)
       const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
       

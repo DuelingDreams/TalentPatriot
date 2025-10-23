@@ -46,7 +46,7 @@ export default function IntegrationsSettings() {
 
   // Disconnect Google mutation
   const disconnectMutation = useMutation({
-    mutationFn: () => apiRequest('/auth/google/disconnect', { method: 'POST' }),
+    mutationFn: () => apiRequest('/auth/google/disconnect', { method: 'DELETE' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
       toast({
