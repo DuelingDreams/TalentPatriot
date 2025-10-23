@@ -966,10 +966,11 @@ export class JobsRepository implements IJobsRepository {
         console.log('[JobsRepository] Reusing existing candidate:', candidateId);
         
         // Optionally update candidate info if provided
-        if (applicant.resumeUrl || applicant.phone) {
+        if (applicant.resumeUrl || applicant.phone || applicant.source) {
           const updates: any = { updated_at: new Date().toISOString() };
           if (applicant.resumeUrl) updates.resume_url = applicant.resumeUrl;
           if (applicant.phone) updates.phone = applicant.phone;
+          if (applicant.source) updates.source = applicant.source;
           
           await supabase
             .from('candidates')
@@ -985,6 +986,7 @@ export class JobsRepository implements IJobsRepository {
             name: fullName,
             email: applicant.email.toLowerCase(),
             phone: applicant.phone,
+            source: applicant.source,
             resume_url: applicant.resumeUrl,
             status: 'active',
             created_at: new Date().toISOString(),
@@ -1052,6 +1054,7 @@ export class JobsRepository implements IJobsRepository {
           candidate_id: candidateId,
           pipeline_column_id: firstColumnId,
           stage: 'applied',
+          source: applicant.source,
           notes: applicant.coverLetter || null,
           status: 'active',
           created_at: new Date().toISOString(),

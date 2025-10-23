@@ -2445,6 +2445,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     lastName: z.string().min(1, "Last name is required").max(50, "Last name too long"),
     email: z.string().email("Valid email is required").max(255, "Email too long"),
     phone: z.string().optional().refine(val => !val || val.length <= 20, "Phone number too long"),
+    source: z.string().max(100, "Source too long").optional(), // How did you hear about us?
     
     // Files
     resumeUrl: z.string().optional(),
@@ -2516,6 +2517,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           lastName: applicantData.lastName,
           email: applicantData.email,
           phone: applicantData.phone,
+          source: applicantData.source,
           coverLetter: applicantData.coverLetter,
           resumeUrl: applicantData.resumeUrl
         }

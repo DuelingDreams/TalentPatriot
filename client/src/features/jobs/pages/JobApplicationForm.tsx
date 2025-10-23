@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useToast } from '@/shared/hooks/use-toast'
 import { usePublicJobBySlug } from '@/features/jobs/hooks/usePublicJobBySlug'
 import { useDemoFlag } from '@/lib/demoFlag'
@@ -19,6 +20,7 @@ interface ApplicationFormData {
   lastName: string
   email: string
   phone: string
+  source: string
   coverLetter: string
   resume: File | null
 }
@@ -48,6 +50,7 @@ export default function JobApplicationForm() {
     lastName: '',
     email: '',
     phone: '',
+    source: '',
     coverLetter: '',
     resume: null
   })
@@ -279,6 +282,7 @@ export default function JobApplicationForm() {
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phone || undefined,
+        source: formData.source || undefined,
         resumeUrl: uploadState.uploadedUrl || undefined,
       }
 
@@ -493,6 +497,28 @@ export default function JobApplicationForm() {
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="source">How did you hear about us?</Label>
+                <Select
+                  value={formData.source}
+                  onValueChange={(value) => handleInputChange('source', value)}
+                >
+                  <SelectTrigger id="source" data-testid="select-source">
+                    <SelectValue placeholder="Select a source" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                    <SelectItem value="Indeed">Indeed</SelectItem>
+                    <SelectItem value="Company Website">Company Website</SelectItem>
+                    <SelectItem value="Referral">Referral</SelectItem>
+                    <SelectItem value="Social Media">Social Media</SelectItem>
+                    <SelectItem value="Recruiter Contact">Recruiter Contact</SelectItem>
+                    <SelectItem value="Job Board">Job Board</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

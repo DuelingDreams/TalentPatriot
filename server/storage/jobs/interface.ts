@@ -18,6 +18,7 @@ export interface ApplicantData {
   lastName: string;
   email: string;
   phone?: string;
+  source?: string; // How did you hear about us?
   coverLetter?: string;
   resumeUrl?: string;
 }
