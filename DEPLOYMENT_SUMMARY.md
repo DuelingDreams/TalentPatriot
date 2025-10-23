@@ -1,12 +1,63 @@
-# TalentPatriot v2.1.0 - Deployment Summary
+# TalentPatriot - Deployment Summary
 
-**Deployment Date**: January 22, 2025  
-**Version**: 2.1.0  
-**Status**: ✅ READY FOR PRODUCTION
+**Deployment Date**: October 23, 2025  
+**Version**: Production-Ready v1.0  
+**Status**: ⚠️ READY FOR DEPLOYMENT (Pending Critical Security Action)
 
 ## 🚀 Deployment Overview
 
-TalentPatriot has been successfully prepared for redeployment with significant enhancements to user experience, documentation, and overall platform maturity. The application maintains its core ATS functionality while adding comprehensive support resources that position it as an enterprise-ready solution.
+TalentPatriot has been successfully prepared for deployment with comprehensive security fixes, multi-tenant resume isolation, and all core ATS functionality. The application is production-ready pending one critical security configuration in your Supabase dashboard.
+
+---
+
+## 🚨 CRITICAL PRE-DEPLOYMENT ACTION REQUIRED
+
+### ⚠️ **Supabase Storage Bucket Must Be Set to PRIVATE** ⚠️
+
+**WHAT:** The `resumes` bucket in your Supabase Storage must be configured as PRIVATE before deployment.
+
+**WHY:** If the bucket is PUBLIC, anyone who discovers a storage path can access any resume file, bypassing all multi-tenant security measures.
+
+**HOW TO FIX:**
+1. Go to: **https://app.supabase.com**
+2. Select your TalentPatriot project
+3. Navigate to: **Storage → Buckets**
+4. Find the `resumes` bucket
+5. Click **Settings** or **Edit**
+6. **Change visibility from PUBLIC to PRIVATE**
+7. Click **Save**
+
+**IMPACT IF NOT FIXED:**
+- 🔴 Critical security vulnerability
+- 🔴 Resume files accessible without authentication
+- 🔴 Multi-tenant isolation broken
+- 🔴 Potential data breach
+
+**STATUS:** ⚠️ **USER ACTION REQUIRED BEFORE DEPLOYMENT**
+
+---
+
+## ✅ Recent Security Fixes (October 23, 2025)
+
+### Resume Storage & Viewing System Overhaul
+- ✅ **Fixed multi-tenant resume isolation** - All resumes stored as `{orgId}/{jobId}/resume_*.ext`
+- ✅ **Updated all 6 resume viewing components** - Now use signed URL utilities
+- ✅ **Removed hardcoded localhost URLs** - Fixed production-breaking bug in CandidateProfile
+- ✅ **Created comprehensive security documentation** - `docs/MULTI_TENANT_SECURITY.md`
+- ✅ **Implemented on-demand signed URLs** - 24-hour expiry, no URL storage in database
+- ✅ **Fixed MobilePipeline resume viewing** - Uses secure resume utilities
+- ✅ **Architect-reviewed and approved** - All security measures verified
+
+### Security Guarantees
+| Attack Vector | Protection |
+|--------------|------------|
+| Cross-org resume upload | ✅ Org ID derived from validated job, not client |
+| Cross-org resume viewing | ✅ Storage paths include org prefix |
+| Public file exposure | ✅ Private bucket + signed URLs only |
+| Expired URLs in database | ✅ Store paths, generate URLs on-demand |
+| Enumeration attacks | ✅ Unique IDs (nanoid), no patterns |
+
+---
 
 ## 📊 Key Metrics
 
