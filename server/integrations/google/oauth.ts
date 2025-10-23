@@ -122,9 +122,8 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string): 
 
 /**
  * Generate a secure state parameter for OAuth flow
- * Includes original host for post-OAuth redirect
  */
-export function generateState(userId: string, orgId: string, originalHost?: string): string {
+export function generateState(userId: string, orgId: string): string {
   if (!process.env.APP_JWT_SECRET) {
     throw new Error('APP_JWT_SECRET environment variable is required for secure OAuth state signing');
   }
@@ -132,7 +131,6 @@ export function generateState(userId: string, orgId: string, originalHost?: stri
   const data = JSON.stringify({ 
     userId, 
     orgId, 
-    originalHost,
     timestamp: Date.now() 
   });
   const signature = crypto
@@ -146,7 +144,7 @@ export function generateState(userId: string, orgId: string, originalHost?: stri
 /**
  * Verify and parse state parameter
  */
-export function verifyState(state: string): { userId: string; orgId: string; originalHost?: string } | null {
+export function verifyState(state: string): { userId: string; orgId: string } | null {
   if (!process.env.APP_JWT_SECRET) {
     console.error('APP_JWT_SECRET not configured');
     return null;
@@ -177,8 +175,7 @@ export function verifyState(state: string): { userId: string; orgId: string; ori
     
     return { 
       userId: parsed.userId, 
-      orgId: parsed.orgId,
-      originalHost: parsed.originalHost 
+      orgId: parsed.orgId
     };
   } catch (error) {
     console.error('Error verifying state:', error);

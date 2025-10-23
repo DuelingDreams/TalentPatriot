@@ -74,8 +74,8 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       // Get centralized redirect URI (always talentpatriot.com)
       const redirectUri = getRedirectUri(req.headers.host);
 
-      // Generate secure state parameter with original host for post-OAuth redirect
-      const state = generateState(userId, orgId, req.headers.host);
+      // Generate secure state parameter
+      const state = generateState(userId, orgId);
 
       // Get Google OAuth URL with centralized redirect
       const authUrl = getAuthUrl(state, redirectUri);
@@ -116,7 +116,7 @@ export function createGoogleAuthRoutes(storage: IStorage) {
         return res.redirect('/settings/integrations?error=invalid_state');
       }
 
-      const { userId, orgId, originalHost } = stateData;
+      const { userId, orgId } = stateData;
 
       // Get centralized redirect URI (must match what was used in /login)
       const redirectUri = getRedirectUri(req.headers.host);
@@ -130,10 +130,9 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       // Clear any remaining oauth_session cookie
       res.clearCookie('oauth_session', { path: '/auth/google' });
 
-      // Redirect back to original subdomain if present, otherwise root domain
-      const redirectHost = originalHost || req.headers.host || 'talentpatriot.com';
-      const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-      res.redirect(`${protocol}://${redirectHost}/settings/integrations?google=connected`);
+      // Redirect back to integrations page
+      // All authenticated users access the app via talentpatriot.com (not subdomains)
+      res.redirect('/settings/integrations?google=connected');
     } catch (error: any) {
       console.error('Error in Google OAuth callback:', error);
       res.redirect('/settings/integrations?error=callback_failed');

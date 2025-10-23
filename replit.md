@@ -89,19 +89,18 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - `APP_JWT_SECRET` - Secret for signing OAuth state parameters (✅ CONFIGURED)
 
 **Dynamic Redirect URI Implementation:**
-✅ **Centralized Callback Pattern** - The OAuth flow uses a single centralized redirect URI (`https://talentpatriot.com/auth/google/callback`) and handles subdomain redirects server-side. Google OAuth does NOT support wildcard redirect URIs (e.g., `*.talentpatriot.com`).
+✅ **Centralized Callback Pattern** - The OAuth flow uses a single centralized redirect URI (`https://talentpatriot.com/auth/google/callback`). Google OAuth does NOT support wildcard redirect URIs (e.g., `*.talentpatriot.com`).
 
-**How Multi-Tenant OAuth Works:**
-1. User initiates OAuth from any subdomain (e.g., `acme.talentpatriot.com`)
-2. Original subdomain is preserved in the OAuth `state` parameter (cryptographically signed)
-3. Google redirects to centralized callback: `https://talentpatriot.com/auth/google/callback`
-4. After authentication, user is redirected back to their original subdomain automatically
+**Important:** All authenticated users (recruiters, admins, etc.) access the app exclusively via `talentpatriot.com`. Organization subdomains (e.g., `hildebrand.talentpatriot.com`) are ONLY used for public careers pages, not for authenticated sessions.
+
+**How OAuth Works:**
+1. User initiates OAuth from Settings → Integrations on `talentpatriot.com`
+2. OAuth state parameter is signed with HMAC to prevent tampering
+3. Google redirects to: `https://talentpatriot.com/auth/google/callback`
+4. User is redirected back to Settings → Integrations on `talentpatriot.com`
 
 **Security Validation:**
-The OAuth redirect URI validator accepts requests from (validated in `server/integrations/google/oauth.ts`):
-- `talentpatriot.com` (root domain)
-- `www.talentpatriot.com` (www subdomain)
-- `*.talentpatriot.com` (organization subdomains, alphanumeric + hyphens only)
+The OAuth redirect URI validator validates requests originate from talentpatriot.com domain for security.
 
 **Google Cloud Console Setup:**
 Add ONLY the centralized redirect URI to your OAuth 2.0 credentials:
