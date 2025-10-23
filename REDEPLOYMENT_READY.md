@@ -1,18 +1,35 @@
 # TalentPatriot - Ready for Redeployment
 
 **Date:** October 23, 2025  
-**Update:** Google OAuth Authentication Fix  
+**Update:** Google OAuth Fix + Application Source Tracking  
 **Status:** ✅ READY TO DEPLOY
 
 ---
 
 ## 🎯 What's New in This Deployment
 
-### Google OAuth "Connect Account" Button - NOW WORKING ✅
+### 1. Google OAuth "Connect Account" Button - NOW WORKING ✅
 
 **Problem Fixed:** The "Connect Google Account" button on the Integrations settings page was not functional due to missing authentication headers.
 
 **Solution Implemented:** Updated the frontend to send Supabase authentication tokens (Bearer tokens) with all Google OAuth API requests.
+
+### 2. Application Source Tracking - NEW FEATURE ✅
+
+**Feature Added:** Public job application form now includes "How did you hear about us?" field to track candidate sources.
+
+**Implementation:**
+- Added source dropdown to public application form with options:
+  - LinkedIn
+  - Indeed
+  - Company Website
+  - Referral
+  - Social Media
+  - Job Board
+  - Other
+- Source data automatically captured and stored in database
+- Analytics endpoints already configured to display source metrics
+- Reports page ready to show Top Source and Source Performance charts
 
 ---
 
@@ -20,6 +37,7 @@
 
 ### Files Modified
 
+**Google OAuth Fix:**
 1. **`client/src/lib/queryClient.ts`**
    - Added support for custom headers in `apiRequest()` function
    - Now accepts and merges Authorization headers with requests
@@ -30,14 +48,32 @@
    - Updated connection status query with auth header
    - Updated disconnect mutation with auth header
 
-### What This Fixes
+**Application Source Tracking:**
+3. **`client/src/features/jobs/pages/JobApplicationForm.tsx`**
+   - Added "How did you hear about us?" dropdown field
+   - Integrated source field into application form data
+   - Form submission now includes source value
 
+4. **`server/storage/jobs/interface.ts`**
+   - Updated `ApplicantData` interface to include optional `source` field
+   - Maintains backward compatibility with existing applications
+
+### What This Fixes & Adds
+
+**Google OAuth Fix:**
 | Before | After |
 |--------|-------|
 | ❌ Button click → Nothing happens | ✅ Button click → Redirects to Google OAuth |
 | ❌ Backend returns 401 Unauthorized | ✅ Backend authenticates user successfully |
 | ❌ No token sent in request | ✅ Bearer token included in Authorization header |
 | ❌ OAuth flow doesn't start | ✅ Complete OAuth flow works end-to-end |
+
+**Application Source Tracking:**
+| Before | After |
+|--------|-------|
+| ❌ No way to track where candidates found jobs | ✅ Source tracking dropdown on application form |
+| ❌ Analytics shows "N/A" for Top Source | ✅ Real source analytics once applications come in |
+| ❌ No visibility into recruitment channel ROI | ✅ Source performance metrics and charts |
 
 ---
 
@@ -222,22 +258,31 @@ If issues arise after deployment:
 ✅ Authorization headers now sent correctly
 ✅ Session validation added
 ✅ All Google API calls updated
+✅ Application source tracking feature added
+✅ Public job form includes "How did you hear about us?" field
+✅ Analytics ready to display source performance metrics
 ✅ No breaking changes
 ✅ Backward compatible
 ```
 
 ### Impact
 ```
-Before: Google OAuth button non-functional
-After:  Complete OAuth flow working end-to-end
+Google OAuth:
+  Before: OAuth button non-functional
+  After:  Complete OAuth flow working end-to-end
+
+Source Tracking:
+  Before: No visibility into recruitment channel performance
+  After:  Full source tracking and analytics for new applications
 ```
 
 ### Risk Level
 ```
-LOW - Isolated fix to Google OAuth only
-    - No database changes
-    - No breaking changes to other features
+LOW - Isolated improvements only
+    - Database schema already updated (source field added via SQL)
+    - No breaking changes to existing features
     - Backward compatible with existing data
+    - New applications will automatically populate analytics
 ```
 
 ---
@@ -279,12 +324,15 @@ LOW - Isolated fix to Google OAuth only
 
 ## 🎉 Ready to Deploy!
 
-Your application is ready for redeployment with the Google OAuth fix. The "Connect Google Account" button will now work correctly on your production domain.
+Your application is ready for redeployment with two major updates:
+
+1. **Google OAuth Fix** - "Connect Google Account" button now fully functional
+2. **Application Source Tracking** - New "How did you hear about us?" field for recruitment analytics
 
 **Simply click "Publish" in Replit to deploy! 🚀**
 
 ---
 
 **Last Updated:** October 23, 2025  
-**Release:** Google OAuth Authentication Fix  
+**Release:** Google OAuth Fix + Application Source Tracking  
 **Status:** Production Ready ✅
