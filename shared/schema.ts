@@ -155,6 +155,8 @@ export const candidates = pgTable("candidates", {
   disabilityStatus: varchar("disability_status", { length: 50 }),
   // CRITICAL: Skills proficiency levels (JSON object mapping skills to levels)
   skillLevels: jsonb("skill_levels"),
+  // Application source tracking
+  source: varchar("source", { length: 100 }), // How did you hear about us?
 });
 
 // Pipeline columns for Kanban board (job-specific with backward compatibility)
@@ -184,6 +186,7 @@ export const jobCandidate = pgTable("job_candidate", {
   notes: text("notes"),
   assignedTo: uuid("assigned_to"),
   status: recordStatusEnum("status").default('active').notNull(),
+  source: varchar("source", { length: 100 }), // Application source - how did you hear about us?
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
