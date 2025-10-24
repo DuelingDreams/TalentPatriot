@@ -1,0 +1,16 @@
+column_name,data_type,is_nullable,column_default
+id,uuid,NO,gen_random_uuid()
+user_id,uuid,NO,null
+org_id,uuid,NO,null
+provider,character varying,NO,null
+provider_email,character varying,YES,null
+scopes,ARRAY,NO,'{}'::text[]
+connector_account_id,character varying,YES,null
+access_token_expires_at,timestamp with time zone,YES,null
+is_active,boolean,YES,true
+connected_at,timestamp with time zone,YES,now()
+last_used_at,timestamp with time zone,YES,null
+metadata,jsonb,YES,'{}'::jsonb
+created_at,timestamp with time zone,YES,now()
+updated_at,timestamp with time zone,YES,now()
+encrypted_refresh_token,text,YES,null
