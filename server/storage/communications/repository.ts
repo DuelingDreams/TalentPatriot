@@ -32,6 +32,19 @@ function toSnakeCase(obj: Record<string, any>): Record<string, any> {
   return result;
 }
 
+/**
+ * Convert snake_case object keys to camelCase for frontend consumption
+ * Supabase returns snake_case column names, but frontend expects camelCase
+ */
+function toCamelCase(obj: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    result[camelKey] = value;
+  }
+  return result;
+}
+
 export class CommunicationsRepository implements ICommunicationsRepository {
   // TODO: Extract methods from original storage.ts
   async getMessage(id: string): Promise<Message | undefined> {
@@ -324,7 +337,8 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to fetch connected account: ${error.message}`);
     }
 
-    return data;
+    // Convert snake_case from database to camelCase for frontend
+    return data ? toCamelCase(data) as ConnectedAccount : undefined;
   }
 
   async getConnectedAccounts(userId: string, orgId: string): Promise<ConnectedAccount[]> {
@@ -341,7 +355,8 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to fetch connected accounts: ${error.message}`);
     }
 
-    return data || [];
+    // Convert snake_case from database to camelCase for frontend
+    return data ? data.map(account => toCamelCase(account) as ConnectedAccount) : [];
   }
 
   async createConnectedAccount(account: InsertConnectedAccount): Promise<ConnectedAccount> {
@@ -356,7 +371,8 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to create connected account: ${error.message}`);
     }
 
-    return data;
+    // Convert snake_case from database to camelCase for frontend
+    return toCamelCase(data) as ConnectedAccount;
   }
 
   async updateConnectedAccount(id: string, account: Partial<InsertConnectedAccount>): Promise<ConnectedAccount> {
@@ -372,7 +388,8 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to update connected account: ${error.message}`);
     }
 
-    return data;
+    // Convert snake_case from database to camelCase for frontend
+    return toCamelCase(data) as ConnectedAccount;
   }
 
   async deleteConnectedAccount(id: string): Promise<void> {
