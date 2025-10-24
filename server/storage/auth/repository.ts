@@ -20,6 +20,15 @@ function toSnakeCase(obj: Record<string, any>): Record<string, any> {
   return result;
 }
 
+function toCamelCase(obj: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    result[camelKey] = value;
+  }
+  return result;
+}
+
 export class AuthRepository implements IAuthRepository {
   // User Profiles
   async getUserProfile(id: string): Promise<UserProfile | undefined> {
@@ -34,11 +43,12 @@ export class AuthRepository implements IAuthRepository {
       throw new Error(error.message);
     }
     
-    return data as UserProfile;
+    // Convert snake_case from database to camelCase for frontend
+    return data ? toCamelCase(data) as UserProfile : undefined;
   }
 
   async createUserProfile(insertUserProfile: InsertUserProfile): Promise<UserProfile> {
-    const { data, error } = await supabase
+    const { data, error} = await supabase
       .from('user_profiles')
       .insert(toSnakeCase(insertUserProfile))
       .select()
@@ -48,7 +58,8 @@ export class AuthRepository implements IAuthRepository {
       throw new Error(error.message);
     }
     
-    return data as UserProfile;
+    // Convert snake_case from database to camelCase for frontend
+    return toCamelCase(data) as UserProfile;
   }
 
   async updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile> {
@@ -63,7 +74,8 @@ export class AuthRepository implements IAuthRepository {
       throw new Error(error.message);
     }
     
-    return data as UserProfile;
+    // Convert snake_case from database to camelCase for frontend
+    return toCamelCase(data) as UserProfile;
   }
 
   async ensureUserProfile(userId: string): Promise<UserProfile> {
