@@ -73,6 +73,23 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - **Professional About Page**: Company mission, vision, values, and growth story at `/about`.
 - **Enhanced Support Infrastructure**: Dedicated support center at `/help` with multiple contact options and troubleshooting guides.
 
+# Recent Changes
+
+## Documentation System (October 24, 2025)
+✅ **Comprehensive Technical Documentation Created** - Added detailed developer documentation in `/docs` folder:
+- **`overview.md`**: Project structure, tech stack, architecture overview, development workflow
+- **`routes.md`**: Wouter routing system, route mapping, navigation patterns, public vs authenticated routes
+- **`dashboard.md`**: Dashboard components, analytics architecture, data fetching strategy, performance optimizations
+- **`auth.md`**: Supabase Auth integration, Google OAuth flow, session management, RBAC, security features
+- **`data-model.md`**: Complete database schema, entity relationships, API endpoints reference, type system documentation
+
+All documentation includes code examples, best practices, and cross-references to related topics.
+
+## Analytics Source Tracking (October 23-24, 2025)
+✅ **Fixed Analytics Org ID Mismatch** - Corrected application_metadata records to use actual org_id instead of demo org_id
+✅ **Populated Source Data** - Added 13 application records with realistic source distribution (Company Website 31%, LinkedIn/Indeed 23% each)
+✅ **Analytics Now Operational** - mv_candidate_sources materialized view displaying accurate metrics for Hildebrand organization
+
 # External Dependencies
 
 - **Database**: Supabase (PostgreSQL)
