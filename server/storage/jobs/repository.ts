@@ -775,7 +775,8 @@ export class JobsRepository implements IJobsRepository {
         status: 'draft', // Always create as draft
         record_status: 'active',
         public_slug: slug,
-        created_by: userContext.userId
+        created_by: userContext.userId,
+        assigned_to: userContext.userId // Auto-assign job to creator
       }])
       .select()
       .single();

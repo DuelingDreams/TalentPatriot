@@ -75,6 +75,14 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 
 # Recent Changes
 
+## Auto-Assign Jobs to Creator (October 24, 2025)
+✅ **Team Performance Tracking Fixed** - Jobs now automatically assigned to their creator
+- **Problem**: Jobs were created with `assigned_to = null`, causing them to be excluded from Team Performance reports
+- **Solution**: Modified `createJobWithContext` in `server/storage/jobs/repository.ts` to auto-assign `assigned_to = userContext.userId`
+- **Impact**: Every new job is automatically assigned to whoever creates it, ensuring proper recruiter accountability and accurate Team Performance metrics
+- **Behavior**: When a user creates a job, both `created_by` and `assigned_to` are set to their user ID
+- **Future Enhancement**: Add ability to reassign jobs to other recruiters via job settings UI
+
 ## Documentation System (October 24, 2025)
 ✅ **Comprehensive Technical Documentation Created** - Added detailed developer documentation in `/docs` folder:
 - **`overview.md`**: Project structure, tech stack, architecture overview, development workflow
