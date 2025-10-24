@@ -11,6 +11,15 @@ import type {
 } from "@shared/schema";
 import type { IAuthRepository } from './interface';
 
+function toSnakeCase(obj: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    result[snakeKey] = value;
+  }
+  return result;
+}
+
 export class AuthRepository implements IAuthRepository {
   // User Profiles
   async getUserProfile(id: string): Promise<UserProfile | undefined> {
@@ -31,7 +40,7 @@ export class AuthRepository implements IAuthRepository {
   async createUserProfile(insertUserProfile: InsertUserProfile): Promise<UserProfile> {
     const { data, error } = await supabase
       .from('user_profiles')
-      .insert(insertUserProfile)
+      .insert(toSnakeCase(insertUserProfile))
       .select()
       .single();
     
@@ -45,7 +54,7 @@ export class AuthRepository implements IAuthRepository {
   async updateUserProfile(id: string, userProfile: Partial<InsertUserProfile>): Promise<UserProfile> {
     const { data, error } = await supabase
       .from('user_profiles')
-      .update(userProfile)
+      .update(toSnakeCase(userProfile))
       .eq('id', id)
       .select()
       .single();

@@ -1743,7 +1743,6 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       const profileData = {
-        id: user.id,
         firstName: req.body.firstName,
         lastName: req.body.lastName,
         phone: req.body.phone,
