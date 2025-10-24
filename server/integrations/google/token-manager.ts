@@ -96,6 +96,7 @@ async function refreshAccessToken(refreshToken: string): Promise<TokenRefreshRes
 
 /**
  * Store OAuth tokens securely after initial authorization
+ * Handles cases where Google omits refresh_token on subsequent authorizations
  */
 export async function storeOAuthTokens(
   storage: IStorage,
@@ -108,13 +109,6 @@ export async function storeOAuthTokens(
     email?: string;
   }
 ): Promise<ConnectedAccount> {
-  if (!tokens.refresh_token) {
-    throw new Error('Refresh token is required for long-term access');
-  }
-
-  // Encrypt refresh token before storing
-  const encryptedRefreshToken = encryptToken(tokens.refresh_token);
-  
   const expiresAt = tokens.expiry_date 
     ? new Date(tokens.expiry_date)
     : new Date(Date.now() + 3600 * 1000);
@@ -122,8 +116,28 @@ export async function storeOAuthTokens(
   // Check if account already exists
   const existingAccount = await storage.communications.getConnectedAccount(userId, orgId, 'google');
   
+  // Determine which refresh token to use
+  let encryptedRefreshToken: string;
+  
+  if (tokens.refresh_token) {
+    // New refresh token provided - encrypt and use it
+    encryptedRefreshToken = encryptToken(tokens.refresh_token);
+    console.log('✅ Google OAuth: Received new refresh_token, encrypting and storing');
+  } else if (existingAccount?.encryptedRefreshToken) {
+    // Reuse existing refresh token (Google omits it on subsequent authorizations)
+    encryptedRefreshToken = existingAccount.encryptedRefreshToken;
+    console.log('♻️ Google OAuth: No new refresh_token provided, reusing existing encrypted token');
+  } else {
+    // No refresh token available at all
+    throw new Error(
+      'No refresh token available. Google did not provide a new token and no existing token found. ' +
+      'Try revoking access in Google account settings and reconnecting.'
+    );
+  }
+  
   if (existingAccount) {
     // Update existing account
+    console.log(`🔄 Google OAuth: Updating existing connected account for user ${userId}`);
     return await storage.communications.updateConnectedAccount(existingAccount.id, {
       providerEmail: tokens.email || existingAccount.providerEmail,
       encryptedRefreshToken,
@@ -133,6 +147,7 @@ export async function storeOAuthTokens(
     });
   } else {
     // Create new account
+    console.log(`➕ Google OAuth: Creating new connected account for user ${userId}`);
     return await storage.communications.createConnectedAccount({
       userId,
       orgId,
