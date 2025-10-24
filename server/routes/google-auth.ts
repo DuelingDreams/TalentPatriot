@@ -97,44 +97,70 @@ export function createGoogleAuthRoutes(storage: IStorage) {
    * OAuth callback endpoint - exchanges code for tokens and stores them securely
    */
   router.get('/callback', async (req: AuthenticatedRequest, res: Response) => {
+    console.log('🔔 Google OAuth callback triggered');
+    
     try {
       const { code, state, error } = req.query;
 
-      // Handle OAuth errors
+      // Handle OAuth errors from Google
       if (error) {
-        console.error('OAuth error:', error);
+        console.error('❌ Google OAuth error:', error);
+        console.error('   Error description:', req.query.error_description);
         return res.redirect(`/settings/integrations?error=oauth_${error}`);
       }
 
       if (!code || !state) {
+        console.error('❌ Missing OAuth parameters - code:', !!code, 'state:', !!state);
         return res.redirect('/settings/integrations?error=missing_params');
       }
+
+      console.log('✅ OAuth parameters received (code and state present)');
 
       // Verify and parse state
       const stateData = verifyState(state as string);
       if (!stateData) {
+        console.error('❌ State verification failed - invalid or expired state parameter');
         return res.redirect('/settings/integrations?error=invalid_state');
       }
 
       const { userId, orgId } = stateData;
+      console.log(`✅ State verified - userId: ${userId}, orgId: ${orgId}`);
 
       // Get centralized redirect URI (must match what was used in /login)
       const redirectUri = getRedirectUri(req.headers.host);
+      console.log(`🔗 Using redirect URI: ${redirectUri}`);
 
       // Exchange authorization code for tokens using same redirect URI
+      console.log('🔄 Exchanging authorization code for tokens...');
       const tokens = await exchangeCodeForTokens(code as string, redirectUri);
+      console.log('✅ Tokens received from Google:', {
+        hasAccessToken: !!tokens.access_token,
+        hasRefreshToken: !!tokens.refresh_token,
+        email: tokens.email,
+        expiresAt: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : 'unknown'
+      });
 
       // Store tokens securely with encryption
-      await storeOAuthTokens(storage, userId, orgId, tokens);
+      console.log('💾 Storing tokens in database...');
+      const account = await storeOAuthTokens(storage, userId, orgId, tokens);
+      console.log('✅ Connected account stored successfully:', {
+        accountId: account.id,
+        provider: account.provider,
+        email: account.providerEmail,
+        isActive: account.isActive
+      });
 
       // Clear any remaining oauth_session cookie
       res.clearCookie('oauth_session', { path: '/auth/google' });
 
       // Redirect back to integrations page
-      // All authenticated users access the app via talentpatriot.com (not subdomains)
+      console.log('🎉 Google OAuth connection completed successfully!');
       res.redirect('/settings/integrations?google=connected');
     } catch (error: any) {
-      console.error('Error in Google OAuth callback:', error);
+      console.error('❌ Error in Google OAuth callback:');
+      console.error('   Message:', error.message);
+      console.error('   Stack:', error.stack);
+      console.error('   Full error:', error);
       res.redirect('/settings/integrations?error=callback_failed');
     }
   });
