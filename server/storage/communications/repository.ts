@@ -19,6 +19,19 @@ import type {
   InsertEmailEvent
 } from "@shared/schema";
 
+/**
+ * Convert camelCase object keys to snake_case for Supabase REST API
+ * Drizzle uses camelCase for TypeScript types, but Supabase expects snake_case column names
+ */
+function toSnakeCase(obj: Record<string, any>): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    result[snakeKey] = value;
+  }
+  return result;
+}
+
 export class CommunicationsRepository implements ICommunicationsRepository {
   // TODO: Extract methods from original storage.ts
   async getMessage(id: string): Promise<Message | undefined> {
@@ -96,7 +109,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async createMessage(message: InsertMessage): Promise<Message> {
     const { data, error } = await supabase
       .from('messages')
-      .insert(message)
+      .insert(toSnakeCase(message))
       .select()
       .single();
 
@@ -111,7 +124,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message> {
     const { data, error } = await supabase
       .from('messages')
-      .update(message)
+      .update(toSnakeCase(message))
       .eq('id', id)
       .select()
       .single();
@@ -266,7 +279,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async createThread(thread: InsertMessageThread): Promise<MessageThread> {
     const { data, error } = await supabase
       .from('message_threads')
-      .insert(thread)
+      .insert(toSnakeCase(thread))
       .select()
       .single();
 
@@ -281,7 +294,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async updateThread(id: string, thread: Partial<InsertMessageThread>): Promise<MessageThread> {
     const { data, error } = await supabase
       .from('message_threads')
-      .update(thread)
+      .update(toSnakeCase(thread))
       .eq('id', id)
       .select()
       .single();
@@ -334,7 +347,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async createConnectedAccount(account: InsertConnectedAccount): Promise<ConnectedAccount> {
     const { data, error } = await supabase
       .from('connected_accounts')
-      .insert(account)
+      .insert(toSnakeCase(account))
       .select()
       .single();
 
@@ -349,7 +362,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async updateConnectedAccount(id: string, account: Partial<InsertConnectedAccount>): Promise<ConnectedAccount> {
     const { data, error } = await supabase
       .from('connected_accounts')
-      .update(account)
+      .update(toSnakeCase(account))
       .eq('id', id)
       .select()
       .single();
@@ -423,7 +436,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async createCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent> {
     const { data, error } = await supabase
       .from('calendar_events')
-      .insert(event)
+      .insert(toSnakeCase(event))
       .select()
       .single();
 
@@ -438,7 +451,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   async updateCalendarEvent(id: string, event: Partial<InsertCalendarEvent>): Promise<CalendarEvent> {
     const { data, error } = await supabase
       .from('calendar_events')
-      .update(event)
+      .update(toSnakeCase(event))
       .eq('id', id)
       .select()
       .single();
