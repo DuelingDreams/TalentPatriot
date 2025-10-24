@@ -44,7 +44,19 @@ export function getRedirectUri(host: string | undefined): string {
   // Remove port if present (e.g., localhost:3000 -> localhost)
   const cleanHost = host.split(':')[0];
 
-  // Security check: validate host is talentpatriot.com or a valid subdomain
+  // Development mode: Allow localhost and Replit preview URLs
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const isLocalhost = cleanHost === 'localhost' || cleanHost === '127.0.0.1';
+  const isReplitPreview = cleanHost.endsWith('.replit.dev');
+  
+  if (isDevelopment && (isLocalhost || isReplitPreview)) {
+    // For development, use the actual host for the redirect URI
+    const protocol = isLocalhost ? 'http' : 'https';
+    const portSuffix = host.includes(':') ? `:${host.split(':')[1]}` : '';
+    return `${protocol}://${cleanHost}${portSuffix}/auth/google/callback`;
+  }
+
+  // Production: validate host is talentpatriot.com or a valid subdomain
   const isRootDomain = cleanHost === PRODUCTION_DOMAIN;
   const isWwwDomain = cleanHost === `www.${PRODUCTION_DOMAIN}`;
   const isValidSubdomain = cleanHost.endsWith(`.${PRODUCTION_DOMAIN}`) && 
@@ -58,7 +70,7 @@ export function getRedirectUri(host: string | undefined): string {
     );
   }
 
-  // Always return the centralized callback URI
+  // Always return the centralized callback URI for production
   // The original subdomain is preserved in the OAuth state parameter
   return OAUTH_REDIRECT_URI;
 }
