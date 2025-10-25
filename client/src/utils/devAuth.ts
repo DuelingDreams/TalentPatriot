@@ -2,7 +2,7 @@
 // This creates a mock user session for development testing
 
 export const DEV_ORG_ID = '90531171-d56b-4732-baba-35be47b0cb08' // MentalCastle (default)
-export const HILDEBRAND_ORG_ID = 'd0156d8c-939b-488d-b256-e3924349f427' // Hildebrand Enterprises
+export const HILDEBRAND_ORG_ID = '64eea1fa-1993-4966-bbd8-3d5109957c20' // Hildebrand Consulting Group (actual org ID from database)
 
 // Multiple development users for testing different organizations
 export const DEV_USERS = {
