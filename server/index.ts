@@ -160,13 +160,21 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
   // Core security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
   
   // Conditional Strict Transport Security - more graceful during deployment
   const isProduction = process.env.NODE_ENV === 'production';
+  
+  // X-Frame-Options: DENY in production, allow Replit preview in development
+  if (isProduction) {
+    res.setHeader('X-Frame-Options', 'DENY');
+  } else {
+    // Allow Replit preview iframe in development
+    res.setHeader('X-Frame-Options', 'ALLOWALL');
+  }
+  
   if (isProduction && req.secure) {
     // Only set HSTS if we're actually using HTTPS successfully
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
@@ -178,6 +186,11 @@ app.use((req, res, next) => {
   // Only add to CSP if it's a valid URL without wildcards
   const apiOriginCsp = (apiOrigin && !apiOrigin.includes('*')) ? ` ${apiOrigin}` : '';
   
+  // frame-ancestors: 'none' in production, allow Replit in development
+  const frameAncestors = isProduction 
+    ? "frame-ancestors 'none'; " 
+    : "frame-ancestors 'self' https://*.replit.dev https://*.replit.com https://replit.com; ";
+  
   res.setHeader('Content-Security-Policy', 
     "default-src 'self'; " +
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://www.googletagmanager.com; " +
@@ -185,7 +198,7 @@ app.use((req, res, next) => {
     "font-src 'self' https://fonts.gstatic.com; " +
     "img-src 'self' data: https: blob:; " +
     `connect-src 'self' https: wss: https://*.supabase.co https://*.supabase.com https://*.replit.app https://*.replit.dev https://*.replit.co wss://*.replit.dev${apiOriginCsp}; ` +
-    "frame-ancestors 'none'; " +
+    frameAncestors +
     "base-uri 'self'; " +
     "form-action 'self';" +
     (isProduction && req.secure ? " upgrade-insecure-requests;" : "")
