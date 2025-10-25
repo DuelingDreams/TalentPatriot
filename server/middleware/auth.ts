@@ -15,9 +15,21 @@ export interface AuthenticatedRequest extends Request {
 }
 
 /**
+ * Development auth configuration matching client/src/utils/devAuth.ts
+ */
+const isDevelopment = process.env.NODE_ENV === 'development';
+const DEV_HILDEBRAND_USER = {
+  id: '81a2aecb-4355-4b83-9b05-27ac4c3020ff',
+  email: 'mentalcastlecoach@gmail.com',
+  role: 'hiring_manager',
+  orgId: '64eea1fa-1993-4966-bbd8-3d5109957c20' // Hildebrand Consulting Group
+};
+
+/**
  * Middleware to extract authenticated user from session
  * Sets req.user with userId, email, role, and orgId
  * Supports both Bearer tokens (API calls) and cookies (browser redirects)
+ * In development mode, uses hardcoded user to match frontend devAuth
  */
 export async function extractAuthUser(
   req: AuthenticatedRequest,
@@ -25,6 +37,18 @@ export async function extractAuthUser(
   next: NextFunction
 ): Promise<void> {
   try {
+    // DEVELOPMENT MODE: Use hardcoded user to match frontend devAuth
+    if (isDevelopment) {
+      req.user = {
+        id: DEV_HILDEBRAND_USER.id,
+        email: DEV_HILDEBRAND_USER.email,
+        role: DEV_HILDEBRAND_USER.role,
+        orgId: DEV_HILDEBRAND_USER.orgId,
+      };
+      return next();
+    }
+
+    // PRODUCTION MODE: Validate with Supabase
     let token: string | undefined;
     
     // Try to get token from Authorization header first (API calls)
