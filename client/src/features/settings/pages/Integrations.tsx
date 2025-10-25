@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -71,6 +72,22 @@ export default function Integrations() {
   const urlParams = new URLSearchParams(window.location.search)
   const googleConnected = urlParams.get('google') === 'connected'
   const error = urlParams.get('error')
+
+  // Handle OAuth callback - invalidate cache and refetch connection status
+  useEffect(() => {
+    if (googleConnected) {
+      // Invalidate the cache and refetch to show updated connection status
+      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
+      refetchGoogle()
+      
+      // Clean up URL after 3 seconds to remove the success message
+      setTimeout(() => {
+        const url = new URL(window.location.href)
+        url.searchParams.delete('google')
+        window.history.replaceState({}, '', url.toString())
+      }, 3000)
+    }
+  }, [googleConnected, refetchGoogle])
 
   return (
     <DashboardLayout pageTitle="Integrations">
