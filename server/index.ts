@@ -293,9 +293,18 @@ app.use("/api", (req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  const isDevelopment = process.env.NODE_ENV === "development" || 
+                        app.get("env") === "development" ||
+                        !process.env.NODE_ENV; // Default to development if not set
+  
+  log(`Environment: ${app.get("env")}, NODE_ENV: ${process.env.NODE_ENV}, isDevelopment: ${isDevelopment}`);
+  
+  if (isDevelopment) {
+    log('Starting Vite development server...');
     await setupVite(app, server);
+    log('Vite development server started');
   } else {
+    log('Using static file serving for production');
     serveDualPathStatic(app);
   }
 
