@@ -147,6 +147,7 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
   /**
    * GET /api/google/connection-status
    * Check if user has connected their Google account
+   * Automatically backfills providerEmail if missing
    */
   router.get('/connection-status', async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -158,7 +159,33 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         return res.json({ connected: false });
       }
 
-      const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+      let account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+
+      // If account exists but providerEmail is null, fetch it from Google and update database
+      if (account && account.isActive && !account.providerEmail) {
+        console.log('🔄 Backfilling missing providerEmail for user', userId);
+        try {
+          // Get valid access token
+          const { accessToken } = await getValidAccessToken(storage, userId, orgId);
+          
+          // Fetch email from Google userinfo API
+          const oauth2Client = new (await import('googleapis')).google.auth.OAuth2();
+          oauth2Client.setCredentials({ access_token: accessToken });
+          const oauth2 = (await import('googleapis')).google.oauth2({ version: 'v2', auth: oauth2Client });
+          const userInfo = await oauth2.userinfo.get();
+          
+          if (userInfo.data.email) {
+            // Update the database record with the email
+            account = await storage.communications.updateConnectedAccount(account.id, {
+              providerEmail: userInfo.data.email,
+            });
+            console.log('✅ Backfilled providerEmail:', userInfo.data.email);
+          }
+        } catch (backfillError: any) {
+          console.error('⚠️  Failed to backfill providerEmail:', backfillError.message);
+          // Don't fail the entire request, just log the error
+        }
+      }
 
       res.json({
         connected: !!account && account.isActive,
@@ -181,22 +208,40 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
 
+      console.log(`📧 Attempting to send email for user ${userId} from org ${orgId}`);
+
       // Validate request body
       const validatedData = sendEmailSchema.parse(req.body);
+      console.log(`✅ Email request validated: to=${validatedData.to}, subject="${validatedData.subject}"`);
 
       // Get connected account to retrieve email
       const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
       if (!account || !account.isActive) {
+        console.error(`❌ Google account not found or inactive for user ${userId}`);
         return res.status(403).json({
           error: 'Google account not connected',
           message: 'Please connect your Google account in Settings → Integrations'
         });
       }
 
+      console.log(`✅ Found connected account: email=${account.providerEmail}, scopes=${account.scopes?.join(', ')}`);
+
+      // Check if gmail.send scope is present
+      if (!account.scopes?.includes('gmail.send')) {
+        console.error(`❌ Missing gmail.send scope for user ${userId}`);
+        return res.status(403).json({
+          error: 'Missing Gmail permission',
+          message: 'Please reconnect your Google account to grant Gmail send permission'
+        });
+      }
+
       // Get valid access token (automatically refreshes if expired)
+      console.log(`🔑 Getting access token for user ${userId}...`);
       const { accessToken } = await getValidAccessToken(storage, userId, orgId);
+      console.log(`✅ Access token retrieved (expires: ${account.accessTokenExpiresAt})`);
 
       // Send email via Gmail API
+      console.log(`📤 Sending email via Gmail API from ${account.providerEmail} to ${validatedData.to}...`);
       const result = await sendEmail(accessToken, {
         to: validatedData.to,
         subject: validatedData.subject,
@@ -204,7 +249,7 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         from: account.providerEmail || undefined, // Use the connected Google account email
       });
 
-      console.log(`✅ Email sent from ${account.providerEmail} to ${validatedData.to} (Message ID: ${result.id})`);
+      console.log(`✅ Email sent successfully from ${account.providerEmail} to ${validatedData.to} (Message ID: ${result.id})`);
 
       res.status(200).json({
         success: true,
@@ -215,7 +260,12 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         subject: validatedData.subject,
       });
     } catch (error: any) {
-      console.error('Error sending email via Gmail API:', error);
+      console.error('❌ Error sending email via Gmail API:', {
+        message: error.message,
+        code: error.code,
+        errors: error.errors,
+        stack: error.stack,
+      });
       
       if (error.name === 'ZodError') {
         return res.status(400).json({ 
@@ -226,9 +276,19 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
 
       // Check if it's a Google API error
       if (error.message?.includes('insufficient authentication scopes')) {
+        console.error('❌ Insufficient authentication scopes - user needs to reconnect');
         return res.status(403).json({
           error: 'Missing Gmail permission',
           message: 'Please reconnect your Google account with Gmail send permission',
+        });
+      }
+
+      // Check for token/auth errors
+      if (error.message?.includes('invalid_grant') || error.message?.includes('Token has been expired or revoked')) {
+        console.error('❌ Token expired or revoked - user needs to reconnect');
+        return res.status(401).json({
+          error: 'Authentication expired',
+          message: 'Please reconnect your Google account in Settings → Integrations',
         });
       }
 
