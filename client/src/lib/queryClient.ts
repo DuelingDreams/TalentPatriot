@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { isPermissionError } from "./db";
+import { supabase } from "./supabase";
 
 // Type guard for HTTP errors
 function isHttpError(error: unknown): error is Error & { status?: number, message: string } {
@@ -96,9 +97,21 @@ export async function apiRequest<T = unknown>(
   
   const currentUserId = getCurrentUserId();
   
+  // Get Supabase session token for authentication
+  let authToken: string | null = null;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      authToken = session.access_token;
+    }
+  } catch (error) {
+    console.warn('Failed to get Supabase session for API request:', error);
+  }
+  
   try {
     const headers: Record<string, string> = {
       ...(body ? { "Content-Type": "application/json" } : {}),
+      ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
       ...(currentOrgId ? { "x-org-id": currentOrgId } : {}),
       ...(currentUserId ? { "x-user-id": currentUserId } : {}),
       ...customHeaders // Merge in any custom headers (like Authorization)
@@ -213,6 +226,17 @@ export const getQueryFn = <T = unknown>(options: {
       
       const currentUserId = getCurrentUserId();
       
+      // Get Supabase session token for authentication
+      let authToken: string | null = null;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          authToken = session.access_token;
+        }
+      } catch (error) {
+        console.warn('Failed to get Supabase session for query:', error);
+      }
+      
       // Add organization ID as query parameter for data fetching operations
       if (currentOrgId && (url.includes('/api/jobs') || url.includes('/api/candidates') || url.includes('/api/clients'))) {
         const separator = url.includes('?') ? '&' : '?';
@@ -220,6 +244,7 @@ export const getQueryFn = <T = unknown>(options: {
       }
 
       const headers: Record<string, string> = {
+        ...(authToken ? { "Authorization": `Bearer ${authToken}` } : {}),
         ...(currentOrgId ? { "x-org-id": currentOrgId } : {}),
         ...(currentUserId ? { "x-user-id": currentUserId } : {})
       };
