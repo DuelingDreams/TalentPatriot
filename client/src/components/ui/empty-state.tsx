@@ -22,21 +22,21 @@ export function EmptyState({
   className = '' 
 }: EmptyStateProps) {
   return (
-    <Card className={`rounded-2xl shadow-sm ${className}`}>
+    <Card className={className}>
       <CardContent className="flex flex-col items-center justify-center py-12 px-6 text-center">
-        <div className="w-16 h-16 bg-contrast rounded-2xl flex items-center justify-center mb-6">
-          <Icon className="w-8 h-8 text-primary/60" />
+        <div className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center mb-6">
+          <Icon className="w-8 h-8 text-blue-600" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
           {title}
         </h3>
-        <p className="text-base text-gray-700 mb-6 max-w-md">
+        <p className="text-sm text-gray-600 mb-6 max-w-md">
           {description}
         </p>
         {action && (
           <Button 
             onClick={action.onClick}
-            className="bg-primary text-white py-2 px-4 rounded-2xl shadow-sm hover:shadow-lg transition-shadow"
+            className="shadow-sm hover:shadow-md transition-shadow"
           >
             {action.label}
           </Button>
