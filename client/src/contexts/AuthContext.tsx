@@ -35,19 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Enhanced auth initialization with development mode support
     const initAuth = async () => {
       try {
-        // In development, ALWAYS set up dev auth first as a fallback
-        if (isDevelopment()) {
-          setDevelopmentAuth('hildebrand')
-          const devAuth = getDevelopmentAuth()
-          if (devAuth && mounted) {
-            console.log('[Auth] Pre-loading development auth:', devAuth.user.email)
-            setUser(devAuth.user as any)
-            setUserRole(devAuth.userRole)
-            setCurrentOrgIdState(devAuth.orgId)
-          }
-        }
-
-        // Get initial session from Supabase (will override dev auth if present)
+        // FIRST: Check for real Supabase session (production or real test users)
         const { data: { session } } = await supabase.auth.getSession()
 
         if (!mounted) return
