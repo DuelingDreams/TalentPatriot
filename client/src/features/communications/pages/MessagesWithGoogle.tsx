@@ -213,6 +213,11 @@ export default function Messages() {
   }
 
   const handleProposeTimes = async () => {
+    if (!googleStatus?.connected) {
+      alert('Please connect your Google account first (Settings → Integrations)')
+      return
+    }
+
     console.log('Opening availability picker...')
     
     // Fetch user's availability for the next 7 days
@@ -224,11 +229,56 @@ export default function Messages() {
       const response = await apiRequest(
         `/api/google/freebusy?start=${start.toISOString()}&end=${end.toISOString()}`,
         { method: 'GET' }
-      ) as { success: boolean; busy?: any[] }
+      ) as { success: boolean; busy?: any[]; timeMin?: string; timeMax?: string }
       
       console.log('FreeBusy data:', response)
-      // TODO: Open AvailabilityDrawer component with this data
-      alert(`Found ${response.busy?.length || 0} busy time slots. Availability picker UI coming soon!`)
+      
+      // Calculate free time slots (9 AM - 5 PM on weekdays)
+      const busySlots = response.busy || []
+      const freeSlots: string[] = []
+      
+      // Generate business hours for next 5 weekdays
+      for (let day = 1; day <= 5; day++) {
+        const currentDay = new Date()
+        currentDay.setDate(currentDay.getDate() + day)
+        
+        // Skip weekends
+        if (currentDay.getDay() === 0 || currentDay.getDay() === 6) continue
+        
+        // Suggest 10 AM, 2 PM, 4 PM slots
+        const slots = ['10:00', '14:00', '16:00']
+        slots.forEach(time => {
+          const [hour, minute] = time.split(':')
+          const slotTime = new Date(currentDay)
+          slotTime.setHours(parseInt(hour), parseInt(minute), 0, 0)
+          
+          // Check if slot is free
+          const isBusy = busySlots.some((busy: any) => {
+            const busyStart = new Date(busy.start)
+            const busyEnd = new Date(busy.end)
+            return slotTime >= busyStart && slotTime < busyEnd
+          })
+          
+          if (!isBusy) {
+            freeSlots.push(slotTime.toLocaleString('en-US', { 
+              weekday: 'short', 
+              month: 'short', 
+              day: 'numeric', 
+              hour: 'numeric', 
+              minute: '2-digit' 
+            }))
+          }
+        })
+      }
+      
+      if (freeSlots.length > 0) {
+        const proposedTimes = freeSlots.slice(0, 3).join('\n• ')
+        const newMessage = emailForm.message + `\n\nI'm available at the following times:\n• ${proposedTimes}\n\nPlease let me know which time works best for you.`
+        setEmailForm(prev => ({ ...prev, message: newMessage }))
+        alert(`Added ${freeSlots.length} available time slots to your email!`)
+      } else {
+        alert('No available time slots found in the next 5 business days.')
+      }
     } catch (error: any) {
       console.error('Failed to fetch availability:', error)
       alert('Failed to fetch availability. Please ensure your Google account is connected.')
@@ -236,33 +286,81 @@ export default function Messages() {
   }
 
   const handleAddCalendarInvite = async () => {
+    if (!googleStatus?.connected) {
+      alert('Please connect your Google account first (Settings → Integrations)')
+      return
+    }
+
+    if (!emailForm.to) {
+      alert('Please enter a recipient email address first')
+      return
+    }
+
     console.log('Adding calendar invite...')
     
-    // Prompt user for meeting time (for now, create tomorrow at 2 PM)
-    const tomorrow = new Date()
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    tomorrow.setHours(14, 0, 0, 0)
-    const oneHourLater = new Date(tomorrow.getTime() + 60 * 60 * 1000)
+    // Prompt user for meeting date and time
+    const dateInput = prompt('Enter meeting date (YYYY-MM-DD) or leave blank for tomorrow:', '')
+    const timeInput = prompt('Enter meeting time (HH:MM in 24-hour format, e.g., 14:00):', '14:00')
+    
+    if (timeInput === null) return // User cancelled
+    
+    // Parse date
+    let meetingDate: Date
+    if (!dateInput || dateInput.trim() === '') {
+      // Default to tomorrow
+      meetingDate = new Date()
+      meetingDate.setDate(meetingDate.getDate() + 1)
+    } else {
+      meetingDate = new Date(dateInput)
+      if (isNaN(meetingDate.getTime())) {
+        alert('Invalid date format. Please use YYYY-MM-DD')
+        return
+      }
+    }
+    
+    // Parse time
+    const [hours, minutes] = (timeInput || '14:00').split(':').map(Number)
+    if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+      alert('Invalid time format. Please use HH:MM (e.g., 14:00)')
+      return
+    }
+    
+    meetingDate.setHours(hours, minutes, 0, 0)
+    const oneHourLater = new Date(meetingDate.getTime() + 60 * 60 * 1000)
     
     try {
       const response = await apiRequest('/api/google/meet', {
         method: 'POST',
         body: JSON.stringify({
-          summary: emailForm.subject || 'Calendar Event',
+          summary: emailForm.subject || 'Meeting',
           description: emailForm.message || '',
-          start: tomorrow.toISOString(),
+          start: meetingDate.toISOString(),
           end: oneHourLater.toISOString(),
-          attendees: emailForm.to ? [emailForm.to] : [],
+          attendees: [emailForm.to],
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       }) as { success: boolean; meetUrl?: string; eventId?: string }
       
       if (response.meetUrl) {
         // Add calendar invite info to email
+        const formattedDate = meetingDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          month: 'long', 
+          day: 'numeric', 
+          year: 'numeric' 
+        })
+        const formattedTime = meetingDate.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          timeZoneName: 'short'
+        })
+        
         setEmailForm(prev => ({
           ...prev,
-          message: prev.message + `\n\nCalendar invite sent for ${tomorrow.toLocaleDateString()} at 2:00 PM\nJoin meeting: ${response.meetUrl}`,
+          message: prev.message + `\n\n📅 Calendar Invite: ${formattedDate} at ${formattedTime}\n🔗 Google Meet: ${response.meetUrl}`,
         }))
+        
+        alert(`Calendar invite created successfully!\nMeeting: ${formattedDate} at ${formattedTime}`)
         console.log('Calendar invite created:', response)
       }
     } catch (error: any) {
@@ -272,20 +370,26 @@ export default function Messages() {
   }
 
   const handleCreateVideo = async () => {
+    if (!googleStatus?.connected) {
+      alert('Please connect your Google account first (Settings → Integrations)')
+      return
+    }
+
     console.log('Creating Google Meet link...')
     
-    // Create a 1-hour meeting starting now
+    // Create a 1-hour meeting starting in 5 minutes
     const now = new Date()
-    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000)
+    const startTime = new Date(now.getTime() + 5 * 60 * 1000) // Start in 5 minutes
+    const endTime = new Date(startTime.getTime() + 60 * 60 * 1000) // 1 hour duration
     
     try {
       const response = await apiRequest('/api/google/meet', {
         method: 'POST',
         body: JSON.stringify({
-          summary: emailForm.subject || 'Meeting',
+          summary: emailForm.subject || 'Quick Meeting',
           description: emailForm.message || '',
-          start: now.toISOString(),
-          end: oneHourLater.toISOString(),
+          start: startTime.toISOString(),
+          end: endTime.toISOString(),
           attendees: emailForm.to ? [emailForm.to] : [],
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
@@ -295,8 +399,9 @@ export default function Messages() {
         // Add Meet link to email body
         setEmailForm(prev => ({
           ...prev,
-          message: prev.message + `\n\nJoin meeting: ${response.meetUrl}`,
+          message: prev.message + `\n\n🎥 Google Meet Link: ${response.meetUrl}\n\nMeeting starts in 5 minutes.`,
         }))
+        alert(`Google Meet link created!\n${response.meetUrl}`)
         console.log('Google Meet created:', response.meetUrl)
       }
     } catch (error: any) {
