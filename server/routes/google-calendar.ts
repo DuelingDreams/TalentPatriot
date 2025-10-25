@@ -191,6 +191,7 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         connected: !!account && account.isActive,
         email: account?.providerEmail || null,
         scopes: account?.scopes || [],
+        connectedAt: account?.connectedAt || null,
       });
     } catch (error: any) {
       console.error('Error checking connection status:', error);
