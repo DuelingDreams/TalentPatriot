@@ -156,6 +156,7 @@ export async function storeOAuthTokens(
       scopes: [
         'calendar',
         'calendar.events',
+        'gmail.send',
         'userinfo.email',
         'userinfo.profile',
       ],

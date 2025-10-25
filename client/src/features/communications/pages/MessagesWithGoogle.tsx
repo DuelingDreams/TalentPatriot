@@ -137,7 +137,19 @@ export default function Messages() {
     }
 
     try {
-      // Create message record in database
+      // Send email via Gmail API
+      const response = await apiRequest('/api/google/send-email', {
+        method: 'POST',
+        body: JSON.stringify({
+          to: emailForm.to,
+          subject: emailForm.subject,
+          body: emailForm.message,
+        }),
+      }) as { success: boolean; messageId: string; threadId: string; from: string }
+
+      console.log('✅ Email sent successfully:', response)
+
+      // Create message record in database for tracking
       await apiRequest('/api/messages', {
         method: 'POST',
         body: JSON.stringify({
@@ -148,24 +160,19 @@ export default function Messages() {
           priority: 'normal',
           subject: emailForm.subject,
           content: emailForm.message,
-          is_read: false,
+          is_read: true, // Sent emails are already "read"
           is_archived: false,
-          // Note: recipient_id expects UUID, for now storing email address
-          // TODO: Map email to actual user UUID or create separate recipient_email field
-          external_message_id: emailForm.to, // Store email address temporarily
+          external_message_id: response.messageId, // Store Gmail message ID
+          thread_id: response.threadId, // Store Gmail thread ID for conversation tracking
         }),
       })
-
-      // TODO: Actually send email via Gmail API using googleapis package
-      // This would require implementing Gmail.users.messages.send()
-      // For now, message is saved to database for tracking
-      console.log('Message saved. Email to:', emailForm.to)
       
       setEmailForm({ to: '', subject: '', message: '' })
-      alert('Message saved! (Gmail API sending coming soon)')
+      alert(`Email sent successfully from ${response.from} to ${emailForm.to}!`)
     } catch (error: any) {
       console.error('Failed to send email:', error)
-      alert('Failed to send email. Please try again.')
+      const errorMessage = error.message || 'Failed to send email. Please try again.'
+      alert(errorMessage)
     }
   }
 

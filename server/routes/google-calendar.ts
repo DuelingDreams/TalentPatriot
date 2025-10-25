@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { z } from 'zod';
 import { createCalendarEvent, getFreeBusy } from '../integrations/google/calendar-client';
+import { sendEmail } from '../integrations/google/gmail-client';
 import { getValidAccessToken } from '../integrations/google/token-manager';
 import { extractAuthUser, requireAuth, requireOrgContext, type AuthenticatedRequest } from '../middleware/auth';
 import type { IStorage } from '../storage';
@@ -18,6 +19,12 @@ const freeBusySchema = z.object({
   start: z.string().datetime(),
   end: z.string().datetime(),
   timezone: z.string().optional(),
+});
+
+const sendEmailSchema = z.object({
+  to: z.string().email('Invalid recipient email'),
+  subject: z.string().min(1, 'Subject is required'),
+  body: z.string().min(1, 'Email body is required'),
 });
 
 export function createGoogleCalendarRoutes(storage: IStorage) {
@@ -161,6 +168,74 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
     } catch (error: any) {
       console.error('Error checking connection status:', error);
       res.json({ connected: false, error: error.message });
+    }
+  });
+
+  /**
+   * POST /api/google/send-email
+   * Send an email using Gmail API
+   */
+  router.post('/send-email', requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      // Get userId and orgId from authenticated session
+      const userId = req.user!.id;
+      const orgId = req.user!.orgId!;
+
+      // Validate request body
+      const validatedData = sendEmailSchema.parse(req.body);
+
+      // Get connected account to retrieve email
+      const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+      if (!account || !account.isActive) {
+        return res.status(403).json({
+          error: 'Google account not connected',
+          message: 'Please connect your Google account in Settings → Integrations'
+        });
+      }
+
+      // Get valid access token (automatically refreshes if expired)
+      const { accessToken } = await getValidAccessToken(storage, userId, orgId);
+
+      // Send email via Gmail API
+      const result = await sendEmail(accessToken, {
+        to: validatedData.to,
+        subject: validatedData.subject,
+        body: validatedData.body,
+        from: account.providerEmail || undefined, // Use the connected Google account email
+      });
+
+      console.log(`✅ Email sent from ${account.providerEmail} to ${validatedData.to} (Message ID: ${result.id})`);
+
+      res.status(200).json({
+        success: true,
+        messageId: result.id,
+        threadId: result.threadId,
+        from: account.providerEmail,
+        to: validatedData.to,
+        subject: validatedData.subject,
+      });
+    } catch (error: any) {
+      console.error('Error sending email via Gmail API:', error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Invalid request data',
+          details: error.errors 
+        });
+      }
+
+      // Check if it's a Google API error
+      if (error.message?.includes('insufficient authentication scopes')) {
+        return res.status(403).json({
+          error: 'Missing Gmail permission',
+          message: 'Please reconnect your Google account with Gmail send permission',
+        });
+      }
+
+      res.status(500).json({ 
+        error: 'Failed to send email',
+        message: error.message 
+      });
     }
   });
 
