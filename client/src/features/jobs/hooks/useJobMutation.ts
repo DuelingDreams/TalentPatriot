@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { apiRequest } from '@/lib/queryClient'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
-import { InsertJob, Job } from '../../../shared/schema'
+import { InsertJob, Job } from '@shared/schema'
 
 export function useJobsQuery() {
   const { currentOrgId } = useAuth()

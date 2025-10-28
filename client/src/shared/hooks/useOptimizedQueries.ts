@@ -1,6 +1,7 @@
 // Optimized query hooks with performance improvements
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
 
 // OPTIMIZED dashboard query with 80% faster performance using cached analytics
 export function useOptimizedDashboard(orgId?: string) {
@@ -10,7 +11,20 @@ export function useOptimizedDashboard(orgId?: string) {
     queryKey: ["/api/dashboard/stats", orgId, user?.id],
     queryFn: async () => {
       if (!orgId) throw new Error('Organization ID required');
-      const response = await fetch(`/api/dashboard/stats?org_id=${orgId}`);
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
+      const response = await fetch(`/api/dashboard/stats?org_id=${orgId}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch dashboard stats');
       return response.json();
     },
@@ -56,9 +70,21 @@ export function useOptimizedSkillsSearch(orgId: string, skills: string[]) {
     queryKey: ["/api/search/candidates/by-skills", orgId, skills, user?.id],
     queryFn: async () => {
       if (!orgId || !skills.length) throw new Error('Organization ID and skills required');
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const response = await fetch('/api/search/candidates/by-skills', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
         body: JSON.stringify({ orgId, skills })
       });
       if (!response.ok) throw new Error('Failed to search candidates by skills');
@@ -79,7 +105,20 @@ export function useOptimizedSkillsAnalytics(orgId?: string, limit: number = 10) 
     queryKey: ["/api/analytics/skills", orgId, limit, user?.id],
     queryFn: async () => {
       if (!orgId) throw new Error('Organization ID required');
-      const response = await fetch(`/api/analytics/skills?org_id=${orgId}&limit=${limit}`);
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
+      const response = await fetch(`/api/analytics/skills?org_id=${orgId}&limit=${limit}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
       if (!response.ok) throw new Error('Failed to fetch skills analytics');
       return response.json();
     },
@@ -116,8 +155,21 @@ export function useOptimizedInfiniteQuery(endpoint: string, pageSize = 20) {
   return useQuery({
     queryKey: [endpoint, "infinite", user?.id],
     queryFn: async () => {
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const response = await fetch(
-        `${endpoint}?offset=0&limit=${pageSize}`
+        `${endpoint}?offset=0&limit=${pageSize}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        }
       );
       return response.json();
     },

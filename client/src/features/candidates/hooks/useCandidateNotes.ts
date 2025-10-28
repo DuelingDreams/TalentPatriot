@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { CandidateNotes, InsertCandidateNotes } from '@shared/schema'
 import { apiRequest } from '@/lib/queryClient'
+import { supabase } from '@/lib/supabase'
 
 // Extended type to include authorEmail that gets enriched by storage layer
 export type EnrichedCandidateNotes = CandidateNotes & {
@@ -11,7 +12,19 @@ export function useCandidateNotes(jobCandidateId: string) {
   return useQuery({
     queryKey: ['/api/candidate-notes', jobCandidateId],
     queryFn: async () => {
-      const response = await fetch(`/api/candidate-notes?jobCandidateId=${jobCandidateId}`)
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
+      const response = await fetch(`/api/candidate-notes?jobCandidateId=${jobCandidateId}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch candidate notes')
       }
@@ -92,7 +105,19 @@ export function useBatchedCandidateNotes(jobCandidateIds: string[]) {
 
       console.log('[useBatchedCandidateNotes] Fetching notes for', jobCandidateIds.length, 'candidates');
       
-      const response = await fetch(`/api/candidate-notes/batch?jobCandidateIds=${jobCandidateIds.join(',')}`)
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
+      const response = await fetch(`/api/candidate-notes/batch?jobCandidateIds=${jobCandidateIds.join(',')}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch batched candidate notes')
       }

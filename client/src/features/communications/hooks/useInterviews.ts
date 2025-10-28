@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { Interview, InsertInterview } from '@shared/schema'
+import { supabase } from '@/lib/supabase'
 
 export function useInterviews(orgId?: string) {
   return useQuery({
@@ -8,7 +9,19 @@ export function useInterviews(orgId?: string) {
       const params = new URLSearchParams()
       if (orgId) params.append('orgId', orgId)
       
-      const response = await fetch(`/api/interviews?${params}`)
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
+      const response = await fetch(`/api/interviews?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch interviews')
       }
@@ -22,7 +35,19 @@ export function useInterviewsByJobCandidate(jobCandidateId: string) {
   return useQuery({
     queryKey: ['/api/interviews', 'job-candidate', jobCandidateId],
     queryFn: async () => {
-      const response = await fetch(`/api/interviews/job-candidate/${jobCandidateId}`)
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
+      const response = await fetch(`/api/interviews/job-candidate/${jobCandidateId}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch interviews')
       }
@@ -37,10 +62,19 @@ export function useCreateInterview() {
   
   return useMutation({
     mutationFn: async (interview: InsertInterview) => {
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const response = await fetch('/api/interviews', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify(interview),
       })
@@ -67,10 +101,19 @@ export function useUpdateInterview() {
   
   return useMutation({
     mutationFn: async ({ id, interview }: { id: string; interview: Partial<InsertInterview> }) => {
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const response = await fetch(`/api/interviews/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify(interview),
       })
