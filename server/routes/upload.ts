@@ -367,6 +367,8 @@ router.post('/resume/signed-url', async (req, res) => {
   try {
     const { storagePath } = req.body
 
+    console.log(`[SIGNED-URL] Requesting signed URL for path: "${storagePath}"`)
+
     if (!storagePath) {
       return res.status(400).json({
         error: 'Invalid request',
@@ -377,10 +379,24 @@ router.post('/resume/signed-url', async (req, res) => {
     // Validate storagePath format: {orgId}/{jobId}/resume_{id}.{ext} or {orgId}/resume_{id}.{ext}
     const pathParts = storagePath.split('/')
     if (pathParts.length < 2) {
+      console.error(`[SIGNED-URL] Invalid path format. Parts: ${JSON.stringify(pathParts)}`)
       return res.status(400).json({
         error: 'Invalid storage path',
         message: 'Storage path format is invalid'
       })
+    }
+
+    // Check if file exists first
+    const { data: listData, error: listError } = await supabase.storage
+      .from('resumes')
+      .list(pathParts[0], {
+        search: pathParts.slice(1).join('/')
+      })
+
+    if (listError) {
+      console.error(`[SIGNED-URL] Error checking file existence:`, listError)
+    } else {
+      console.log(`[SIGNED-URL] Files found in ${pathParts[0]}:`, listData?.map(f => f.name))
     }
 
     // Generate signed URL (24 hours)
@@ -389,12 +405,14 @@ router.post('/resume/signed-url', async (req, res) => {
       .createSignedUrl(storagePath, 86400) // 24 hour expiry
 
     if (error) {
-      console.error('Failed to create signed URL:', error)
+      console.error(`[SIGNED-URL] Failed to create signed URL for "${storagePath}":`, error)
       return res.status(500).json({
         error: 'Failed to generate URL',
-        message: 'Could not generate signed URL for resume'
+        message: 'File not found in storage. The resume may have been deleted or never uploaded.'
       })
     }
+
+    console.log(`[SIGNED-URL] Successfully generated signed URL for "${storagePath}"`)
 
     res.json({
       success: true,
@@ -403,7 +421,7 @@ router.post('/resume/signed-url', async (req, res) => {
     })
 
   } catch (error) {
-    console.error('Signed URL generation error:', error)
+    console.error('[SIGNED-URL] Signed URL generation error:', error)
     res.status(500).json({
       error: 'Failed to generate URL',
       message: error instanceof Error ? error.message : 'Internal server error'
