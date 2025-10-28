@@ -5,6 +5,7 @@ import { apiRequest } from '@/lib/queryClient'
 import { useDemoFlag } from '@/lib/demoFlag'
 import { demoAdapter } from '@/lib/dataAdapter'
 import { InsertJob, Job } from '@shared/schema'
+import { supabase } from '@/lib/supabase'
 
 export function useJobsQuery() {
   const { currentOrgId } = useAuth()
@@ -13,7 +14,20 @@ export function useJobsQuery() {
     queryKey: ['/api/jobs', currentOrgId],
     queryFn: async () => {
       if (!currentOrgId) throw new Error('Organization ID is required')
-      const res = await fetch(`/api/jobs?orgId=${encodeURIComponent(currentOrgId)}`)
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
+      const res = await fetch(`/api/jobs?orgId=${encodeURIComponent(currentOrgId)}`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      })
       if (!res.ok) throw new Error('Failed to load jobs')
       return res.json()
     },
@@ -27,10 +41,20 @@ export function useCreateJob() {
     mutationFn: async (payload: any) => {
       if (!currentOrgId) throw new Error('Organization ID is required')
       if (!user?.id) throw new Error('User authentication required')
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const res = await fetch('/api/jobs', {
         method: 'POST',
         headers: { 
-          'Content-Type': 'application/json', 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
           'x-org-id': currentOrgId,
           'x-user-id': user.id
         },
@@ -116,9 +140,19 @@ export function usePublishJob() {
     mutationFn: async (jobId: string) => {
       if (!currentOrgId) throw new Error('Organization ID is required')
       if (!user?.id) throw new Error('User authentication required')
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const res = await fetch(`/api/jobs/${jobId}/publish`, {
         method: 'POST',
-        headers: { 
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
           'x-org-id': currentOrgId,
           'x-user-id': user.id
         },
@@ -145,11 +179,21 @@ export function useUpdateJob() {
     mutationFn: async (jobData: Partial<Job> & { id: string }) => {
       if (!currentOrgId) throw new Error('Organization ID is required')
       if (!user?.id) throw new Error('User authentication required')
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const { id, ...updateData } = jobData
       const res = await fetch(`/api/jobs/${id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
           'x-org-id': currentOrgId,
           'x-user-id': user.id
         },
@@ -185,9 +229,21 @@ export function useDeleteJob() {
     mutationFn: async (jobId: string) => {
       if (!currentOrgId) throw new Error('Organization ID is required')
       if (!user?.id) throw new Error('User authentication required')
+      
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       const res = await fetch(`/api/jobs/${jobId}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
       })
       if (!res.ok) {
         const error = await res.json()

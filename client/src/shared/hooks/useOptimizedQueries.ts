@@ -136,9 +136,21 @@ export function useOptimizedBatchQuery(resources: string[]) {
   return useQuery({
     queryKey: ["/api/batch", resources, user?.id],
     queryFn: async () => {
+      // Get authentication token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      if (!authToken) {
+        throw new Error('Authentication required')
+      }
+      
       // Batch multiple API calls into one
       const promises = resources.map(resource => 
-        fetch(`/api/${resource}`).then(r => r.json())
+        fetch(`/api/${resource}`, {
+          headers: {
+            'Authorization': `Bearer ${authToken}`
+          }
+        }).then(r => r.json())
       );
       return Promise.all(promises);
     },
