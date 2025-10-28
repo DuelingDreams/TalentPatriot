@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Upload, X, FileText, CheckCircle, AlertCircle, Eye, Download, Loader2 } from 'lucide-react'
 import { useToast } from '@/shared/hooks/use-toast'
 import { useDemoFlag } from '@/lib/demoFlag'
+import { useAuth } from '@/contexts/AuthContext'
 import { apiRequest } from '@/lib/queryClient'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -51,6 +52,7 @@ export function ResumeUpload({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
   const { isDemoUser } = useDemoFlag()
+  const { session } = useAuth()
 
   const validateFile = (file: File): string | null => {
     if (!acceptedFileTypes.includes(file.type)) {
@@ -117,8 +119,18 @@ export function ResumeUpload({
     formData.append('candidateId', candidateId)
     formData.append('orgId', orgId)  // Required for secure storage
 
+    // Get authentication token from session
+    const authToken = session?.access_token
+
+    if (!authToken) {
+      throw new Error('Authentication required. Please sign in again.')
+    }
+
     const response = await fetch('/api/upload/resume', {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      },
       body: formData
     })
 
@@ -129,13 +141,17 @@ export function ResumeUpload({
 
     const result = await response.json()
     
-    // Update candidate record with new resume URL
+    // Store the STORAGE PATH (filename), not the signed URL
+    // Signed URLs expire after 24 hours, but storage paths never expire
+    // We'll generate fresh signed URLs on-demand when viewing/downloading
+    const storagePath = result.filename
+    
     await apiRequest(`/api/candidates/${candidateId}`, {
       method: 'PUT',
-      body: JSON.stringify({ resumeUrl: result.fileUrl }),
+      body: JSON.stringify({ resumeUrl: storagePath }),
     })
     
-    return result.fileUrl
+    return storagePath
   }
 
   const uploadFile = async (file: File) => {
@@ -275,20 +291,99 @@ export function ResumeUpload({
     }
   }
 
-  const handleViewResume = () => {
-    if (uploadedFile) {
-      window.open(uploadedFile, '_blank')
+  const handleViewResume = async () => {
+    if (!uploadedFile) return
+
+    try {
+      // Extract storage path from URL if needed
+      let storagePath = uploadedFile
+      
+      // If it's a Supabase signed URL (contains /object/sign/), extract the path
+      if (uploadedFile.includes('/object/sign/')) {
+        const pathMatch = uploadedFile.match(/\/object\/sign\/resumes\/(.+?)\?/)
+        if (pathMatch && pathMatch[1]) {
+          storagePath = decodeURIComponent(pathMatch[1])
+        }
+      } else if (uploadedFile.startsWith('http')) {
+        // Other HTTP URLs might be old signed URLs - try to extract path from end
+        const urlParts = uploadedFile.split('/resumes/')
+        if (urlParts[1]) {
+          storagePath = urlParts[1].split('?')[0]
+        }
+      }
+
+      // Always generate a fresh signed URL (they expire after 24 hours)
+      const response = await fetch('/api/upload/resume/signed-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ storagePath })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate viewing URL')
+      }
+
+      const result = await response.json()
+      window.open(result.signedUrl, '_blank')
+    } catch (err) {
+      toast({
+        title: "View failed",
+        description: err instanceof Error ? err.message : "Failed to open resume",
+        variant: "destructive"
+      })
     }
   }
 
-  const handleDownloadResume = () => {
-    if (uploadedFile) {
+  const handleDownloadResume = async () => {
+    if (!uploadedFile) return
+
+    try {
+      // Extract storage path from URL if needed
+      let storagePath = uploadedFile
+      
+      // If it's a Supabase signed URL (contains /object/sign/), extract the path
+      if (uploadedFile.includes('/object/sign/')) {
+        const pathMatch = uploadedFile.match(/\/object\/sign\/resumes\/(.+?)\?/)
+        if (pathMatch && pathMatch[1]) {
+          storagePath = decodeURIComponent(pathMatch[1])
+        }
+      } else if (uploadedFile.startsWith('http')) {
+        // Other HTTP URLs might be old signed URLs - try to extract path from end
+        const urlParts = uploadedFile.split('/resumes/')
+        if (urlParts[1]) {
+          storagePath = urlParts[1].split('?')[0]
+        }
+      }
+
+      // Always generate a fresh signed URL (they expire after 24 hours)
+      const response = await fetch('/api/upload/resume/signed-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ storagePath })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate download URL')
+      }
+
+      const result = await response.json()
+      
       const link = document.createElement('a')
-      link.href = uploadedFile
-      link.download = uploadedFile.split('/').pop() || `${candidateName}_Resume`
+      link.href = result.signedUrl
+      link.download = storagePath.split('/').pop() || `${candidateName}_Resume`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+    } catch (err) {
+      toast({
+        title: "Download failed",
+        description: err instanceof Error ? err.message : "Failed to download resume",
+        variant: "destructive"
+      })
     }
   }
 
