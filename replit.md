@@ -67,3 +67,12 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - Database tables: `connected_accounts` (encrypted refresh tokens), `calendar_events`, `message_threads`.
 - Security features: HMAC-signed state, signed HTTP-only cookies, AES-256-GCM encryption for refresh tokens, PBKDF2 key derivation.
 - OAuth Scopes: `calendar`, `calendar.events`, `userinfo.email`, `userinfo.profile`.
+
+# Recent Production Fixes (November 2, 2025)
+
+## Critical Authentication Fixes
+- **Fixed Messages Page Error**: Resolved component loading failure by adding proper authentication timing and error handling to Google connection status queries.
+- **Fixed Error Boundary Reload**: Updated error boundary to clear session storage and force hard reload, resolving stuck error pages.
+- **Fixed Message Hooks Authentication**: Migrated all message-related hooks (useMessages, useUnreadMessageCount, useCreateMessage, useUpdateMessage, useMarkMessageAsRead, useArchiveMessage) from bare fetch to apiRequest with proper Bearer token authentication.
+- **Added Graceful Error Handling**: All API hooks now return safe defaults instead of throwing errors, preventing component crashes.
+- **Architecture Pattern**: Established consistent authentication pattern using apiRequest helper across all protected API endpoints.
