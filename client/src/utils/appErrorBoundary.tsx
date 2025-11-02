@@ -171,7 +171,19 @@ export class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorB
   }
 
   private handleReload = () => {
-    window.location.reload()
+    // Clear session storage to reset any cached state
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        // Clear error history to prevent error loops
+        sessionStorage.removeItem(ERROR_STORAGE_KEY);
+        console.log('[ErrorBoundary] Cleared error history before reload');
+      } catch (e) {
+        console.warn('[ErrorBoundary] Could not clear session storage:', e);
+      }
+    }
+    // Force hard reload to bypass any cached modules
+    // Using href = href instead of reload() to ensure complete page refresh
+    window.location.href = window.location.href;
   }
 
   private handleGoHome = () => {

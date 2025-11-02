@@ -36,13 +36,23 @@ export default function Messages() {
   const { data: unreadData } = useUnreadMessageCount(user?.id)
   const unreadCount = unreadData?.count || 0
 
-  // Check if Google is connected
-  const { data: googleStatus } = useQuery({
+  // Check if Google is connected - only when user is authenticated
+  const { data: googleStatus, error: googleStatusError } = useQuery({
     queryKey: ['/api/google/connection-status'],
     queryFn: async () => {
-      const response = await apiRequest('/api/google/connection-status')
-      return response as { connected: boolean; email?: string }
+      try {
+        const response = await apiRequest('/api/google/connection-status')
+        return response as { connected: boolean; email?: string }
+      } catch (error) {
+        console.warn('[Messages] Google connection status check failed:', error);
+        // Return a safe default instead of throwing
+        return { connected: false, email: undefined };
+      }
     },
+    enabled: !!user?.id, // Only query when user is authenticated
+    retry: 2, // Retry failed requests up to 2 times
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   })
 
   const [composeTab, setComposeTab] = useState<'internal' | 'email' | 'client_portal'>('internal')
