@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { MessageSquare, Clock, User, ArrowUp, ArrowDown, Archive, Eye, EyeOff } from 'lucide-react'
 import { useMessages, useMarkMessageAsRead, useArchiveMessage } from '@/features/communications/hooks/useMessages'
 import { useAuth } from '@/contexts/AuthContext'
-import { format } from 'date-fns'
+import { format, isValid } from 'date-fns'
 import type { Message } from '@/../../shared/schema'
 import { VirtualizedMessagesList } from '@/components/performance/VirtualizedMessagesList'
 
@@ -19,6 +19,30 @@ interface MessagesListProps {
     candidateId?: string
   }
   messages?: Message[]  // Allow parent to provide pre-filtered messages
+}
+
+// Helper function to safely format dates
+function safeFormatDate(dateValue: any, formatStr: string = 'MMM dd, HH:mm'): string {
+  if (!dateValue) return 'Invalid date'
+  
+  const date = new Date(dateValue)
+  if (!isValid(date)) return 'Invalid date'
+  
+  try {
+    return format(date, formatStr)
+  } catch (error) {
+    return 'Invalid date'
+  }
+}
+
+// Helper function to safely parse date for sorting
+function safeParseDate(dateValue: any): number {
+  if (!dateValue) return 0
+  
+  const date = new Date(dateValue)
+  if (!isValid(date)) return 0
+  
+  return date.getTime()
 }
 
 export function MessagesList({ selectedMessage, onMessageSelect, filterContext, messages: propMessages }: MessagesListProps) {
@@ -83,7 +107,7 @@ export function MessagesList({ selectedMessage, onMessageSelect, filterContext, 
       const comparison = priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder]
       return sortOrder === 'asc' ? comparison : -comparison
     } else {
-      const comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      const comparison = safeParseDate(a.createdAt) - safeParseDate(b.createdAt)
       return sortOrder === 'asc' ? comparison : -comparison
     }
   })
@@ -182,7 +206,7 @@ export function MessagesList({ selectedMessage, onMessageSelect, filterContext, 
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
                               <span data-testid={`message-date-${message.id}`}>
-                                {format(new Date(message.createdAt), 'MMM dd, HH:mm')}
+                                {safeFormatDate(message.createdAt)}
                               </span>
                             </span>
                             <Badge variant="outline" className="text-xs" data-testid={`message-type-${message.id}`}>
