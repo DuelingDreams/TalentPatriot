@@ -18,15 +18,15 @@ import type { Message } from '@/../../shared/schema'
 
 // Helper function to safely format dates
 function safeFormatDate(dateValue: any, formatStr: string = 'MMM d, HH:mm'): string {
-  if (!dateValue) return 'Invalid date'
+  if (!dateValue) return 'Date unavailable'
   
   const date = new Date(dateValue)
-  if (!isValid(date)) return 'Invalid date'
+  if (!isValid(date)) return 'Date unavailable'
   
   try {
     return format(date, formatStr)
   } catch (error) {
-    return 'Invalid date'
+    return 'Date unavailable'
   }
 }
 
