@@ -78,7 +78,9 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - **Architecture Pattern**: Established consistent authentication pattern using apiRequest helper across all protected API endpoints.
 
 ## Date Formatting Safety Fixes (Nov 6)
-- **Fixed "Invalid time value" Errors**: Added safe date formatting helpers across all message components to prevent crashes from null/undefined/invalid timestamps.
-- **Components Updated**: MessagesList, VirtualizedMessagesList, Messages page, and ThreadTimeline (Google integration) all now use safeFormatDate() helper.
-- **Consistent UX**: All components now display "Date unavailable" when timestamps are missing or invalid, providing better user experience than crashes.
+- **Fixed "Invalid time value" Errors**: Resolved root cause where CommunicationsRepository returned snake_case field names (created_at, updated_at) from Supabase instead of camelCase (createdAt, updatedAt).
+- **Root Cause Fix**: Added toCamelCase() conversion to all CommunicationsRepository methods (getMessages, getMessage, createMessage, updateMessage, etc.) to transform Supabase responses.
+- **Components Updated**: MessagesList, VirtualizedMessagesList, Messages page, and ThreadTimeline (Google integration) all now use safeFormatDate() helper as defensive fallback.
+- **Consistent UX**: All components now display properly formatted dates ("Oct 29, 03:48") or "Date unavailable" when timestamps are missing/invalid.
 - **Pattern Established**: Created reusable safe date formatting pattern with null checks, date-fns isValid() validation, and try/catch error handling for all date display operations.
+- **Data Verified**: All 8 production messages confirmed to have valid timestamps in Supabase database.
