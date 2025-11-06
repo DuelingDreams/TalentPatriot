@@ -1,0 +1,43 @@
+Error Report - error_1762458645854_pkt0gh17a
+Time: 11/6/2025, 2:50:45 PM
+Category: component
+Message: Invalid time value
+URL: https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/messages
+Session: session_1762458612883_zb4de6x00
+User Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36
+Stack: RangeError: Invalid time value
+    at format (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-WPXOANSE.js?v=a8dbd167:2295:11)
+    at https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/features/communications/components/google/ThreadTimeline.tsx:125:238
+    at Array.map (<anonymous>)
+    at ThreadTimeline (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/features/communications/components/google/ThreadTimeline.tsx:83:212)
+    at renderWithHooks (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NFC5BX5N.js?v=a8dbd167:11548:26)
+    at mountIndeterminateComponent (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NFC5BX5N.js?v=a8dbd167:14926:21)
+    at beginWork (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NFC5BX5N.js?v=a8dbd167:15914:22)
+    at beginWork$1 (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NFC5BX5N.js?v=a8dbd167:19753:22)
+    at performUnitOfWork (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NFC5BX5N.js?v=a8dbd167:19198:20)
+    at workLoopSync (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NFC5BX5N.js?v=a8dbd167:19137:13)
+Component Stack: 
+    at ThreadTimeline (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/features/communications/components/google/ThreadTimeline.tsx:21:34)
+    at div
+    at _c9 (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at main
+    at div
+    at div
+    at DashboardLayout (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/components/layout/DashboardLayout.tsx:22:35)
+    at Messages (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/features/communications/pages/MessagesWithGoogle.tsx:37:44)
+    at ProtectedRoute (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/features/auth/components/ProtectedRoute.tsx:28:5)
+    at Route (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=a8dbd167:323:16)
+    at Switch (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=a8dbd167:379:17)
+    at Suspense
+    at Router (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/App.tsx?v=L5pNM5ABv0tHYDTvXN9qO:167:35)
+    at AppShell (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/AppShell.tsx:41:36)
+    at Provider (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-XOUBXFGS.js?v=a8dbd167:38:15)
+    at TooltipProvider (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=a8dbd167:1091:5)
+    at AuthProvider (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/contexts/AuthContext.tsx:25:32)
+    at QueryClientProvider (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=a8dbd167:2805:3)
+    at AppErrorBoundary (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/utils/appErrorBoundary.tsx:52:5)
+    at App
+    at ErrorBoundary (https://061acb31-8d25-4be4-a4a3-68ea0ac38761-00-288uuze768jrr.riker.replit.dev/src/components/ErrorBoundary.tsx?v=L5pNM5ABv0tHYDTvXN9qO:7:5)

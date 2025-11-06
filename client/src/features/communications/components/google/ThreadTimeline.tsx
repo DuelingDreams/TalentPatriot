@@ -1,7 +1,21 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Mail, Calendar, Video } from "lucide-react";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
+
+// Helper function to safely format dates
+function safeFormatDate(dateValue: any, formatStr: string = 'MMM d, yyyy - h:mm a'): string {
+  if (!dateValue) return 'Date unavailable';
+  
+  const date = new Date(dateValue);
+  if (!isValid(date)) return 'Date unavailable';
+  
+  try {
+    return format(date, formatStr);
+  } catch (error) {
+    return 'Date unavailable';
+  }
+}
 
 interface TimelineEvent {
   id: string;
@@ -94,7 +108,7 @@ export function ThreadTimeline({ events, className }: ThreadTimelineProps) {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mb-2">
-                {format(event.timestamp, 'MMM d, yyyy - h:mm a')}
+                {safeFormatDate(event.timestamp)}
               </p>
 
               {/* Event metadata */}
