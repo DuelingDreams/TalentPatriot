@@ -1,0 +1,64 @@
+tablename,policyname,operation,applies_to,using_clause,with_check_clause
+candidates,candidates_authenticated_consolidated,ALL,{authenticated},(user_has_org_access(org_id) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (status = 'demo'::record_status))),(user_has_org_access(org_id) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))
+candidates,candidates_block_anon_except_insert,ALL,{anon},false,false
+candidates,candidates_anon_insert_for_applications,INSERT,{anon},null,true
+interviews,interviews_authenticated_consolidated,ALL,{authenticated},(is_authenticated() AND ((org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (record_status = 'demo'::record_status)))),(is_authenticated() AND (org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))
+interviews,interviews_public_consolidated,ALL,{public},"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))","(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))"
+job_candidate,job_candidate_authenticated_consolidated,ALL,{authenticated},"((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND ((get_user_role() = ANY (ARRAY['admin'::text, 'recruiter'::text])) OR ((get_user_role() = 'pm'::text) AND (assigned_to = ( SELECT auth.uid() AS uid))) OR (get_user_role() = 'bd'::text) OR ((get_user_role() = 'demo_viewer'::text) AND (status = 'demo'::record_status)) OR is_authenticated()))","((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND ((get_user_role() = ANY (ARRAY['admin'::text, 'recruiter'::text, 'pm'::text])) OR (is_authenticated() AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))))"
+job_candidate,job_candidate_block_anon_except_insert,ALL,{anon},false,false
+job_candidate,job_candidate_anon_insert_public_jobs,INSERT,{anon},null,"(job_id IN ( SELECT jobs.id
+   FROM jobs
+  WHERE ((jobs.status = 'open'::job_status) AND (jobs.public_slug IS NOT NULL) AND (jobs.published_at IS NOT NULL))))"
+job_candidate,job_candidate_secure_select,SELECT,{authenticated},"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+job_candidate,job_candidate_secure_update,UPDATE,{authenticated},"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+jobs,Users can manage jobs in their organizations,ALL,{authenticated},(is_authenticated() AND (org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text)),null
+jobs,Public can read published jobs,SELECT,{anon},((status = 'open'::job_status) AND (published_at IS NOT NULL)),null
+jobs,Public can view open jobs,SELECT,{public},((status = 'open'::job_status) AND (record_status = 'active'::record_status)),null
+jobs,Public can view public jobs,SELECT,{anon},((is_public = true) AND ((record_status IS NULL) OR (record_status <> 'demo'::record_status))),null
+jobs,Users can view jobs in their organizations,SELECT,{authenticated},(is_authenticated() AND ((org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (record_status = 'demo'::record_status)))),null
+jobs,jobs_anon_select_public_only,SELECT,{anon},((status = 'open'::job_status) AND (public_slug IS NOT NULL) AND (published_at IS NOT NULL)),null
+messages,Users can create messages in their organization,INSERT,{public},null,"((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND (sender_id = ( SELECT auth.uid() AS uid)))"
+messages,Users can create messages in their organizations,INSERT,{authenticated},null,(is_authenticated() AND (org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text) AND (sender_id = ( SELECT auth.uid() AS uid)))
+messages,Users can view messages in their organization,SELECT,{public},"((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) OR (sender_id = ( SELECT auth.uid() AS uid)) OR (recipient_id = ( SELECT auth.uid() AS uid)))",null
+messages,Users can view messages in their organizations,SELECT,{authenticated},(is_authenticated() AND ((org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (org_id = '00000000-0000-0000-0000-000000000000'::uuid)))),null
+organizations,block_anon_all_tables,ALL,{anon},false,null
+organizations,block_anon_organizations,ALL,{anon},false,null
+organizations,organizations_simple,ALL,{authenticated},user_has_org_access(id),user_has_org_access(id)
+organizations,Authenticated users can create organizations,INSERT,{public},null,(( SELECT auth.uid() AS uid) = owner_id)
+organizations,Users can create organizations they own,INSERT,{public},null,(( SELECT auth.uid() AS uid) = owner_id)
+organizations,Users can view organizations they belong to,SELECT,{authenticated},(is_authenticated() AND (id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid))))),null
+organizations,Org admins can update organizations,UPDATE,{public},(is_platform_admin() OR is_org_admin(id)),null
+pipeline_columns,Organization admins can manage pipeline columns,ALL,{public},"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'recruiter'::organization_role])))))",null
+pipeline_columns,Users can view pipeline columns for their organization,SELECT,{public},"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+user_organizations,Org admins can manage memberships,ALL,{public},(is_platform_admin() OR is_org_admin(org_id)),null
+user_organizations,block_anon_all_tables,ALL,{anon},false,null
+user_organizations,block_anon_user_organizations,ALL,{anon},false,null
+user_organizations,user_organizations_block_anonymous,ALL,{anon},false,null
+user_organizations,user_organizations_simple,ALL,{authenticated},(user_id = ( SELECT auth.uid() AS uid)),(user_id = ( SELECT auth.uid() AS uid))
+user_organizations,user_organizations_simple_policy,ALL,{authenticated},(user_id = ( SELECT auth.uid() AS uid)),null
+user_organizations,Users can create their membership,INSERT,{public},null,"((( SELECT auth.uid() AS uid) = user_id) OR (( SELECT auth.uid() AS uid) IN ( SELECT organizations.owner_id
+   FROM organizations
+  WHERE (organizations.id = user_organizations.org_id))))"
+user_organizations,Users can view own memberships,SELECT,{public},(( SELECT auth.uid() AS uid) = user_id),null
+user_organizations,Users can view their org memberships,SELECT,{public},(is_platform_admin() OR (user_id = ( SELECT auth.uid() AS uid)) OR is_org_admin(org_id)),null
+user_organizations,Users can view their organization memberships,SELECT,{authenticated},(is_authenticated() AND ((user_id = ( SELECT auth.uid() AS uid)) OR (org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))))),null
