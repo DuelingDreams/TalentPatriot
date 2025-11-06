@@ -84,3 +84,19 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - **Consistent UX**: All components now display properly formatted dates ("Oct 29, 03:48") or "Date unavailable" when timestamps are missing/invalid.
 - **Pattern Established**: Created reusable safe date formatting pattern with null checks, date-fns isValid() validation, and try/catch error handling for all date display operations.
 - **Data Verified**: All 8 production messages confirmed to have valid timestamps in Supabase database.
+
+## RLS Policy Consolidation Plan (Nov 6)
+- **Performance Issue Identified**: Supabase Performance Advisor flagged 62 warnings for "Multiple Permissive Policies" across 6 core tables (jobs, organizations, user_organizations, messages, job_candidate, pipeline_columns).
+- **Root Cause**: Duplicate and overlapping RLS policies from iterative development - 34 policies causing performance degradation as Supabase must evaluate each policy for every query.
+- **Solution Prepared**: Created safe, transaction-wrapped SQL consolidation script that reduces 34 policies to 18 policies while preserving all security logic using OR conditions.
+- **Tables Affected**: 
+  - `jobs`: 6 policies → 3 (4 duplicate anon SELECT merged into 1)
+  - `organizations`: 7 policies → 3 (removed duplicate blocking and CRUD policies)
+  - `user_organizations`: 10 policies → 5 (3 duplicate anon blocks, 3 duplicate SELECT merged)
+  - `messages`: 4 policies → 2 (fixed "organization" vs "organizations" typo duplicates)
+  - `job_candidate`: 5 policies → 3 (removed redundant secure_select/secure_update)
+  - `pipeline_columns`: 2 policies → 2 (both needed - admin write + user read)
+- **Safety Measures**: Pre/post deployment verification scripts (using service role to verify counts), transaction wrapper with manual COMMIT/ROLLBACK, comprehensive deployment guide with rollback plan.
+- **Expected Impact**: 30-50% query performance improvement on affected tables, all 62 Supabase warnings eliminated.
+- **Deployment Status**: Ready for production deployment during low-traffic window.
+- **Scripts Location**: `database/rls_consolidation_production.sql`, `database/rls_verification_pre_deployment.sql`, `database/rls_verification_post_deployment.sql`, `database/RLS_CONSOLIDATION_DEPLOYMENT_GUIDE.md`.
