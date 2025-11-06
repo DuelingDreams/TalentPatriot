@@ -9,9 +9,23 @@ import { MessagesList } from '@/features/communications/components/MessagesList'
 import { MessageComposer } from '@/features/communications/components/MessageComposer'
 import { useMessages, useUnreadMessageCount } from '@/features/communications/hooks/useMessages'
 import { useAuth } from '@/contexts/AuthContext'
-import { format } from 'date-fns'
+import { format, isValid } from 'date-fns'
 import type { Message } from '@/../../shared/schema'
 import { DemoMessages } from '@/components/demo/DemoMessages'
+
+// Helper function to safely format dates
+function safeFormatDate(dateValue: any, formatStr: string = 'PPp'): string {
+  if (!dateValue) return 'Invalid date'
+  
+  const date = new Date(dateValue)
+  if (!isValid(date)) return 'Invalid date'
+  
+  try {
+    return format(date, formatStr)
+  } catch (error) {
+    return 'Invalid date'
+  }
+}
 
 export default function Messages() {
   const { user, userRole } = useAuth()
@@ -209,7 +223,7 @@ export default function Messages() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-sm text-muted-foreground">
-                    <p className="font-medium mb-2">Sent {format(new Date(selectedMessage.createdAt), 'PPp')}</p>
+                    <p className="font-medium mb-2">Sent {safeFormatDate(selectedMessage.createdAt)}</p>
                   </div>
                   
                   <div className="prose prose-sm max-w-none">

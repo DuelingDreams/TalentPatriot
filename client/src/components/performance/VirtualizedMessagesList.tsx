@@ -12,9 +12,23 @@ import {
   AlertCircle,
   Star
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, isValid } from 'date-fns'
 import { VirtualizedList } from './VirtualizedList'
 import type { Message } from '@/../../shared/schema'
+
+// Helper function to safely format dates
+function safeFormatDate(dateValue: any, formatStr: string = 'MMM d, HH:mm'): string {
+  if (!dateValue) return 'Invalid date'
+  
+  const date = new Date(dateValue)
+  if (!isValid(date)) return 'Invalid date'
+  
+  try {
+    return format(date, formatStr)
+  } catch (error) {
+    return 'Invalid date'
+  }
+}
 
 interface VirtualizedMessagesListProps {
   messages: Message[]
@@ -122,12 +136,12 @@ export function VirtualizedMessagesList({
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
                   <span data-testid={`message-date-${message.id}`}>
-                    {format(new Date(message.createdAt), 'MMM d, HH:mm')}
+                    {safeFormatDate(message.createdAt)}
                   </span>
                   
                   {message.tags && message.tags.length > 0 && (
                     <div className="flex items-center gap-1 ml-2">
-                      {message.tags.slice(0, 2).map((tag, tagIndex) => (
+                      {message.tags.slice(0, 2).map((tag: string, tagIndex: number) => (
                         <Badge 
                           key={tagIndex} 
                           variant="outline" 
