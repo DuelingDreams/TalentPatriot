@@ -68,11 +68,17 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - Security features: HMAC-signed state, signed HTTP-only cookies, AES-256-GCM encryption for refresh tokens, PBKDF2 key derivation.
 - OAuth Scopes: `calendar`, `calendar.events`, `userinfo.email`, `userinfo.profile`.
 
-# Recent Production Fixes (November 2, 2025)
+# Recent Production Fixes (November 2025)
 
-## Critical Authentication Fixes
+## Critical Authentication Fixes (Nov 2)
 - **Fixed Messages Page Error**: Resolved component loading failure by adding proper authentication timing and error handling to Google connection status queries.
 - **Fixed Error Boundary Reload**: Updated error boundary to clear session storage and force hard reload, resolving stuck error pages.
 - **Fixed Message Hooks Authentication**: Migrated all message-related hooks (useMessages, useUnreadMessageCount, useCreateMessage, useUpdateMessage, useMarkMessageAsRead, useArchiveMessage) from bare fetch to apiRequest with proper Bearer token authentication.
 - **Added Graceful Error Handling**: All API hooks now return safe defaults instead of throwing errors, preventing component crashes.
 - **Architecture Pattern**: Established consistent authentication pattern using apiRequest helper across all protected API endpoints.
+
+## Date Formatting Safety Fixes (Nov 6)
+- **Fixed "Invalid time value" Errors**: Added safe date formatting helpers across all message components to prevent crashes from null/undefined/invalid timestamps.
+- **Components Updated**: MessagesList, VirtualizedMessagesList, Messages page, and ThreadTimeline (Google integration) all now use safeFormatDate() helper.
+- **Consistent UX**: All components now display "Date unavailable" when timestamps are missing or invalid, providing better user experience than crashes.
+- **Pattern Established**: Created reusable safe date formatting pattern with null checks, date-fns isValid() validation, and try/catch error handling for all date display operations.
