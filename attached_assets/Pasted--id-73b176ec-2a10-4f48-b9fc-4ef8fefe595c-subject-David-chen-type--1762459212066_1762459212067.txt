@@ -1,0 +1,66 @@
+[
+  {
+    "id": "73b176ec-2a10-4f48-b9fc-4ef8fefe595c",
+    "subject": "David chen",
+    "type": "internal",
+    "created_at": "2025-10-29 03:48:21.222617+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-10-29 03:48:21"
+  },
+  {
+    "id": "f4cb31f7-d7b4-4e48-8484-8c299da7b062",
+    "subject": "Hi",
+    "type": "client",
+    "created_at": "2025-10-25 18:56:29.618075+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-10-25 18:56:29"
+  },
+  {
+    "id": "13da287b-cc86-459a-bff7-7aa80cf58077",
+    "subject": "Invite ",
+    "type": "client",
+    "created_at": "2025-10-25 18:44:55.539759+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-10-25 18:44:55"
+  },
+  {
+    "id": "522798fb-7bd9-4d92-8ced-268849ef23de",
+    "subject": "Test",
+    "type": "client",
+    "created_at": "2025-10-25 18:31:54.470602+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-10-25 18:31:54"
+  },
+  {
+    "id": "f180dacc-36c1-4193-b1d3-83424ce157e0",
+    "subject": "Test",
+    "type": "client",
+    "created_at": "2025-10-25 18:31:46.097916+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-10-25 18:31:46"
+  },
+  {
+    "id": "4eec33f4-ac0a-4b60-9ebf-51746a46a076",
+    "subject": "Hi",
+    "type": "client",
+    "created_at": "2025-10-25 16:51:57.361179+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-10-25 16:51:57"
+  },
+  {
+    "id": "904e4037-eb97-4b0e-b9b0-eccfde60637f",
+    "subject": "Hi",
+    "type": "client",
+    "created_at": "2025-10-25 16:51:53.053782+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-10-25 16:51:53"
+  },
+  {
+    "id": "f39ffe2f-db9d-40b2-a681-ad3241acb026",
+    "subject": "Test Message",
+    "type": "internal",
+    "created_at": "2025-08-21 00:46:43.529832+00",
+    "created_at_status": "HAS VALUE",
+    "formatted_created_at": "2025-08-21 00:46:43"
+  }
+]

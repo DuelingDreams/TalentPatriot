@@ -60,7 +60,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to fetch message: ${error.message}`);
     }
 
-    return data;
+    return data ? toCamelCase(data) as Message : undefined;
   }
   
   async getMessages(userId?: string): Promise<Message[]> {
@@ -80,7 +80,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to fetch messages: ${error.message}`);
     }
 
-    return data || [];
+    return (data?.map(msg => toCamelCase(msg) as Message)) || [];
   }
   
   async getMessagesByThread(threadId: string): Promise<Message[]> {
@@ -95,7 +95,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to fetch messages by thread: ${error.message}`);
     }
 
-    return data || [];
+    return (data?.map(msg => toCamelCase(msg) as Message)) || [];
   }
   
   async getMessagesByContext(params: any): Promise<Message[]> {
@@ -116,7 +116,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to fetch messages by context: ${error.message}`);
     }
 
-    return data || [];
+    return (data?.map(msg => toCamelCase(msg) as Message)) || [];
   }
   
   async createMessage(message: InsertMessage): Promise<Message> {
@@ -131,7 +131,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to create message: ${error.message}`);
     }
 
-    return data;
+    return toCamelCase(data) as Message;
   }
   
   async updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message> {
@@ -147,7 +147,7 @@ export class CommunicationsRepository implements ICommunicationsRepository {
       throw new Error(`Failed to update message: ${error.message}`);
     }
 
-    return data;
+    return toCamelCase(data) as Message;
   }
   
   async markMessageAsRead(messageId: string, userId: string): Promise<void> {
