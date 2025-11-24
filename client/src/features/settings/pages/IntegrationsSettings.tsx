@@ -77,7 +77,7 @@ export default function IntegrationsSettings() {
     }
   }
 
-  // Disconnect Google mutation
+  // Disconnect Google mutation with optimistic updates
   const disconnectMutation = useMutation({
     mutationFn: () => apiRequest('/auth/google/disconnect', { 
       method: 'DELETE',
@@ -85,6 +85,23 @@ export default function IntegrationsSettings() {
         'Authorization': `Bearer ${session?.access_token || ''}`
       }
     }),
+    onMutate: async () => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ['/api/google/connection-status', currentOrgId] })
+      
+      // Snapshot the previous value
+      const previousStatus = queryClient.getQueryData(['/api/google/connection-status', currentOrgId])
+      
+      // Optimistically update to disconnected state
+      queryClient.setQueryData(['/api/google/connection-status', currentOrgId], {
+        connected: false,
+        email: undefined,
+        scopes: undefined,
+      })
+      
+      // Return a context object with the snapshotted value
+      return { previousStatus }
+    },
     onSuccess: () => {
       // Invalidate all connection status queries (for all orgs)
       queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
@@ -93,7 +110,12 @@ export default function IntegrationsSettings() {
         description: 'Your Google account has been successfully disconnected.',
       })
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
+      // Rollback to previous state on error
+      if (context?.previousStatus) {
+        queryClient.setQueryData(['/api/google/connection-status', currentOrgId], context.previousStatus)
+      }
+      
       // Parse error response for better user feedback
       const errorMessage = error.error || error.message || 'An error occurred while disconnecting your Google account.'
       const errorDetails = error.details || ''
@@ -103,6 +125,10 @@ export default function IntegrationsSettings() {
         description: errorDetails ? `${errorMessage}. ${errorDetails}` : errorMessage,
         variant: 'destructive',
       })
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status', currentOrgId] })
     },
   })
 
