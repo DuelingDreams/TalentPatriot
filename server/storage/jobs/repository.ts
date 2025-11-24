@@ -978,6 +978,7 @@ export class JobsRepository implements IJobsRepository {
         // Optionally update candidate info if provided
         if (applicant.resumeUrl || applicant.phone || applicant.source) {
           const updates: any = { updated_at: new Date().toISOString() };
+          const hasNewResume = applicant.resumeUrl;
           if (applicant.resumeUrl) updates.resume_url = applicant.resumeUrl;
           if (applicant.phone) updates.phone = applicant.phone;
           if (applicant.source) updates.source = applicant.source;
@@ -986,6 +987,20 @@ export class JobsRepository implements IJobsRepository {
             .from('candidates')
             .update(updates)
             .eq('id', candidateId);
+          
+          // Trigger auto-parsing if resume was updated
+          if (hasNewResume) {
+            console.log(`[AUTO-PARSE] Triggering resume parsing for updated candidate ${candidateId}`);
+            const { CandidatesRepository } = await import('../candidates/repository');
+            const candidatesRepo = new CandidatesRepository();
+            candidatesRepo.parseAndUpdateCandidateFromStorage(candidateId, applicant.resumeUrl!)
+              .then(() => {
+                console.log(`[AUTO-PARSE] Successfully triggered parsing for candidate ${candidateId}`);
+              })
+              .catch((error) => {
+                console.error(`[AUTO-PARSE] Failed to parse resume for candidate ${candidateId}:`, error);
+              });
+          }
         }
       } else {
         // Create new candidate
@@ -1016,6 +1031,20 @@ export class JobsRepository implements IJobsRepository {
           nameSet: fullName,
           email: applicant.email.toLowerCase()
         });
+        
+        // Trigger auto-parsing for new candidate with resume
+        if (applicant.resumeUrl) {
+          console.log(`[AUTO-PARSE] Triggering resume parsing for new candidate ${candidateId}`);
+          const { CandidatesRepository } = await import('../candidates/repository');
+          const candidatesRepo = new CandidatesRepository();
+          candidatesRepo.parseAndUpdateCandidateFromStorage(candidateId, applicant.resumeUrl)
+            .then(() => {
+              console.log(`[AUTO-PARSE] Successfully triggered parsing for candidate ${candidateId}`);
+            })
+            .catch((error) => {
+              console.error(`[AUTO-PARSE] Failed to parse resume for candidate ${candidateId}:`, error);
+            });
+        }
       }
 
       // Step 2: Check if application already exists
