@@ -3136,6 +3136,126 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Resume parsing functionality
+  async parseAndUpdateCandidateFromStorage(candidateId: string, storagePath: string): Promise<Candidate> {
+    try {
+      console.log(`[PARSE FROM STORAGE] Starting parsing for candidate ${candidateId} from ${storagePath}`);
+      
+      // Get the current candidate
+      const { data: candidateData, error: candidateError } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('id', candidateId)
+        .single();
+
+      if (candidateError || !candidateData) {
+        throw new Error('Candidate not found');
+      }
+
+      const candidate = candidateData as Candidate;
+
+      // Mark as processing
+      await supabase
+        .from('candidates')
+        .update({ 
+          parsing_status: 'processing',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', candidateId);
+
+      let parsedData: ParsedResumeData | null = null;
+
+      try {
+        // Parse resume from storage path (extracts text from PDF/DOCX and calls OpenAI)
+        parsedData = await resumeParsingService.parseResumeFromUrl(storagePath);
+      } catch (error) {
+        console.error('Resume parsing from storage failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
+        
+        // Mark as failed with error message
+        await supabase
+          .from('candidates')
+          .update({ 
+            parsing_status: 'failed',
+            parsing_error: errorMessage,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', candidateId);
+        
+        throw new Error(`Resume parsing failed: ${errorMessage}`);
+      }
+
+      // Update candidate with parsed data
+      const updateData: Partial<Record<string, unknown>> = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (parsedData) {
+        // Extract all skills for searchable array (technical + soft skills only)
+        const allSkills = [
+          ...parsedData.skills.technical,
+          ...parsedData.skills.soft,
+        ];
+
+        updateData.resume_parsed = true;
+        updateData.parsing_status = 'completed';
+        updateData.resume_parsed_at = new Date().toISOString();
+        updateData.parsing_error = null;
+        
+        // Core parsing fields
+        updateData.skills = allSkills;
+        updateData.experience_level = parsedData.experienceLevel;
+        updateData.total_years_experience = parsedData.totalYearsExperience;
+        updateData.education = JSON.stringify(parsedData.education);
+        updateData.summary = parsedData.summary;
+        updateData.searchable_content = resumeParsingService.extractSearchableContent(parsedData);
+        
+        // Enhanced parsing fields
+        updateData.work_experience = JSON.stringify(parsedData.experience);
+        updateData.projects = JSON.stringify(parsedData.projects || []);
+        updateData.languages = parsedData.languages || [];
+        updateData.certifications = parsedData.skills.certifications || [];
+
+        // Update name and contact info if parsed and not already set
+        if (parsedData.personalInfo.name && !candidate.name.trim()) {
+          updateData.name = parsedData.personalInfo.name;
+        }
+        if (parsedData.personalInfo.email && !candidate.email.trim()) {
+          updateData.email = parsedData.personalInfo.email;
+        }
+        if (parsedData.personalInfo.phone && !candidate.phone) {
+          updateData.phone = parsedData.personalInfo.phone;
+        }
+        
+        // Update LinkedIn and portfolio URLs if available
+        if (parsedData.personalInfo.linkedIn) {
+          updateData.linkedin_url = parsedData.personalInfo.linkedIn;
+        }
+        if (parsedData.personalInfo.portfolio) {
+          updateData.portfolio_url = parsedData.personalInfo.portfolio;
+        }
+      }
+
+      // Update the candidate
+      const { data, error } = await supabase
+        .from('candidates')
+        .update(updateData)
+        .eq('id', candidateId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating candidate with parsed data:', error);
+        throw error;
+      }
+
+      console.log(`[PARSE FROM STORAGE] Successfully parsed and updated candidate ${candidateId}`);
+      return data as Candidate;
+    } catch (error) {
+      console.error('Error in parseAndUpdateCandidateFromStorage:', error);
+      throw error;
+    }
+  }
+
   async parseAndUpdateCandidate(candidateId: string, resumeText?: string): Promise<Candidate> {
     try {
       // Get the current candidate

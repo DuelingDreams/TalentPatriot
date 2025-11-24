@@ -4002,6 +4002,20 @@ Expires: 2025-12-31T23:59:59.000Z
       }
       
       const candidate = await storage.candidates.createCandidate(validatedData);
+      
+      // AUTO-TRIGGER RESUME PARSING if resumeUrl is provided
+      if (validatedData.resumeUrl) {
+        console.log(`[AUTO-PARSE] Triggering resume parsing for candidate ${candidate.id}`);
+        // Parse asynchronously without blocking the response
+        storage.candidates.parseAndUpdateCandidateFromStorage(candidate.id, validatedData.resumeUrl)
+          .then(() => {
+            console.log(`[AUTO-PARSE] Successfully parsed resume for candidate ${candidate.id}`);
+          })
+          .catch((error) => {
+            console.error(`[AUTO-PARSE] Failed to parse resume for candidate ${candidate.id}:`, error);
+          });
+      }
+      
       res.status(201).json(candidate);
     } catch (error: unknown) {
       console.error("Error creating candidate:", error);

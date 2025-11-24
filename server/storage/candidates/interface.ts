@@ -88,6 +88,7 @@ export interface ICandidatesRepository {
   
   // Resume parsing functionality
   parseAndUpdateCandidate(candidateId: string, resumeText?: string): Promise<Candidate>;
+  parseAndUpdateCandidateFromStorage(candidateId: string, storagePath: string): Promise<Candidate>;
   searchCandidatesBySkills(orgId: string, skills: string[]): Promise<Candidate[]>;
   
   // Paginated methods

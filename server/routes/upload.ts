@@ -3,6 +3,7 @@ import multer from 'multer'
 import { nanoid } from 'nanoid'
 import { createClient } from '@supabase/supabase-js'
 import rateLimit from 'express-rate-limit'
+import { storage } from '../storage/index'
 
 // Extend Express Request to include authentication context
 declare global {
@@ -226,6 +227,10 @@ router.post('/public/resume', publicUploadLimiter, upload.single('resume'), asyn
       orgId: orgId,
       message: 'Resume uploaded successfully'
     })
+    
+    // NOTE: Auto-parsing will be triggered after candidate record is created
+    // The frontend will call POST /api/candidates with the storagePath,
+    // and then we'll trigger parsing asynchronously using the candidate ID
 
   } catch (error) {
     console.error('Public resume upload error:', error)
