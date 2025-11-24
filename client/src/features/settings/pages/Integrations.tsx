@@ -46,8 +46,8 @@ export default function Integrations() {
         title: "Integration disconnected",
         description: "Your account has been successfully disconnected",
       })
-      // Refetch connection status
-      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
+      // Refetch connection status - invalidate cache with correct key including orgId
+      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status', currentOrgId] })
       refetchGoogle()
     },
     onError: (error: any) => {
@@ -78,8 +78,8 @@ export default function Integrations() {
   // Handle OAuth callback - invalidate cache and refetch connection status
   useEffect(() => {
     if (googleConnected) {
-      // Invalidate the cache and refetch to show updated connection status
-      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
+      // Invalidate the cache with the correct key (including orgId) and refetch to show updated connection status
+      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status', currentOrgId] })
       refetchGoogle()
       
       // Clean up URL after 3 seconds to remove the success message
@@ -89,7 +89,7 @@ export default function Integrations() {
         window.history.replaceState({}, '', url.toString())
       }, 3000)
     }
-  }, [googleConnected, refetchGoogle])
+  }, [googleConnected, refetchGoogle, currentOrgId])
 
   return (
     <DashboardLayout pageTitle="Integrations">
