@@ -12,7 +12,7 @@ export function useMessages(userId?: string) {
       try {
         const params = new URLSearchParams()
         if (userId) params.append('userId', userId)
-        if (currentOrgId) params.append('orgId', currentOrgId)
+        if (currentOrgId) params.append('org_id', currentOrgId) // Backend expects snake_case
         
         const response = await apiRequest<Message[]>(`/api/messages?${params}`)
         return response || []

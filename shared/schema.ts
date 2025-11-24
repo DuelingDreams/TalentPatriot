@@ -958,6 +958,7 @@ export const candidatesQuerySchema = paginationQuerySchema.extend({
 });
 
 export const messagesQuerySchema = paginationQuerySchema.extend({
+  orgId: z.string().uuid('Invalid organization ID'), // REQUIRED for multi-tenant security
   userId: z.string().uuid().optional(),
   threadId: z.string().uuid().optional(),
   type: z.enum(['internal', 'client', 'candidate', 'system']).optional(),

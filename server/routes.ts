@@ -3290,6 +3290,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         }
 
         const {
+          orgId,
           userId,
           limit,
           cursor,
@@ -3314,8 +3315,9 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           }
         }
 
-        // Get paginated results
+        // Get paginated results with REQUIRED org_id filter
         const result = await storage.communications.getMessagesPaginated({
+          orgId,
           userId,
           limit,
           cursor,
@@ -3355,7 +3357,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       } else {
         // Backward compatibility: return non-paginated results
         const userId = req.query.userId as string;
-        const messages = await storage.communications.getMessages(userId);
+        const orgId = req.query.org_id as string;
+        
+        if (!orgId) {
+          return res.status(400).json({ error: 'Organization ID required' });
+        }
+        
+        const messages = await storage.communications.getMessages(userId, orgId);
         
         // Generate ETag for response
         const etag = generateETag(messages);
@@ -3384,7 +3392,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/messages/thread/:threadId", async (req, res) => {
     try {
-      const messages = await storage.communications.getMessagesByThread(req.params.threadId);
+      const orgId = req.query.org_id as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+      
+      const messages = await storage.communications.getMessagesByThread(req.params.threadId, orgId);
       res.json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch thread messages" });
@@ -3393,8 +3407,18 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
 
   app.get("/api/messages/context", async (req, res) => {
     try {
-      const { clientId, jobId, candidateId } = req.query as Record<string, string>;
-      const messages = await storage.communications.getMessagesByContext({ clientId, jobId, candidateId });
+      const { clientId, jobId, candidateId, org_id } = req.query as Record<string, string>;
+      
+      if (!org_id) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+      
+      const messages = await storage.communications.getMessagesByContext({ 
+        clientId, 
+        jobId, 
+        candidateId,
+        orgId: org_id 
+      });
       res.json(messages);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch context messages" });
@@ -3576,11 +3600,17 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Messages routes
+  // Messages routes (legacy - kept for backwards compatibility)
   app.get("/api/messages", async (req, res) => {
     try {
       const userId = req.query.userId as string;
-      const messages = await storage.communications.getMessages(userId);
+      const orgId = req.query.org_id as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+      
+      const messages = await storage.communications.getMessages(userId, orgId);
       res.json(messages);
     } catch (error) {
       console.error("Error fetching messages:", error);

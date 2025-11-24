@@ -21,9 +21,9 @@ import type {
 export interface ICommunicationsRepository {
   // Messages
   getMessage(id: string): Promise<Message | undefined>;
-  getMessages(userId?: string): Promise<Message[]>;
-  getMessagesByThread(threadId: string): Promise<Message[]>;
-  getMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string }): Promise<Message[]>;
+  getMessages(userId?: string, orgId?: string): Promise<Message[]>;
+  getMessagesByThread(threadId: string, orgId: string): Promise<Message[]>;
+  getMessagesByContext(params: { clientId?: string; jobId?: string; candidateId?: string; orgId?: string }): Promise<Message[]>;
   createMessage(message: InsertMessage): Promise<Message>;
   updateMessage(id: string, message: Partial<InsertMessage>): Promise<Message>;
   markMessageAsRead(messageId: string, userId: string): Promise<void>;
@@ -45,6 +45,7 @@ export interface ICommunicationsRepository {
   
   // Paginated methods
   getMessagesPaginated(params: {
+    orgId: string; // REQUIRED for multi-tenant security
     userId?: string;
     limit?: number;
     cursor?: string;

@@ -15,7 +15,7 @@ export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
   const { currentOrgId, userRole, loading } = useAuth()
   
   return useQuery({
-    queryKey: [options.queryKey, { orgId: currentOrgId }],
+    queryKey: [options.queryKey, currentOrgId], // Stable array segment instead of inline object
     queryFn: () => {
       // Demo users get demo data
       if (userRole === 'demo_viewer' && options.getDemoData) {
@@ -45,7 +45,7 @@ export function useGenericItem<T>(endpoint: string, id?: string, getDemoItem?: (
   const { currentOrgId, userRole } = useAuth()
   
   return useQuery({
-    queryKey: [endpoint, id, { orgId: currentOrgId }],
+    queryKey: [endpoint, id, currentOrgId], // Stable array segment instead of inline object
     queryFn: () => {
       // Demo users get demo data for individual items
       if (userRole === 'demo_viewer') {
@@ -93,7 +93,7 @@ export function useGenericCreate<T, InsertT>(
       })
       // If the new item has an ID, set up the specific item query cache
       if (newItem?.id) {
-        queryClient.setQueryData([queryKey, newItem.id, { orgId: currentOrgId }], newItem)
+        queryClient.setQueryData([queryKey, newItem.id, currentOrgId], newItem)
       }
     },
   })
@@ -122,7 +122,7 @@ export function useGenericUpdate<T, UpdateT>(
       queryClient.invalidateQueries({ queryKey: [queryKey, variables.id] })
       // Optimistically update the specific item cache if we have the updated data
       if (updatedItem) {
-        queryClient.setQueryData([queryKey, variables.id, { orgId: currentOrgId }], updatedItem)
+        queryClient.setQueryData([queryKey, variables.id, currentOrgId], updatedItem)
       }
     },
   })
@@ -145,7 +145,7 @@ export function useGenericDelete(endpoint: string, queryKey: string) {
       })
       // Remove the specific item from cache
       queryClient.removeQueries({ queryKey: [queryKey, deletedId] })
-      queryClient.removeQueries({ queryKey: [queryKey, deletedId, { orgId: currentOrgId }] })
+      queryClient.removeQueries({ queryKey: [queryKey, deletedId, currentOrgId] })
     },
   })
 }

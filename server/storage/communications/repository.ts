@@ -63,11 +63,18 @@ export class CommunicationsRepository implements ICommunicationsRepository {
     return data ? toCamelCase(data) as Message : undefined;
   }
   
-  async getMessages(userId?: string): Promise<Message[]> {
+  async getMessages(userId?: string, orgId?: string): Promise<Message[]> {
+    // CRITICAL: Always filter by org_id for multi-tenant security and performance
+    if (!orgId) {
+      throw new Error('org_id is required for getMessages');
+    }
+
     let query = supabase
       .from('messages')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('id, org_id, type, priority, subject, content, sender_id, recipient_id, channel_type, external_message_id, thread_id, is_read, is_archived, created_at, updated_at')
+      .eq('org_id', orgId)
+      .order('created_at', { ascending: false })
+      .limit(100); // Default limit for performance
 
     if (userId) {
       query = query.or(`sender_id.eq.${userId},recipient_id.eq.${userId}`);
@@ -83,11 +90,17 @@ export class CommunicationsRepository implements ICommunicationsRepository {
     return (data?.map(msg => toCamelCase(msg) as Message)) || [];
   }
   
-  async getMessagesByThread(threadId: string): Promise<Message[]> {
+  async getMessagesByThread(threadId: string, orgId: string): Promise<Message[]> {
+    // CRITICAL: Always filter by org_id for multi-tenant security
+    if (!orgId) {
+      throw new Error('org_id is required for getMessagesByThread');
+    }
+
     const { data, error } = await supabase
       .from('messages')
-      .select('*')
+      .select('id, org_id, type, priority, subject, content, sender_id, recipient_id, channel_type, external_message_id, is_read, created_at')
       .eq('thread_id', threadId)
+      .eq('org_id', orgId)
       .order('created_at', { ascending: true });
 
     if (error) {
@@ -99,15 +112,21 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   }
   
   async getMessagesByContext(params: any): Promise<Message[]> {
+    // CRITICAL: org_id is REQUIRED for multi-tenant security
+    if (!params.orgId) {
+      throw new Error('org_id is required for getMessagesByContext');
+    }
+
     let query = supabase
       .from('messages')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('id, org_id, type, priority, subject, content, sender_id, recipient_id, channel_type, is_read, is_archived, created_at')
+      .eq('org_id', params.orgId)
+      .order('created_at', { ascending: false })
+      .limit(100); // Default limit for performance
 
     if (params.clientId) query = query.eq('client_id', params.clientId);
     if (params.jobId) query = query.eq('job_id', params.jobId);
     if (params.candidateId) query = query.eq('candidate_id', params.candidateId);
-    if (params.orgId) query = query.eq('org_id', params.orgId);
 
     const { data, error } = await query;
 
@@ -241,8 +260,95 @@ export class CommunicationsRepository implements ICommunicationsRepository {
     throw new Error('Method not implemented.');
   }
   
-  async getMessagesPaginated(params: any): Promise<any> {
-    throw new Error('Method not implemented.');
+  async getMessagesPaginated(params: {
+    orgId: string;
+    userId?: string;
+    limit?: number;
+    cursor?: string;
+    fields?: string[];
+    threadId?: string;
+    type?: string;
+    priority?: string;
+    clientId?: string;
+    jobId?: string;
+    candidateId?: string;
+  }): Promise<{
+    data: Message[];
+    pagination: {
+      hasMore: boolean;
+      nextCursor?: string;
+      totalCount?: number;
+      limit: number;
+    };
+  }> {
+    // CRITICAL: orgId is REQUIRED for multi-tenant security
+    if (!params.orgId) {
+      throw new Error('org_id is required for getMessagesPaginated');
+    }
+
+    const limit = params.limit || 50;
+    
+    // Build query with required org_id filter
+    let query = supabase
+      .from('messages')
+      .select(params.fields?.join(', ') || 'id, org_id, type, priority, subject, content, sender_id, recipient_id, channel_type, thread_id, is_read, is_archived, created_at, updated_at', { count: 'exact' })
+      .eq('org_id', params.orgId) // CRITICAL: Always filter by org_id
+      .order('created_at', { ascending: false })
+      .limit(limit + 1); // Fetch one extra to determine hasMore
+
+    // Apply optional filters
+    if (params.userId) {
+      query = query.or(`sender_id.eq.${params.userId},recipient_id.eq.${params.userId}`);
+    }
+    if (params.threadId) {
+      query = query.eq('thread_id', params.threadId);
+    }
+    if (params.type) {
+      query = query.eq('type', params.type);
+    }
+    if (params.priority) {
+      query = query.eq('priority', params.priority);
+    }
+    if (params.clientId) {
+      query = query.eq('client_id', params.clientId);
+    }
+    if (params.jobId) {
+      query = query.eq('job_id', params.jobId);
+    }
+    if (params.candidateId) {
+      query = query.eq('candidate_id', params.candidateId);
+    }
+
+    // Handle cursor-based pagination
+    if (params.cursor) {
+      query = query.lt('created_at', params.cursor);
+    }
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      console.error('Error fetching paginated messages:', error);
+      throw new Error(`Failed to fetch paginated messages: ${error.message}`);
+    }
+
+    // Determine if there are more results
+    const hasMore = data && data.length > limit;
+    const messages = data ? data.slice(0, limit) : [];
+    
+    // Next cursor is the created_at of the last item
+    const nextCursor = hasMore && messages.length > 0 
+      ? messages[messages.length - 1].created_at 
+      : undefined;
+
+    return {
+      data: messages.map(msg => toCamelCase(msg) as Message),
+      pagination: {
+        hasMore,
+        nextCursor,
+        totalCount: count || undefined,
+        limit
+      }
+    };
   }
 
   // ==================== Google Integration Methods ====================

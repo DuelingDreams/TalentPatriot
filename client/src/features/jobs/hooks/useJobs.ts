@@ -12,7 +12,7 @@ export function useJobs(options: { refetchInterval?: number; enableRealTime?: bo
   const { currentOrgId } = useAuth()
   
   return useQuery({
-    queryKey: ['/api/jobs', { orgId: currentOrgId }],
+    queryKey: ['/api/jobs', currentOrgId], // Stable array segment instead of inline object
     queryFn: async () => {
       if (isDemoUser) return demoAdapter.getJobs()
       if (!currentOrgId) throw new Error('Organization context required')
