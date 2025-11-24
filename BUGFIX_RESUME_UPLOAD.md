@@ -1,6 +1,8 @@
-# Resume Upload Bug Fix - Nov 24, 2025
+# Resume Upload & Application Bug Fixes - Nov 24, 2025
 
-## 🐛 Issue
+## 🐛 Issues
+
+### Issue 1: Resume Upload Failing (403 Error)
 
 **Symptom:** Resume uploads failing on job application form with error:
 ```
@@ -16,11 +18,26 @@ Maximum retry attempts reached. Please try selecting the file again.
 POST /api/upload/public/resume 403 :: {"error":"Job not available","message":"This job posting is not currently accepting applications"}
 ```
 
+### Issue 2: Application Submission Failing (500 Error)
+
+**Symptom:** After resume uploads successfully, application submission fails with:
+```
+Failed to submit application
+```
+
+**Status Code:** 500 Internal Server Error
+
+**Error in Logs:**
+```
+Invalid resume URL format: 64eea1fa-1993-4966-bbd8-3d5109957c20/092ed457-fe3a-487b-800e-af5931cacc84/resume_IvGsTHcrPQvKipXv_PZTX.docx
+Error: Invalid resume URL. Please upload your resume through the provided interface.
+```
+
 ---
 
-## 🔍 Root Cause
+## 🔍 Root Causes
 
-**Status Mismatch Between Publishing and Upload Validation**
+### Issue 1: Status Mismatch Between Publishing and Upload Validation
 
 ### Database Schema (shared/schema.ts):
 ```typescript
@@ -53,9 +70,38 @@ if (job.status !== 'published') {
 
 **Problem:** The value `'published'` doesn't exist in the database schema! It was checking for a status that could never be true.
 
+### Issue 2: Resume URL Format Mismatch
+
+**The Change That Broke Validation:**
+
+The upload endpoint was recently updated for better security:
+- **OLD:** Returns signed Supabase Storage URLs (e.g., `https://...supabase.co/storage/v1/object/sign/...`)
+- **NEW:** Returns storage paths only (e.g., `orgId/jobId/resume_xxx.pdf`)
+- **Why:** Generate signed URLs on-demand for better security and avoid URL expiration issues
+
+**The Validation Function:**
+
+In `server/storage/jobs/repository.ts`, the `validateResumeUrl()` function:
+```typescript
+try {
+  const url = new URL(resumeUrl);  // ❌ Expects full HTTPS URL
+  // Check various URL patterns...
+} catch (error) {
+  // Only accepts /uploads/ paths
+  if (resumeUrl.startsWith('/uploads/')) {
+    return true;
+  }
+  return false;  // ❌ Rejects storage paths!
+}
+```
+
+**Problem:** When `new URL('orgId/jobId/resume_xxx.pdf')` is called, it throws an error because it's not a valid URL format. The catch block only accepted legacy `/uploads/` paths, not the new storage path format.
+
 ---
 
-## ✅ Solution
+## ✅ Solutions
+
+### Fix 1: Upload Status Check
 
 **File:** `server/routes/upload.ts` (Line 188)
 
@@ -70,45 +116,83 @@ if (job.status !== 'open') {
 
 Now the upload endpoint correctly accepts resumes when the job status is `'open'` (the actual published state).
 
+### Fix 2: Resume URL Validation
+
+**File:** `server/storage/jobs/repository.ts` (Lines 18-24)
+
+**Change:**
+```typescript
+// ADDED: Check for storage path format FIRST (before trying URL parsing)
+const storagePathPattern = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/resume_[\w-]+\.\w+$/i;
+if (storagePathPattern.test(resumeUrl)) {
+  return true;
+}
+```
+
+**Pattern Explanation:**
+- `[0-9a-f-]{36}` - UUID format (orgId and jobId)
+- `\/resume_[\w-]+\.` - Filename starting with "resume_"
+- `\w+$` - File extension
+
+Now accepts both:
+- ✅ **New storage paths:** `orgId/jobId/resume_xxx.pdf`
+- ✅ **Legacy full URLs:** `https://example.com/resume.pdf`
+
 ---
 
 ## 🧪 Testing
 
-### Before Fix:
+### Before Fixes:
 1. Create job → Status: `'draft'`
 2. Click "Publish" → Status: `'open'`
-3. Try to upload resume → **403 Error** (rejected because status !== 'published')
+3. Fill application form
+4. Try to upload resume → **❌ 403 Error** (rejected: status !== 'published')
+5. User never gets to submit application
 
-### After Fix:
+### After Fix 1 (Upload Status):
 1. Create job → Status: `'draft'`
 2. Click "Publish" → Status: `'open'`
-3. Try to upload resume → **✅ Success!** (accepted because status === 'open')
+3. Fill application form
+4. Upload resume → **✅ Success!** Returns storage path
+5. Try to submit application → **❌ 500 Error** (validation rejects storage path)
+
+### After Both Fixes:
+1. Create job → Status: `'draft'`
+2. Click "Publish" → Status: `'open'`
+3. Fill application form
+4. Upload resume → **✅ Success!** Returns storage path
+5. Submit application → **✅ Success!** Validation accepts storage path
+6. Candidate created with resume
+7. Auto-parsing triggered
 
 ---
 
 ## 📊 Impact
 
-**Before Fix:**
+**Before Fixes:**
 - ❌ No job applications could be submitted
 - ❌ All resume uploads failed with 403 error
-- ❌ Public careers page was non-functional
+- ❌ Public careers page was completely non-functional
 
-**After Fix:**
+**After Both Fixes:**
 - ✅ Resume uploads work for published (`'open'`) jobs
-- ✅ Job applications can be submitted successfully
+- ✅ Storage paths properly validated
+- ✅ Job applications submit successfully end-to-end
 - ✅ Auto-parsing triggers after successful upload
 - ✅ Public careers page fully functional
+- ✅ Backward compatible with legacy URL format
 
 ---
 
 ## 🚀 Deployment
 
-**Status:** ✅ **DEPLOYED** (Nov 24, 2025 4:16 PM)
+**Status:** ✅ **DEPLOYED** (Nov 24, 2025)
 
 **Files Modified:**
-- `server/routes/upload.ts` (line 188)
+1. `server/routes/upload.ts` (line 188) - Status check fix
+2. `server/storage/jobs/repository.ts` (lines 18-24) - URL validation fix
 
-**Workflow:** Automatically restarted after fix
+**Workflow:** Restarted after both fixes applied
 
 ---
 

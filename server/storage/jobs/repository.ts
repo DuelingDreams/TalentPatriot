@@ -15,6 +15,19 @@ import type { IJobsRepository, UserContext, ApplicantData, ApplicationResult, Pu
 function validateResumeUrl(resumeUrl: string): boolean {
   if (!resumeUrl) return true; // Optional field
   
+  // Check if it's a Supabase Storage path (orgId/jobId/resume_xxx.ext)
+  // Format: {uuid}/{uuid}/resume_{nanoid}.{ext}
+  const storagePathPattern = /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/resume_[\w-]+\.\w+$/i;
+  if (storagePathPattern.test(resumeUrl)) {
+    return true;
+  }
+  
+  // Check if it's a local file path
+  if (resumeUrl.startsWith('/uploads/') || resumeUrl.startsWith('uploads/')) {
+    return true;
+  }
+  
+  // Try to parse as URL for legacy full URLs
   try {
     const url = new URL(resumeUrl);
     
@@ -35,10 +48,6 @@ function validateResumeUrl(resumeUrl: string): boolean {
     
     return false;
   } catch (error) {
-    // If URL parsing fails, check if it's a local file path
-    if (resumeUrl.startsWith('/uploads/') || resumeUrl.startsWith('uploads/')) {
-      return true;
-    }
     console.error('Invalid resume URL format:', resumeUrl);
     return false;
   }

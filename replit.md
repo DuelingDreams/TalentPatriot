@@ -57,3 +57,28 @@ Preferred communication style: Simple, everyday language.
 - **Email Service**: SendGrid.
 - **AI**: OpenAI GPT-4o.
 - **Google APIs**: googleapis npm package for Calendar, Meet, and FreeBusy API.
+
+# Recent Features & Fixes (November 2025)
+
+## Resume Upload & Application Bug Fixes (Nov 24)
+- **Critical Bugs Fixed**: Two-part failure preventing job applications from being submitted.
+  1. Resume uploads failing with 403 "Job not available" error
+  2. Application submission failing with 500 "Invalid resume URL" error after successful upload
+- **Root Causes**: 
+  1. Upload endpoint checked for non-existent `status='published'` when actual state is `status='open'`
+  2. Validation function rejected new storage path format (`orgId/jobId/resume_xxx.ext`) expecting only full URLs
+- **Solutions**: 
+  1. Changed status check in `server/routes/upload.ts` line 188 to `job.status !== 'open'`
+  2. Updated `validateResumeUrl()` in `server/storage/jobs/repository.ts` to accept storage paths via regex pattern matching
+- **Impact**: End-to-end job application flow now works; backward compatible with legacy URL format.
+- **Files**: `server/routes/upload.ts`, `server/storage/jobs/repository.ts`, `BUGFIX_RESUME_UPLOAD.md`
+
+## AI-Powered Resume Parsing (Nov 24)
+- **Comprehensive Data Extraction**: Implemented OpenAI GPT-4o resume parsing to extract structured data including work experience history, projects, languages, and certifications.
+- **Text Extraction Service**: Created service to extract text from PDF and DOCX files using pdf-parse and mammoth libraries.
+- **Database Schema Expansion**: Added new JSONB fields (work_experience, projects) and array fields (languages, certifications) to candidates table.
+- **Parsing Status Tracking**: Implemented status enum ('pending', 'processing', 'completed', 'failed') with error message storage.
+- **Auto-Parsing Trigger**: Automatically parses resumes when candidates are created with resumeUrl, running asynchronously without blocking responses.
+- **Enhanced Search**: Generates searchable_content field for full-text candidate search across all resume data.
+- **Repository Integration**: Moved parseAndUpdateCandidateFromStorage() from legacy to modular repository architecture.
+- **Files**: `server/textExtraction.ts`, `server/resumeParser.ts`, `server/storage/candidates/repository.ts`, `database/resume_parsing_upgrade.sql`, `RESUME_PARSING_IMPLEMENTATION.md`, `TESTING_RESUME_PARSING.md`
