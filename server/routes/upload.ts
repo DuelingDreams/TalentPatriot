@@ -182,7 +182,7 @@ router.post('/public/resume', publicUploadLimiter, upload.single('resume'), asyn
     }
 
     // Verify job is published (only allow uploads for active job postings)
-    if (job.status !== 'published') {
+    if (job.status !== 'open') {
       return res.status(403).json({
         error: 'Job not available',
         message: 'This job posting is not currently accepting applications'
