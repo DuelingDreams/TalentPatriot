@@ -23,12 +23,14 @@ export default function Integrations() {
   const { toast } = useToast()
 
   // Check Google Calendar connection status
+  // CRITICAL: Include currentOrgId in queryKey to prevent cross-org cache pollution
   const { data: googleStatus, isLoading: isCheckingGoogle, refetch: refetchGoogle } = useQuery<ConnectionStatus>({
-    queryKey: ['/api/google/connection-status'],
+    queryKey: ['/api/google/connection-status', currentOrgId],
     queryFn: async () => {
       const response = await apiRequest('/api/google/connection-status')
       return response as ConnectionStatus
     },
+    enabled: !!currentOrgId,
   })
 
   // Disconnect mutation

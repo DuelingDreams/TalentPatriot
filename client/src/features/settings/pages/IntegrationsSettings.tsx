@@ -32,14 +32,15 @@ export default function IntegrationsSettings() {
   const queryClient = useQueryClient()
 
   // Fetch Google connection status
+  // CRITICAL: Include currentOrgId in queryKey to prevent cross-org cache pollution
   const { data: googleStatus, isLoading } = useQuery<GoogleConnectionStatus>({
-    queryKey: ['/api/google/connection-status'],
+    queryKey: ['/api/google/connection-status', currentOrgId],
     queryFn: () => apiRequest('/api/google/connection-status', {
       headers: {
         'Authorization': `Bearer ${session?.access_token || ''}`
       }
     }),
-    enabled: !!user && !!session?.access_token,
+    enabled: !!user && !!session?.access_token && !!currentOrgId,
   })
 
   // Connect Google mutation
@@ -85,6 +86,7 @@ export default function IntegrationsSettings() {
       }
     }),
     onSuccess: () => {
+      // Invalidate all connection status queries (for all orgs)
       queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
       toast({
         title: 'Google account disconnected',
@@ -92,9 +94,13 @@ export default function IntegrationsSettings() {
       })
     },
     onError: (error: any) => {
+      // Parse error response for better user feedback
+      const errorMessage = error.error || error.message || 'An error occurred while disconnecting your Google account.'
+      const errorDetails = error.details || ''
+      
       toast({
         title: 'Failed to disconnect',
-        description: error.message || 'An error occurred while disconnecting your Google account.',
+        description: errorDetails ? `${errorMessage}. ${errorDetails}` : errorMessage,
         variant: 'destructive',
       })
     },

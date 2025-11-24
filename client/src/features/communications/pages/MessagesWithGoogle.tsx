@@ -37,8 +37,9 @@ export default function Messages() {
   const unreadCount = unreadData?.count || 0
 
   // Check if Google is connected - only when user is authenticated
+  // CRITICAL: Include currentOrgId in queryKey to prevent cross-org cache pollution
   const { data: googleStatus, error: googleStatusError } = useQuery({
-    queryKey: ['/api/google/connection-status'],
+    queryKey: ['/api/google/connection-status', currentOrgId],
     queryFn: async () => {
       try {
         const response = await apiRequest('/api/google/connection-status')
@@ -49,7 +50,7 @@ export default function Messages() {
         return { connected: false, email: undefined };
       }
     },
-    enabled: !!user?.id, // Only query when user is authenticated
+    enabled: !!user?.id && !!currentOrgId, // Only query when user is authenticated and has org context
     retry: 2, // Retry failed requests up to 2 times
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
