@@ -25,6 +25,7 @@ export const importTypeEnum = pgEnum('import_type', ['candidates', 'jobs', 'both
 export const providerEnum = pgEnum('provider', ['google', 'microsoft', 'zoom']);
 export const channelTypeEnum = pgEnum('channel_type', ['internal', 'email', 'client_portal']);
 export const calendarEventStatusEnum = pgEnum('calendar_event_status', ['confirmed', 'tentative', 'cancelled']);
+export const parsingStatusEnum = pgEnum('parsing_status', ['pending', 'processing', 'completed', 'failed']);
 
 // Tables
 export const organizations = pgTable("organizations", {
@@ -157,6 +158,14 @@ export const candidates = pgTable("candidates", {
   skillLevels: jsonb("skill_levels"),
   // Application source tracking
   source: varchar("source", { length: 100 }), // How did you hear about us?
+  // Enhanced resume parsing fields
+  workExperience: jsonb("work_experience"), // Array of work experience objects
+  projects: jsonb("projects"), // Array of project objects
+  languages: text("languages").array(), // Array of languages
+  certifications: text("certifications").array(), // Array of certifications
+  parsingStatus: parsingStatusEnum("parsing_status").default('pending'),
+  resumeParsedAt: timestamp("resume_parsed_at"),
+  parsingError: text("parsing_error"),
 });
 
 // Pipeline columns for Kanban board (job-specific with backward compatibility)

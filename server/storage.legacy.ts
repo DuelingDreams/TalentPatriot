@@ -3156,10 +3156,32 @@ export class DatabaseStorage implements IStorage {
       // Parse resume text if provided
       if (resumeText) {
         try {
+          // Mark as processing
+          await supabase
+            .from('candidates')
+            .update({ 
+              parsing_status: 'processing',
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', candidateId);
+
           parsedData = await resumeParsingService.parseResumeText(resumeText);
         } catch (error) {
           console.error('Resume parsing failed:', error);
-          // Continue without parsing rather than failing completely
+          const errorMessage = error instanceof Error ? error.message : 'Unknown parsing error';
+          
+          // Mark as failed with error message
+          await supabase
+            .from('candidates')
+            .update({ 
+              parsing_status: 'failed',
+              parsing_error: errorMessage,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', candidateId);
+          
+          // Re-throw to let caller handle
+          throw new Error(`Resume parsing failed: ${errorMessage}`);
         }
       }
 
@@ -3169,20 +3191,30 @@ export class DatabaseStorage implements IStorage {
       };
 
       if (parsedData) {
-        // Extract all skills for searchable array
+        // Extract all skills for searchable array (technical + soft skills only)
         const allSkills = [
           ...parsedData.skills.technical,
           ...parsedData.skills.soft,
-          ...parsedData.skills.certifications,
         ];
 
         updateData.resume_parsed = true;
+        updateData.parsing_status = 'completed';
+        updateData.resume_parsed_at = new Date().toISOString();
+        updateData.parsing_error = null;
+        
+        // Core parsing fields
         updateData.skills = allSkills;
         updateData.experience_level = parsedData.experienceLevel;
         updateData.total_years_experience = parsedData.totalYearsExperience;
         updateData.education = JSON.stringify(parsedData.education);
         updateData.summary = parsedData.summary;
         updateData.searchable_content = resumeParsingService.extractSearchableContent(parsedData);
+        
+        // NEW: Enhanced parsing fields
+        updateData.work_experience = JSON.stringify(parsedData.experience);
+        updateData.projects = JSON.stringify(parsedData.projects || []);
+        updateData.languages = parsedData.languages || [];
+        updateData.certifications = parsedData.skills.certifications || [];
 
         // Update name and contact info if parsed and not already set
         if (parsedData.personalInfo.name && !candidate.name.trim()) {
@@ -3193,6 +3225,14 @@ export class DatabaseStorage implements IStorage {
         }
         if (parsedData.personalInfo.phone && !candidate.phone) {
           updateData.phone = parsedData.personalInfo.phone;
+        }
+        
+        // Update LinkedIn and portfolio URLs if available
+        if (parsedData.personalInfo.linkedIn) {
+          updateData.linkedin_url = parsedData.personalInfo.linkedIn;
+        }
+        if (parsedData.personalInfo.portfolio) {
+          updateData.portfolio_url = parsedData.personalInfo.portfolio;
         }
       }
 

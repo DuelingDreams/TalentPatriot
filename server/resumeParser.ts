@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { textExtractionService } from './textExtraction';
 
 if (!process.env.OPENAI_API_KEY) {
   console.warn("OPENAI_API_KEY not found - resume parsing will be disabled");
@@ -148,15 +149,34 @@ ${resumeText}
     }
   }
 
-  async parseResumeFromUrl(resumeUrl: string): Promise<ParsedResumeData> {
+  async parseResumeFromUrl(storagePath: string): Promise<ParsedResumeData> {
     try {
-      // For now, we'll simulate parsing from URL by returning empty data
-      // In a full implementation, you'd fetch the PDF/DOC file and extract text
-      console.log('Resume URL parsing not yet implemented for:', resumeUrl);
-      return this.createEmptyResumeData();
+      if (!process.env.OPENAI_API_KEY) {
+        console.log('Resume parsing disabled - no OpenAI API key configured');
+        return this.createEmptyResumeData();
+      }
+
+      console.log(`[RESUME PARSER] Extracting text from storage path: ${storagePath}`);
+      
+      // Extract text from the file in Supabase Storage
+      const extractionResult = await textExtractionService.extractFromStoragePath(storagePath);
+      
+      console.log(`[RESUME PARSER] Extracted ${extractionResult.wordCount} words from resume`);
+      
+      // Validate extracted text
+      if (!textExtractionService.validateExtractedText(extractionResult.text)) {
+        throw new Error('Resume text extraction produced insufficient content. File may be corrupted or empty.');
+      }
+
+      // Parse the extracted text with OpenAI
+      const parsedData = await this.parseResumeText(extractionResult.text);
+      
+      console.log(`[RESUME PARSER] Successfully parsed resume from ${storagePath}`);
+      
+      return parsedData;
     } catch (error) {
       console.error('Resume URL parsing error:', error);
-      throw new Error(`Failed to parse resume from URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to parse resume from storage: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
