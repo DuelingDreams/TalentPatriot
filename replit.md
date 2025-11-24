@@ -100,3 +100,18 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - **Expected Impact**: 30-50% query performance improvement on affected tables, all 62 Supabase warnings eliminated.
 - **Deployment Status**: Ready for production deployment during low-traffic window.
 - **Scripts Location**: `database/rls_consolidation_production.sql`, `database/rls_verification_pre_deployment.sql`, `database/rls_verification_post_deployment.sql`, `database/RLS_CONSOLIDATION_DEPLOYMENT_GUIDE.md`.
+
+## Google Integration Multi-Tenancy Fix (Nov 24)
+- **Critical Bug Fixed**: Google account connection status was displaying across all organizations due to React Query cache pollution.
+- **Root Cause**: React Query was caching connection status globally without `currentOrgId` in query keys, causing cross-organization data leakage when users switched between organizations.
+- **Solution Implemented**: 
+  - Added `currentOrgId` to all Google connection-status query keys in 3 frontend files (IntegrationsSettings.tsx, Integrations.tsx, MessagesWithGoogle.tsx)
+  - Added comprehensive OAuth logging throughout connect/disconnect flow for debugging
+  - Implemented optimistic updates with rollback for disconnect mutation
+  - Enhanced error handling with detailed, user-friendly error messages
+- **Files Modified**: 
+  - Frontend: `IntegrationsSettings.tsx`, `Integrations.tsx`, `MessagesWithGoogle.tsx`
+  - Backend: `google-auth.ts`, `communications/repository.ts`
+- **Schema Verification**: Confirmed `connected_accounts` table has correct uniqueness constraint on (userId, orgId, provider), enforcing one Google connection per user per organization.
+- **Impact**: Eliminates cross-org cache contamination, ensures each organization's Google connection status is isolated and accurate.
+- **Testing Required**: Manual multi-org QA of connect/disconnect flow to validate cache isolation under user interaction.
