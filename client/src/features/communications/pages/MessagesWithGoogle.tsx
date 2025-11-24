@@ -161,6 +161,8 @@ export default function Messages() {
       console.log('✅ Email sent successfully:', response)
 
       // Create message record in database for tracking
+      // Note: external_message_id stores the Gmail message ID
+      // thread_id should be null since we're not linking to a message_threads record
       await apiRequest('/api/messages', {
         method: 'POST',
         body: JSON.stringify({
@@ -174,7 +176,7 @@ export default function Messages() {
           is_read: true, // Sent emails are already "read"
           is_archived: false,
           external_message_id: response.messageId, // Store Gmail message ID
-          thread_id: response.threadId, // Store Gmail thread ID for conversation tracking
+          // Don't include thread_id - it's a UUID field for message_threads, not Gmail thread IDs
         }),
       })
       
