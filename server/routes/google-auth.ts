@@ -21,6 +21,8 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
 
+      console.log('🔐 [OAuth Init] Starting Google OAuth for user:', userId, 'org:', orgId);
+
       // Set a SIGNED temporary session cookie (expires in 10 minutes)
       // signed: true uses cookie-parser's signature to prevent forgery
       // This allows the subsequent browser redirect to maintain authentication
@@ -124,14 +126,25 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       }
 
       const { userId, orgId } = stateData;
-      console.log(`✅ State verified - userId: ${userId}, orgId: ${orgId}`);
+      console.log(`✅ [OAuth Callback] State verified - userId: ${userId}, orgId: ${orgId}`);
+
+      // Check if this user already has a Google connection in a DIFFERENT org
+      const existingConnections = await storage.communications.getConnectedAccounts(userId, orgId);
+      const googleConnection = existingConnections.find(acc => acc.provider === 'google');
+      if (googleConnection) {
+        console.log(`ℹ️  [OAuth Callback] User already has Google connection for this org:`, {
+          id: googleConnection.id,
+          email: googleConnection.providerEmail,
+          orgId: googleConnection.orgId
+        });
+      }
 
       // Get centralized redirect URI (must match what was used in /login)
       const redirectUri = getRedirectUri(req.headers.host);
-      console.log(`🔗 Using redirect URI: ${redirectUri}`);
+      console.log(`🔗 [OAuth Callback] Using redirect URI: ${redirectUri}`);
 
       // Exchange authorization code for tokens using same redirect URI
-      console.log('🔄 Exchanging authorization code for tokens...');
+      console.log('🔄 [OAuth Callback] Exchanging authorization code for tokens...');
       const tokens = await exchangeCodeForTokens(code as string, redirectUri);
       console.log('✅ Tokens received from Google:', {
         hasAccessToken: !!tokens.access_token,
@@ -141,12 +154,14 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       });
 
       // Store tokens securely with encryption
-      console.log('💾 Storing tokens in database...');
+      console.log('💾 [OAuth Callback] Storing tokens in database for org:', orgId);
       const account = await storeOAuthTokens(storage, userId, orgId, tokens);
-      console.log('✅ Connected account stored successfully:', {
+      console.log('✅ [OAuth Callback] Connected account stored successfully:', {
         accountId: account.id,
         provider: account.provider,
         email: account.providerEmail,
+        orgId: account.orgId,
+        userId: account.userId,
         isActive: account.isActive
       });
 
@@ -175,12 +190,29 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
 
+      console.log('🔌 [Disconnect] Attempting to disconnect Google for user:', userId, 'org:', orgId);
+
       // User already verified via requireOrgContext middleware
       // Get connected account (must belong to this user in this org)
       const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
       
+      console.log('🔍 [Disconnect] Query result:', account ? {
+        id: account.id,
+        userId: account.userId,
+        orgId: account.orgId,
+        email: account.providerEmail,
+        isActive: account.isActive
+      } : 'No account found');
+
       if (!account) {
-        return res.status(404).json({ error: 'No Google account connected' });
+        // Check if user has Google connected to a DIFFERENT org
+        const allUserConnections = await storage.communications.getConnectedAccounts(userId, orgId);
+        console.log('🔍 [Disconnect] Checking other orgs for this user...');
+        
+        return res.status(404).json({ 
+          error: 'No Google account connected to this organization',
+          details: 'Your Google account may be connected to a different organization'
+        });
       }
 
       // Verify ownership - account must belong to the authenticated user
@@ -192,11 +224,13 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       }
 
       // Delete connected account
+      console.log('🗑️  [Disconnect] Deleting account:', account.id);
       await storage.communications.deleteConnectedAccount(account.id);
+      console.log('✅ [Disconnect] Successfully disconnected Google account');
 
       res.json({ success: true, message: 'Google account disconnected' });
     } catch (error: any) {
-      console.error('Error disconnecting Google account:', error);
+      console.error('❌ [Disconnect] Error disconnecting Google account:', error);
       res.status(500).json({ error: 'Failed to disconnect Google account' });
     }
   });

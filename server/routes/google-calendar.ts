@@ -155,11 +155,23 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
       const userId = req.user?.id;
       const orgId = req.user?.orgId;
 
+      console.log('🔍 [Connection Status] Checking for user:', userId, 'org:', orgId);
+
       if (!userId || !orgId) {
+        console.log('⚠️  [Connection Status] Missing userId or orgId');
         return res.json({ connected: false });
       }
 
       let account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+      
+      console.log('📊 [Connection Status] Result:', account ? {
+        id: account.id,
+        userId: account.userId,
+        orgId: account.orgId,
+        email: account.providerEmail,
+        isActive: account.isActive,
+        connectedAt: account.connectedAt
+      } : 'No connection found');
 
       // If account exists but providerEmail is null, fetch it from Google and update database
       if (account && account.isActive && !account.providerEmail) {
@@ -187,14 +199,17 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         }
       }
 
-      res.json({
+      const response = {
         connected: !!account && account.isActive,
         email: account?.providerEmail || null,
         scopes: account?.scopes || [],
         connectedAt: account?.connectedAt || null,
-      });
+      };
+
+      console.log('✅ [Connection Status] Responding with:', response);
+      res.json(response);
     } catch (error: any) {
-      console.error('Error checking connection status:', error);
+      console.error('❌ [Connection Status] Error:', error);
       res.json({ connected: false, error: error.message });
     }
   });
