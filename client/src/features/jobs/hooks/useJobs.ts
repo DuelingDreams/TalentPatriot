@@ -28,12 +28,13 @@ export function useJobs(options: { refetchInterval?: number; enableRealTime?: bo
     },
     enabled: isDemoUser || !!currentOrgId, // Only fetch when we have org context
     // Optimized refetch intervals based on usage
-    refetchInterval: isDemoUser ? false : (
+    refetchInterval: isDemoUser ? undefined : (
       options.enableRealTime ? 30000 : // 30 seconds for real-time features
-      options.refetchInterval || 120000 // 2 minutes default for better performance
+      options.refetchInterval || undefined // Disable background refetch for better performance
     ),
-    staleTime: isDemoUser ? 120000 : (10 * 60 * 1000), // 10 minutes - jobs are relatively stable
-    refetchOnWindowFocus: !isDemoUser, // Enable for non-demo users to get fresh data
+    staleTime: isDemoUser ? 120000 : (15 * 60 * 1000), // 15 minutes - jobs are relatively stable
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false, // Disable to prevent slow loads when opening new tabs
     refetchOnReconnect: true, // Always refetch when reconnecting
   })
 }

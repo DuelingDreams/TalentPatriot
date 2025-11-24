@@ -33,9 +33,11 @@ export function useGenericList<T>(options: GenericCrudOptions<T, any>) {
       return apiRequest(`${options.endpoint}?orgId=${currentOrgId}`)
     },
     enabled: !loading && (userRole === 'demo_viewer' || !!currentOrgId), // Wait for auth to load and require org context
-    refetchInterval: options.refetchInterval || false,
-    staleTime: options.staleTime || 5 * 60 * 1000, // 5 minutes default
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchInterval: options.refetchInterval || undefined,
+    staleTime: options.staleTime || 15 * 60 * 1000, // 15 minutes default - keep data fresh longer
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache longer for better perf
+    refetchOnWindowFocus: false, // Disable to prevent slow loads when opening new tabs
+    refetchOnReconnect: true, // Refetch when network reconnects
   })
 }
 
@@ -59,6 +61,9 @@ export function useGenericItem<T>(endpoint: string, id?: string, getDemoItem?: (
       return apiRequest(`${endpoint}/${id}`)
     },
     enabled: !!id && (userRole === 'demo_viewer' || !!currentOrgId),
+    staleTime: 15 * 60 * 1000, // 15 minutes - keep item data fresh longer
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false, // Disable to prevent slow loads when opening new tabs
   })
 }
 

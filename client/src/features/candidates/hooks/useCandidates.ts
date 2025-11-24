@@ -46,8 +46,10 @@ export function useCandidates(options: { refetchInterval?: number } = {}) {
         education: null
       } as Candidate;
     },
-    refetchInterval: options.refetchInterval || 120000, // 2 minutes default
-    staleTime: 5 * 60 * 1000, // 5 minutes for candidates - performance optimization
+    refetchInterval: options.refetchInterval || undefined, // Disable background refetch for better performance
+    staleTime: 15 * 60 * 1000, // 15 minutes for candidates - performance optimization
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+    refetchOnWindowFocus: false, // Disable to prevent slow loads when opening new tabs
   })
   return result
 }
