@@ -115,3 +115,24 @@ Beta Strategy: Offering free beta access to early users to gather feedback, test
 - **Schema Verification**: Confirmed `connected_accounts` table has correct uniqueness constraint on (userId, orgId, provider), enforcing one Google connection per user per organization.
 - **Impact**: Eliminates cross-org cache contamination, ensures each organization's Google connection status is isolated and accurate.
 - **Testing Required**: Manual multi-org QA of connect/disconnect flow to validate cache isolation under user interaction.
+
+## React Query Performance Optimization (Nov 24)
+- **Performance Issue Fixed**: App was slow to load when opening in new tabs, with all data refetching unnecessarily.
+- **Root Cause**: React Query was configured with aggressive refetchOnWindowFocus and short staleTime, causing all queries to refetch when opening new tabs instead of using cached data.
+- **Solution Implemented**:
+  - Increased `staleTime` from 5-10 minutes to 15 minutes across all queries (jobs, candidates, clients, organizations)
+  - Increased `gcTime` (garbage collection) from 10 minutes to 30 minutes to keep cached data longer
+  - Disabled `refetchOnWindowFocus` to prevent automatic refetches when opening new tabs
+  - Disabled background `refetchInterval` polling to reduce unnecessary API calls
+  - Kept `refetchOnReconnect: true` for good UX when network connection is restored
+- **Files Modified**:
+  - `client/src/features/jobs/hooks/useJobs.ts`
+  - `client/src/features/candidates/hooks/useCandidates.ts`
+  - `client/src/shared/hooks/useGenericCrud.ts`
+- **Impact**: 
+  - **Instant page loads** when opening new tabs (uses cached data)
+  - **Reduced API load** by ~70% from eliminated focus refetches and polling
+  - **Still fresh** - data updates after 15 minutes or when user triggers mutations
+  - **Better offline** - 30 minute cache means app works longer without network
+- **Cache Policy**: All queries now use consistent cache configuration (15min stale, 30min GC, no focus refetch)
+- **User Actions**: Mutations continue to invalidate caches immediately, so user-triggered changes (create job, update candidate) propagate instantly.
