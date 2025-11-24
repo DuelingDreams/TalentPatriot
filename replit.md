@@ -82,3 +82,27 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced Search**: Generates searchable_content field for full-text candidate search across all resume data.
 - **Repository Integration**: Moved parseAndUpdateCandidateFromStorage() from legacy to modular repository architecture.
 - **Files**: `server/textExtraction.ts`, `server/resumeParser.ts`, `server/storage/candidates/repository.ts`, `database/resume_parsing_upgrade.sql`, `RESUME_PARSING_IMPLEMENTATION.md`, `TESTING_RESUME_PARSING.md`
+
+## Resume Insights UI & PDF Viewer Enhancements (Nov 24)
+- **ResumeInsights Component**: Created comprehensive UI to display all AI-parsed resume data on candidate profiles.
+  - Professional summary card
+  - Work experience timeline with achievements
+  - Projects portfolio with technologies
+  - Skills, languages, and certifications badges
+  - Parsing status indicators (pending, processing, completed, failed)
+  - Empty states and error handling
+- **Defensive Data Parsing**: Implemented comprehensive error handling to prevent UI crashes.
+  - All JSON fields wrapped in try/catch blocks
+  - Array.isArray() validation for all parsed arrays
+  - Nested array validation (achievements, technologies)
+  - Dual field access for camelCase/snake_case compatibility
+  - Console warnings for debugging malformed data
+- **PDF Viewer Improvements**: Enhanced resume preview component with auto-refresh for expired signed URLs.
+  - Storage path guard before refresh attempt
+  - Force re-render with document key increment
+  - Page number reset on URL refresh
+  - Proper error states with fallback actions
+- **CandidateProfile Integration**: Added Resume Insights section to Overview tab below resume upload/preview.
+  - All resume consumers support both camelCase and snake_case data formats
+  - Download, preview, and upload components work across API response formats
+- **Files**: `client/src/components/candidates/ResumeInsights.tsx`, `client/src/features/candidates/pages/CandidateProfile.tsx`, `client/src/components/resume/ResumePreview.tsx`

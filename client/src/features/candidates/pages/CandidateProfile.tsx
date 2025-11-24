@@ -36,6 +36,7 @@ import { SkillsSection } from '@/components/candidates/skills/SkillsSection'
 import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { ResumePreview } from '@/components/resume/LazyResumePreview'
 import { CandidateNotes } from '@/components/CandidateNotes'
+import { ResumeInsights } from '@/components/candidates/ResumeInsights'
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>()
@@ -157,12 +158,13 @@ export default function CandidateProfile() {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {candidate?.resume_url && (
+              {(candidate?.resume_url || (candidate as any)?.resumeUrl) && (
                 <Button 
                   variant="outline" 
                   onClick={async () => {
+                    const resumeUrl = candidate?.resume_url || (candidate as any)?.resumeUrl
                     const { openResumeInNewTab } = await import('@/lib/resumeUtils')
-                    await openResumeInNewTab(candidate.resume_url!)
+                    await openResumeInNewTab(resumeUrl!)
                   }}
                 >
                   <Download className="w-4 h-4 mr-2" />
@@ -231,21 +233,28 @@ export default function CandidateProfile() {
                 <ResumeUpload 
                   candidateId={id!}
                   orgId={candidate?.orgId || ''}
-                  currentResumeUrl={candidate?.resume_url}
+                  currentResumeUrl={candidate?.resume_url || (candidate as any)?.resumeUrl}
                   onUploadSuccess={(resumeUrl) => {
                     // Trigger a refetch of candidate data
                     window.location.reload()
                   }}
                 />
                 
-                {candidate?.resume_url && (
+                {(candidate?.resume_url || (candidate as any)?.resumeUrl) && (
                   <ResumePreview 
-                    resumeUrl={candidate.resume_url}
+                    resumeUrl={candidate?.resume_url || (candidate as any)?.resumeUrl}
                     candidateName={candidate?.name || 'Unknown Candidate'}
                   />
                 )}
               </div>
             </div>
+
+            {/* Resume Insights - AI Parsed Data */}
+            {(candidate?.resume_url || (candidate as any)?.resumeUrl) && (
+              <div className="mt-6">
+                <ResumeInsights candidate={candidate} />
+              </div>
+            )}
           </TabsContent>
 
           {/* Applications Tab */}

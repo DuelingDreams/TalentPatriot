@@ -31,6 +31,7 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [signedUrl, setSignedUrl] = useState<string | null>(null)
+  const [documentKey, setDocumentKey] = useState<number>(0) // Force re-render on URL change
 
   // Generate signed URL if resumeUrl is a storage path
   useEffect(() => {
@@ -61,8 +62,28 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
     setError(null)
   }
 
-  const onDocumentLoadError = (error: Error) => {
+  const onDocumentLoadError = async (error: Error) => {
     console.error('Failed to load PDF:', error)
+    
+    // Only try to refresh if this is a storage path (not a legacy HTTPS URL)
+    if (isStoragePath(resumeUrl) && (error.message?.includes('403') || error.message?.includes('Forbidden') || error.message?.includes('Invalid'))) {
+      console.log('Attempting to refresh signed URL for storage path...')
+      try {
+        const newUrl = await getResumeSignedUrl(resumeUrl)
+        if (newUrl !== signedUrl) {
+          console.log('Refreshed signed URL successfully')
+          setSignedUrl(newUrl)
+          setDocumentKey(prev => prev + 1) // Force Document component to re-render
+          setPageNumber(1) // Reset to first page
+          setError(null)
+          setLoading(true) // Reset loading state
+          return // Try loading again with new URL
+        }
+      } catch (refreshError) {
+        console.error('Failed to refresh signed URL:', refreshError)
+      }
+    }
+    
     setError('Failed to load resume. The file may be corrupted or in an unsupported format.')
     setLoading(false)
   }
@@ -167,10 +188,22 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
       </CardHeader>
       <CardContent>
         {error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+          <div className="space-y-4">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+            <div className="flex gap-2 justify-center py-4">
+              <Button variant="outline" onClick={downloadResume}>
+                <Download className="w-4 h-4 mr-2" />
+                Download Instead
+              </Button>
+              <Button variant="outline" onClick={openInNewTab}>
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Try Opening in New Tab
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="space-y-4">
             {/* Controls */}
@@ -219,6 +252,7 @@ export function ResumePreview({ resumeUrl, candidateName }: ResumePreviewProps) 
               
               {signedUrl && (
                 <Document
+                  key={documentKey}
                   file={signedUrl}
                   onLoadSuccess={onDocumentLoadSuccess}
                   onLoadError={onDocumentLoadError}
