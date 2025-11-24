@@ -1,4 +1,3 @@
-import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { supabase } from './lib/supabase';
 
@@ -14,7 +13,9 @@ export class TextExtractionService {
    */
   async extractFromPDF(buffer: Buffer): Promise<TextExtractionResult> {
     try {
-      const data = await pdfParse(buffer as any);
+      // Dynamic import for pdf-parse (CommonJS module)
+      const pdfParse = (await import('pdf-parse')).default;
+      const data = await pdfParse(buffer);
       
       return {
         text: data.text,
