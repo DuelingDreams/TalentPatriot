@@ -18,32 +18,7 @@ import type {
   InsertEmailTemplate,
   InsertEmailEvent
 } from "@shared/schema";
-
-/**
- * Convert camelCase object keys to snake_case for Supabase REST API
- * Drizzle uses camelCase for TypeScript types, but Supabase expects snake_case column names
- */
-function toSnakeCase(obj: Record<string, any>): Record<string, any> {
-  const result: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const snakeKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-    result[snakeKey] = value;
-  }
-  return result;
-}
-
-/**
- * Convert snake_case object keys to camelCase for frontend consumption
- * Supabase returns snake_case column names, but frontend expects camelCase
- */
-function toCamelCase(obj: Record<string, any>): Record<string, any> {
-  const result: Record<string, any> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-    result[camelKey] = value;
-  }
-  return result;
-}
+import { toCamelCase, toSnakeCase } from '@shared/utils/caseConversion';
 
 export class CommunicationsRepository implements ICommunicationsRepository {
   // TODO: Extract methods from original storage.ts

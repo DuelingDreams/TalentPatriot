@@ -106,3 +106,21 @@ Preferred communication style: Simple, everyday language.
   - All resume consumers support both camelCase and snake_case data formats
   - Download, preview, and upload components work across API response formats
 - **Files**: `client/src/components/candidates/ResumeInsights.tsx`, `client/src/features/candidates/pages/CandidateProfile.tsx`, `client/src/components/resume/ResumePreview.tsx`
+
+## Case Conversion Utilities Centralization (Nov 24)
+- **Shared Utility Creation** (`shared/utils/caseConversion.ts`):
+  - Centralized `toCamelCase()` and `toSnakeCase()` functions
+  - Recursive conversion for nested objects and arrays
+  - Plain object detection to preserve Date, RegExp, and other special objects
+  - Batch conversion helpers: `arrayToCamelCase()` and `arrayToSnakeCase()`
+- **Backend Refactoring**:
+  - Removed duplicated conversion functions from `server/storage/auth/repository.ts`
+  - Removed duplicated conversion functions from `server/storage/communications/repository.ts`
+  - Both now import from shared utility for consistency
+- **Frontend Refactoring**:
+  - Updated `ResumeInsights` component to use `toCamelCase()` for data normalization
+  - Updated `CandidateProfile` component to normalize candidate data once at the top
+  - Eliminated all manual dual-field access patterns (`candidate?.resume_url || (candidate as any)?.resumeUrl`)
+  - Cleaner code with proper destructuring and no type assertions
+- **Benefits**: Single source of truth for case conversion, eliminated code duplication, cleaner and more maintainable code
+- **Files**: `shared/utils/caseConversion.ts`, `server/storage/auth/repository.ts`, `server/storage/communications/repository.ts`, `client/src/components/candidates/ResumeInsights.tsx`, `client/src/features/candidates/pages/CandidateProfile.tsx`

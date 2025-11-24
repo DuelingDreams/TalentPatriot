@@ -12,6 +12,7 @@ import {
   Clock
 } from 'lucide-react'
 import type { Candidate } from '@shared/schema'
+import { toCamelCase } from '@shared/utils/caseConversion'
 
 interface WorkExperience {
   title: string
@@ -34,16 +35,25 @@ interface ResumeInsightsProps {
 }
 
 export function ResumeInsights({ candidate }: ResumeInsightsProps) {
-  // Extract candidate fields (they come as camelCase from the API)
-  const parsingStatus = (candidate as any).parsingStatus || (candidate as any).parsing_status
-  const parsingError = (candidate as any).parsingError || (candidate as any).parsing_error
-  const summary = (candidate as any).summary
-  const resumeUrl = (candidate as any).resumeUrl || (candidate as any).resume_url
+  // Normalize candidate data to camelCase (handles both snake_case and camelCase)
+  const normalizedCandidate = toCamelCase(candidate as any)
+  
+  // Extract fields from normalized data
+  const {
+    parsingStatus,
+    parsingError,
+    summary,
+    resumeUrl,
+    workExperience,
+    projects,
+    skills,
+    languages,
+    certifications
+  } = normalizedCandidate
 
   // Parse all fields with error handling (they might be JSON strings or already parsed)
   let workHistory: WorkExperience[] = []
   try {
-    const workExperience = (candidate as any).workExperience || (candidate as any).work_experience
     if (workExperience) {
       const parsed = typeof workExperience === 'string' ? JSON.parse(workExperience) : workExperience
       workHistory = Array.isArray(parsed) ? parsed : []
@@ -54,7 +64,6 @@ export function ResumeInsights({ candidate }: ResumeInsightsProps) {
   
   let projectList: Project[] = []
   try {
-    const projects = (candidate as any).projects
     if (projects) {
       const parsed = typeof projects === 'string' ? JSON.parse(projects) : projects
       projectList = Array.isArray(parsed) ? parsed : []
@@ -65,7 +74,6 @@ export function ResumeInsights({ candidate }: ResumeInsightsProps) {
 
   let skillsList: string[] = []
   try {
-    const skills = (candidate as any).skills
     if (skills) {
       const parsed = typeof skills === 'string' ? JSON.parse(skills) : skills
       skillsList = Array.isArray(parsed) ? parsed : []
@@ -76,7 +84,6 @@ export function ResumeInsights({ candidate }: ResumeInsightsProps) {
 
   let languagesList: string[] = []
   try {
-    const languages = (candidate as any).languages
     if (languages) {
       const parsed = typeof languages === 'string' ? JSON.parse(languages) : languages
       languagesList = Array.isArray(parsed) ? parsed : []
@@ -87,7 +94,6 @@ export function ResumeInsights({ candidate }: ResumeInsightsProps) {
 
   let certificationsList: string[] = []
   try {
-    const certifications = (candidate as any).certifications
     if (certifications) {
       const parsed = typeof certifications === 'string' ? JSON.parse(certifications) : certifications
       certificationsList = Array.isArray(parsed) ? parsed : []

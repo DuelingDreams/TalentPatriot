@@ -37,6 +37,7 @@ import { ResumeUpload } from '@/components/resume/ResumeUpload'
 import { ResumePreview } from '@/components/resume/LazyResumePreview'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { ResumeInsights } from '@/components/candidates/ResumeInsights'
+import { toCamelCase } from '@shared/utils/caseConversion'
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>()
@@ -45,8 +46,10 @@ export default function CandidateProfile() {
   
   const { data: candidateData, isLoading: candidateLoading } = useCandidate(id)
   
-  // Type guard for candidate data with proper fallback
-  const candidate = candidateData && typeof candidateData === 'object' && 'name' in candidateData ? candidateData as any : null
+  // Normalize candidate data to camelCase (handles both snake_case and camelCase)
+  const candidate = candidateData && typeof candidateData === 'object' && 'name' in candidateData 
+    ? toCamelCase(candidateData as any)
+    : null
   const { data: applications, isLoading: applicationsLoading } = useCandidateApplicationHistory(id)
   const { data: interviews, isLoading: interviewsLoading } = useCandidateInterviews(id)
 
@@ -142,7 +145,7 @@ export default function CandidateProfile() {
                   )}
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    <span>Added {candidate?.created_at ? format(new Date(candidate.created_at), 'MMM d, yyyy') : 'Recently'}</span>
+                    <span>Added {candidate?.createdAt ? format(new Date(candidate.createdAt), 'MMM d, yyyy') : 'Recently'}</span>
                   </div>
                 </div>
                 
@@ -158,13 +161,12 @@ export default function CandidateProfile() {
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {(candidate?.resume_url || (candidate as any)?.resumeUrl) && (
+              {candidate?.resumeUrl && (
                 <Button 
                   variant="outline" 
                   onClick={async () => {
-                    const resumeUrl = candidate?.resume_url || (candidate as any)?.resumeUrl
                     const { openResumeInNewTab } = await import('@/lib/resumeUtils')
-                    await openResumeInNewTab(resumeUrl!)
+                    await openResumeInNewTab(candidate.resumeUrl!)
                   }}
                 >
                   <Download className="w-4 h-4 mr-2" />
@@ -233,16 +235,16 @@ export default function CandidateProfile() {
                 <ResumeUpload 
                   candidateId={id!}
                   orgId={candidate?.orgId || ''}
-                  currentResumeUrl={candidate?.resume_url || (candidate as any)?.resumeUrl}
+                  currentResumeUrl={candidate?.resumeUrl}
                   onUploadSuccess={(resumeUrl) => {
                     // Trigger a refetch of candidate data
                     window.location.reload()
                   }}
                 />
                 
-                {(candidate?.resume_url || (candidate as any)?.resumeUrl) && (
+                {candidate?.resumeUrl && (
                   <ResumePreview 
-                    resumeUrl={candidate?.resume_url || (candidate as any)?.resumeUrl}
+                    resumeUrl={candidate.resumeUrl}
                     candidateName={candidate?.name || 'Unknown Candidate'}
                   />
                 )}
@@ -250,7 +252,7 @@ export default function CandidateProfile() {
             </div>
 
             {/* Resume Insights - AI Parsed Data */}
-            {(candidate?.resume_url || (candidate as any)?.resumeUrl) && (
+            {candidate?.resumeUrl && (
               <div className="mt-6">
                 <ResumeInsights candidate={candidate} />
               </div>
