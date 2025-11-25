@@ -9,21 +9,23 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-[#1F3A5F] text-white hover:bg-[#264C99] active:bg-[#1a2f4d]",
+        default: "bg-semantic-primary-700 text-white hover:bg-semantic-primary-600 active:bg-semantic-primary-900",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-status-danger-600 text-white hover:bg-status-danger-700 active:bg-status-danger-700",
         outline:
-          "border border-[#264C99] text-[#264C99] bg-white hover:bg-[#E6F0FF] active:bg-[#d6e5ff]",
+          "border border-neutral-300 text-neutral-700 bg-white hover:bg-neutral-50 hover:border-neutral-400 active:bg-neutral-100",
         secondary:
-          "bg-[#264C99] text-white hover:bg-[#1F3A5F] active:bg-[#1a2f4d]",
-        ghost: "hover:bg-[#F0F4F8] hover:text-[#1F3A5F]",
-        link: "text-[#264C99] underline-offset-4 hover:underline hover:text-[#1F3A5F]",
+          "border border-neutral-300 text-neutral-700 bg-white hover:bg-neutral-50 hover:border-neutral-400 active:bg-neutral-100",
+        success:
+          "bg-status-success-600 text-white hover:bg-status-success-700 active:bg-status-success-700",
+        ghost: "hover:bg-neutral-100 hover:text-neutral-900",
+        link: "text-semantic-primary-600 underline-offset-4 hover:underline hover:text-semantic-primary-700",
       },
       size: {
-        default: "h-11 px-6 py-3 text-sm min-h-[44px]",
+        default: "h-10 px-5 py-2.5 text-sm min-h-[40px]",
         sm: "h-9 rounded-md px-4 text-sm",
         lg: "h-12 rounded-md px-8 text-base min-h-[48px]",
-        icon: "h-10 w-10 min-h-[44px] min-w-[44px]",
+        icon: "h-10 w-10 min-h-[40px] min-w-[40px]",
       },
     },
     defaultVariants: {

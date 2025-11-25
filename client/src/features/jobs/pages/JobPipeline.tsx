@@ -197,103 +197,103 @@ function EnhancedApplicationCard({
       {...attributes}
       {...listeners}
       className={`
-        touch-none select-none mb-3
+        touch-none select-none mb-4
         ${isCurrentlyDragging ? 'z-50' : 'z-0'}
       `}
     >
       <Card className={`
-        bg-white shadow-sm border transition-all group relative
+        bg-white border transition-all duration-200 group relative rounded-lg
         ${isCurrentlyDragging 
-          ? 'border-blue-500 shadow-xl scale-105 rotate-2' 
-          : 'border-slate-200 hover:shadow-md hover:border-blue-300'
+          ? 'border-semantic-primary-500 shadow-lg scale-[1.02] rotate-1' 
+          : 'border-neutral-200 hover:shadow-md hover:border-neutral-300'
         }
       `}>
-        <CardContent className="p-3 sm:p-4">
+        <CardContent className="p-6">
           {/* Drag Handle */}
-          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-60 transition-opacity">
-            <GripVertical className="w-4 h-4 text-slate-400" />
+          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-60 transition-opacity">
+            <GripVertical className="w-4 h-4 text-neutral-400" />
           </div>
 
           {/* Main Content */}
           <div className="pr-6">
             {/* Candidate Name and Status */}
-            <div className="flex items-start justify-between mb-2">
-              <h4 className="font-semibold text-slate-900 text-sm leading-tight">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h4 className="text-lg font-semibold text-neutral-900 leading-tight">
                 {safeCandidateName}
               </h4>
               <Badge 
-                variant="outline" 
-                className="text-xs px-2 py-1 ml-2 flex-shrink-0"
+                variant={status === 'active' ? 'success' : 'neutral'}
+                className="flex-shrink-0"
               >
                 {status === 'active' ? 'Active' : status}
               </Badge>
             </div>
             
             {/* Job Title and Company */}
-            <div className="mb-2">
-              <p className="text-sm font-medium text-slate-700">
+            <div className="mb-4">
+              <p className="text-sm font-medium text-neutral-700">
                 {jobInfo?.title || 'Position Title'}
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-neutral-500 mt-1">
                 {clientInfo?.name || jobInfo?.client?.name || 'Company Name'}
               </p>
             </div>
 
             {/* Contact Info */}
-            <div className="mb-3 space-y-1">
-              <div className="flex items-center gap-1 text-xs text-slate-600">
-                <Mail className="w-3 h-3 flex-shrink-0" />
+            <div className="flex flex-wrap gap-4 mb-4">
+              <div className="flex items-center gap-2 text-sm text-neutral-600">
+                <Mail className="w-4 h-4 flex-shrink-0 text-neutral-400" />
                 <span className="truncate">{safeCandidateEmail}</span>
               </div>
               {safeCandidatePhone && (
-                <div className="flex items-center gap-1 text-xs text-slate-600">
-                  <Phone className="w-3 h-3 flex-shrink-0" />
+                <div className="flex items-center gap-2 text-sm text-neutral-600">
+                  <Phone className="w-4 h-4 flex-shrink-0 text-neutral-400" />
                   <span>{safeCandidatePhone}</span>
                 </div>
               )}
             </div>
 
             {/* Applied Date */}
-            <div className="mb-3">
-              <span className="text-xs text-slate-500">
+            <div className="mb-4">
+              <span className="text-sm text-neutral-500">
                 Applied: {formatDate(appliedAt || '')}
               </span>
             </div>
 
-            {/* Quick Action Buttons - Responsive Layout */}
-            <div className="flex flex-col sm:flex-row gap-2">
+            {/* Quick Action Buttons - Updated spacing and hierarchy */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t border-neutral-100">
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 touch-manipulation"
+                className="flex-1 min-w-0 touch-manipulation"
                 onClick={handleViewResume}
                 data-testid={`resume-${applicationId}`}
               >
-                <FileText className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
+                <FileText className="w-4 h-4 mr-2 flex-shrink-0" />
                 <span className="truncate">{safeResumeUrl ? 'Resume' : 'No Resume'}</span>
               </Button>
               <Button 
                 size="sm" 
                 variant="outline" 
-                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 touch-manipulation"
+                className="flex-1 min-w-0 touch-manipulation"
                 onClick={handleOpenNotes}
                 data-testid={`notes-${applicationId}`}
               >
-                <MessageSquare className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
+                <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
                 <span className="truncate">Notes</span>
               </Button>
               <Button 
                 size="sm" 
-                variant="outline" 
-                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 hover:bg-red-50 hover:border-red-200 hover:text-red-700 touch-manipulation"
+                variant="destructive" 
+                className="flex-1 min-w-0 touch-manipulation"
                 onClick={handleRejectCandidate}
                 disabled={rejectCandidate.isPending}
                 data-testid={`reject-${applicationId}`}
               >
                 {rejectCandidate.isPending ? (
-                  <Loader2 className="w-4 h-4 sm:w-3 sm:h-3 mr-1 animate-spin flex-shrink-0" />
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin flex-shrink-0" />
                 ) : (
-                  <UserX className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
+                  <UserX className="w-4 h-4 mr-2 flex-shrink-0" />
                 )}
                 <span className="truncate">Reject</span>
               </Button>
@@ -451,8 +451,8 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
       <Card className={`
         bg-white shadow-sm border mb-3 transition-all group relative overflow-visible
         ${isCurrentlyDragging 
-          ? 'border-blue-500 shadow-xl scale-105 rotate-3' 
-          : 'border-slate-200 hover:shadow-md hover:border-blue-300'
+          ? 'border-semantic-primary-500 shadow-xl scale-105 rotate-3' 
+          : 'border-neutral-200 hover:shadow-md hover:border-semantic-primary-300'
         }
       `}>
         <CardContent className="p-4">
@@ -467,7 +467,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 rounded-full hover:bg-blue-50 hover:text-blue-600"
+                className="h-8 w-8 p-0 rounded-full hover:bg-semantic-primary-50 hover:text-semantic-primary-600"
                 onClick={handleSchedule}
                 title="Schedule Interview"
               >
@@ -504,7 +504,7 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
           </div>
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
-              <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+              <AvatarFallback className="bg-semantic-primary-100 text-semantic-primary-600 text-sm">
                 {candidateName && candidateName !== 'Unknown Candidate' 
                   ? candidateName.split(' ').map((n: string) => n?.[0] || '').join('').slice(0, 2) || 'N/A'
                   : 'N/A'
@@ -624,12 +624,12 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
     }
     if (normalizedId.includes('screen') || normalizedTitle.includes('screen')) {
       return {
-        headerBg: 'bg-blue-100',
-        headerBorder: 'border-blue-300',
-        headerText: 'text-blue-800',
-        columnBg: 'bg-blue-50',
-        columnBorder: 'border-blue-200',
-        accent: 'blue'
+        headerBg: 'bg-status-info-100',
+        headerBorder: 'border-status-info-500',
+        headerText: 'text-status-info-700',
+        columnBg: 'bg-status-info-50',
+        columnBorder: 'border-status-info-100',
+        accent: 'info'
       }
     }
     if (normalizedId.includes('interview') || normalizedTitle.includes('interview')) {
@@ -741,12 +741,12 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
             <Badge 
               variant="secondary" 
               className={`text-sm font-medium ${
-                styling.accent === 'gray' ? 'bg-gray-200 text-gray-800' :
-                styling.accent === 'blue' ? 'bg-blue-200 text-blue-800' :
-                styling.accent === 'yellow' ? 'bg-yellow-200 text-yellow-800' :
+                styling.accent === 'gray' ? 'bg-neutral-200 text-neutral-800' :
+                styling.accent === 'info' ? 'bg-status-info-100 text-status-info-700' :
+                styling.accent === 'yellow' ? 'bg-status-warning-100 text-status-warning-700' :
                 styling.accent === 'purple' ? 'bg-purple-200 text-purple-800' :
-                styling.accent === 'green' ? 'bg-green-200 text-green-800' :
-                'bg-slate-200 text-slate-800'
+                styling.accent === 'green' ? 'bg-status-success-100 text-status-success-700' :
+                'bg-neutral-200 text-neutral-800'
               } ${
                 isOver ? 'scale-110 shadow-md' : ''
               } transition-all`}
@@ -766,7 +766,7 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
           ${styling.columnBg} ${styling.columnBorder}
           ${
             isOver 
-              ? 'border-blue-500 shadow-lg bg-opacity-80 scale-[1.01]' 
+              ? 'border-semantic-primary-500 shadow-lg bg-opacity-80 scale-[1.01]' 
               : ''
           }
         `}
@@ -777,12 +777,12 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
           variant="outline"
           className={`
             w-full mb-4 border-dashed border-2 h-12
-            ${styling.accent === 'gray' ? 'border-gray-300 hover:bg-gray-100 text-gray-600' :
-              styling.accent === 'blue' ? 'border-blue-300 hover:bg-blue-100 text-blue-600' :
-              styling.accent === 'yellow' ? 'border-yellow-300 hover:bg-yellow-100 text-yellow-600' :
+            ${styling.accent === 'gray' ? 'border-neutral-300 hover:bg-neutral-100 text-neutral-600' :
+              styling.accent === 'info' ? 'border-status-info-500 hover:bg-status-info-50 text-status-info-600' :
+              styling.accent === 'yellow' ? 'border-status-warning-500 hover:bg-status-warning-50 text-status-warning-600' :
               styling.accent === 'purple' ? 'border-purple-300 hover:bg-purple-100 text-purple-600' :
-              styling.accent === 'green' ? 'border-green-300 hover:bg-green-100 text-green-600' :
-              'border-slate-300 hover:bg-slate-100 text-slate-600'
+              styling.accent === 'green' ? 'border-status-success-500 hover:bg-status-success-50 text-status-success-600' :
+              'border-neutral-300 hover:bg-neutral-100 text-neutral-600'
             }
             hover:border-solid transition-all
           `}
@@ -830,13 +830,15 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
           })?.filter(Boolean) || []}
         </SortableContext>
         
-        {/* Enhanced Empty State */}
+        {/* Enhanced Empty State - Design System Compliant */}
         {applications.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-48 text-slate-400">
-            <div className="text-center">
-              <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm font-medium mb-1">No candidates yet</p>
-              <p className="text-xs opacity-75">Drag candidates here or use the button above</p>
+          <div className="flex flex-col items-center justify-center py-8 px-4">
+            <div className="max-w-[280px] mx-auto text-center">
+              <div className="w-12 h-12 mx-auto mb-6 rounded-full bg-neutral-100 flex items-center justify-center">
+                <Users className="w-6 h-6 text-neutral-400" />
+              </div>
+              <p className="text-lg font-semibold text-neutral-900 mb-2">No candidates yet</p>
+              <p className="text-sm text-neutral-500 leading-relaxed">Drag candidates here or use the button above</p>
             </div>
           </div>
         )}
@@ -872,22 +874,22 @@ function JobPipelineCard({ job }: { job: any }) {
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-blue-600" />
+            <div className="w-10 h-10 bg-semantic-primary-100 rounded-lg flex items-center justify-center">
+              <Briefcase className="w-5 h-5 text-semantic-primary-600" />
             </div>
             <div>
               <CardTitle className="text-lg">{jobTitle}</CardTitle>
-              <div className="flex items-center gap-1 text-sm text-slate-600 mt-1">
+              <div className="flex items-center gap-1 text-sm text-neutral-600 mt-1">
                 <Building2 className="w-4 h-4" />
                 <span>{clientName}</span>
               </div>
             </div>
           </div>
           <Badge className={
-            jobStatus === 'open' ? 'bg-green-100 text-green-800' :
-            jobStatus === 'closed' ? 'bg-gray-100 text-gray-800' :
-            jobStatus === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
-            'bg-blue-100 text-blue-800'
+            jobStatus === 'open' ? 'bg-status-success-100 text-status-success-700' :
+            jobStatus === 'closed' ? 'bg-neutral-100 text-neutral-700' :
+            jobStatus === 'on_hold' ? 'bg-status-warning-100 text-status-warning-700' :
+            'bg-semantic-primary-100 text-semantic-primary-700'
           }>
             {jobStatus.replace('_', ' ')}
           </Badge>
@@ -1394,12 +1396,12 @@ export default function JobPipeline() {
             <CardContent className="p-6">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Briefcase className="w-6 h-6 text-blue-600" />
+                  <div className="w-12 h-12 bg-semantic-primary-100 rounded-lg flex items-center justify-center">
+                    <Briefcase className="w-6 h-6 text-semantic-primary-600" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-slate-900">{currentJob.title}</h1>
-                    <div className="flex items-center gap-2 text-slate-600 mt-1">
+                    <h1 className="text-2xl font-bold text-neutral-900">{currentJob.title}</h1>
+                    <div className="flex items-center gap-2 text-neutral-600 mt-1">
                       <Building2 className="w-4 h-4" />
                       <span>{currentJob.clients?.name}</span>
                       {currentJob.clients?.industry && (
@@ -1409,7 +1411,7 @@ export default function JobPipeline() {
                         </>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-slate-500 text-sm mt-2">
+                    <div className="flex items-center gap-2 text-neutral-500 text-sm mt-2">
                       <Calendar className="w-4 h-4" />
                       <span>Created {new Date(currentJob.created_at).toLocaleDateString()}</span>
                     </div>
@@ -1417,10 +1419,10 @@ export default function JobPipeline() {
                 </div>
                 <div className="flex gap-2">
                   <Badge className={
-                    currentJob.status === 'open' ? 'bg-green-100 text-green-800' :
-                    currentJob.status === 'closed' ? 'bg-gray-100 text-gray-800' :
-                    currentJob.status === 'on_hold' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-blue-100 text-blue-800'
+                    currentJob.status === 'open' ? 'bg-status-success-100 text-status-success-700' :
+                    currentJob.status === 'closed' ? 'bg-neutral-100 text-neutral-700' :
+                    currentJob.status === 'on_hold' ? 'bg-status-warning-100 text-status-warning-700' :
+                    'bg-semantic-primary-100 text-semantic-primary-700'
                   }>
                     {currentJob.status.replace('_', ' ')}
                   </Badge>
@@ -1471,7 +1473,7 @@ export default function JobPipeline() {
                   id="include-completed"
                   checked={includeCompleted}
                   onCheckedChange={setIncludeCompleted}
-                  className="data-[state=checked]:bg-blue-600"
+                  className="data-[state=checked]:bg-semantic-primary-600"
                 />
               </div>
               {jobPipelineData?.applications && (
@@ -1515,22 +1517,22 @@ export default function JobPipeline() {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">
+                    <div className="text-2xl font-bold text-semantic-primary-600">
                       {jobCandidates?.length || 0}
                     </div>
-                    <div className="text-sm text-slate-600">Total Candidates</div>
+                    <div className="text-sm text-neutral-600">Total Candidates</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-green-600">
+                    <div className="text-2xl font-bold text-status-success-600">
                       {jobPipelineData?.applications?.length || 0}
                     </div>
-                    <div className="text-sm text-slate-600">Applications</div>
+                    <div className="text-sm text-neutral-600">Applications</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="text-2xl font-bold text-status-warning-600">
                       {jobPipelineData?.columns?.length || 0}
                     </div>
-                    <div className="text-sm text-slate-600">Pipeline Stages</div>
+                    <div className="text-sm text-neutral-600">Pipeline Stages</div>
                   </div>
                 </div>
               </CardContent>

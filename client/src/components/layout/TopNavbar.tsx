@@ -38,10 +38,10 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
 
         {/* Page Title and Organization */}
         <div className="hidden lg:flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-[#1A1A1A] font-[Inter,sans-serif]">{pageTitle}</h1>
+          <h1 className="text-[1.875rem] font-bold text-neutral-900 leading-tight font-[Inter,sans-serif]">{pageTitle}</h1>
           {!isDemoMode && (
             <div className="flex items-center">
-              <span className="text-[#5C667B] mx-2">|</span>
+              <span className="text-neutral-400 mx-3">|</span>
               <OrganizationSwitcher />
             </div>
           )}
