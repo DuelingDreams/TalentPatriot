@@ -51,7 +51,7 @@ export function SimpleQuickActions({ pendingApplications = 8 }: SimpleQuickActio
         Quick Actions
       </h2>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {actions.map((action) => {
           const IconComponent = action.icon
           const content = (

@@ -12,7 +12,7 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-[#F7F9FC]">
+    <div className="flex h-screen bg-[#F7F9FC] overflow-hidden">
       <SkipLink href="#main-content">Skip to main content</SkipLink>
       
       <Sidebar 
@@ -20,7 +20,7 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
         onClose={() => setSidebarOpen(false)} 
       />
       
-      <div className="flex-1 flex flex-col lg:pl-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <TopNavbar 
           onMobileMenuToggle={() => setSidebarOpen(!sidebarOpen)}
           pageTitle={pageTitle}
@@ -32,7 +32,9 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
           role="main"
           aria-label={pageTitle ? `${pageTitle} content` : 'Main content'}
         >
-          {children}
+          <div className="w-full max-w-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>
