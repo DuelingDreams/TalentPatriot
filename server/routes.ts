@@ -1627,6 +1627,61 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   })
 
+  // Manual Resume Parsing Trigger endpoint
+  app.post('/api/candidates/:id/parse-resume', writeLimiter, async (req, res) => {
+    try {
+      const { id: candidateId } = req.params
+      const orgId = req.headers['x-org-id'] as string
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID is required' })
+      }
+
+      console.log(`[MANUAL PARSE] Triggering resume parsing for candidate ${candidateId}`)
+
+      // Get candidate to verify exists and has resume
+      const candidate = await storage.candidates.getCandidate(candidateId)
+      if (!candidate) {
+        return res.status(404).json({ error: 'Candidate not found' })
+      }
+
+      // Handle legacy candidates with undefined orgId
+      const candidateOrgId = candidate.orgId || (candidate as any).org_id
+      if (candidateOrgId && candidateOrgId !== orgId) {
+        return res.status(404).json({ error: 'Candidate not found' })
+      }
+
+      const resumeUrl = candidate.resumeUrl || (candidate as any).resume_url
+      if (!resumeUrl) {
+        return res.status(400).json({ error: 'Candidate does not have a resume uploaded' })
+      }
+
+      // Immediately return success - parsing happens asynchronously
+      res.json({ 
+        success: true, 
+        message: 'Resume parsing started',
+        candidateId,
+        resumeUrl
+      })
+
+      // Trigger parsing asynchronously (after response sent)
+      const { DatabaseStorage: LegacyStorage } = await import('./storage.legacy')
+      const legacyStorage = new LegacyStorage()
+      legacyStorage.parseAndUpdateCandidateFromStorage(candidateId, resumeUrl)
+        .then(() => {
+          console.log(`[MANUAL PARSE] Successfully completed parsing for candidate ${candidateId}`)
+        })
+        .catch((err: unknown) => {
+          console.error(`[MANUAL PARSE] Failed to parse resume for candidate ${candidateId}:`, err)
+        })
+
+    } catch (error) {
+      console.error('Error triggering resume parse:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      res.status(500).json({ error: 'Failed to trigger resume parsing', details: errorMessage })
+    }
+  })
+
   // Data Export/Import endpoints
   app.post('/api/data/export', writeLimiter, async (req, res) => {
     try {

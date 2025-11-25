@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { 
   Briefcase, 
   Code, 
@@ -9,8 +11,11 @@ import {
   Loader2, 
   AlertCircle,
   CheckCircle,
-  Clock
+  Clock,
+  RefreshCw
 } from 'lucide-react'
+import { useToast } from '@/shared/hooks/use-toast'
+import { apiRequest } from '@/lib/queryClient'
 import type { Candidate } from '@shared/schema'
 import { toCamelCase } from '@shared/utils/caseConversion'
 
@@ -32,9 +37,51 @@ interface Project {
 
 interface ResumeInsightsProps {
   candidate: Candidate
+  orgId?: string
+  onParsingTriggered?: () => void
 }
 
-export function ResumeInsights({ candidate }: ResumeInsightsProps) {
+export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeInsightsProps) {
+  const { toast } = useToast()
+  const [isParsing, setIsParsing] = useState(false)
+  
+  const candidateId = candidate.id || (candidate as any).id
+  
+  const triggerParsing = async () => {
+    if (!orgId || isParsing) return
+    
+    setIsParsing(true)
+    try {
+      await apiRequest(`/api/candidates/${candidateId}/parse-resume`, {
+        method: 'POST',
+        headers: {
+          'X-Org-Id': orgId
+        }
+      })
+      
+      toast({
+        title: 'Resume Analysis Started',
+        description: 'AI is analyzing the resume. Refresh in a few seconds to see insights.',
+      })
+      
+      onParsingTriggered?.()
+      
+      // Auto-refresh after 5 seconds
+      setTimeout(() => {
+        window.location.reload()
+      }, 5000)
+    } catch (error) {
+      console.error('Failed to trigger parsing:', error)
+      toast({
+        title: 'Failed to Start Analysis',
+        description: 'Could not start resume analysis. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsParsing(false)
+    }
+  }
+  
   // Normalize candidate data to camelCase (handles both snake_case and camelCase)
   const normalizedCandidate = toCamelCase(candidate as any)
   
@@ -157,11 +204,33 @@ export function ResumeInsights({ candidate }: ResumeInsightsProps) {
       </div>
 
       {/* Parsing Error */}
-      {parsingStatus === 'failed' && parsingError && (
+      {parsingStatus === 'failed' && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Failed to analyze resume: {parsingError}
+          <AlertDescription className="flex items-center justify-between">
+            <span>Failed to analyze resume{parsingError ? `: ${parsingError}` : ''}</span>
+            {orgId && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={triggerParsing}
+                disabled={isParsing}
+                className="ml-4 border-red-300 text-red-700 hover:bg-red-50"
+                data-testid="btn-retry-analysis"
+              >
+                {isParsing ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Retrying...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Retry Analysis
+                  </>
+                )}
+              </Button>
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -180,8 +249,30 @@ export function ResumeInsights({ candidate }: ResumeInsightsProps) {
       {parsingStatus === 'pending' && (
         <Alert>
           <Clock className="h-4 w-4" />
-          <AlertDescription>
-            Resume analysis will begin shortly. Refresh the page in a few moments to see AI-extracted insights.
+          <AlertDescription className="flex items-center justify-between">
+            <span>Resume analysis is pending.</span>
+            {orgId && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={triggerParsing}
+                disabled={isParsing}
+                className="ml-4"
+                data-testid="btn-analyze-resume"
+              >
+                {isParsing ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                    Starting...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Analyze Now
+                  </>
+                )}
+              </Button>
+            )}
           </AlertDescription>
         </Alert>
       )}

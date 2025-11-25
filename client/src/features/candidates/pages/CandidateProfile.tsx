@@ -254,7 +254,10 @@ export default function CandidateProfile() {
             {/* Resume Insights - AI Parsed Data */}
             {candidate?.resumeUrl && (
               <div className="mt-6">
-                <ResumeInsights candidate={candidate} />
+                <ResumeInsights 
+                  candidate={candidate} 
+                  orgId={currentOrgId || undefined}
+                />
               </div>
             )}
           </TabsContent>
