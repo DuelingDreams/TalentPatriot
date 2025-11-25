@@ -91,7 +91,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl overflow-hidden",
         isOpen ? "translate-x-0" : "-translate-x-full",
         className
       )}>
@@ -114,7 +114,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-4 space-y-1">
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
             {filteredNavigationItems.map((item) => {
               const Icon = item.icon
               const isActive = location === item.href
@@ -125,7 +125,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                 <div key={item.href}>
                   {/* Main Navigation Item */}
                   <div className="flex items-center">
-                    <Link href={item.href} className="flex-1">
+                    <Link href={item.href} className="flex-1 min-w-0">
                       <Button
                         variant="ghost"
                         className={cn(
@@ -136,8 +136,8 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                         )}
                         onClick={onClose}
                       >
-                        <Icon className="w-5 h-5 mr-3" />
-                        {item.label}
+                        <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                        <span className="truncate">{item.label}</span>
                       </Button>
                     </Link>
                     
@@ -146,7 +146,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="ml-1 p-1 h-8 w-8 text-[#5C667B] hover:bg-[#F0F4F8]"
+                        className="ml-1 p-1 h-8 w-8 flex-shrink-0 text-[#5C667B] hover:bg-[#F0F4F8]"
                         onClick={() => toggleExpanded(item.label)}
                       >
                         <svg 
@@ -163,7 +163,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                   
                   {/* Sub Items */}
                   {hasSubItems && isExpanded && (
-                    <div className="ml-8 mt-1 space-y-1">
+                    <div className="ml-4 mt-1 space-y-1">
                       {item.subItems?.map((subItem) => {
                         const SubIcon = subItem.icon
                         const subIsActive = location === subItem.href
@@ -180,16 +180,16 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                               <Button
                                 variant="ghost"
                                 className={cn(
-                                  "w-full justify-start text-sm pl-8",
+                                  "w-full justify-start text-sm px-3",
                                   subIsActive 
                                     ? "bg-[#1F3A5F] text-white font-bold" 
                                     : "text-[#6B7280] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
                                 )}
                                 onClick={onClose}
                               >
-                                <SubIcon className="w-4 h-4 mr-3" />
-                                {subItem.label}
-                                <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <SubIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                                <span className="truncate flex-1">{subItem.label}</span>
+                                <svg className="w-3 h-3 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                 </svg>
                               </Button>
@@ -202,15 +202,15 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                             <Button
                               variant="ghost"
                               className={cn(
-                                "w-full justify-start text-sm pl-8",
+                                "w-full justify-start text-sm px-3",
                                 subIsActive 
                                   ? "bg-[#1F3A5F] text-white font-bold" 
                                   : "text-[#6B7280] hover:bg-[#F0F4F8] hover:text-[#1F3A5F]"
                               )}
                               onClick={onClose}
                             >
-                              <SubIcon className="w-4 h-4 mr-3" />
-                              {subItem.label}
+                              <SubIcon className="w-4 h-4 mr-2 flex-shrink-0" />
+                              <span className="truncate">{subItem.label}</span>
                             </Button>
                           </Link>
                         )
@@ -241,8 +241,8 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                     )}
                     onClick={onClose}
                   >
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.label}
+                    <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <span className="truncate">{item.label}</span>
                   </Button>
                 </Link>
               )

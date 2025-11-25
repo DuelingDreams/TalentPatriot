@@ -188,16 +188,16 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout pageTitle="Dashboard">
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-6 overflow-x-hidden">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">Dashboard</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Welcome back! Here's an overview of your recruitment pipeline.
             </p>
           </div>
-          <div className="mt-4 sm:mt-0 flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <RefreshIndicator 
               lastRefreshed={realTimeRefresh.lastRefreshed}
               isRefreshing={realTimeRefresh.isRefreshing}
