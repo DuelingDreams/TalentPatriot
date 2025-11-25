@@ -1631,31 +1631,47 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.post('/api/candidates/:id/parse-resume', writeLimiter, async (req, res) => {
     try {
       const { id: candidateId } = req.params
-      const orgId = req.headers['x-org-id'] as string
+      // Use req.get() for case-insensitive header access
+      const orgId = req.get('x-org-id') || req.headers['x-org-id'] as string
+      
+      console.log(`[MANUAL PARSE] Request received for candidate ${candidateId}, orgId header: ${orgId}`)
       
       if (!orgId) {
+        console.log(`[MANUAL PARSE] Missing orgId header`)
         return res.status(400).json({ error: 'Organization ID is required' })
       }
 
-      console.log(`[MANUAL PARSE] Triggering resume parsing for candidate ${candidateId}`)
+      console.log(`[MANUAL PARSE] Fetching candidate ${candidateId}...`)
 
       // Get candidate to verify exists and has resume
       const candidate = await storage.candidates.getCandidate(candidateId)
+      console.log(`[MANUAL PARSE] Candidate lookup result:`, candidate ? `Found: ${candidate.name}` : 'Not found')
+      
       if (!candidate) {
+        console.log(`[MANUAL PARSE] Candidate ${candidateId} not found in database`)
         return res.status(404).json({ error: 'Candidate not found' })
       }
 
-      // Handle legacy candidates with undefined orgId
+      // Handle legacy candidates with undefined/null orgId - allow parsing for these
       const candidateOrgId = candidate.orgId || (candidate as any).org_id
+      console.log(`[MANUAL PARSE] Candidate orgId: ${candidateOrgId || 'null (legacy)'}, request orgId: ${orgId}`)
+      
+      // Only check orgId match if candidate has an orgId - legacy candidates without orgId are allowed
       if (candidateOrgId && candidateOrgId !== orgId) {
+        console.log(`[MANUAL PARSE] OrgId mismatch - candidate belongs to different org`)
         return res.status(404).json({ error: 'Candidate not found' })
       }
 
       const resumeUrl = candidate.resumeUrl || (candidate as any).resume_url
+      console.log(`[MANUAL PARSE] Resume URL: ${resumeUrl}`)
+      
       if (!resumeUrl) {
+        console.log(`[MANUAL PARSE] No resume URL found for candidate`)
         return res.status(400).json({ error: 'Candidate does not have a resume uploaded' })
       }
 
+      console.log(`[MANUAL PARSE] Starting async parsing for candidate ${candidateId}`)
+      
       // Immediately return success - parsing happens asynchronously
       res.json({ 
         success: true, 
@@ -1676,7 +1692,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         })
 
     } catch (error) {
-      console.error('Error triggering resume parse:', error)
+      console.error('[MANUAL PARSE] Error triggering resume parse:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       res.status(500).json({ error: 'Failed to trigger resume parsing', details: errorMessage })
     }
@@ -2439,30 +2455,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // Resume parsing endpoints
-  const resumeParsingSchema = z.object({
-    resumeText: z.string().min(1, "Resume text is required")
-  });
-
-  app.post('/api/candidates/:candidateId/parse-resume', writeLimiter, async (req, res) => {
-    console.info('[API]', req.method, req.url);
-    try {
-      const { candidateId } = req.params;
-      const validatedData = resumeParsingSchema.parse(req.body);
-
-      const updatedCandidate = await storage.candidates.parseAndUpdateCandidate(candidateId, validatedData.resumeText);
-      res.json({ success: true, candidate: updatedCandidate });
-    } catch (error) {
-      console.error('Resume parsing error:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: "Validation failed", 
-          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
-        });
-      }
-      res.status(500).json({ error: 'Failed to parse resume' });
-    }
-  });
+  // Resume parsing endpoint with resumeText in body (use /api/candidates/:id/parse-resume for manual trigger from storage)
+  // Note: Manual parsing trigger endpoint is defined earlier in this file at /api/candidates/:id/parse-resume
 
   // Search candidates by skills endpoint
   const skillsSearchSchema = z.object({

@@ -48,15 +48,13 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
   const candidateId = candidate.id || (candidate as any).id
   
   const triggerParsing = async () => {
-    if (!orgId || isParsing) return
+    if (isParsing) return
     
     setIsParsing(true)
     try {
+      // apiRequest automatically includes x-org-id header from session storage
       await apiRequest(`/api/candidates/${candidateId}/parse-resume`, {
-        method: 'POST',
-        headers: {
-          'X-Org-Id': orgId
-        }
+        method: 'POST'
       })
       
       toast({
