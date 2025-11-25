@@ -220,16 +220,35 @@ export function useMoveApplication(jobId: string) {
       return { previousDataMap };
     },
     
-    onSuccess: async (data: any) => {
-      console.log('[useMoveApplication] Move successful - invalidating pipeline data');
+    onSuccess: async (data: any, { applicationId, columnId }) => {
+      console.log('[useMoveApplication] Move successful - keeping optimistic update');
       
-      // Invalidate ALL matching queries to trigger refetch from server
-      // Using predicate ensures we catch all variants regardless of includeCompleted value
-      await queryClient.invalidateQueries({ 
-        predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
-      });
+      // IMPORTANT: Don't invalidate/refetch here! The database has a read-replica lag,
+      // so an immediate refetch would return stale data and overwrite the optimistic update.
+      // Instead, we trust the optimistic update which already shows the correct state.
+      // The API response confirms the move succeeded, so the optimistic state is valid.
       
-      console.log('[useMoveApplication] Pipeline cache invalidated successfully');
+      // Update the cache one more time to ensure consistency with API response
+      // This uses the confirmed columnId from the successful response
+      const confirmedColumnId = data?.jobCandidate?.pipeline_column_id || columnId;
+      
+      queryClient.setQueriesData(
+        { predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId },
+        (old: any) => {
+          if (!old || !old.applications) return old;
+          
+          const updatedApplications = old.applications.map((app: any) => {
+            if (app.id === applicationId) {
+              return { ...app, columnId: confirmedColumnId };
+            }
+            return app;
+          });
+          
+          return { ...old, applications: updatedApplications };
+        }
+      );
+      
+      console.log('[useMoveApplication] Cache confirmed with server response:', { applicationId, confirmedColumnId });
     },
     
     onError: (error, { applicationId }, context) => {
