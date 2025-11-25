@@ -37,8 +37,8 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
         </Button>
 
         {/* Page Title and Organization */}
-        <div className="hidden lg:flex items-center space-x-3 min-w-0 flex-1 max-w-[50%]">
-          <h1 className="text-xl xl:text-2xl font-bold text-neutral-900 leading-tight font-[Inter,sans-serif] truncate">{pageTitle}</h1>
+        <div className="hidden lg:flex items-center gap-3">
+          <h1 className="text-xl xl:text-2xl font-bold text-neutral-900 leading-tight font-[Inter,sans-serif]">{pageTitle}</h1>
           {!isDemoMode && (
             <div className="flex items-center flex-shrink-0">
               <span className="text-neutral-400 mx-2">|</span>

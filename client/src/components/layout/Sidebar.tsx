@@ -91,7 +91,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-56 xl:w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl overflow-hidden flex-shrink-0",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0 shadow-xl overflow-hidden flex-shrink-0",
         isOpen ? "translate-x-0" : "-translate-x-full",
         className
       )}>
@@ -137,7 +137,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                         onClick={onClose}
                       >
                         <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
-                        <span className="truncate">{item.label}</span>
+                        <span>{item.label}</span>
                       </Button>
                     </Link>
                     
@@ -188,7 +188,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                                 onClick={onClose}
                               >
                                 <SubIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                                <span className="truncate flex-1">{subItem.label}</span>
+                                <span className="flex-1">{subItem.label}</span>
                                 <svg className="w-3 h-3 ml-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                 </svg>
@@ -210,7 +210,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                               onClick={onClose}
                             >
                               <SubIcon className="w-4 h-4 mr-2 flex-shrink-0" />
-                              <span className="truncate">{subItem.label}</span>
+                              <span>{subItem.label}</span>
                             </Button>
                           </Link>
                         )
@@ -242,7 +242,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                     onClick={onClose}
                   >
                     <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
-                    <span className="truncate">{item.label}</span>
+                    <span>{item.label}</span>
                   </Button>
                 </Link>
               )
@@ -251,16 +251,16 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
 
           {/* User Profile Section */}
           <div className="border-t border-slate-200 p-4">
-            <div className="flex items-center space-x-3">
-              <Avatar className="w-10 h-10">
+            <div className="flex items-center gap-3">
+              <Avatar className="w-10 h-10 flex-shrink-0">
                 <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=80&h=80" />
                 <AvatarFallback>JD</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 {userRole === 'demo_viewer' ? (
                   <>
-                    <p className="text-sm font-medium text-slate-900 truncate">John Doe</p>
-                    <p className="text-xs text-slate-500 truncate">john@company.com</p>
+                    <p className="text-sm font-medium text-slate-900">John Doe</p>
+                    <p className="text-xs text-slate-500">john@company.com</p>
                   </>
                 ) : (
                   <>

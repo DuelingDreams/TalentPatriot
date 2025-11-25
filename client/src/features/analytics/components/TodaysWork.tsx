@@ -68,27 +68,25 @@ export function TodaysWork({
         Today's Work
       </h2>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {workItems.map((item) => {
           const IconComponent = item.icon
           return (
             <Card
               key={item.id}
-              className="hover:shadow-md transition-shadow cursor-pointer min-w-0"
+              className="hover:shadow-md transition-shadow cursor-pointer"
               data-testid={`work-card-${item.id}`}
             >
               <CardContent className="p-4">
                 <Link href={item.href}>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-lg flex-shrink-0 ${getPriorityColor(item.priority)}`}>
                         <IconComponent className="w-5 h-5" />
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-medium text-gray-900 text-sm truncate" data-testid={`work-title-${item.id}`}>
-                          {item.title}
-                        </h3>
-                      </div>
+                      <h3 className="font-medium text-gray-900 text-sm" data-testid={`work-title-${item.id}`}>
+                        {item.title}
+                      </h3>
                     </div>
                     
                     <div className="flex-shrink-0">

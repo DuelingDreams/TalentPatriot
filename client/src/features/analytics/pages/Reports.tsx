@@ -125,7 +125,7 @@ export default function Reports() {
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h1>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader className="pb-2">
@@ -266,7 +266,7 @@ export default function Reports() {
 
       {/* Key Metrics Overview Cards - Only show if there's data */}
       {hasData && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 xl:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <Card data-testid="card-time-to-hire">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg Time to Hire</CardTitle>

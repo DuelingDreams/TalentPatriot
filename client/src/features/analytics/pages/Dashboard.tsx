@@ -188,11 +188,11 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout pageTitle="Dashboard">
-      <div className="p-4 sm:p-6 space-y-6 overflow-x-hidden">
+      <div className="p-4 sm:p-6 space-y-6">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">Dashboard</h1>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="mt-2 text-sm text-muted-foreground">
               Welcome back! Here's an overview of your recruitment pipeline.
             </p>
@@ -235,7 +235,7 @@ export default function Dashboard() {
         {/* Insights & Trends */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900">Insights & Trends</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <StatCard
               label="Open Positions"
               value={dashboardStats.openJobsCount}

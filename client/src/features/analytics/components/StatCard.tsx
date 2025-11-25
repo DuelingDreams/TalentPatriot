@@ -17,11 +17,11 @@ interface StatCardProps {
 
 export const StatCard = memo(function StatCard({ label, value, icon: Icon, trend, loading, className }: StatCardProps) {
   return (
-    <Card className={cn("hover:shadow-lg transition-all duration-300 border-0 overflow-hidden min-w-0", className)}>
+    <Card className={cn("hover:shadow-lg transition-all duration-300 border-0 overflow-hidden", className)}>
       <CardContent className="p-4 sm:p-6">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-muted-foreground truncate">{label}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1">
+            <p className="text-sm font-medium text-muted-foreground">{label}</p>
             <div className="mt-2 flex items-baseline">
               {loading ? (
                 <div className="h-8 w-24 bg-slate-200 animate-pulse rounded" />
