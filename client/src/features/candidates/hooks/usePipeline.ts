@@ -178,65 +178,70 @@ export function useMoveApplication(jobId: string) {
     
     // Optimistic update: immediately update UI before API call completes
     onMutate: async ({ applicationId, columnId }) => {
-      console.log('[useMoveApplication] Starting optimistic update:', { applicationId, columnId });
+      console.log('[useMoveApplication] Starting optimistic update:', { applicationId, columnId, jobId });
       
-      // Cancel any outgoing refetches
+      // Cancel any outgoing refetches for ALL job-pipeline queries for this job
       await queryClient.cancelQueries({ 
         predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
       });
       
-      // Snapshot and update the main query (includeCompleted: false)
-      const previousData = queryClient.getQueryData(['job-pipeline', jobId, { includeCompleted: false }]);
-      
-      // Optimistically update the cache
-      queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], (old: any) => {
-        if (!old || !old.applications) return old;
-        
-        const updatedApplications = old.applications.map((app: any) => {
-          if (app.id === applicationId) {
-            console.log('[Optimistic Update] Updating application:', { 
-              applicationId, 
-              oldColumnId: app.columnId, 
-              newColumnId: columnId 
-            });
-            return { ...app, columnId: columnId };
-          }
-          return app;
-        });
-        
-        return { ...old, applications: updatedApplications };
+      // Snapshot ALL matching queries for rollback
+      const previousDataMap = new Map<string, any>();
+      queryClient.getQueriesData({ 
+        predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
+      }).forEach(([key, data]) => {
+        previousDataMap.set(JSON.stringify(key), data);
       });
       
+      // Optimistically update ALL matching cache entries
+      queryClient.setQueriesData(
+        { predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId },
+        (old: any) => {
+          if (!old || !old.applications) return old;
+          
+          const updatedApplications = old.applications.map((app: any) => {
+            if (app.id === applicationId) {
+              console.log('[Optimistic Update] Updating application:', { 
+                applicationId, 
+                oldColumnId: app.columnId, 
+                newColumnId: columnId 
+              });
+              return { ...app, columnId: columnId };
+            }
+            return app;
+          });
+          
+          console.log('[Optimistic Update] Cache updated successfully');
+          return { ...old, applications: updatedApplications };
+        }
+      );
+      
       // Return snapshot for rollback
-      return { previousData };
+      return { previousDataMap };
     },
     
     onSuccess: async (data: any) => {
-      console.log('[useMoveApplication] Move successful - refreshing pipeline data');
+      console.log('[useMoveApplication] Move successful - invalidating pipeline data');
       
-      // Force immediate refetch of pipeline data - more reliable than invalidation
-      // This ensures UI updates immediately after database update succeeds
-      await queryClient.refetchQueries({ 
-        queryKey: ['job-pipeline', jobId, { includeCompleted: false }],
-        exact: true
+      // Invalidate ALL matching queries to trigger refetch from server
+      // Using predicate ensures we catch all variants regardless of includeCompleted value
+      await queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === 'job-pipeline' && query.queryKey[1] === jobId 
       });
       
-      // Also refetch the includeCompleted view if it exists
-      await queryClient.refetchQueries({ 
-        queryKey: ['job-pipeline', jobId, { includeCompleted: true }],
-        exact: true
-      });
-      
-      console.log('[useMoveApplication] Pipeline data refreshed successfully');
+      console.log('[useMoveApplication] Pipeline cache invalidated successfully');
     },
     
     onError: (error, { applicationId }, context) => {
       console.error('[useMoveApplication] Move failed:', error);
       
-      // Rollback optimistic update
-      if (context?.previousData !== undefined) {
-        console.log('[useMoveApplication] Rolling back optimistic update');
-        queryClient.setQueryData(['job-pipeline', jobId, { includeCompleted: false }], context.previousData);
+      // Rollback all optimistic updates
+      if (context?.previousDataMap) {
+        console.log('[useMoveApplication] Rolling back optimistic updates');
+        context.previousDataMap.forEach((data: any, keyStr: string) => {
+          const key = JSON.parse(keyStr);
+          queryClient.setQueryData(key, data);
+        });
       }
       
       // Re-throw error for the component to handle with user-friendly messages
