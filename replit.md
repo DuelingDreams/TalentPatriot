@@ -124,3 +124,34 @@ Preferred communication style: Simple, everyday language.
   - Cleaner code with proper destructuring and no type assertions
 - **Benefits**: Single source of truth for case conversion, eliminated code duplication, cleaner and more maintainable code
 - **Files**: `shared/utils/caseConversion.ts`, `server/storage/auth/repository.ts`, `server/storage/communications/repository.ts`, `client/src/components/candidates/ResumeInsights.tsx`, `client/src/features/candidates/pages/CandidateProfile.tsx`
+
+## Manual Resume Parsing & Org ID Fixes (Nov 25)
+- **Manual Resume Parsing Endpoint**: Created POST `/api/candidates/:id/parse-resume` for manually triggering resume parsing
+  - Fixed duplicate route conflict (removed conflicting route at line 2447)
+  - Added detailed logging for debugging
+  - Fixed header access to use `req.get('x-org-id')` for case-insensitive access
+  - Legacy candidates with null org_id are now allowed to trigger parsing
+- **UI Button**: Added "Analyze Resume" button to ResumeInsights component for pending/failed parsing states
+  - Uses apiRequest which auto-includes x-org-id from session storage
+  - Shows loading state and auto-refreshes page after 5 seconds
+- **Files**: `server/routes.ts`, `client/src/components/candidates/ResumeInsights.tsx`
+
+# Architecture Decisions
+
+## Case Conversion Strategy (camelCase ↔ snake_case)
+- **Frontend**: Uses camelCase (JavaScript/TypeScript convention)
+- **Database**: Uses snake_case (PostgreSQL convention)
+- **Conversion Layer**: Shared utilities in `shared/utils/caseConversion.ts`
+- **Rationale**: 
+  - JavaScript convention is camelCase (variables, props, functions)
+  - SQL/PostgreSQL convention is snake_case (column names)
+  - Converting at API boundary is cleaner than forcing one convention everywhere
+  - npm libraries expect camelCase - using snake_case would create friction
+  - Drizzle ORM types in `shared/schema.ts` use camelCase for TypeScript compatibility
+  - Single conversion layer is minimal cost for keeping each layer idiomatic
+
+## Org ID in Public Job Applications
+- **Current Behavior**: `applyToJob()` in `server/storage/jobs/repository.ts` correctly derives `org_id` from the job record (line 946)
+- **Flow**: Public applicant → job lookup by ID → extract `job.org_id` → create candidate with that org_id
+- **Legacy Issue**: Earlier candidates may have null org_id if created before this logic was implemented
+- **Auto-Fix**: GET candidate endpoints auto-update candidates with null org_id when accessed with valid header
