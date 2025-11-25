@@ -117,18 +117,18 @@ export function DemoCandidates() {
       {/* Candidates Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCandidates.map((candidate) => (
-          <Card key={candidate.id} className="card hover:shadow-lg transition-all duration-200">
+          <Card key={candidate.id} className="card hover:shadow-lg transition-all duration-200 overflow-hidden">
             <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-12 h-12">
+              <div className="flex items-start justify-between gap-2 mb-4">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Avatar className="w-12 h-12 flex-shrink-0">
                     <AvatarFallback className="bg-[#264C99] text-white text-sm">
                       {candidate.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <h3 className="tp-label text-[#1A1A1A] font-medium">{candidate.name}</h3>
-                    <p className="tp-body text-[#5C667B] text-sm">{candidate.email}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="tp-label text-[#1A1A1A] font-medium truncate">{candidate.name}</h3>
+                    <p className="tp-body text-[#5C667B] text-sm truncate">{candidate.email}</p>
                   </div>
                 </div>
               </div>
