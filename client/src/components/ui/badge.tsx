@@ -4,27 +4,17 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-semantic-primary-500 focus:ring-offset-2 font-[Inter,sans-serif]",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#264C99] focus:ring-offset-2 font-[Inter,sans-serif]",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-semantic-primary-700 text-white hover:bg-semantic-primary-600",
+          "border-transparent bg-[#1F3A5F] text-white hover:bg-[#264C99]",
         secondary:
-          "border-transparent bg-semantic-primary-50 text-semantic-primary-600 hover:bg-semantic-primary-100",
+          "border-transparent bg-[#E6F0FF] text-[#264C99] hover:bg-[#d6e5ff]",
         destructive:
-          "border-transparent bg-status-danger-500 text-white hover:bg-status-danger-600",
-        outline: "text-neutral-900 border-neutral-300",
-        success:
-          "border-transparent bg-status-success-100 text-status-success-700",
-        warning:
-          "border-transparent bg-status-warning-100 text-status-warning-700",
-        danger:
-          "border-transparent bg-status-danger-100 text-status-danger-700",
-        info:
-          "border-transparent bg-status-info-100 text-status-info-700",
-        neutral:
-          "border-transparent bg-neutral-100 text-neutral-700",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-[#1A1A1A] border-[#E6F0FF]",
       },
     },
     defaultVariants: {

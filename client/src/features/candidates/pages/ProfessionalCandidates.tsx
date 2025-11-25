@@ -83,24 +83,24 @@ function CandidateCard({ candidate, jobCandidate }: CandidateCardProps) {
   return (
     <Card className="hover:shadow-lg transition-all duration-300 border-0 overflow-hidden">
       <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-2 mb-4">
-          <div className="flex items-start gap-4 min-w-0 flex-1">
-            <Avatar className="w-12 h-12 flex-shrink-0">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start space-x-4">
+            <Avatar className="w-12 h-12">
               <AvatarImage src={`https://i.pravatar.cc/150?u=${candidate.email}`} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {candidate.name.split(' ').map((n: string) => n[0]).join('')}
               </AvatarFallback>
             </Avatar>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-lg truncate">{candidate.name}</h3>
-              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1 min-w-0">
-                  <Mail className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{candidate.email}</span>
+            <div>
+              <h3 className="font-semibold text-lg">{candidate.name}</h3>
+              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Mail className="w-3 h-3" />
+                  {candidate.email}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Phone className="w-3 h-3 flex-shrink-0" />
-                  <span>{candidate.phone}</span>
+                  <Phone className="w-3 h-3" />
+                  {candidate.phone}
                 </span>
               </div>
             </div>

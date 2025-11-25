@@ -20,7 +20,7 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
         onClose={() => setSidebarOpen(false)} 
       />
       
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col lg:pl-0">
         <TopNavbar 
           onMobileMenuToggle={() => setSidebarOpen(!sidebarOpen)}
           pageTitle={pageTitle}

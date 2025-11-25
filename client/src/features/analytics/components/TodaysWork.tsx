@@ -68,7 +68,7 @@ export function TodaysWork({
         Today's Work
       </h2>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {workItems.map((item) => {
           const IconComponent = item.icon
           return (
@@ -79,17 +79,19 @@ export function TodaysWork({
             >
               <CardContent className="p-4">
                 <Link href={item.href}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg flex-shrink-0 ${getPriorityColor(item.priority)}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className={`p-2 rounded-lg ${getPriorityColor(item.priority)}`}>
                         <IconComponent className="w-5 h-5" />
                       </div>
-                      <h3 className="font-medium text-gray-900 text-sm" data-testid={`work-title-${item.id}`}>
-                        {item.title}
-                      </h3>
+                      <div>
+                        <h3 className="font-medium text-gray-900 text-sm" data-testid={`work-title-${item.id}`}>
+                          {item.title}
+                        </h3>
+                      </div>
                     </div>
                     
-                    <div className="flex-shrink-0">
+                    <div className="text-right">
                       {loading ? (
                         <div className="h-6 w-8 bg-gray-200 animate-pulse rounded" />
                       ) : (

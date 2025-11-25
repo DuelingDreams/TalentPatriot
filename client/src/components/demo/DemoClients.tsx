@@ -76,15 +76,15 @@ export function DemoClients() {
       {/* Clients Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredClients.map((client) => (
-          <Card key={client.id} className="card hover:shadow-lg transition-all duration-200 overflow-hidden">
+          <Card key={client.id} className="card hover:shadow-lg transition-all duration-200">
             <CardHeader>
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <div className="w-12 h-12 flex-shrink-0 bg-gradient-to-br from-[#264C99]/10 to-[#264C99]/20 rounded-lg flex items-center justify-center">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-[#264C99]/10 to-[#264C99]/20 rounded-lg flex items-center justify-center">
                     <Building2 className="w-6 h-6 text-[#264C99]" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <CardTitle className="tp-h2 text-[#1A1A1A] truncate">{client.name}</CardTitle>
+                  <div>
+                    <CardTitle className="tp-h2 text-[#1A1A1A]">{client.name}</CardTitle>
                     <Badge variant="secondary" className="mt-1 bg-[#F0F4F8] text-[#5C667B]">
                       {client.industry}
                     </Badge>

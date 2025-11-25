@@ -350,19 +350,19 @@ export default function Candidates() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="candidates-list-regular">
               {filteredCandidates.map((candidate: any) => (
                 <Link key={candidate.id} href={`/candidates/${candidate.id}`}>
-                  <Card className="card hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden" data-testid={`candidate-card-${candidate.id}`}>
+                  <Card className="card hover:shadow-lg transition-all duration-200 cursor-pointer" data-testid={`candidate-card-${candidate.id}`}>
                     <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4 gap-2">
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <Avatar className="w-12 h-12 flex-shrink-0">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-12 h-12">
                             <AvatarImage src={""} alt={candidate.name} />
                             <AvatarFallback className="bg-[#264C99] text-white">
                               {candidate.name.split(' ').map((n: string) => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-semibold text-[#1A1A1A] truncate" data-testid={`candidate-name-${candidate.id}`}>{candidate.name}</h3>
-                            <p className="text-sm text-[#5C667B] truncate" data-testid={`candidate-email-${candidate.id}`}>{candidate.email}</p>
+                          <div>
+                            <h3 className="font-semibold text-[#1A1A1A]" data-testid={`candidate-name-${candidate.id}`}>{candidate.name}</h3>
+                            <p className="text-sm text-[#5C667B]" data-testid={`candidate-email-${candidate.id}`}>{candidate.email}</p>
                           </div>
                         </div>
                         {candidate.status === 'favorite' && (
