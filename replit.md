@@ -136,6 +136,24 @@ Preferred communication style: Simple, everyday language.
   - Shows loading state and auto-refreshes page after 5 seconds
 - **Files**: `server/routes.ts`, `client/src/components/candidates/ResumeInsights.tsx`
 
+## Dashboard Redesign (Nov 26)
+- **Sidebar Redesign**: Dark navy background (#1F2937) with simplified navigation
+  - Removed Calendar, Email Settings, Help, Integrations from main nav
+  - Added Settings to main navigation
+  - Active state uses lighter background (#3B5068)
+  - White text with gray-300 for inactive items
+- **Two-Column Dashboard Layout**: Responsive grid layout
+  - Left column: Today's Work, Quick Actions, Recent Activity
+  - Right column: Pipeline Snapshot, Insights & Trends
+- **Today's Work**: Simplified to 2 metrics (Review Candidates, Interviews Today)
+- **Quick Actions**: Clean 2x2 grid with icons (Schedule Interview, Review Applications, Send Updates, Generate Report)
+- **Pipeline Snapshot**: Horizontal progress bars per job with colored indicators
+- **Insights & Trends**: New component with 4 stat cards (Open Positions, Total Candidates, Active Candidates, Hired This Month) with percentage indicators
+- **Recent Activity**: Updated styling with smaller avatars, compact layout
+- **Header**: "See All Pipelines" button replaces Post New Job and Refresh indicator
+- **Removed**: Smart Alerts, Smart Hiring Tips, Jobs Chart sections
+- **Files**: `client/src/components/layout/Sidebar.tsx`, `client/src/features/analytics/pages/Dashboard.tsx`, `client/src/features/analytics/components/TodaysWork.tsx`, `client/src/features/analytics/components/SimpleQuickActions.tsx`, `client/src/features/analytics/components/PipelineSnapshot.tsx`, `client/src/features/analytics/components/InsightsTrends.tsx`, `client/src/features/analytics/components/RecentActivity.tsx`
+
 # Architecture Decisions
 
 ## Case Conversion Strategy (camelCase ↔ snake_case)
