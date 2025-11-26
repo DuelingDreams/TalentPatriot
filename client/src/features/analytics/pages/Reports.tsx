@@ -43,9 +43,15 @@ interface ReportMetrics {
   monthlyTrends: Array<{ month: string; applications: number; hires: number }>
   topSkills: Array<{
     skill: string
+    skillCategory: string
     count: number
     hireRate: number
     avgTimeToHire: number
+  }>
+  skillCategorySummary: Array<{
+    category: string
+    uniqueSkills: number
+    candidateCount: number
   }>
   clientPerformance: Array<{
     clientName: string
@@ -561,42 +567,103 @@ export default function Reports() {
               <Card data-testid="card-top-skills">
                 <CardHeader>
                   <CardTitle>Top Skills in Demand</CardTitle>
-                  <CardDescription>Most requested skills across your job postings</CardDescription>
+                  <CardDescription>Most requested skills across your candidate pool</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {(metrics?.topSkills || []).slice(0, 10).map((skill, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div>
-                          <p className="font-medium">{skill.skill}</p>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {skill.count} candidates • {skill.hireRate}% hire rate
-                          </p>
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg" data-testid={`skill-row-${index}`}>
+                        <div className="flex items-center gap-3">
+                          <span className="w-6 h-6 flex items-center justify-center bg-primary/10 text-primary rounded-full text-sm font-medium">
+                            {index + 1}
+                          </span>
+                          <div>
+                            <p className="font-medium">{skill.skill}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {skill.count} candidate{skill.count !== 1 ? 's' : ''}
+                            </p>
+                          </div>
                         </div>
-                        <Badge variant="outline">{skill.avgTimeToHire} days avg</Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            skill.skillCategory === 'Programming Language' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            skill.skillCategory === 'Cloud / DevOps' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                            skill.skillCategory === 'Framework / Library' ? 'bg-green-50 text-green-700 border-green-200' :
+                            skill.skillCategory === 'Database' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                            skill.skillCategory === 'AI / ML' ? 'bg-pink-50 text-pink-700 border-pink-200' :
+                            'bg-gray-50 text-gray-700 border-gray-200'
+                          }
+                        >
+                          {skill.skillCategory}
+                        </Badge>
                       </div>
                     ))}
+                    {(!metrics?.topSkills || metrics.topSkills.length === 0) && (
+                      <div className="text-center py-8 text-gray-500">
+                        <Brain className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                        <p>No skill data available</p>
+                        <p className="text-sm">Skills are extracted from parsed candidate resumes</p>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Skills Performance Chart */}
-              <Card data-testid="card-skills-performance">
+              {/* Skills by Category Chart */}
+              <Card data-testid="card-skills-by-category">
                 <CardHeader>
-                  <CardTitle>Skills Performance</CardTitle>
-                  <CardDescription>Hire rate by skill category</CardDescription>
+                  <CardTitle>Skills by Category</CardTitle>
+                  <CardDescription>Distribution of skills across categories</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-64 lg:h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={(metrics?.topSkills || []).slice(0, 8)}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="skill" />
-                        <YAxis />
-                        <Tooltip formatter={(value) => `${value}%`} />
-                        <Bar dataKey="hireRate" fill="#8B5CF6" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    {(metrics?.skillCategorySummary || []).length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={metrics?.skillCategorySummary || []} layout="vertical">
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis type="number" />
+                          <YAxis dataKey="category" type="category" width={120} />
+                          <Tooltip 
+                            formatter={(value, name) => [
+                              name === 'candidateCount' ? `${value} candidates` : `${value} skills`,
+                              name === 'candidateCount' ? 'Candidates' : 'Unique Skills'
+                            ]}
+                          />
+                          <Bar dataKey="candidateCount" fill="#1F3A5F" name="candidateCount" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-500">
+                        <div className="text-center">
+                          <BarChart3 className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                          <p>No category data available</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Category Summary Cards */}
+              <Card className="lg:col-span-2" data-testid="card-category-summary">
+                <CardHeader>
+                  <CardTitle>Category Summary</CardTitle>
+                  <CardDescription>Overview of skill categories in your candidate pool</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {(metrics?.skillCategorySummary || []).map((cat, index) => (
+                      <div 
+                        key={index} 
+                        className="p-4 rounded-lg bg-gray-50 dark:bg-gray-800 text-center"
+                        data-testid={`category-card-${index}`}
+                      >
+                        <p className="text-2xl font-bold text-primary">{cat.candidateCount}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{cat.category}</p>
+                        <p className="text-xs text-gray-400 mt-1">{cat.uniqueSkills} unique skills</p>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>

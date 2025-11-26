@@ -1163,11 +1163,9 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           .order('hire_month'),
         
         supabaseAdmin
-          .from('mv_skills_analytics')
-          .select('*')
-          .eq('org_id', orgId)
-          .order('candidate_count', { ascending: false })
-          .limit(15),
+          .from('v_candidate_skills_flattened')
+          .select('skill_name, skill_category, candidate_id')
+          .eq('org_id', orgId),
         
         supabaseAdmin
           .from('mv_recruiter_performance')
@@ -1263,13 +1261,43 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         hires: row.hired_count || 0
       }))
 
-      // Top Skills Analytics
-      const topSkills = (skillsData.data || []).slice(0, 10).map(row => ({
-        skill: row.skill_name,
-        count: row.candidate_count || 0,
-        hireRate: Math.round((row.skill_hire_rate || 0) * 100) / 100,
-        avgTimeToHire: Math.round(row.avg_time_to_hire_with_skill || 0)
-      }))
+      // Top Skills Analytics - Aggregate from flattened view
+      const skillsAggregated = (skillsData.data || []).reduce((acc: Record<string, { count: number; category: string }>, row: any) => {
+        const skillName = row.skill_name
+        if (!acc[skillName]) {
+          acc[skillName] = { count: 0, category: row.skill_category || 'Other' }
+        }
+        acc[skillName].count += 1
+        return acc
+      }, {})
+
+      const topSkills = Object.entries(skillsAggregated)
+        .map(([skill, data]) => ({
+          skill,
+          skillCategory: data.category,
+          count: data.count,
+          hireRate: 0, // Would need job_candidate join for accurate rate
+          avgTimeToHire: 0
+        }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 15)
+
+      // Skill Categories Summary for charts
+      const skillsByCategory = (skillsData.data || []).reduce((acc: Record<string, { skills: Set<string>; count: number }>, row: any) => {
+        const category = row.skill_category || 'Other'
+        if (!acc[category]) {
+          acc[category] = { skills: new Set(), count: 0 }
+        }
+        acc[category].skills.add(row.skill_name)
+        acc[category].count += 1
+        return acc
+      }, {})
+
+      const skillCategorySummary = Object.entries(skillsByCategory).map(([category, data]) => ({
+        category,
+        uniqueSkills: data.skills.size,
+        candidateCount: data.count
+      })).sort((a, b) => b.candidateCount - a.candidateCount)
 
       // Client Performance
       const clientPerformance = (clientData.data || []).map(row => ({
@@ -1290,6 +1318,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         recruiterPerformance,
         monthlyTrends,
         topSkills,
+        skillCategorySummary,
         clientPerformance,
         summary: {
           totalApplications: pipelineConversion.applied,
@@ -1329,17 +1358,35 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID is required' })
       }
 
+      // Use the new flattened view with skill categories
       const { data, error } = await supabaseAdmin
-        .from('mv_skills_analytics')
-        .select('*')
+        .from('v_candidate_skills_flattened')
+        .select('skill_name, skill_category, candidate_id')
         .eq('org_id', orgId)
-        .order('candidate_count', { ascending: false })
-        .limit(parseInt(limit))
       
       if (error) throw error
+
+      // Aggregate skills with categories
+      const skillsAggregated = (data || []).reduce((acc: Record<string, { count: number; category: string }>, row: any) => {
+        const skillName = row.skill_name
+        if (!acc[skillName]) {
+          acc[skillName] = { count: 0, category: row.skill_category || 'Other' }
+        }
+        acc[skillName].count += 1
+        return acc
+      }, {})
+
+      const aggregatedSkills = Object.entries(skillsAggregated)
+        .map(([skill_name, data]) => ({
+          skill_name,
+          skill_category: data.category,
+          candidate_count: data.count
+        }))
+        .sort((a, b) => b.candidate_count - a.candidate_count)
+        .slice(0, parseInt(limit))
       
       res.setHeader('Cache-Control', 'private, max-age=300')
-      res.json(data || [])
+      res.json(aggregatedSkills)
     } catch (error) {
       console.error('Error fetching skills demand:', error)
       res.status(500).json({ error: 'Failed to fetch skills demand analytics' })
