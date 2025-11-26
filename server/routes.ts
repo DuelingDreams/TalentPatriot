@@ -1282,21 +1282,21 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         .sort((a, b) => b.count - a.count)
         .slice(0, 15)
 
-      // Skill Categories Summary for charts
-      const skillsByCategory = (skillsData.data || []).reduce((acc: Record<string, { skills: Set<string>; count: number }>, row: any) => {
+      // Skill Categories Summary for charts - use Sets for distinct counts
+      const skillsByCategory = (skillsData.data || []).reduce((acc: Record<string, { skills: Set<string>; candidates: Set<string> }>, row: any) => {
         const category = row.skill_category || 'Other'
         if (!acc[category]) {
-          acc[category] = { skills: new Set(), count: 0 }
+          acc[category] = { skills: new Set(), candidates: new Set() }
         }
         acc[category].skills.add(row.skill_name)
-        acc[category].count += 1
+        acc[category].candidates.add(row.candidate_id)
         return acc
       }, {})
 
       const skillCategorySummary = Object.entries(skillsByCategory).map(([category, data]) => ({
         category,
         uniqueSkills: data.skills.size,
-        candidateCount: data.count
+        candidateCount: data.candidates.size  // Distinct candidate count
       })).sort((a, b) => b.candidateCount - a.candidateCount)
 
       // Client Performance
@@ -1366,13 +1366,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       if (error) throw error
 
-      // Aggregate skills with categories
-      const skillsAggregated = (data || []).reduce((acc: Record<string, { count: number; category: string }>, row: any) => {
+      // Aggregate skills with categories - use Sets for distinct candidate counts
+      const skillsAggregated = (data || []).reduce((acc: Record<string, { candidates: Set<string>; category: string }>, row: any) => {
         const skillName = row.skill_name
         if (!acc[skillName]) {
-          acc[skillName] = { count: 0, category: row.skill_category || 'Other' }
+          acc[skillName] = { candidates: new Set(), category: row.skill_category || 'Other' }
         }
-        acc[skillName].count += 1
+        acc[skillName].candidates.add(row.candidate_id)
         return acc
       }, {})
 
@@ -1380,7 +1380,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         .map(([skill_name, data]) => ({
           skill_name,
           skill_category: data.category,
-          candidate_count: data.count
+          candidate_count: data.candidates.size  // Distinct candidate count
         }))
         .sort((a, b) => b.candidate_count - a.candidate_count)
         .slice(0, parseInt(limit))

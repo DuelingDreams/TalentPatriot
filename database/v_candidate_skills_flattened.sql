@@ -7,9 +7,9 @@
 -- NOTE: This view pulls from the candidates table directly, not from
 -- demo/test data. All candidates with skills will appear in reports.
 --
--- USAGE:
--- 1. Run this SQL in your Supabase SQL Editor
--- 2. The view will be available for analytics queries
+-- SECURITY: Do NOT grant public access to this view. The backend
+-- uses supabaseAdmin (service role) with explicit org_id filtering
+-- to ensure multi-tenant data isolation.
 --
 -- SKILL CATEGORIES:
 -- - Programming Language: Python, Java, C++, JavaScript, TypeScript, Go, PHP, Ruby
@@ -41,11 +41,11 @@ FROM candidates c
 JOIN LATERAL unnest(c.skills) AS skill ON true
 WHERE c.skills IS NOT NULL;
 
--- Grant permissions for authenticated users
-GRANT SELECT ON public.v_candidate_skills_flattened TO authenticated;
-GRANT SELECT ON public.v_candidate_skills_flattened TO anon;
+-- IMPORTANT: Do NOT add public grants. Access should be via service role only.
+-- If you previously ran GRANT statements, revoke them:
+-- REVOKE SELECT ON public.v_candidate_skills_flattened FROM anon, authenticated;
 
--- Example queries:
+-- Example queries (run via service role / backend only):
 -- 
 -- Get top skills by category for an organization:
 -- SELECT skill_category, skill_name, COUNT(DISTINCT candidate_id) as candidate_count

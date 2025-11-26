@@ -136,6 +136,23 @@ Preferred communication style: Simple, everyday language.
   - Shows loading state and auto-refreshes page after 5 seconds
 - **Files**: `server/routes.ts`, `client/src/components/candidates/ResumeInsights.tsx`
 
+## Skills Analytics with Categories (Nov 26)
+- **New Database View**: `v_candidate_skills_flattened` replaces `mv_skills_analytics`
+  - Directly queries `candidates` table for real skill data
+  - Uses `LATERAL unnest(c.skills)` to flatten skills array
+  - Assigns skill categories: Programming Language, Cloud/DevOps, Framework/Library, Other
+  - Includes `org_id` for multi-tenant filtering
+- **Backend Updates**: 
+  - `/api/reports/metrics` aggregates skills by name and category
+  - Returns `topSkills` with `skillCategory` field and `skillCategorySummary` array
+  - `/api/analytics/skills-demand` also updated for new view
+- **Frontend Enhancements**:
+  - Top Skills in Demand: Shows skill name with color-coded category badge
+  - Skills by Category: Horizontal bar chart showing candidate count per category
+  - Category Summary: Grid of cards with total candidates and unique skills per category
+  - Empty states when no skill data available
+- **Files**: `server/routes.ts`, `client/src/features/analytics/pages/Reports.tsx`, `database/v_candidate_skills_flattened.sql`
+
 ## Dashboard Redesign (Nov 26)
 - **Sidebar Redesign**: Dark navy background (#1F2937) with simplified navigation
   - Removed Calendar, Email Settings, Help, Integrations from main nav
