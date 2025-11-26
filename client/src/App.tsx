@@ -62,6 +62,7 @@ const Pricing = lazy(() => import("@/features/public/pages/Pricing"));
 const ProfileSettings = lazy(() => import("@/features/organization/pages/ProfileSettings"));
 const AccountSettings = lazy(() => import("@/features/organization/pages/AccountSettings"));
 const IntegrationsSettings = lazy(() => import("@/features/settings/pages/IntegrationsSettings"));
+const Settings = lazy(() => import("@/features/settings/pages/Settings"));
 const BetaProgram = lazy(() => import("@/features/public/pages/BetaProgram"));
 const BetaApplicationsAdmin = lazy(() => import("@/features/admin/pages/BetaApplicationsAdmin"));
 const ResumeParsingDemo = lazy(() => import("@/features/public/pages/ResumeParsingDemo"));
@@ -263,6 +264,12 @@ function Router() {
         <Route path="/docs">
           <ProtectedRoute type="route">
             <Documentation />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/settings">
+          <ProtectedRoute type="route">
+            <Settings />
           </ProtectedRoute>
         </Route>
         
