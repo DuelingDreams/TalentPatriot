@@ -8,8 +8,10 @@ import {
   Users, 
   MessageSquare,
   BarChart3,
-  Settings
+  Settings,
+  Globe
 } from 'lucide-react'
+import { useCurrentOrganization } from '@/features/organization/hooks/useOrganizations'
 
 interface SidebarProps {
   className?: string
@@ -30,10 +32,18 @@ const navigationItems = [
 export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
   const [location] = useLocation()
   const { userRole } = useAuth()
+  const { data: currentOrganization } = useCurrentOrganization()
 
   const filteredNavigationItems = navigationItems.filter(item => 
     !userRole || item.roles.includes(userRole)
   )
+
+  const getCareersUrl = () => {
+    if (!currentOrganization || typeof currentOrganization !== 'object' || !('slug' in currentOrganization) || !currentOrganization.slug) {
+      return '/careers'
+    }
+    return `/org/${currentOrganization.slug}/careers`
+  }
 
   return (
     <>
@@ -89,6 +99,28 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                 </Link>
               )
             })}
+
+            {/* Divider */}
+            <div className="border-t border-gray-600 my-3" />
+
+            {/* Careers Page Link */}
+            <Link 
+              href={getCareersUrl()}
+              onClick={onClose}
+            >
+              <div
+                className={cn(
+                  "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
+                  location.includes('/careers')
+                    ? "bg-[#3B5068] text-white" 
+                    : "text-gray-300 hover:bg-[#2D3B4E] hover:text-white"
+                )}
+                data-testid="nav-item-careers"
+              >
+                <Globe className="w-5 h-5 mr-3" />
+                Careers Page
+              </div>
+            </Link>
           </nav>
         </div>
       </aside>
