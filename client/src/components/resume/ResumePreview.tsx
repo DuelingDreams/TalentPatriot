@@ -18,9 +18,9 @@ import {
 } from 'lucide-react'
 import { getResumeSignedUrl, isStoragePath, openResumeInNewTab } from '@/lib/resumeUtils'
 
-// Set up PDF.js worker using react-pdf recommended approach
+// Set up PDF.js worker - point to react-pdf's bundled worker to avoid version mismatch
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
+  'react-pdf/node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
   import.meta.url
 ).toString()
 
