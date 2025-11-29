@@ -12,26 +12,34 @@ export class TextExtractionService {
    * Extract text from PDF buffer
    */
   async extractFromPDF(buffer: Buffer): Promise<TextExtractionResult> {
+    let parser: any = null;
     try {
       // Dynamic import for pdf-parse v2.x (ESM with named export)
       const { PDFParse } = await import('pdf-parse');
-      const parser = new PDFParse({ data: buffer });
+      parser = new PDFParse({ data: buffer });
       
       // Get text and info from the PDF
       const textResult = await parser.getText();
       const infoResult = await parser.getInfo();
       
-      // Clean up resources
-      await parser.destroy();
-      
+      const text = textResult.text.trim();
       return {
-        text: textResult.text,
+        text,
         pageCount: infoResult.total,
-        wordCount: textResult.text.split(/\s+/).length
+        wordCount: text.split(/\s+/).filter(Boolean).length
       };
     } catch (error) {
       console.error('PDF text extraction error:', error);
       throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      // Always clean up resources
+      if (parser) {
+        try {
+          await parser.destroy();
+        } catch (cleanupError) {
+          console.warn('PDF parser cleanup warning:', cleanupError);
+        }
+      }
     }
   }
 
