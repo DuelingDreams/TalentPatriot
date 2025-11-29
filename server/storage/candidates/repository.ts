@@ -1079,6 +1079,14 @@ export class CandidatesRepository implements ICandidatesRepository {
       }
 
       // Update the candidate
+      console.log(`[PARSE FROM STORAGE] Updating candidate ${candidateId} with parsed data:`, {
+        parsing_status: updateData.parsing_status,
+        resume_parsed: updateData.resume_parsed,
+        skillsCount: Array.isArray(updateData.skills) ? updateData.skills.length : 0,
+        hasSummary: !!updateData.summary,
+        hasWorkExperience: !!updateData.work_experience
+      });
+      
       const { data, error } = await supabase
         .from('candidates')
         .update(updateData)
@@ -1092,6 +1100,7 @@ export class CandidatesRepository implements ICandidatesRepository {
       }
 
       console.log(`[PARSE FROM STORAGE] Successfully parsed and updated candidate ${candidateId}`);
+      console.log(`[PARSE FROM STORAGE] Updated candidate parsing_status:`, data?.parsing_status);
       return data as Candidate;
     } catch (error) {
       console.error('Error in parseAndUpdateCandidateFromStorage:', error);

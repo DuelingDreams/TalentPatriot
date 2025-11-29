@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -43,6 +44,7 @@ interface ResumeInsightsProps {
 
 export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeInsightsProps) {
   const { toast } = useToast()
+  const queryClient = useQueryClient()
   const [isParsing, setIsParsing] = useState(false)
   
   const candidateId = candidate.id || (candidate as any).id
@@ -59,15 +61,70 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
       
       toast({
         title: 'Resume Analysis Started',
-        description: 'AI is analyzing the resume. Refresh in a few seconds to see insights.',
+        description: 'AI is analyzing the resume. Results will appear shortly.',
       })
       
       onParsingTriggered?.()
       
-      // Auto-refresh after 5 seconds
-      setTimeout(() => {
-        window.location.reload()
-      }, 5000)
+      // Polling function to check for parsing completion
+      const pollForCompletion = async (attempts = 0): Promise<void> => {
+        if (attempts >= 12) { // Max 60 seconds (12 * 5s)
+          toast({
+            title: 'Analysis Taking Longer',
+            description: 'Resume analysis is still processing. Please refresh the page.',
+          })
+          setIsParsing(false)
+          return
+        }
+        
+        try {
+          // Invalidate cache to get fresh data
+          await queryClient.invalidateQueries({ 
+            queryKey: ['/api/candidates', candidateId],
+            exact: false 
+          })
+          
+          // Also invalidate the list query
+          await queryClient.invalidateQueries({ 
+            queryKey: ['/api/candidates'],
+            exact: false 
+          })
+          
+          // Fetch fresh data
+          const response = await apiRequest(`/api/candidates/${candidateId}`) as any
+          const status = response?.parsing_status || response?.parsingStatus
+          
+          if (status === 'completed') {
+            toast({
+              title: 'Analysis Complete',
+              description: 'Resume has been analyzed. Refreshing page...',
+            })
+            setIsParsing(false)
+            // Force a page reload to ensure UI updates with fresh data
+            window.location.reload()
+            return
+          } else if (status === 'failed') {
+            toast({
+              title: 'Analysis Failed',
+              description: response?.parsing_error || response?.parsingError || 'Resume analysis encountered an error.',
+              variant: 'destructive',
+            })
+            setIsParsing(false)
+            window.location.reload()
+            return
+          }
+          
+          // Still processing, poll again in 5 seconds
+          setTimeout(() => pollForCompletion(attempts + 1), 5000)
+        } catch (error) {
+          console.error('Polling error:', error)
+          setTimeout(() => pollForCompletion(attempts + 1), 5000)
+        }
+      }
+      
+      // Start polling after 3 seconds (give parsing time to start)
+      setTimeout(() => pollForCompletion(0), 3000)
+      
     } catch (error) {
       console.error('Failed to trigger parsing:', error)
       toast({
@@ -75,7 +132,6 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
         description: 'Could not start resume analysis. Please try again.',
         variant: 'destructive',
       })
-    } finally {
       setIsParsing(false)
     }
   }

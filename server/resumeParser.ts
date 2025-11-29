@@ -172,6 +172,15 @@ ${resumeText}
       const parsedData = await this.parseResumeText(extractionResult.text);
       
       console.log(`[RESUME PARSER] Successfully parsed resume from ${storagePath}`);
+      console.log(`[RESUME PARSER] Parsed data summary:`, {
+        hasName: !!parsedData.personalInfo?.name,
+        hasSummary: !!parsedData.summary,
+        skillsCount: parsedData.skills?.technical?.length || 0,
+        experienceCount: parsedData.experience?.length || 0,
+        educationCount: parsedData.education?.length || 0,
+        experienceLevel: parsedData.experienceLevel,
+        yearsExp: parsedData.totalYearsExperience
+      });
       
       return parsedData;
     } catch (error) {
