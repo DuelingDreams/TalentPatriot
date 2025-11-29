@@ -13,8 +13,9 @@ export class TextExtractionService {
    */
   async extractFromPDF(buffer: Buffer): Promise<TextExtractionResult> {
     try {
-      // Dynamic import for pdf-parse (CommonJS module)
-      const pdfParse = (await import('pdf-parse')).default;
+      // Dynamic import for pdf-parse (handles both ESM and CommonJS)
+      const pdfParseModule = await import('pdf-parse') as any;
+      const pdfParse = pdfParseModule.default || pdfParseModule;
       const data = await pdfParse(buffer);
       
       return {
