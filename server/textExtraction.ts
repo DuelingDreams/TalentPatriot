@@ -13,15 +13,21 @@ export class TextExtractionService {
    */
   async extractFromPDF(buffer: Buffer): Promise<TextExtractionResult> {
     try {
-      // Dynamic import for pdf-parse (handles both ESM and CommonJS)
-      const pdfParseModule = await import('pdf-parse') as any;
-      const pdfParse = pdfParseModule.default || pdfParseModule;
-      const data = await pdfParse(buffer);
+      // Dynamic import for pdf-parse v2.x (ESM with named export)
+      const { PDFParse } = await import('pdf-parse');
+      const parser = new PDFParse({ data: buffer });
+      
+      // Get text and info from the PDF
+      const textResult = await parser.getText();
+      const infoResult = await parser.getInfo();
+      
+      // Clean up resources
+      await parser.destroy();
       
       return {
-        text: data.text,
-        pageCount: data.numpages,
-        wordCount: data.text.split(/\s+/).length
+        text: textResult.text,
+        pageCount: infoResult.total,
+        wordCount: textResult.text.split(/\s+/).length
       };
     } catch (error) {
       console.error('PDF text extraction error:', error);
