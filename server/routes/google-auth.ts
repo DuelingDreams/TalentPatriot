@@ -3,6 +3,21 @@ import { getAuthUrl, exchangeCodeForTokens, generateState, verifyState, getRedir
 import { storeOAuthTokens } from '../integrations/google/token-manager';
 import { extractAuthUser, requireAuth, requireOrgContext, type AuthenticatedRequest } from '../middleware/auth';
 import type { IStorage } from '../storage';
+import crypto from 'crypto';
+
+// In-memory session store for OAuth flow (expires after 10 minutes)
+// This is more reliable than cookies which can fail in cross-origin scenarios
+const oauthSessions = new Map<string, { userId: string; orgId: string; returnTo: string; expiresAt: number }>();
+
+// Clean up expired sessions every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, session] of oauthSessions.entries()) {
+    if (session.expiresAt < now) {
+      oauthSessions.delete(token);
+    }
+  }
+}, 5 * 60 * 1000);
 
 export function createGoogleAuthRoutes(storage: IStorage) {
   const router = Router();
@@ -12,7 +27,7 @@ export function createGoogleAuthRoutes(storage: IStorage) {
 
   /**
    * POST /auth/google/init
-   * Initialize Google OAuth flow by setting session cookie and returning redirect URL
+   * Initialize Google OAuth flow by creating a session token and returning redirect URL
    * This endpoint is called by the frontend with Bearer token
    */
   router.post('/init', requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
@@ -26,25 +41,21 @@ export function createGoogleAuthRoutes(storage: IStorage) {
 
       console.log('🔐 [OAuth Init] Starting Google OAuth for user:', userId, 'org:', orgId, 'returnTo:', returnTo);
 
-      // Set a SIGNED temporary session cookie (expires in 10 minutes)
-      // signed: true uses cookie-parser's signature to prevent forgery
-      // This allows the subsequent browser redirect to maintain authentication
-      res.cookie('oauth_session', JSON.stringify({
+      // Generate a random session token
+      const sessionToken = crypto.randomBytes(32).toString('hex');
+      
+      // Store session in memory (expires in 10 minutes)
+      oauthSessions.set(sessionToken, {
         userId,
         orgId,
         returnTo,
-        timestamp: Date.now()
-      }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 10 * 60 * 1000, // 10 minutes
-        path: '/auth/google',
-        signed: true // Critical: sign cookie with APP_JWT_SECRET to prevent forgery
+        expiresAt: Date.now() + 10 * 60 * 1000
       });
 
-      // Return the redirect URL instead of doing the redirect
-      res.json({ redirectUrl: '/auth/google/login' });
+      console.log('✅ [OAuth Init] Session token created:', sessionToken.substring(0, 8) + '...');
+
+      // Return the redirect URL with session token
+      res.json({ redirectUrl: `/auth/google/login?session=${sessionToken}` });
     } catch (error: any) {
       console.error('Error initializing Google OAuth:', error);
       res.status(500).json({ error: 'Failed to initialize Google authentication' });
@@ -54,28 +65,38 @@ export function createGoogleAuthRoutes(storage: IStorage) {
   /**
    * GET /auth/google/login
    * Redirects user to Google OAuth consent screen
-   * Uses session cookie set by /init endpoint
+   * Uses session token from query parameter
    */
   router.get('/login', async (req: AuthenticatedRequest, res: Response) => {
     try {
-      // Check for SIGNED oauth_session cookie set by /init
-      // req.signedCookies verifies the signature automatically
-      const sessionCookie = req.signedCookies?.oauth_session;
+      // Get session token from query parameter
+      const sessionToken = req.query.session as string;
       
-      if (!sessionCookie) {
-        console.warn('OAuth session cookie missing or signature invalid');
+      if (!sessionToken) {
+        console.warn('OAuth session token missing from query');
         return res.redirect('/settings/integrations?error=session_expired');
       }
 
-      const session = JSON.parse(sessionCookie);
-      const { userId, orgId, returnTo, timestamp } = session;
+      // Look up session from in-memory store
+      const session = oauthSessions.get(sessionToken);
+      
+      if (!session) {
+        console.warn('OAuth session not found or expired for token:', sessionToken.substring(0, 8) + '...');
+        return res.redirect('/settings/integrations?error=session_expired');
+      }
 
-      // Verify session is not expired (10 minutes)
-      if (Date.now() - timestamp > 10 * 60 * 1000) {
-        // Clear expired cookie
-        res.clearCookie('oauth_session', { path: '/auth/google' });
+      const { userId, orgId, returnTo, expiresAt } = session;
+
+      // Verify session is not expired
+      if (Date.now() > expiresAt) {
+        oauthSessions.delete(sessionToken);
         return res.redirect((returnTo || '/settings/integrations') + '?error=session_expired');
       }
+
+      // Delete the session token (single-use)
+      oauthSessions.delete(sessionToken);
+
+      console.log('✅ [OAuth Login] Session verified for user:', userId, 'org:', orgId);
 
       // Get centralized redirect URI (always talentpatriot.com)
       const redirectUri = getRedirectUri(req.headers.host);
@@ -86,14 +107,12 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       // Get Google OAuth URL with centralized redirect
       const authUrl = getAuthUrl(state, redirectUri);
 
-      // Clear the session cookie now that we have the state (single-use)
-      res.clearCookie('oauth_session', { path: '/auth/google' });
+      console.log('🔗 [OAuth Login] Redirecting to Google:', authUrl.substring(0, 80) + '...');
 
       // Redirect to Google
       res.redirect(authUrl);
     } catch (error: any) {
       console.error('Error initiating Google OAuth:', error);
-      res.clearCookie('oauth_session', { path: '/auth/google' });
       res.redirect('/settings/integrations?error=oauth_init_failed');
     }
   });
@@ -168,9 +187,6 @@ export function createGoogleAuthRoutes(storage: IStorage) {
         userId: account.userId,
         isActive: account.isActive
       });
-
-      // Clear any remaining oauth_session cookie
-      res.clearCookie('oauth_session', { path: '/auth/google' });
 
       // Redirect back to the original page (returnTo from state)
       console.log('🎉 Google OAuth connection completed successfully!');
