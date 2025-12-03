@@ -29,8 +29,10 @@ import {
   XCircle,
   Loader2,
   Calendar,
-  Video
+  Video,
+  ArrowLeft
 } from 'lucide-react'
+import { Link } from 'wouter'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 
 interface GoogleConnectionStatus {
@@ -244,6 +246,14 @@ export default function AccountSettings() {
   return (
     <div className="min-h-screen bg-[#F7F9FC] p-6">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Back Navigation */}
+        <Link href="/settings" data-testid="link-back-to-settings">
+          <Button variant="ghost" className="gap-2 text-[#5C667B] hover:text-[#1F3A5F] -ml-2 mb-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Settings
+          </Button>
+        </Link>
+
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 bg-[#E6F2FF] rounded-2xl flex items-center justify-center">

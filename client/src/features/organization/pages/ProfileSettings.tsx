@@ -23,8 +23,10 @@ import {
   Building2,
   Calendar,
   MapPin,
-  Phone
+  Phone,
+  ArrowLeft
 } from 'lucide-react'
+import { Link } from 'wouter'
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -132,6 +134,14 @@ export default function ProfileSettings() {
   return (
     <div className="min-h-screen bg-[#F7F9FC] p-6">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Back Navigation */}
+        <Link href="/settings" data-testid="link-back-to-settings">
+          <Button variant="ghost" className="gap-2 text-[#5C667B] hover:text-[#1F3A5F] -ml-2 mb-2">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Settings
+          </Button>
+        </Link>
+
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <div className="w-12 h-12 bg-[#E6F2FF] rounded-2xl flex items-center justify-center">
