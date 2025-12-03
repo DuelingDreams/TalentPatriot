@@ -14,6 +14,16 @@ interface TokenRefreshResult {
 }
 
 /**
+ * Custom error for invalid/expired Google tokens that require reconnection
+ */
+export class GoogleTokenInvalidError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GoogleTokenInvalidError';
+  }
+}
+
+/**
  * Get valid access token for a connected Google account
  * Automatically refreshes if expired
  */
@@ -45,16 +55,34 @@ export async function getValidAccessToken(
   // Decrypt refresh token
   const refreshToken = decryptToken(account.encryptedRefreshToken);
   
-  // Refresh access token
-  const { accessToken, expiresAt: newExpiresAt } = await refreshAccessToken(refreshToken);
-  
-  // Update token expiry in database
-  await storage.communications.updateConnectedAccount(account.id, {
-    accessTokenExpiresAt: newExpiresAt,
-    lastUsedAt: new Date(),
-  });
-  
-  return { accessToken, expiresAt: newExpiresAt };
+  try {
+    // Refresh access token
+    const { accessToken, expiresAt: newExpiresAt } = await refreshAccessToken(refreshToken);
+    
+    // Update token expiry in database
+    await storage.communications.updateConnectedAccount(account.id, {
+      accessTokenExpiresAt: newExpiresAt,
+      lastUsedAt: new Date(),
+    });
+    
+    return { accessToken, expiresAt: newExpiresAt };
+  } catch (error: any) {
+    // Check for invalid_grant error - token has been revoked or expired
+    if (error.message?.includes('invalid_grant')) {
+      console.log(`⚠️ Google OAuth: Token invalid for user ${userId}, marking connection as inactive`);
+      
+      // Mark the connection as inactive so the UI shows reconnect prompt
+      await storage.communications.updateConnectedAccount(account.id, {
+        isActive: false,
+      });
+      
+      throw new GoogleTokenInvalidError(
+        'Your Google connection has expired. Please reconnect your Google account in Account Settings.'
+      );
+    }
+    
+    throw error;
+  }
 }
 
 /**

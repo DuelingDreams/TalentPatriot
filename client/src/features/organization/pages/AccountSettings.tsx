@@ -38,6 +38,8 @@ interface GoogleConnectionStatus {
   email?: string
   scopes?: string[]
   connectedAt?: string
+  needsReconnect?: boolean
+  message?: string
 }
 
 export default function AccountSettings() {
@@ -310,6 +312,11 @@ export default function AccountSettings() {
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     Connected
                   </Badge>
+                ) : googleStatus?.needsReconnect ? (
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                    <AlertTriangle className="w-3 h-3 mr-1" />
+                    Expired
+                  </Badge>
                 ) : (
                   <Badge variant="secondary" className="bg-gray-100 text-gray-600">
                     <XCircle className="w-3 h-3 mr-1" />
@@ -322,6 +329,35 @@ export default function AccountSettings() {
               {googleLoading ? (
                 <div className="flex items-center justify-center py-6">
                   <Loader2 className="w-6 h-6 animate-spin text-[#264C99]" />
+                </div>
+              ) : googleStatus?.needsReconnect ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-amber-900">
+                          Your Google connection has expired
+                        </p>
+                        <p className="text-sm text-amber-700 mt-1">
+                          Please reconnect your Google account to continue sending emails and scheduling interviews.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleConnectGoogle}
+                    className="w-full bg-[#1F3A5F] hover:bg-[#264C99]"
+                    data-testid="button-reconnect-google"
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Reconnect Google Account
+                  </Button>
+
+                  <p className="text-xs text-gray-500 text-center">
+                    You'll be redirected to Google to reauthorize access.
+                  </p>
                 </div>
               ) : googleStatus?.connected ? (
                 <div className="space-y-4">

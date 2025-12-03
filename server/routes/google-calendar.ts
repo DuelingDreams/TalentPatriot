@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { z } from 'zod';
 import { createCalendarEvent, getFreeBusy } from '../integrations/google/calendar-client';
 import { sendEmail } from '../integrations/google/gmail-client';
-import { getValidAccessToken } from '../integrations/google/token-manager';
+import { getValidAccessToken, GoogleTokenInvalidError } from '../integrations/google/token-manager';
 import { extractAuthUser, requireAuth, requireOrgContext, type AuthenticatedRequest } from '../middleware/auth';
 import type { IStorage } from '../storage';
 
@@ -95,6 +95,15 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         });
       }
 
+      if (error instanceof GoogleTokenInvalidError) {
+        return res.status(401).json({ 
+          error: 'Google connection expired',
+          code: 'TOKEN_INVALID',
+          message: error.message,
+          reconnectRequired: true
+        });
+      }
+
       res.status(500).json({ 
         error: 'Failed to create Google Meet event',
         message: error.message 
@@ -137,6 +146,15 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         });
       }
 
+      if (error instanceof GoogleTokenInvalidError) {
+        return res.status(401).json({ 
+          error: 'Google connection expired',
+          code: 'TOKEN_INVALID',
+          message: error.message,
+          reconnectRequired: true
+        });
+      }
+
       res.status(500).json({ 
         error: 'Failed to fetch availability',
         message: error.message 
@@ -147,7 +165,7 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
   /**
    * GET /api/google/connection-status
    * Check if user has connected their Google account
-   * Automatically backfills providerEmail if missing
+   * Verifies the token is still valid by attempting a refresh
    */
   router.get('/connection-status', async (req: AuthenticatedRequest, res: Response) => {
     try {
@@ -173,41 +191,65 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         connectedAt: account.connectedAt
       } : 'No connection found');
 
-      // If account exists but providerEmail is null, fetch it from Google and update database
-      if (account && account.isActive && !account.providerEmail) {
-        console.log('🔄 Backfilling missing providerEmail for user', userId);
-        try {
-          // Get valid access token
-          const { accessToken } = await getValidAccessToken(storage, userId, orgId);
-          
-          // Fetch email from Google userinfo API
-          const oauth2Client = new (await import('googleapis')).google.auth.OAuth2();
-          oauth2Client.setCredentials({ access_token: accessToken });
-          const oauth2 = (await import('googleapis')).google.oauth2({ version: 'v2', auth: oauth2Client });
-          const userInfo = await oauth2.userinfo.get();
-          
-          if (userInfo.data.email) {
-            // Update the database record with the email
-            account = await storage.communications.updateConnectedAccount(account.id, {
-              providerEmail: userInfo.data.email,
-            });
-            console.log('✅ Backfilled providerEmail:', userInfo.data.email);
-          }
-        } catch (backfillError: any) {
-          console.error('⚠️  Failed to backfill providerEmail:', backfillError.message);
-          // Don't fail the entire request, just log the error
-        }
+      // If no account or already marked inactive, return not connected
+      if (!account || !account.isActive) {
+        return res.json({ 
+          connected: false,
+          needsReconnect: !!account && !account.isActive
+        });
       }
 
-      const response = {
-        connected: !!account && account.isActive,
-        email: account?.providerEmail || null,
-        scopes: account?.scopes || [],
-        connectedAt: account?.connectedAt || null,
-      };
+      // Verify the token is still valid by attempting to get a valid access token
+      try {
+        const { accessToken } = await getValidAccessToken(storage, userId, orgId);
+        
+        // If providerEmail is null, try to fetch it from Google
+        if (!account.providerEmail) {
+          console.log('🔄 Backfilling missing providerEmail for user', userId);
+          try {
+            const oauth2Client = new (await import('googleapis')).google.auth.OAuth2();
+            oauth2Client.setCredentials({ access_token: accessToken });
+            const oauth2 = (await import('googleapis')).google.oauth2({ version: 'v2', auth: oauth2Client });
+            const userInfo = await oauth2.userinfo.get();
+            
+            if (userInfo.data.email) {
+              account = await storage.communications.updateConnectedAccount(account.id, {
+                providerEmail: userInfo.data.email,
+              });
+              console.log('✅ Backfilled providerEmail:', userInfo.data.email);
+            }
+          } catch (backfillError: any) {
+            console.error('⚠️  Failed to backfill providerEmail:', backfillError.message);
+          }
+        }
 
-      console.log('✅ [Connection Status] Responding with:', response);
-      res.json(response);
+        const response = {
+          connected: true,
+          email: account?.providerEmail || null,
+          scopes: account?.scopes || [],
+          connectedAt: account?.connectedAt || null,
+        };
+
+        console.log('✅ [Connection Status] Responding with:', response);
+        res.json(response);
+      } catch (tokenError: any) {
+        // Token refresh failed - connection is invalid
+        console.log('⚠️ [Connection Status] Token validation failed:', tokenError.message);
+        
+        if (tokenError instanceof GoogleTokenInvalidError) {
+          return res.json({ 
+            connected: false, 
+            needsReconnect: true,
+            message: 'Your Google connection has expired. Please reconnect.'
+          });
+        }
+        
+        // Other errors - still report as not connected to be safe
+        return res.json({ 
+          connected: false,
+          error: tokenError.message
+        });
+      }
     } catch (error: any) {
       console.error('❌ [Connection Status] Error:', error);
       res.json({ connected: false, error: error.message });
@@ -300,11 +342,15 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
       }
 
       // Check for token/auth errors
-      if (error.message?.includes('invalid_grant') || error.message?.includes('Token has been expired or revoked')) {
+      if (error instanceof GoogleTokenInvalidError || 
+          error.message?.includes('invalid_grant') || 
+          error.message?.includes('Token has been expired or revoked')) {
         console.error('❌ Token expired or revoked - user needs to reconnect');
         return res.status(401).json({
-          error: 'Authentication expired',
-          message: 'Please reconnect your Google account in Settings → Integrations',
+          error: 'Google connection expired',
+          code: 'TOKEN_INVALID',
+          message: 'Your Google connection has expired. Please reconnect in Account Settings.',
+          reconnectRequired: true
         });
       }
 
