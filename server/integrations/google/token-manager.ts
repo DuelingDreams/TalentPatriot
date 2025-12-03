@@ -222,3 +222,81 @@ export async function revokeGoogleAccess(
     throw new Error('Failed to revoke Google access');
   }
 }
+
+/**
+ * Connection health status types
+ */
+export type ConnectionHealthStatus = 'healthy' | 'needs_reconnect' | 'error' | 'unknown';
+
+/**
+ * Update connection health status
+ */
+export async function updateConnectionHealth(
+  storage: IStorage,
+  accountId: string,
+  status: ConnectionHealthStatus,
+  errorCode?: string,
+  errorMessage?: string
+): Promise<void> {
+  await storage.communications.updateConnectedAccount(accountId, {
+    healthStatus: status,
+    lastValidatedAt: new Date(),
+    lastErrorCode: errorCode || null,
+    lastErrorMessage: errorMessage || null,
+    needsAttention: status === 'needs_reconnect' || status === 'error',
+  });
+  
+  console.log(`🏥 [Token Manager] Updated connection health: ${status}${errorCode ? ` (${errorCode})` : ''}`);
+}
+
+/**
+ * Proactively validate a Google connection by attempting a token refresh
+ * Returns health status without throwing errors
+ */
+export async function validateConnectionHealth(
+  storage: IStorage,
+  userId: string,
+  orgId: string
+): Promise<{ healthy: boolean; status: ConnectionHealthStatus; error?: string }> {
+  try {
+    const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+    
+    if (!account) {
+      return { healthy: false, status: 'unknown', error: 'No connection found' };
+    }
+    
+    if (!account.isActive) {
+      await updateConnectionHealth(storage, account.id, 'needs_reconnect', 'inactive', 'Connection marked inactive');
+      return { healthy: false, status: 'needs_reconnect', error: 'Connection inactive' };
+    }
+    
+    if (!account.encryptedRefreshToken) {
+      await updateConnectionHealth(storage, account.id, 'error', 'no_refresh_token', 'No refresh token stored');
+      return { healthy: false, status: 'error', error: 'No refresh token' };
+    }
+    
+    // Attempt token refresh to validate
+    const refreshToken = decryptToken(account.encryptedRefreshToken);
+    await refreshAccessToken(refreshToken);
+    
+    // Update health status as healthy
+    await updateConnectionHealth(storage, account.id, 'healthy');
+    
+    return { healthy: true, status: 'healthy' };
+  } catch (error: any) {
+    const account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+    
+    if (account) {
+      if (error.message?.includes('invalid_grant')) {
+        await updateConnectionHealth(storage, account.id, 'needs_reconnect', 'invalid_grant', 'Token expired or revoked');
+        await storage.communications.updateConnectedAccount(account.id, { isActive: false });
+        return { healthy: false, status: 'needs_reconnect', error: 'Token expired' };
+      } else {
+        await updateConnectionHealth(storage, account.id, 'error', 'refresh_failed', error.message);
+        return { healthy: false, status: 'error', error: error.message };
+      }
+    }
+    
+    return { healthy: false, status: 'unknown', error: error.message };
+  }
+}

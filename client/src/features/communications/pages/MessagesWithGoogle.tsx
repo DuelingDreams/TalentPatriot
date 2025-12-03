@@ -39,22 +39,29 @@ export default function Messages() {
 
   // Check if Google is connected - only when user is authenticated
   // CRITICAL: Include currentOrgId in queryKey to prevent cross-org cache pollution
+  interface GoogleConnectionStatus {
+    connected: boolean
+    email?: string
+    needsReconnect?: boolean
+    healthStatus?: 'healthy' | 'needs_reconnect' | 'error' | 'unknown'
+    message?: string
+  }
+  
   const { data: googleStatus, error: googleStatusError } = useQuery({
     queryKey: ['/api/google/connection-status', currentOrgId],
     queryFn: async () => {
       try {
         const response = await apiRequest('/api/google/connection-status')
-        return response as { connected: boolean; email?: string }
+        return response as GoogleConnectionStatus
       } catch (error) {
         console.warn('[Messages] Google connection status check failed:', error);
-        // Return a safe default instead of throwing
-        return { connected: false, email: undefined };
+        return { connected: false, email: undefined, healthStatus: 'unknown' as const };
       }
     },
-    enabled: !!user?.id && !!currentOrgId, // Only query when user is authenticated and has org context
-    retry: 2, // Retry failed requests up to 2 times
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    enabled: !!user?.id && !!currentOrgId,
+    retry: 2,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   })
 
   const [composeTab, setComposeTab] = useState<'internal' | 'email' | 'client_portal'>('internal')

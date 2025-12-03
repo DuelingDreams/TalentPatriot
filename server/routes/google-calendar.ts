@@ -188,6 +188,8 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         orgId: account.orgId,
         email: account.providerEmail,
         isActive: account.isActive,
+        healthStatus: account.healthStatus,
+        needsAttention: account.needsAttention,
         connectedAt: account.connectedAt
       } : 'No connection found');
 
@@ -195,7 +197,9 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
       if (!account || !account.isActive) {
         return res.json({ 
           connected: false,
-          needsReconnect: !!account && !account.isActive
+          needsReconnect: !!account && !account.isActive,
+          healthStatus: account?.healthStatus || 'unknown',
+          lastError: account?.lastErrorMessage || null
         });
       }
 
@@ -228,6 +232,8 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
           email: account?.providerEmail || null,
           scopes: account?.scopes || [],
           connectedAt: account?.connectedAt || null,
+          healthStatus: 'healthy',
+          needsAttention: false,
         };
 
         console.log('✅ [Connection Status] Responding with:', response);
@@ -240,6 +246,7 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
           return res.json({ 
             connected: false, 
             needsReconnect: true,
+            healthStatus: 'needs_reconnect',
             message: 'Your Google connection has expired. Please reconnect.'
           });
         }
@@ -247,6 +254,7 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         // Other errors - still report as not connected to be safe
         return res.json({ 
           connected: false,
+          healthStatus: 'error',
           error: tokenError.message
         });
       }

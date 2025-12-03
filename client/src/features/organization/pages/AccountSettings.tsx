@@ -40,6 +40,9 @@ interface GoogleConnectionStatus {
   connectedAt?: string
   needsReconnect?: boolean
   message?: string
+  healthStatus?: 'healthy' | 'needs_reconnect' | 'error' | 'unknown'
+  needsAttention?: boolean
+  lastError?: string
 }
 
 export default function AccountSettings() {

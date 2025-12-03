@@ -138,8 +138,9 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string): 
  * @param userId - The authenticated user's ID
  * @param orgId - The organization ID
  * @param returnTo - Optional return URL after OAuth completes (defaults to /settings/integrations)
+ * @param nonce - Session nonce for additional CSRF protection
  */
-export function generateState(userId: string, orgId: string, returnTo?: string): string {
+export function generateState(userId: string, orgId: string, returnTo?: string, nonce?: string): string {
   if (!process.env.APP_JWT_SECRET) {
     throw new Error('APP_JWT_SECRET environment variable is required for secure OAuth state signing');
   }
@@ -151,6 +152,7 @@ export function generateState(userId: string, orgId: string, returnTo?: string):
     userId, 
     orgId, 
     returnTo: safeReturnTo,
+    nonce: nonce || null,
     timestamp: Date.now() 
   });
   const signature = crypto
@@ -164,7 +166,7 @@ export function generateState(userId: string, orgId: string, returnTo?: string):
 /**
  * Verify and parse state parameter
  */
-export function verifyState(state: string): { userId: string; orgId: string; returnTo: string } | null {
+export function verifyState(state: string): { userId: string; orgId: string; returnTo: string; nonce: string | null } | null {
   if (!process.env.APP_JWT_SECRET) {
     console.error('APP_JWT_SECRET not configured');
     return null;
@@ -187,8 +189,8 @@ export function verifyState(state: string): { userId: string; orgId: string; ret
     
     const parsed = JSON.parse(data);
     
-    // Check if state is not too old (5 minutes)
-    if (Date.now() - parsed.timestamp > 5 * 60 * 1000) {
+    // Check if state is not too old (10 minutes to match session TTL)
+    if (Date.now() - parsed.timestamp > 10 * 60 * 1000) {
       console.error('State parameter expired');
       return null;
     }
@@ -200,7 +202,8 @@ export function verifyState(state: string): { userId: string; orgId: string; ret
     return { 
       userId: parsed.userId, 
       orgId: parsed.orgId,
-      returnTo: safeReturnTo
+      returnTo: safeReturnTo,
+      nonce: parsed.nonce || null
     };
   } catch (error) {
     console.error('Error verifying state:', error);
