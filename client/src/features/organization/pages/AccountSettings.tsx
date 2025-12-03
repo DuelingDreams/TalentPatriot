@@ -24,15 +24,109 @@ import {
   AlertTriangle,
   Globe,
   Eye,
-  EyeOff
+  EyeOff,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Calendar,
+  Video
 } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 
+interface GoogleConnectionStatus {
+  connected: boolean
+  email?: string
+  scopes?: string[]
+  connectedAt?: string
+}
+
 export default function AccountSettings() {
-  const { user, session } = useAuth()
+  const { user, session, currentOrgId } = useAuth()
   const { toast } = useToast()
+  const queryClient = useQueryClient()
   const [showApiKey, setShowApiKey] = useState(false)
   
+  // Fetch Google connection status for the current user
+  const { data: googleStatus, isLoading: googleLoading } = useQuery<GoogleConnectionStatus>({
+    queryKey: ['/api/google/connection-status', currentOrgId],
+    queryFn: () => apiRequest('/api/google/connection-status', {
+      headers: {
+        'Authorization': `Bearer ${session?.access_token || ''}`
+      }
+    }),
+    enabled: !!user && !!session?.access_token && !!currentOrgId,
+  })
+
+  // Connect Google account
+  const handleConnectGoogle = async () => {
+    try {
+      if (!session?.access_token) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in again to connect your Google account.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      const response = await apiRequest<{ redirectUrl: string }>('/auth/google/init', { 
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ returnTo: '/account-settings' })
+      })
+      
+      if (response?.redirectUrl) {
+        window.location.href = response.redirectUrl
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Failed to connect Google account',
+        description: error.message || 'Please try again later.',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  // Disconnect Google account
+  const disconnectMutation = useMutation({
+    mutationFn: () => apiRequest('/auth/google/disconnect', { 
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${session?.access_token || ''}`
+      }
+    }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['/api/google/connection-status', currentOrgId] })
+      const previousStatus = queryClient.getQueryData(['/api/google/connection-status', currentOrgId])
+      queryClient.setQueryData(['/api/google/connection-status', currentOrgId], {
+        connected: false,
+        email: undefined,
+        scopes: undefined,
+      })
+      return { previousStatus }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
+      toast({
+        title: 'Google account disconnected',
+        description: 'Your Google account has been disconnected.',
+      })
+    },
+    onError: (error: any, variables, context) => {
+      if (context?.previousStatus) {
+        queryClient.setQueryData(['/api/google/connection-status', currentOrgId], context.previousStatus)
+      }
+      toast({
+        title: 'Failed to disconnect',
+        description: error.message || 'Please try again later.',
+        variant: 'destructive',
+      })
+    },
+  })
+
   // Fetch settings data
   const { data: settingsData, isLoading: settingsLoading } = useQuery({
     queryKey: ['/api/user/settings'],
@@ -67,7 +161,6 @@ export default function AccountSettings() {
   }, [settingsData])
 
   // Update settings mutation
-  const queryClient = useQueryClient()
   const updateSettingsMutation = useMutation({
     mutationFn: async (settings: any) => {
       const response = await fetch('/api/user/settings', {
@@ -192,6 +285,142 @@ export default function AccountSettings() {
                   </Badge>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Connected Email - Google Integration */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#E6F2FF] rounded-lg flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-[#264C99]" />
+                  </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      Connected Email
+                    </CardTitle>
+                    <CardDescription>
+                      Connect your Google account to send emails and schedule interviews
+                    </CardDescription>
+                  </div>
+                </div>
+                {googleStatus?.connected ? (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Connected
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Not Connected
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {googleLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-6 h-6 animate-spin text-[#264C99]" />
+                </div>
+              ) : googleStatus?.connected ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-green-900">
+                          Connected as {googleStatus.email}
+                        </p>
+                        <p className="text-sm text-green-700 mt-1">
+                          You can send emails and schedule interviews from TalentPatriot
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="p-3 border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Mail className="w-4 h-4 text-[#264C99]" />
+                        <span className="font-medium text-sm">Gmail</span>
+                      </div>
+                      <p className="text-xs text-gray-600">Send emails from Messages</p>
+                    </div>
+                    <div className="p-3 border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Calendar className="w-4 h-4 text-[#264C99]" />
+                        <span className="font-medium text-sm">Calendar</span>
+                      </div>
+                      <p className="text-xs text-gray-600">Schedule interviews</p>
+                    </div>
+                    <div className="p-3 border border-gray-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Video className="w-4 h-4 text-[#264C99]" />
+                        <span className="font-medium text-sm">Google Meet</span>
+                      </div>
+                      <p className="text-xs text-gray-600">Auto-create video links</p>
+                    </div>
+                  </div>
+
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Disconnect Google Account</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        You will no longer be able to send emails from TalentPatriot
+                      </p>
+                    </div>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => disconnectMutation.mutate()}
+                      disabled={disconnectMutation.isPending}
+                      data-testid="button-disconnect-google"
+                    >
+                      {disconnectMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Disconnecting...
+                        </>
+                      ) : (
+                        'Disconnect'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-medium text-blue-900">
+                          Connect your Google account to unlock email features
+                        </p>
+                        <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                          <li>• Send emails to candidates directly from TalentPatriot</li>
+                          <li>• Schedule interviews with Google Calendar integration</li>
+                          <li>• Auto-create Google Meet links for video interviews</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={handleConnectGoogle}
+                    className="w-full bg-[#1F3A5F] hover:bg-[#264C99]"
+                    data-testid="button-connect-google"
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Connect Google Account
+                  </Button>
+
+                  <p className="text-xs text-gray-500 text-center">
+                    You'll be redirected to Google to authorize access. We only request permissions for Gmail and Calendar.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

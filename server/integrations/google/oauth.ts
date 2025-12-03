@@ -135,15 +135,22 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string): 
 
 /**
  * Generate a secure state parameter for OAuth flow
+ * @param userId - The authenticated user's ID
+ * @param orgId - The organization ID
+ * @param returnTo - Optional return URL after OAuth completes (defaults to /settings/integrations)
  */
-export function generateState(userId: string, orgId: string): string {
+export function generateState(userId: string, orgId: string, returnTo?: string): string {
   if (!process.env.APP_JWT_SECRET) {
     throw new Error('APP_JWT_SECRET environment variable is required for secure OAuth state signing');
   }
   
+  // Validate returnTo is a safe internal URL (starts with /)
+  const safeReturnTo = returnTo && returnTo.startsWith('/') ? returnTo : '/settings/integrations';
+  
   const data = JSON.stringify({ 
     userId, 
     orgId, 
+    returnTo: safeReturnTo,
     timestamp: Date.now() 
   });
   const signature = crypto
@@ -157,7 +164,7 @@ export function generateState(userId: string, orgId: string): string {
 /**
  * Verify and parse state parameter
  */
-export function verifyState(state: string): { userId: string; orgId: string } | null {
+export function verifyState(state: string): { userId: string; orgId: string; returnTo: string } | null {
   if (!process.env.APP_JWT_SECRET) {
     console.error('APP_JWT_SECRET not configured');
     return null;
@@ -186,9 +193,14 @@ export function verifyState(state: string): { userId: string; orgId: string } | 
       return null;
     }
     
+    // Extract and validate returnTo - trim whitespace and ensure it starts with /
+    const storedReturnTo = typeof parsed.returnTo === 'string' ? parsed.returnTo.trim() : '';
+    const safeReturnTo = storedReturnTo.startsWith('/') ? storedReturnTo : '/settings/integrations';
+    
     return { 
       userId: parsed.userId, 
-      orgId: parsed.orgId
+      orgId: parsed.orgId,
+      returnTo: safeReturnTo
     };
   } catch (error) {
     console.error('Error verifying state:', error);

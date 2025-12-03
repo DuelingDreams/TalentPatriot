@@ -60,8 +60,10 @@ export default function IntegrationsSettings() {
       const response = await apiRequest<{ redirectUrl: string }>('/auth/google/init', { 
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ returnTo: '/settings/integrations' })
       });
       
       // Step 2: Redirect to Google OAuth flow using the returned URL

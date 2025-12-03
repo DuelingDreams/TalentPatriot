@@ -20,8 +20,11 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       // Get userId and orgId from authenticated session (Bearer token from frontend)
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
+      
+      // Get optional returnTo URL from request body (defaults to /settings/integrations)
+      const returnTo = req.body?.returnTo || '/settings/integrations';
 
-      console.log('🔐 [OAuth Init] Starting Google OAuth for user:', userId, 'org:', orgId);
+      console.log('🔐 [OAuth Init] Starting Google OAuth for user:', userId, 'org:', orgId, 'returnTo:', returnTo);
 
       // Set a SIGNED temporary session cookie (expires in 10 minutes)
       // signed: true uses cookie-parser's signature to prevent forgery
@@ -29,6 +32,7 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       res.cookie('oauth_session', JSON.stringify({
         userId,
         orgId,
+        returnTo,
         timestamp: Date.now()
       }), {
         httpOnly: true,
@@ -64,20 +68,20 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       }
 
       const session = JSON.parse(sessionCookie);
-      const { userId, orgId, timestamp } = session;
+      const { userId, orgId, returnTo, timestamp } = session;
 
       // Verify session is not expired (10 minutes)
       if (Date.now() - timestamp > 10 * 60 * 1000) {
         // Clear expired cookie
         res.clearCookie('oauth_session', { path: '/auth/google' });
-        return res.redirect('/settings/integrations?error=session_expired');
+        return res.redirect((returnTo || '/settings/integrations') + '?error=session_expired');
       }
 
       // Get centralized redirect URI (always talentpatriot.com)
       const redirectUri = getRedirectUri(req.headers.host);
 
-      // Generate secure state parameter
-      const state = generateState(userId, orgId);
+      // Generate secure state parameter with return URL
+      const state = generateState(userId, orgId, returnTo);
 
       // Get Google OAuth URL with centralized redirect
       const authUrl = getAuthUrl(state, redirectUri);
@@ -125,8 +129,8 @@ export function createGoogleAuthRoutes(storage: IStorage) {
         return res.redirect('/settings/integrations?error=invalid_state');
       }
 
-      const { userId, orgId } = stateData;
-      console.log(`✅ [OAuth Callback] State verified - userId: ${userId}, orgId: ${orgId}`);
+      const { userId, orgId, returnTo } = stateData;
+      console.log(`✅ [OAuth Callback] State verified - userId: ${userId}, orgId: ${orgId}, returnTo: ${returnTo}`);
 
       // Check if this user already has a Google connection in a DIFFERENT org
       const existingConnections = await storage.communications.getConnectedAccounts(userId, orgId);
@@ -168,9 +172,9 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       // Clear any remaining oauth_session cookie
       res.clearCookie('oauth_session', { path: '/auth/google' });
 
-      // Redirect back to integrations page
+      // Redirect back to the original page (returnTo from state)
       console.log('🎉 Google OAuth connection completed successfully!');
-      res.redirect('/settings/integrations?google=connected');
+      res.redirect(`${returnTo}?google=connected`);
     } catch (error: any) {
       console.error('❌ Error in Google OAuth callback:');
       console.error('   Message:', error.message);

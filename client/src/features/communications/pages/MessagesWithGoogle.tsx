@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { MessageSquare, Plus, Users, Bell, Archive, Send, Filter, Mail, Video, Calendar, Clock } from 'lucide-react'
+import { MessageSquare, Plus, Users, Bell, Archive, Send, Filter, Mail, Video, Calendar, Clock, AlertCircle } from 'lucide-react'
+import { Link } from 'wouter'
 import { MessagesList } from '@/features/communications/components/MessagesList'
 import { ThreadTimeline } from '@/features/communications/components/google/ThreadTimeline'
 import { useMessages, useUnreadMessageCount } from '@/features/communications/hooks/useMessages'
@@ -528,93 +529,120 @@ export default function Messages() {
 
               {/* Email Tab */}
               <TabsContent value="email" className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email-from">From</Label>
-                  <Input
-                    id="email-from"
-                    value={emailFrom}
-                    disabled
-                    data-testid="input-email-from"
-                  />
-                </div>
+                {!googleStatus?.connected ? (
+                  <div className="p-6 text-center space-y-4">
+                    <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+                      <Mail className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">Connect Your Email</h3>
+                      <p className="text-sm text-gray-600 mt-1 max-w-sm mx-auto">
+                        Connect your Google account to send emails directly from TalentPatriot and schedule interviews with calendar integration.
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <Link href="/account-settings">
+                        <Button className="bg-[#1F3A5F] hover:bg-[#264C99]" data-testid="button-connect-google-email">
+                          <Mail className="h-4 w-4 mr-2" />
+                          Connect Google Account
+                        </Button>
+                      </Link>
+                      <p className="text-xs text-gray-500">
+                        Go to Account Settings to connect your Google account
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-from">From</Label>
+                      <Input
+                        id="email-from"
+                        value={emailFrom}
+                        disabled
+                        data-testid="input-email-from"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email-to">To (candidate/client)</Label>
-                  <Input
-                    id="email-to"
-                    placeholder="To (candidate/client)"
-                    value={emailForm.to}
-                    onChange={(e) => setEmailForm(prev => ({ ...prev, to: e.target.value }))}
-                    data-testid="input-email-to"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-to">To (candidate/client)</Label>
+                      <Input
+                        id="email-to"
+                        placeholder="To (candidate/client)"
+                        value={emailForm.to}
+                        onChange={(e) => setEmailForm(prev => ({ ...prev, to: e.target.value }))}
+                        data-testid="input-email-to"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email-subject">Subject</Label>
-                  <Input
-                    id="email-subject"
-                    placeholder="Subject"
-                    value={emailForm.subject}
-                    onChange={(e) => setEmailForm(prev => ({ ...prev, subject: e.target.value }))}
-                    data-testid="input-email-subject"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-subject">Subject</Label>
+                      <Input
+                        id="email-subject"
+                        placeholder="Subject"
+                        value={emailForm.subject}
+                        onChange={(e) => setEmailForm(prev => ({ ...prev, subject: e.target.value }))}
+                        data-testid="input-email-subject"
+                      />
+                    </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email-body">Message</Label>
-                  <Textarea
-                    id="email-body"
-                    placeholder="Write your email..."
-                    value={emailForm.message}
-                    onChange={(e) => setEmailForm(prev => ({ ...prev, message: e.target.value }))}
-                    rows={6}
-                    data-testid="textarea-email-body"
-                  />
-                </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email-body">Message</Label>
+                      <Textarea
+                        id="email-body"
+                        placeholder="Write your email..."
+                        value={emailForm.message}
+                        onChange={(e) => setEmailForm(prev => ({ ...prev, message: e.target.value }))}
+                        rows={6}
+                        data-testid="textarea-email-body"
+                      />
+                    </div>
 
-                {/* Google Integration Buttons */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleProposeTimes}
-                    className="flex items-center gap-2"
-                    data-testid="button-propose-times"
-                  >
-                    <Clock className="h-4 w-4" />
-                    Propose Times
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddCalendarInvite}
-                    className="flex items-center gap-2"
-                    data-testid="button-add-calendar-invite"
-                  >
-                    <Calendar className="h-4 w-4" />
-                    Add Calendar Invite
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCreateVideo}
-                    className="flex items-center gap-2"
-                    data-testid="button-create-video"
-                  >
-                    <Video className="h-4 w-4" />
-                    Create Video
-                  </Button>
-                </div>
+                    {/* Google Integration Buttons */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleProposeTimes}
+                        className="flex items-center gap-2"
+                        data-testid="button-propose-times"
+                      >
+                        <Clock className="h-4 w-4" />
+                        Propose Times
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddCalendarInvite}
+                        className="flex items-center gap-2"
+                        data-testid="button-add-calendar-invite"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Add Calendar Invite
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCreateVideo}
+                        className="flex items-center gap-2"
+                        data-testid="button-create-video"
+                      >
+                        <Video className="h-4 w-4" />
+                        Create Video
+                      </Button>
+                    </div>
 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2">
-                  <Button onClick={handleSendEmail} data-testid="button-send-email">
-                    Send Email
-                  </Button>
-                  <Button onClick={handleSendWithInvite} variant="outline" data-testid="button-send-invite">
-                    Send + Invite
-                  </Button>
-                </div>
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-2">
+                      <Button onClick={handleSendEmail} data-testid="button-send-email">
+                        Send Email
+                      </Button>
+                      <Button onClick={handleSendWithInvite} variant="outline" data-testid="button-send-invite">
+                        Send + Invite
+                      </Button>
+                    </div>
+                  </>
+                )}
               </TabsContent>
 
               {/* Client Portal Tab */}
