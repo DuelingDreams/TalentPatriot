@@ -94,6 +94,10 @@ export function createGoogleAuthRoutes(storage: IStorage) {
    */
   router.get('/callback', async (req: AuthenticatedRequest, res: Response) => {
     console.log('🔔 Google OAuth callback triggered');
+    console.log('📍 [Callback] Full URL:', req.originalUrl);
+    console.log('📍 [Callback] Query params:', JSON.stringify(req.query));
+    console.log('📍 [Callback] Host header:', req.headers.host);
+    console.log('📍 [Callback] Referer:', req.headers.referer || 'none');
     
     try {
       const { code, state, error } = req.query;
