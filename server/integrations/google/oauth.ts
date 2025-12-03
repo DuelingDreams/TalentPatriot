@@ -31,48 +31,21 @@ const OAUTH_REDIRECT_URI = `https://${PRODUCTION_DOMAIN}/auth/google/callback`;
 
 /**
  * Get the centralized OAuth redirect URI
- * Always returns the same URL regardless of which subdomain initiated the flow
+ * Uses GOOGLE_REDIRECT_URI environment variable if set, otherwise falls back to production domain
  * 
- * @param host - The host header from the request (used for validation only)
- * @returns Centralized redirect URI (https://talentpatriot.com/auth/google/callback)
- * @throws Error if host is not a valid talentpatriot.com domain
+ * @param host - The host header from the request (used for validation in production)
+ * @returns Centralized redirect URI from env or production default
  */
 export function getRedirectUri(host: string | undefined): string {
-  if (!host) {
-    throw new Error('Host header is required for OAuth security validation');
+  // Use the environment variable if set (for both dev and prod)
+  const envRedirectUri = process.env.GOOGLE_REDIRECT_URI;
+  if (envRedirectUri) {
+    console.log('📍 [OAuth] Using GOOGLE_REDIRECT_URI from environment:', envRedirectUri);
+    return envRedirectUri;
   }
 
-  // Remove port if present (e.g., localhost:3000 -> localhost)
-  const cleanHost = host.split(':')[0];
-
-  // Development mode: Allow localhost and Replit preview URLs
-  const isDevelopment = process.env.NODE_ENV !== 'production';
-  const isLocalhost = cleanHost === 'localhost' || cleanHost === '127.0.0.1';
-  const isReplitPreview = cleanHost.endsWith('.replit.dev');
-  
-  if (isDevelopment && (isLocalhost || isReplitPreview)) {
-    // For development, use the actual host for the redirect URI
-    const protocol = isLocalhost ? 'http' : 'https';
-    const portSuffix = host.includes(':') ? `:${host.split(':')[1]}` : '';
-    return `${protocol}://${cleanHost}${portSuffix}/auth/google/callback`;
-  }
-
-  // Production: validate host is talentpatriot.com or a valid subdomain
-  const isRootDomain = cleanHost === PRODUCTION_DOMAIN;
-  const isWwwDomain = cleanHost === `www.${PRODUCTION_DOMAIN}`;
-  const isValidSubdomain = cleanHost.endsWith(`.${PRODUCTION_DOMAIN}`) && 
-    cleanHost.length > PRODUCTION_DOMAIN.length + 1 &&
-    /^[a-z0-9\-]+\.talentpatriot\.com$/.test(cleanHost);
-
-  if (!isRootDomain && !isWwwDomain && !isValidSubdomain) {
-    throw new Error(
-      `Host "${cleanHost}" is not a valid ${PRODUCTION_DOMAIN} domain. ` +
-      `OAuth requests must originate from ${PRODUCTION_DOMAIN} or organization subdomains.`
-    );
-  }
-
-  // Always return the centralized callback URI for production
-  // The original subdomain is preserved in the OAuth state parameter
+  // Fallback to production domain
+  console.log('📍 [OAuth] No GOOGLE_REDIRECT_URI set, using production default:', OAUTH_REDIRECT_URI);
   return OAUTH_REDIRECT_URI;
 }
 

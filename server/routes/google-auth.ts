@@ -73,10 +73,13 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       console.log('✅ [OAuth Login] Database session consumed for user:', userId.substring(0, 8) + '...');
 
       const redirectUri = getRedirectUri(req.headers.host);
+      console.log('🔗 [OAuth Login] Generated redirect URI:', redirectUri);
+      
       const state = generateState(userId, orgId, returnTo, stateNonce);
       const authUrl = getAuthUrl(state, redirectUri);
 
       console.log('🔗 [OAuth Login] Redirecting to Google OAuth consent screen');
+      console.log('🔗 [OAuth Login] Auth URL:', authUrl.substring(0, 150) + '...');
 
       res.redirect(authUrl);
     } catch (error: any) {
