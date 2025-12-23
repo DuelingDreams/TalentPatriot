@@ -14,6 +14,12 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: TanStack React Query.
 - **Build Tool**: Vite.
 - **Design**: Light mode, soft gray backgrounds, rounded cards, consistent TalentPatriot branding (Navy, Soft Blue, Light Gray, Inter font), focusing on professional UI/UX, modern analytics, enhanced popover/modal UX, and accessibility.
+- **Design Token System**: Centralized CSS custom properties with Tailwind integration:
+  - Primary: #1E3A5F (navy), Secondary: #14B8A6 (teal), Accent: #3F88C5
+  - Semantic tokens: success (green), warning (amber), error (red), info (sky blue) with full 50-900 scales
+  - Neutral gray scale (50-950) for consistent typography and backgrounds
+  - TalentPatriot-specific tokens: tp-primary, tp-accent, tp-page, tp-card-surface
+  - CSS variables in index.css, Tailwind tokens in tailwind.config.ts
 
 ## Backend
 - **Framework**: Express.js with TypeScript.
