@@ -48,8 +48,8 @@ export function RefreshIndicator({
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3 text-[#5C667B]" />
-              <span className="text-xs text-[#5C667B]">
+              <Clock className="w-3 h-3 text-neutral-600" />
+              <span className="text-xs text-neutral-600">
                 {formatDistanceToNow(lastRefreshed, { addSuffix: true })}
               </span>
             </div>

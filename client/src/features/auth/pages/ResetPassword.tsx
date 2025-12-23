@@ -111,11 +111,11 @@ export default function ResetPassword() {
 
   if (!validToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-tp-page px-4">
         <div className="w-full max-w-md">
           <Card>
             <CardContent className="p-8 text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-error-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Building2 className="w-8 h-8 text-red-600" />
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -139,19 +139,19 @@ export default function ResetPassword() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-tp-page px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="w-16 h-16 bg-success-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-8 h-8 text-success-600" />
             </div>
-            <h1 className="heading-1 text-[#1A1A1A]">Password Reset Complete</h1>
+            <h1 className="heading-1 text-neutral-900">Password Reset Complete</h1>
             <p className="body-text mt-2">Your password has been successfully updated</p>
           </div>
 
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-[#5C667B] mb-6">
+              <p className="text-sm text-neutral-600 mb-6">
                 You can now sign in with your new password. You'll be redirected to the sign in page shortly.
               </p>
               <Button
@@ -168,13 +168,13 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-tp-page px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#1F3A5F] rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-tp-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="heading-1 text-[#1A1A1A]">Set new password</h1>
+          <h1 className="heading-1 text-neutral-900">Set new password</h1>
           <p className="body-text mt-2">Create a strong password for your account</p>
         </div>
 
@@ -226,7 +226,7 @@ export default function ResetPassword() {
                 {passwordError && (
                   <p className="text-sm text-red-600">{passwordError}</p>
                 )}
-                <p className="text-xs text-[#5C667B]">
+                <p className="text-xs text-neutral-600">
                   Password must be at least 6 characters long
                 </p>
               </div>

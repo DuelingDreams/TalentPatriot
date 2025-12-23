@@ -37,7 +37,7 @@ export default function Landing() {
               loading="eager"
             />
           </div>
-          <span className="text-xl md:text-2xl font-bold text-[#1E293B] tracking-tight">
+          <span className="text-xl md:text-2xl font-bold text-neutral-900 tracking-tight">
             TalentPatriot
           </span>
         </div>
@@ -70,19 +70,19 @@ export default function Landing() {
           <div className="absolute -top-1/2 -right-[20%] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(14,165,233,0.1)_0%,transparent_70%)] animate-float pointer-events-none" />
           
           <div className="max-w-[1200px] mx-auto text-center relative z-10">
-            <h1 className="text-4xl md:text-5xl lg:text-[4rem] font-extrabold text-[#1E293B] mb-6 tracking-[-0.02em] leading-[1.1]">
+            <h1 className="text-4xl md:text-5xl lg:text-[4rem] font-extrabold text-neutral-900 mb-6 tracking-[-0.02em] leading-[1.1]">
               An ATS Built for SMBs: Fast Setup,<br className="hidden md:block" />
               Fair Pricing, <span className="gradient-text animate-shimmer">AI That Works.</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-[#64748B] mb-4">
+            <p className="text-xl md:text-2xl text-neutral-500 mb-4">
               Hire Faster. Spend Less. Stay Simple.
             </p>
             
             {/* Social Proof */}
-            <div className="flex items-center justify-center gap-3 my-8 text-[#64748B] text-base">
+            <div className="flex items-center justify-center gap-3 my-8 text-neutral-500 text-base">
               <span>🎯 Built specifically for</span>
-              <span className="font-semibold text-[#10B981]">SMB teams & boutique agencies</span>
+              <span className="font-semibold text-success">SMB teams & boutique agencies</span>
             </div>
 
             {/* CTAs */}
@@ -98,7 +98,7 @@ export default function Landing() {
               </Link>
               <Button 
                 variant="outline"
-                className="bg-white text-[#1E293B] border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white px-8 md:px-10 py-5 md:py-6 rounded-xl font-semibold text-lg transition-all duration-300 hover:-translate-y-0.5"
+                className="bg-white text-neutral-900 border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white px-8 md:px-10 py-5 md:py-6 rounded-xl font-semibold text-lg transition-all duration-300 hover:-translate-y-0.5"
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 data-testid="btn-hero-demo"
               >
@@ -130,10 +130,10 @@ export default function Landing() {
         <section className="py-24 px-[5%] bg-white">
           <div className="max-w-[1200px] mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1E293B] mb-4 tracking-[-0.02em]">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-neutral-900 mb-4 tracking-[-0.02em]">
                 Why TalentPatriot
               </h2>
-              <p className="text-xl text-[#64748B]">Enterprise Power. SMB Simplicity.</p>
+              <p className="text-xl text-neutral-500">Enterprise Power. SMB Simplicity.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -145,14 +145,14 @@ export default function Landing() {
               ].map((benefit, i) => (
                 <div 
                   key={i}
-                  className="group relative bg-white rounded-2xl p-8 border-2 border-[#F1F5F9] hover:border-[#0EA5E9] hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden card-accent-left"
+                  className="group relative bg-white rounded-2xl p-8 border-2 border-neutral-100 hover:border-[#0EA5E9] hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden card-accent-left"
                   data-testid={`benefit-card-${i}`}
                 >
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgba(14,165,233,0.1)] to-[rgba(16,185,129,0.1)] flex items-center justify-center mb-6 text-3xl group-hover:scale-110 group-hover:rotate-[5deg] transition-transform duration-300">
                     {benefit.icon}
                   </div>
-                  <h3 className="text-2xl font-bold text-[#1E293B] mb-3">{benefit.title}</h3>
-                  <p className="text-[#64748B] text-base leading-relaxed">{benefit.desc}</p>
+                  <h3 className="text-2xl font-bold text-neutral-900 mb-3">{benefit.title}</h3>
+                  <p className="text-neutral-500 text-base leading-relaxed">{benefit.desc}</p>
                 </div>
               ))}
             </div>
@@ -160,13 +160,13 @@ export default function Landing() {
         </section>
 
         {/* How It Works Section */}
-        <section className="py-24 px-[5%] bg-[#F1F5F9]">
+        <section className="py-24 px-[5%] bg-neutral-100">
           <div className="max-w-[1200px] mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1E293B] mb-4 tracking-[-0.02em]">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-neutral-900 mb-4 tracking-[-0.02em]">
                 How It Works
               </h2>
-              <p className="text-xl text-[#64748B]">From job post to hire in three simple steps</p>
+              <p className="text-xl text-neutral-500">From job post to hire in three simple steps</p>
             </div>
             
             <div className="relative">
@@ -181,10 +181,10 @@ export default function Landing() {
                 ].map((step, i) => (
                   <div key={i} className="text-center group" data-testid={`step-${i}`}>
                     <div className="w-24 h-24 md:w-[100px] md:h-[100px] bg-gradient-to-br from-[#0EA5E9] to-[#10B981] text-white rounded-3xl flex items-center justify-center text-4xl md:text-5xl font-bold mx-auto mb-6 shadow-[0_8px_24px_rgba(14,165,233,0.3)] group-hover:scale-110 group-hover:rotate-[5deg] group-hover:shadow-[0_12px_32px_rgba(14,165,233,0.4)] transition-all duration-300">
-                      {step.num}
+                        {step.num}
                     </div>
-                    <h3 className="text-xl md:text-2xl font-bold text-[#1E293B] mb-4">{step.title}</h3>
-                    <p className="text-[#64748B]">{step.desc}</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-4">{step.title}</h3>
+                    <p className="text-neutral-500">{step.desc}</p>
                   </div>
                 ))}
               </div>
@@ -196,10 +196,10 @@ export default function Landing() {
         <section className="py-24 px-[5%] bg-white">
           <div className="max-w-[1200px] mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#1E293B] mb-4 tracking-[-0.02em]">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-neutral-900 mb-4 tracking-[-0.02em]">
                 Features
               </h2>
-              <p className="text-xl text-[#64748B]">Everything you need to hire smarter</p>
+              <p className="text-xl text-neutral-500">Everything you need to hire smarter</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -213,7 +213,7 @@ export default function Landing() {
               ].map((feature, i) => (
                 <div 
                   key={i}
-                  className="group relative bg-white rounded-[20px] p-8 md:p-10 border-2 border-[#F1F5F9] hover:border-transparent hover:-translate-y-3 hover:shadow-[0_20px_60px_rgba(0,0,0,0.15)] transition-all duration-400 overflow-hidden"
+                  className="group relative bg-white rounded-[20px] p-8 md:p-10 border-2 border-neutral-100 hover:border-transparent hover:-translate-y-3 hover:shadow-[0_20px_60px_rgba(0,0,0,0.15)] transition-all duration-400 overflow-hidden"
                   data-testid={`feature-card-${i}`}
                 >
                   {/* Gradient overlay on hover */}
@@ -223,8 +223,8 @@ export default function Landing() {
                     <div className="w-[72px] h-[72px] rounded-[18px] bg-gradient-to-br from-[rgba(14,165,233,0.1)] to-[rgba(16,185,129,0.1)] flex items-center justify-center mb-6 text-4xl">
                       {feature.icon}
                     </div>
-                    <h3 className="text-xl md:text-2xl font-bold text-[#1E293B] mb-3">{feature.title}</h3>
-                    <p className="text-[#64748B]">{feature.desc}</p>
+                    <h3 className="text-xl md:text-2xl font-bold text-neutral-900 mb-3">{feature.title}</h3>
+                    <p className="text-neutral-500">{feature.desc}</p>
                   </div>
                 </div>
               ))}
@@ -248,7 +248,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/beta">
                 <Button 
-                  className="bg-white text-[#0EA5E9] hover:bg-[#F1F5F9] font-bold px-8 md:px-10 py-5 md:py-6 rounded-xl text-lg transition-all duration-300 hover:-translate-y-0.5"
+                  className="bg-white text-[#0EA5E9] hover:bg-neutral-100 font-bold px-8 md:px-10 py-5 md:py-6 rounded-xl text-lg transition-all duration-300 hover:-translate-y-0.5"
                   data-testid="btn-cta-beta"
                 >
                   Start Free in Beta
@@ -269,7 +269,7 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white py-12 border-t border-gray-200">
+      <footer className="bg-white py-12 border-t border-neutral-200">
         <div className="max-w-[1200px] mx-auto px-[5%]">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3">
@@ -281,17 +281,17 @@ export default function Landing() {
                   loading="lazy"
                 />
               </div>
-              <span className="text-lg font-semibold text-[#1E293B]">TalentPatriot</span>
+              <span className="text-lg font-semibold text-neutral-900">TalentPatriot</span>
             </div>
             
-            <nav className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-[#64748B]">
-              <Link href="/about" className="hover:text-[#1E293B] transition-colors">About</Link>
-              <Link href="/privacy" className="hover:text-[#1E293B] transition-colors">Privacy</Link>
-              <Link href="/terms" className="hover:text-[#1E293B] transition-colors">Terms</Link>
-              <a href="mailto:contact@talentpatriot.com" className="hover:text-[#1E293B] transition-colors">Contact</a>
+            <nav className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-neutral-500">
+              <Link href="/about" className="hover:text-neutral-900 transition-colors">About</Link>
+              <Link href="/privacy" className="hover:text-neutral-900 transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-neutral-900 transition-colors">Terms</Link>
+              <a href="mailto:contact@talentpatriot.com" className="hover:text-neutral-900 transition-colors">Contact</a>
             </nav>
             
-            <p className="text-sm text-[#64748B]">
+            <p className="text-sm text-neutral-500">
               © 2025 TalentPatriot
             </p>
           </div>

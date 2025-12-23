@@ -132,11 +132,11 @@ export default function ProfileSettings() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] p-6">
+    <div className="min-h-screen bg-tp-page-bg p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Back Navigation */}
         <Link href="/settings" data-testid="link-back-to-settings">
-          <Button variant="ghost" className="gap-2 text-[#5C667B] hover:text-[#1F3A5F] -ml-2 mb-2">
+          <Button variant="ghost" className="gap-2 text-neutral-600 hover:text-tp-primary -ml-2 mb-2">
             <ArrowLeft className="w-4 h-4" />
             Back to Settings
           </Button>
@@ -144,12 +144,12 @@ export default function ProfileSettings() {
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-[#E6F2FF] rounded-2xl flex items-center justify-center">
-            <User className="w-6 h-6 text-[#1F3A5F]" />
+          <div className="w-12 h-12 bg-tp-primary-light rounded-2xl flex items-center justify-center">
+            <User className="w-6 h-6 text-tp-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[#1A1A1A]">Profile Settings</h1>
-            <p className="text-[#5C667B] mt-1">Manage your personal information and preferences</p>
+            <h1 className="text-3xl font-bold text-neutral-900">Profile Settings</h1>
+            <p className="text-neutral-600 mt-1">Manage your personal information and preferences</p>
           </div>
         </div>
 
@@ -163,7 +163,7 @@ export default function ProfileSettings() {
             <CardContent className="space-y-4">
               <div className="flex flex-col items-center text-center">
                 <Avatar className="h-20 w-20 mb-4">
-                  <AvatarFallback className="bg-blue-600 text-white text-xl">
+                  <AvatarFallback className="bg-info-600 text-white text-xl">
                     {getUserInitials(user.email || '')}
                   </AvatarFallback>
                 </Avatar>
@@ -177,15 +177,15 @@ export default function ProfileSettings() {
               <Separator />
               
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-[#5C667B]">
+                <div className="flex items-center gap-2 text-sm text-neutral-600">
                   <Mail className="w-4 h-4" />
                   <span>{user.email}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-[#5C667B]">
+                <div className="flex items-center gap-2 text-sm text-neutral-600">
                   <Building2 className="w-4 h-4" />
                   <span>Current Organization</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-[#5C667B]">
+                <div className="flex items-center gap-2 text-sm text-neutral-600">
                   <Calendar className="w-4 h-4" />
                   <span>Member since {new Date().getFullYear()}</span>
                 </div>
@@ -205,7 +205,7 @@ export default function ProfileSettings() {
                   {/* Basic Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <UserCheck className="w-5 h-5 text-[#264C99]" />
+                      <UserCheck className="w-5 h-5 text-tp-accent" />
                       Basic Information
                     </h3>
                     
@@ -254,7 +254,7 @@ export default function ProfileSettings() {
                             />
                           </FormControl>
                           <FormMessage />
-                          <p className="text-xs text-[#5C667B]">
+                          <p className="text-xs text-neutral-600">
                             Email address cannot be changed. Contact support if you need to update it.
                           </p>
                         </FormItem>
@@ -267,7 +267,7 @@ export default function ProfileSettings() {
                   {/* Contact Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Phone className="w-5 h-5 text-[#264C99]" />
+                      <Phone className="w-5 h-5 text-tp-accent" />
                       Contact Information
                     </h3>
                     
@@ -305,7 +305,7 @@ export default function ProfileSettings() {
                   {/* Professional Information */}
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-[#264C99]" />
+                      <Building2 className="w-5 h-5 text-tp-accent" />
                       Professional Information
                     </h3>
                     
@@ -361,7 +361,7 @@ export default function ProfileSettings() {
                     <Button 
                       type="submit" 
                       disabled={updateProfileMutation.isPending || profileLoading}
-                      className="bg-[#1F3A5F] hover:bg-[#264C99]"
+                      className="bg-tp-primary hover:bg-tp-accent"
                     >
                       <Save className="w-4 h-4 mr-2" />
                       {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}

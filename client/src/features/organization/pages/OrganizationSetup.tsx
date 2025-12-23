@@ -123,11 +123,11 @@ export default function OrganizationSetup() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-tp-page-bg px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Building2 className="w-6 h-6 text-blue-600" />
+          <div className="w-12 h-12 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Building2 className="w-6 h-6 text-info-600" />
           </div>
           <CardTitle className="text-2xl">Set Up Your Organization</CardTitle>
           <CardDescription>
@@ -138,7 +138,7 @@ export default function OrganizationSetup() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-error-50 border border-error-200 text-error-700 px-4 py-3 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -174,7 +174,7 @@ export default function OrganizationSetup() {
             
             <Button 
               type="submit" 
-              className="w-full bg-[#1F3A5F] hover:bg-[#264C99] text-white"
+              className="w-full bg-tp-primary hover:bg-tp-accent text-white"
               disabled={loading}
             >
               {loading ? (

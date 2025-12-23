@@ -33,9 +33,9 @@ export default function ClientDetail() {
     return (
       <DashboardLayout pageTitle="Client Not Found">
         <div className="text-center py-12">
-          <Building2 className="w-12 h-12 mx-auto text-[#5C667B] mb-4" />
-          <h3 className="text-lg font-medium text-[#1A1A1A] mb-2">Client not found</h3>
-          <p className="text-[#5C667B] mb-4">The client you're looking for doesn't exist.</p>
+          <Building2 className="w-12 h-12 mx-auto text-neutral-600 mb-4" />
+          <h3 className="text-lg font-medium text-neutral-900 mb-2">Client not found</h3>
+          <p className="text-neutral-600 mb-4">The client you're looking for doesn't exist.</p>
           <Link href="/clients">
             <Button>
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -60,17 +60,17 @@ export default function ClientDetail() {
               </Button>
             </Link>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-info-100 rounded-lg flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-info-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold text-slate-900">{client.name}</h1>
+                <h1 className="text-2xl font-semibold text-neutral-900">{client.name}</h1>
                 <div className="flex items-center gap-4 mt-1">
                   {client.industry && (
                     <Badge variant="outline">{client.industry}</Badge>
                   )}
                   {client.location && (
-                    <div className="flex items-center gap-1 text-sm text-slate-600">
+                    <div className="flex items-center gap-1 text-sm text-neutral-600">
                       <MapPin className="w-3 h-3" />
                       {client.location}
                     </div>
@@ -91,10 +91,10 @@ export default function ClientDetail() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-blue-600" />
+                <Briefcase className="w-4 h-4 text-info-600" />
                 <div>
-                  <div className="text-2xl font-bold text-slate-900">{clientJobs.length}</div>
-                  <div className="text-sm text-slate-600">Active Jobs</div>
+                  <div className="text-2xl font-bold text-neutral-900">{clientJobs.length}</div>
+                  <div className="text-sm text-neutral-600">Active Jobs</div>
                 </div>
               </div>
             </CardContent>
@@ -103,10 +103,10 @@ export default function ClientDetail() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-green-600" />
+                <Users className="w-4 h-4 text-success-600" />
                 <div>
-                  <div className="text-2xl font-bold text-slate-900">0</div>
-                  <div className="text-sm text-slate-600">Total Candidates</div>
+                  <div className="text-2xl font-bold text-neutral-900">0</div>
+                  <div className="text-sm text-neutral-600">Total Candidates</div>
                 </div>
               </div>
             </CardContent>
@@ -115,10 +115,10 @@ export default function ClientDetail() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-purple-600" />
+                <MessageSquare className="w-4 h-4 text-tp-accent" />
                 <div>
-                  <div className="text-2xl font-bold text-slate-900">0</div>
-                  <div className="text-sm text-slate-600">Notes</div>
+                  <div className="text-2xl font-bold text-neutral-900">0</div>
+                  <div className="text-sm text-neutral-600">Notes</div>
                 </div>
               </div>
             </CardContent>
@@ -127,12 +127,12 @@ export default function ClientDetail() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-orange-600" />
+                <Calendar className="w-4 h-4 text-warning-600" />
                 <div>
-                  <div className="text-2xl font-bold text-slate-900">
+                  <div className="text-2xl font-bold text-neutral-900">
                     {formatDistanceToNow(new Date(client.createdAt))}
                   </div>
-                  <div className="text-sm text-slate-600">Client Since</div>
+                  <div className="text-sm text-neutral-600">Client Since</div>
                 </div>
               </div>
             </CardContent>
@@ -160,39 +160,39 @@ export default function ClientDetail() {
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm font-medium text-slate-600">Company Name</label>
-                      <p className="text-slate-900">{client.name}</p>
+                      <label className="text-sm font-medium text-neutral-600">Company Name</label>
+                      <p className="text-neutral-900">{client.name}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-600">Industry</label>
-                      <p className="text-slate-900">{client.industry || '—'}</p>
+                      <label className="text-sm font-medium text-neutral-600">Industry</label>
+                      <p className="text-neutral-900">{client.industry || '—'}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-600">Location</label>
-                      <p className="text-slate-900">{client.location || '—'}</p>
+                      <label className="text-sm font-medium text-neutral-600">Location</label>
+                      <p className="text-neutral-900">{client.location || '—'}</p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-600">Website</label>
+                      <label className="text-sm font-medium text-neutral-600">Website</label>
                       {client.website ? (
                         <a 
                           href={client.website} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline flex items-center gap-1"
+                          className="text-info-600 hover:underline flex items-center gap-1"
                         >
                           <Globe className="w-3 h-3" />
                           {client.website.replace(/^https?:\/\//, '')}
                         </a>
                       ) : (
-                        <p className="text-slate-900">—</p>
+                        <p className="text-neutral-900">—</p>
                       )}
                     </div>
                   </div>
                   
                   {client.notes && (
                     <div>
-                      <label className="text-sm font-medium text-slate-600">Notes</label>
-                      <p className="text-slate-900 whitespace-pre-wrap">{client.notes}</p>
+                      <label className="text-sm font-medium text-neutral-600">Notes</label>
+                      <p className="text-neutral-900 whitespace-pre-wrap">{client.notes}</p>
                     </div>
                   )}
                 </CardContent>
@@ -208,16 +208,16 @@ export default function ClientDetail() {
                     <div className="space-y-3">
                       {client.contactName && (
                         <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-slate-400" />
+                          <User className="w-4 h-4 text-neutral-400" />
                           <span>{client.contactName}</span>
                         </div>
                       )}
                       {client.contactEmail && (
                         <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-slate-400" />
+                          <Mail className="w-4 h-4 text-neutral-400" />
                           <a 
                             href={`mailto:${client.contactEmail}`}
-                            className="text-blue-600 hover:underline"
+                            className="text-info-600 hover:underline"
                           >
                             {client.contactEmail}
                           </a>
@@ -225,13 +225,13 @@ export default function ClientDetail() {
                       )}
                       {client.contactPhone && (
                         <div className="flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-slate-400" />
+                          <Phone className="w-4 h-4 text-neutral-400" />
                           <span>{client.contactPhone}</span>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="text-slate-500">No contact information available</p>
+                    <p className="text-neutral-500">No contact information available</p>
                   )}
                 </CardContent>
               </Card>
@@ -246,9 +246,9 @@ export default function ClientDetail() {
               <CardContent>
                 {clientJobs.length === 0 ? (
                   <div className="text-center py-8">
-                    <Briefcase className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900 mb-2">No jobs yet</h3>
-                    <p className="text-slate-500">No jobs have been created for this client.</p>
+                    <Briefcase className="w-12 h-12 mx-auto text-neutral-400 mb-4" />
+                    <h3 className="text-lg font-medium text-neutral-900 mb-2">No jobs yet</h3>
+                    <p className="text-neutral-500">No jobs have been created for this client.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -266,12 +266,12 @@ export default function ClientDetail() {
                           <TableRow key={job.id}>
                             <TableCell>
                               <Link href={`/jobs/${job.id}`}>
-                                <button className="font-medium text-slate-900 hover:text-blue-600 text-left">
+                                <button className="font-medium text-neutral-900 hover:text-info-600 text-left">
                                   {job.title}
                                 </button>
                               </Link>
                               {job.description && (
-                                <p className="text-sm text-slate-500 mt-1 line-clamp-2">
+                                <p className="text-sm text-neutral-500 mt-1 line-clamp-2">
                                   {job.description}
                                 </p>
                               )}
@@ -282,7 +282,7 @@ export default function ClientDetail() {
                               </Badge>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-1 text-sm text-slate-500">
+                              <div className="flex items-center gap-1 text-sm text-neutral-500">
                                 <Calendar className="w-3 h-3" />
                                 {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                               </div>
@@ -311,9 +311,9 @@ export default function ClientDetail() {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <Users className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">Coming Soon</h3>
-                  <p className="text-slate-500">Candidate management for this client will be available soon.</p>
+                  <Users className="w-12 h-12 mx-auto text-neutral-400 mb-4" />
+                  <h3 className="text-lg font-medium text-neutral-900 mb-2">Coming Soon</h3>
+                  <p className="text-neutral-500">Candidate management for this client will be available soon.</p>
                 </div>
               </CardContent>
             </Card>
@@ -326,9 +326,9 @@ export default function ClientDetail() {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <MessageSquare className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">Coming Soon</h3>
-                  <p className="text-slate-500">Internal notes for this client will be available soon.</p>
+                  <MessageSquare className="w-12 h-12 mx-auto text-neutral-400 mb-4" />
+                  <h3 className="text-lg font-medium text-neutral-900 mb-2">Coming Soon</h3>
+                  <p className="text-neutral-500">Internal notes for this client will be available soon.</p>
                 </div>
               </CardContent>
             </Card>
@@ -341,9 +341,9 @@ export default function ClientDetail() {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <FileText className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">Coming Soon</h3>
-                  <p className="text-slate-500">File storage for this client will be available soon.</p>
+                  <FileText className="w-12 h-12 mx-auto text-neutral-400 mb-4" />
+                  <h3 className="text-lg font-medium text-neutral-900 mb-2">Coming Soon</h3>
+                  <p className="text-neutral-500">File storage for this client will be available soon.</p>
                 </div>
               </CardContent>
             </Card>
@@ -356,9 +356,9 @@ export default function ClientDetail() {
               </CardHeader>
               <CardContent>
                 <div className="text-center py-8">
-                  <User className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-                  <h3 className="text-lg font-medium text-slate-900 mb-2">Coming Soon</h3>
-                  <p className="text-slate-500">Additional contact management will be available soon.</p>
+                  <User className="w-12 h-12 mx-auto text-neutral-400 mb-4" />
+                  <h3 className="text-lg font-medium text-neutral-900 mb-2">Coming Soon</h3>
+                  <p className="text-neutral-500">Additional contact management will be available soon.</p>
                 </div>
               </CardContent>
             </Card>

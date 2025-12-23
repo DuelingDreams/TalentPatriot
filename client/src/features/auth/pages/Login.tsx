@@ -155,7 +155,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-tp-page px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-4">
@@ -165,7 +165,7 @@ export default function Login() {
               className="w-16 h-16 object-contain"
             />
           </div>
-          <h1 className="heading-1 text-[#1A1A1A]">Welcome back</h1>
+          <h1 className="heading-1 text-neutral-900">Welcome back</h1>
           <p className="body-text mt-2">Sign in to your ATS account</p>
         </div>
 
@@ -205,7 +205,7 @@ export default function Login() {
             <div className="relative mb-6">
               <Separator />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-white px-4 text-sm text-[#5C667B]">or</span>
+                <span className="bg-white px-4 text-sm text-neutral-600">or</span>
               </div>
             </div>
 
@@ -277,7 +277,7 @@ export default function Login() {
                   onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   disabled={loading}
                 />
-                <Label htmlFor="remember" className="text-sm text-[#5C667B]">
+                <Label htmlFor="remember" className="text-sm text-neutral-600">
                   Remember me for 30 days
                 </Label>
               </div>
@@ -296,14 +296,14 @@ export default function Login() {
             
             <div className="mt-4 text-center">
               <Link href="/forgot-password">
-                <span className="text-sm text-[#5C667B] hover:text-[#1F3A5F] transition-colors">
+                <span className="text-sm text-neutral-600 hover:text-tp-primary transition-colors">
                   Forgot your password?
                 </span>
               </Link>
             </div>
             
             <div className="mt-4 text-center">
-              <p className="text-sm text-[#5C667B]">
+              <p className="text-sm text-neutral-600">
                 Don't have an account?{' '}
                 <Link href="/signup">
                   <span className="link-primary font-medium">
@@ -317,7 +317,7 @@ export default function Login() {
 
         {showDemoOption && (
           <div className="mt-8 text-center">
-            <p className="text-sm text-[#5C667B] mb-3">
+            <p className="text-sm text-neutral-600 mb-3">
               Developer Demo Access
             </p>
             <Button 

@@ -57,10 +57,10 @@ function calculateJobHealth(job: any, candidateCount: number): JobHealth {
 
 function getHealthColor(health: JobHealth): string {
   switch (health) {
-    case 'healthy': return 'bg-green-100 text-green-800'
-    case 'needs_attention': return 'bg-yellow-100 text-yellow-800'
-    case 'stale': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
+    case 'healthy': return 'bg-success-100 text-success-700'
+    case 'needs_attention': return 'bg-warning-100 text-warning-700'
+    case 'stale': return 'bg-error-100 text-error-700'
+    default: return 'bg-neutral-100 text-neutral-700'
   }
 }
 
@@ -128,8 +128,8 @@ export default function Jobs() {
         <div className="p-6 space-y-6">
           {/* Demo jobs content */}
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Jobs</h1>
-            <p className="text-base text-gray-700 mt-2">
+            <h1 className="text-2xl font-bold text-neutral-900">Jobs</h1>
+            <p className="text-base text-neutral-700 mt-2">
               Explore demo job postings and recruitment positions.
             </p>
           </div>
@@ -139,10 +139,10 @@ export default function Jobs() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[#5C667B]">Total Jobs</p>
-                    <p className="text-2xl font-bold text-[#1A1A1A]">12</p>
+                    <p className="text-sm font-medium text-neutral-600">Total Jobs</p>
+                    <p className="text-2xl font-bold text-neutral-900">12</p>
                   </div>
-                  <Briefcase className="h-8 w-8 text-[#264C99]" />
+                  <Briefcase className="h-8 w-8 text-tp-accent" />
                 </div>
               </CardContent>
             </Card>
@@ -150,10 +150,10 @@ export default function Jobs() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[#5C667B]">Open Positions</p>
-                    <p className="text-2xl font-bold text-[#1A1A1A]">8</p>
+                    <p className="text-sm font-medium text-neutral-600">Open Positions</p>
+                    <p className="text-2xl font-bold text-neutral-900">8</p>
                   </div>
-                  <Users className="h-8 w-8 text-green-600" />
+                  <Users className="h-8 w-8 text-success-600" />
                 </div>
               </CardContent>
             </Card>
@@ -161,10 +161,10 @@ export default function Jobs() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-[#5C667B]">Active Clients</p>
-                    <p className="text-2xl font-bold text-[#1A1A1A]">5</p>
+                    <p className="text-sm font-medium text-neutral-600">Active Clients</p>
+                    <p className="text-2xl font-bold text-neutral-900">5</p>
                   </div>
-                  <Building2 className="h-8 w-8 text-blue-600" />
+                  <Building2 className="h-8 w-8 text-info-600" />
                 </div>
               </CardContent>
             </Card>
@@ -183,9 +183,9 @@ export default function Jobs() {
                   <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div>
                       <h3 className="font-semibold">{job.title}</h3>
-                      <p className="text-sm text-[#5C667B]">{job.client?.name || 'No client'} • {job.status}</p>
+                      <p className="text-sm text-neutral-600">{job.client?.name || 'No client'} • {job.status}</p>
                     </div>
-                    <Badge className="bg-green-100 text-green-800">{job.status}</Badge>
+                    <Badge className="bg-success-100 text-success-700">{job.status}</Badge>
                   </div>
                 ))}
               </div>
@@ -201,7 +201,7 @@ export default function Jobs() {
     return (
       <DashboardLayout pageTitle="Jobs">
         <div className="flex items-center justify-center py-12">
-          <div className="flex items-center gap-2 text-slate-600">
+          <div className="flex items-center gap-2 text-neutral-600">
             <Loader2 className="w-5 h-5 animate-spin" />
             Loading organization...
           </div>
@@ -264,12 +264,12 @@ export default function Jobs() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-600'
-      case 'open': return 'bg-green-100 text-green-800'
-      case 'closed': return 'bg-gray-100 text-gray-800'
-      case 'on_hold': return 'bg-yellow-100 text-yellow-800'
-      case 'filled': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'draft': return 'bg-neutral-100 text-neutral-600'
+      case 'open': return 'bg-success-100 text-success-700'
+      case 'closed': return 'bg-neutral-100 text-neutral-700'
+      case 'on_hold': return 'bg-warning-100 text-warning-700'
+      case 'filled': return 'bg-info-100 text-info-700'
+      default: return 'bg-neutral-100 text-neutral-700'
     }
   }
 
@@ -288,8 +288,8 @@ export default function Jobs() {
         <div>
           <div className="sm:flex sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Jobs</h2>
-              <p className="mt-2 text-base text-gray-700">Manage your job postings and recruitment positions.</p>
+              <h2 className="text-2xl font-bold text-neutral-900">Jobs</h2>
+              <p className="mt-2 text-base text-neutral-700">Manage your job postings and recruitment positions.</p>
             </div>
             <div className="mt-4 sm:mt-0">
               <PostJobDialog 
@@ -310,8 +310,8 @@ export default function Jobs() {
         {/* Filters and Sorting */}
         <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg border">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filter:</span>
+            <Filter className="w-4 h-4 text-neutral-500" />
+            <span className="text-sm font-medium text-neutral-700">Filter:</span>
             <Select value={filterBy} onValueChange={(value: FilterOption) => setFilterBy(value)}>
               <SelectTrigger className="w-40">
                 <SelectValue />
@@ -327,8 +327,8 @@ export default function Jobs() {
           </div>
           
           <div className="flex items-center gap-2">
-            <ArrowUpDown className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <ArrowUpDown className="w-4 h-4 text-neutral-500" />
+            <span className="text-sm font-medium text-neutral-700">Sort by:</span>
             <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
               <SelectTrigger className="w-40">
                 <SelectValue />
@@ -343,14 +343,14 @@ export default function Jobs() {
           </div>
           
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-sm text-gray-500">{displayJobs.length} job{displayJobs.length !== 1 ? 's' : ''}</span>
+            <span className="text-sm text-neutral-500">{displayJobs.length} job{displayJobs.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
 
         {/* Loading State */}
         {jobsLoading && (
           <div className="flex items-center justify-center py-12">
-            <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-2 text-neutral-600">
               <Loader2 className="w-5 h-5 animate-spin" />
               Loading jobs...
             </div>
@@ -359,8 +359,8 @@ export default function Jobs() {
 
         {/* Error State */}
         {jobsError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-red-600">Failed to load jobs: {jobsError.message}</p>
+          <div className="bg-error-50 border border-error-200 rounded-lg p-4 mb-6">
+            <p className="text-error-600">Failed to load jobs: {jobsError.message}</p>
           </div>
         )}
 
@@ -394,7 +394,7 @@ export default function Jobs() {
                   {displayJobs.map((job: any) => {
                     const HealthIcon = getHealthIcon(job.health)
                     return (
-                      <Card key={job.id} className="border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200" data-testid={`job-card-${job.id}`}>
+                      <Card key={job.id} className="border border-neutral-200 hover:border-neutral-300 hover:shadow-md transition-all duration-200" data-testid={`job-card-${job.id}`}>
                         <CardContent className="p-5">
                           <div className="flex items-center justify-between">
                             {/* Left side - Job info */}
@@ -402,7 +402,7 @@ export default function Jobs() {
                               <div className="flex items-start gap-3 mb-3">
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-semibold text-gray-900 truncate" data-testid={`job-title-${job.id}`}>
+                                    <h3 className="text-lg font-semibold text-neutral-900 truncate" data-testid={`job-title-${job.id}`}>
                                       {job.title}
                                     </h3>
                                     <Badge className={getStatusColor(job.status)} data-testid={`job-status-${job.id}`}>
@@ -414,7 +414,7 @@ export default function Jobs() {
                                     </Badge>
                                   </div>
                                   
-                                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                                  <div className="flex items-center gap-4 text-sm text-neutral-500">
                                     <div className="flex items-center gap-1">
                                       <Users className="w-4 h-4" />
                                       <span data-testid={`job-candidates-${job.id}`}>
@@ -448,7 +448,7 @@ export default function Jobs() {
                                           href={`/careers/${job.publicSlug}`}
                                           target="_blank"
                                           rel="noopener noreferrer"
-                                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                                          className="text-info-600 hover:text-info-700 flex items-center gap-1"
                                           data-testid={`job-public-url-${job.id}`}
                                         >
                                           Live

@@ -57,7 +57,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
       
       {/* Sidebar - Dark Navy Design */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-56 bg-[#1F2937] transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0",
+        "fixed inset-y-0 left-0 z-50 w-56 bg-neutral-800 transform transition-transform duration-300 lg:translate-x-0 lg:static lg:inset-0",
         isOpen ? "translate-x-0" : "-translate-x-full",
         className
       )}>
@@ -88,8 +88,8 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                     className={cn(
                       "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
                       isActive 
-                        ? "bg-[#3B5068] text-white" 
-                        : "text-gray-300 hover:bg-[#2D3B4E] hover:text-white"
+                        ? "bg-tp-primary text-white" 
+                        : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
                     )}
                     data-testid={`nav-item-${item.label.toLowerCase()}`}
                   >
@@ -101,7 +101,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
             })}
 
             {/* Divider */}
-            <div className="border-t border-gray-600 my-3" />
+            <div className="border-t border-neutral-600 my-3" />
 
             {/* Careers Page Link */}
             <Link 
@@ -112,8 +112,8 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                 className={cn(
                   "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
                   location.includes('/careers')
-                    ? "bg-[#3B5068] text-white" 
-                    : "text-gray-300 hover:bg-[#2D3B4E] hover:text-white"
+                    ? "bg-tp-primary text-white" 
+                    : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
                 )}
                 data-testid="nav-item-careers"
               >

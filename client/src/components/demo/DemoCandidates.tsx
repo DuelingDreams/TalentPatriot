@@ -53,16 +53,16 @@ export function DemoCandidates() {
   return (
     <div className="tp-container space-y-6">
       {/* Demo Alert */}
-      <Alert className="border-[#264C99]/20 bg-[#264C99]/5">
-        <Info className="w-4 h-4 text-[#264C99]" />
-        <AlertDescription className="text-[#1A1A1A]">
+      <Alert className="border-tp-accent/20 bg-tp-accent/5">
+        <Info className="w-4 h-4 text-tp-accent" />
+        <AlertDescription className="text-neutral-900">
           <strong>Demo Mode:</strong> Viewing sample candidate profiles. All personal information is fictional for demonstration purposes.
         </AlertDescription>
       </Alert>
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5C667B]" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600" />
         <Input
           placeholder="Search candidates by name, email, or skills..."
           value={searchTerm}
@@ -75,41 +75,41 @@ export function DemoCandidates() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="card">
           <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">All Candidates</CardTitle>
+            <CardTitle className="tp-label text-neutral-600">All Candidates</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">{demoCandidates.length}</div>
-            <p className="text-xs text-[#5C667B] mt-1">Total profiles</p>
+            <div className="text-2xl font-bold text-neutral-900">{demoCandidates.length}</div>
+            <p className="text-xs text-neutral-600 mt-1">Total profiles</p>
           </CardContent>
         </Card>
         
         <Card className="card">
           <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Active Candidates</CardTitle>
+            <CardTitle className="tp-label text-neutral-600">Active Candidates</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">4</div>
-            <p className="text-xs text-[#5C667B] mt-1">In active pipeline</p>
+            <div className="text-2xl font-bold text-neutral-900">4</div>
+            <p className="text-xs text-neutral-600 mt-1">In active pipeline</p>
           </CardContent>
         </Card>
         
         <Card className="card">
           <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">New This Week</CardTitle>
+            <CardTitle className="tp-label text-neutral-600">New This Week</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">2</div>
-            <p className="text-xs text-[#5C667B] mt-1">Recent applications</p>
+            <div className="text-2xl font-bold text-neutral-900">2</div>
+            <p className="text-xs text-neutral-600 mt-1">Recent applications</p>
           </CardContent>
         </Card>
         
         <Card className="card">
           <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Interviewed</CardTitle>
+            <CardTitle className="tp-label text-neutral-600">Interviewed</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">3</div>
-            <p className="text-xs text-[#5C667B] mt-1">Completed interviews</p>
+            <div className="text-2xl font-bold text-neutral-900">3</div>
+            <p className="text-xs text-neutral-600 mt-1">Completed interviews</p>
           </CardContent>
         </Card>
       </div>
@@ -122,44 +122,44 @@ export function DemoCandidates() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
-                    <AvatarFallback className="bg-[#264C99] text-white text-sm">
+                    <AvatarFallback className="bg-tp-accent text-white text-sm">
                       {candidate.name.split(' ').map(n => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="tp-label text-[#1A1A1A] font-medium">{candidate.name}</h3>
-                    <p className="tp-body text-[#5C667B] text-sm">{candidate.email}</p>
+                    <h3 className="tp-label text-neutral-900 font-medium">{candidate.name}</h3>
+                    <p className="tp-body text-neutral-600 text-sm">{candidate.email}</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-[#5C667B] text-sm">
+                <div className="flex items-center gap-2 text-neutral-600 text-sm">
                   <MapPin className="w-4 h-4" />
                   <span>{candidateLocations[candidate.id] || 'Remote'}</span>
                 </div>
                 
-                <div className="flex items-center gap-2 text-[#5C667B] text-sm">
+                <div className="flex items-center gap-2 text-neutral-600 text-sm">
                   <Calendar className="w-4 h-4" />
                   <span>{candidateExperience[candidate.id] || '3+ years'} experience</span>
                 </div>
 
-                <div className="flex items-center gap-2 text-[#5C667B] text-sm">
+                <div className="flex items-center gap-2 text-neutral-600 text-sm">
                   <FileText className="w-4 h-4" />
                   <span>Resume available</span>
                 </div>
               </div>
 
               {candidateSkills[candidate.id] && (
-                <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
+                <div className="mt-4 pt-4 border-t border-tp-card-surface">
                   <div className="flex flex-wrap gap-1">
                     {candidateSkills[candidate.id].slice(0, 3).map((skill, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs bg-[#F0F4F8] text-[#5C667B]">
+                      <Badge key={index} variant="secondary" className="text-xs bg-tp-card-surface text-neutral-600">
                         {skill}
                       </Badge>
                     ))}
                     {candidateSkills[candidate.id].length > 3 && (
-                      <Badge variant="secondary" className="text-xs bg-[#F0F4F8] text-[#5C667B]">
+                      <Badge variant="secondary" className="text-xs bg-tp-card-surface text-neutral-600">
                         +{candidateSkills[candidate.id].length - 3} more
                       </Badge>
                     )}
@@ -167,11 +167,11 @@ export function DemoCandidates() {
                 </div>
               )}
 
-              <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
+              <div className="mt-4 pt-4 border-t border-tp-card-surface">
                 <div className="flex items-center justify-between">
                   <Badge 
                     variant="default" 
-                    className="bg-[#264C99]/10 text-[#264C99] border-[#264C99]/20"
+                    className="bg-tp-accent/10 text-tp-accent border-tp-accent/20"
                   >
                     New
                   </Badge>

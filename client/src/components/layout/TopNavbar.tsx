@@ -24,13 +24,13 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
 
 
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="bg-white border-b border-neutral-200">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6">
         {/* Mobile menu button */}
         <Button
           variant="ghost"
           size="sm"
-          className="lg:hidden p-2 text-[#5C667B] hover:text-[#1A1A1A] hover:bg-[#F0F4F8]"
+          className="lg:hidden p-2 text-neutral-600 hover:text-neutral-900 hover:bg-tp-card-surface"
           onClick={onMobileMenuToggle}
         >
           <Menu className="w-6 h-6" />
@@ -38,10 +38,10 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
 
         {/* Page Title and Organization */}
         <div className="hidden lg:flex items-center space-x-4">
-          <h1 className="text-xl font-semibold text-[#1A1A1A] font-[Inter,sans-serif]">{pageTitle}</h1>
+          <h1 className="text-xl font-semibold text-neutral-900 font-[Inter,sans-serif]">{pageTitle}</h1>
           {!isDemoMode && (
             <div className="flex items-center">
-              <span className="text-[#5C667B] mx-2">|</span>
+              <span className="text-neutral-600 mx-2">|</span>
               <OrganizationSwitcher />
             </div>
           )}
@@ -61,12 +61,12 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
           {/* Search */}
           <div className="hidden sm:block relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="w-4 h-4 text-[#5C667B]" />
+              <Search className="w-4 h-4 text-neutral-500" />
             </div>
             <Input
               type="text"
               placeholder="Search..."
-              className="pl-10 pr-4 py-2 bg-slate-100 border-0 focus:bg-white w-64"
+              className="pl-10 pr-4 py-2 bg-neutral-100 border-0 focus:bg-white w-64"
             />
           </div>
 
@@ -74,11 +74,11 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
           <Button
             variant="ghost"
             size="sm"
-            className="relative p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+            className="relative p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100"
           >
             <Bell className="w-5 h-5" />
             {hasNotifications && (
-              <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full" />
+              <span className="absolute top-1 right-1 w-3 h-3 bg-error rounded-full" />
             )}
           </Button>
 

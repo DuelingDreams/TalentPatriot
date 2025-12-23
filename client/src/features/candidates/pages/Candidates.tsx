@@ -58,8 +58,8 @@ export default function Candidates() {
       <DashboardLayout pageTitle="Candidates">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tp-accent mx-auto mb-4"></div>
+            <p className="text-neutral-600">Loading...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -93,8 +93,8 @@ export default function Candidates() {
       <DashboardLayout pageTitle="Demo Candidates">
         <div className="p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Candidate Database</h1>
-            <p className="text-base text-gray-700 mt-2">Explore our demo candidate profiles</p>
+            <h1 className="text-2xl font-bold text-neutral-900">Candidate Database</h1>
+            <p className="text-base text-neutral-700 mt-2">Explore our demo candidate profiles</p>
           </div>
           <DemoCandidates />
         </div>
@@ -112,11 +112,11 @@ export default function Candidates() {
         <div className="p-6">
           <Card className="max-w-2xl mx-auto rounded-2xl shadow-sm">
             <CardHeader className="text-center p-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building2 className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Building2 className="w-8 h-8 text-info-600" />
               </div>
               <CardTitle className="text-xl font-semibold">Organization Setup Required</CardTitle>
-              <p className="text-base text-gray-700 mt-2">
+              <p className="text-base text-neutral-700 mt-2">
                 You need to set up your organization before you can manage candidates.
               </p>
             </CardHeader>
@@ -143,8 +143,8 @@ export default function Candidates() {
       <DashboardLayout pageTitle="Candidates">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading candidates...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tp-accent mx-auto mb-4"></div>
+            <p className="text-neutral-600">Loading candidates...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -156,12 +156,12 @@ export default function Candidates() {
       <DashboardLayout pageTitle="Candidates">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FileX className="w-8 h-8 text-red-600" />
+            <div className="w-16 h-16 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FileX className="w-8 h-8 text-error-600" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to Load Candidates</h3>
-            <p className="text-gray-600 mb-4">There was an issue loading your candidates. Please try refreshing the page.</p>
-            <Button onClick={() => window.location.reload()} className="bg-blue-600 text-white">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Unable to Load Candidates</h3>
+            <p className="text-neutral-600 mb-4">There was an issue loading your candidates. Please try refreshing the page.</p>
+            <Button onClick={() => window.location.reload()} className="bg-tp-accent text-white">
               Refresh Page
             </Button>
           </div>
@@ -226,7 +226,7 @@ export default function Candidates() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
             <h1 className="tp-h1">Candidate Database</h1>
-            <p className="tp-body text-[#5C667B]">Manage and track candidate profiles</p>
+            <p className="tp-body text-neutral-600">Manage and track candidate profiles</p>
           </div>
           <AddCandidateDialog />
         </div>
@@ -235,41 +235,41 @@ export default function Candidates() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="card">
             <CardHeader className="pb-3">
-              <CardTitle className="tp-label text-[#5C667B]">All Candidates</CardTitle>
+              <CardTitle className="tp-label text-neutral-600">All Candidates</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#1A1A1A]">{totalCandidates}</div>
-              <p className="text-xs text-[#5C667B] mt-1">Total in database</p>
+              <div className="text-2xl font-bold text-neutral-900">{totalCandidates}</div>
+              <p className="text-xs text-neutral-600 mt-1">Total in database</p>
             </CardContent>
           </Card>
           
           <Card className="card">
             <CardHeader className="pb-3">
-              <CardTitle className="tp-label text-[#5C667B]">Active Candidates</CardTitle>
+              <CardTitle className="tp-label text-neutral-600">Active Candidates</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#1A1A1A]">{activeCandidates}</div>
-              <p className="text-xs text-[#5C667B] mt-1">Currently interviewing</p>
+              <div className="text-2xl font-bold text-neutral-900">{activeCandidates}</div>
+              <p className="text-xs text-neutral-600 mt-1">Currently interviewing</p>
             </CardContent>
           </Card>
           
           <Card className="card">
             <CardHeader className="pb-3">
-              <CardTitle className="tp-label text-[#5C667B]">New This Week</CardTitle>
+              <CardTitle className="tp-label text-neutral-600">New This Week</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#1A1A1A]">{newThisWeek}</div>
-              <p className="text-xs text-[#5C667B] mt-1">Recent additions</p>
+              <div className="text-2xl font-bold text-neutral-900">{newThisWeek}</div>
+              <p className="text-xs text-neutral-600 mt-1">Recent additions</p>
             </CardContent>
           </Card>
           
           <Card className="card">
             <CardHeader className="pb-3">
-              <CardTitle className="tp-label text-[#5C667B]">Favorites</CardTitle>
+              <CardTitle className="tp-label text-neutral-600">Favorites</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-[#1A1A1A]">{favoriteCandidates}</div>
-              <p className="text-xs text-[#5C667B] mt-1">Starred candidates</p>
+              <div className="text-2xl font-bold text-neutral-900">{favoriteCandidates}</div>
+              <p className="text-xs text-neutral-600 mt-1">Starred candidates</p>
             </CardContent>
           </Card>
         </div>
@@ -280,7 +280,7 @@ export default function Candidates() {
             <div className="space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5C667B]" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600" />
                   <Input
                     placeholder="Search candidates by name or email..."
                     value={searchQuery}
@@ -326,13 +326,13 @@ export default function Candidates() {
                 <CardContent className="p-6">
                   <div className="animate-pulse space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-[#F0F4F8] rounded-full"></div>
+                      <div className="w-12 h-12 bg-tp-card-surface rounded-full"></div>
                       <div className="space-y-2">
-                        <div className="h-4 bg-[#F0F4F8] rounded w-24"></div>
-                        <div className="h-3 bg-[#F0F4F8] rounded w-32"></div>
+                        <div className="h-4 bg-tp-card-surface rounded w-24"></div>
+                        <div className="h-3 bg-tp-card-surface rounded w-32"></div>
                       </div>
                     </div>
-                    <div className="h-16 bg-[#F0F4F8] rounded"></div>
+                    <div className="h-16 bg-tp-card-surface rounded"></div>
                   </div>
                 </CardContent>
               </Card>
@@ -356,29 +356,29 @@ export default function Candidates() {
                         <div className="flex items-center gap-3">
                           <Avatar className="w-12 h-12">
                             <AvatarImage src={""} alt={candidate.name} />
-                            <AvatarFallback className="bg-[#264C99] text-white">
+                            <AvatarFallback className="bg-tp-accent text-white">
                               {candidate.name.split(' ').map((n: string) => n[0]).join('')}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="font-semibold text-[#1A1A1A]" data-testid={`candidate-name-${candidate.id}`}>{candidate.name}</h3>
-                            <p className="text-sm text-[#5C667B]" data-testid={`candidate-email-${candidate.id}`}>{candidate.email}</p>
+                            <h3 className="font-semibold text-neutral-900" data-testid={`candidate-name-${candidate.id}`}>{candidate.name}</h3>
+                            <p className="text-sm text-neutral-600" data-testid={`candidate-email-${candidate.id}`}>{candidate.email}</p>
                           </div>
                         </div>
                         {candidate.status === 'favorite' && (
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" data-testid={`candidate-favorite-${candidate.id}`} />
+                          <Star className="w-4 h-4 text-warning-500 fill-current" data-testid={`candidate-favorite-${candidate.id}`} />
                         )}
                       </div>
 
                       <div className="space-y-2 text-sm">
                         {candidate.phone && (
-                          <div className="flex items-center gap-2 text-[#5C667B]">
+                          <div className="flex items-center gap-2 text-neutral-600">
                             <Phone className="w-4 h-4" />
                             <span data-testid={`candidate-phone-${candidate.id}`}>{candidate.phone}</span>
                           </div>
                         )}
                         
-                        <div className="flex items-center gap-2 text-[#5C667B]">
+                        <div className="flex items-center gap-2 text-neutral-600">
                           <Clock className="w-4 h-4" />
                           <span data-testid={`candidate-created-${candidate.id}`}>Added {(() => {
                             try {
@@ -392,14 +392,14 @@ export default function Candidates() {
                         </div>
 
                         {candidate.resumeUrl && (
-                          <div className="flex items-center gap-2 text-[#5C667B]">
+                          <div className="flex items-center gap-2 text-neutral-600">
                             <Briefcase className="w-4 h-4" />
                             <span data-testid={`candidate-resume-${candidate.id}`}>Resume uploaded</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
+                      <div className="mt-4 pt-4 border-t border-tp-card-surface">
                         <Badge 
                           variant={candidate.status === 'active' ? 'default' : 'secondary'}
                           className="text-xs"
@@ -417,13 +417,13 @@ export default function Candidates() {
         ) : (
           <div className="text-center py-12">
             <div className="max-w-md mx-auto">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-info-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
                 {searchQuery ? 'No candidates found' : 'Start Building Your Talent Pool'}
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-neutral-600 mb-6">
                 {searchQuery 
                   ? `No candidates match "${searchQuery}". Try adjusting your search terms.`
                   : 'Add candidates to begin tracking your hiring pipeline and managing applicant relationships.'

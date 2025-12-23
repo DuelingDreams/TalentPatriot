@@ -76,54 +76,54 @@ export function VirtualizedCandidatesList({
                 <div className="flex items-center gap-3">
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={""} alt={candidate.name} />
-                    <AvatarFallback className="bg-[#264C99] text-white">
+                    <AvatarFallback className="bg-tp-accent text-white">
                       {candidate.name.split(' ').map((n: string) => n[0]).join('')}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-[#1A1A1A]" data-testid={`candidate-name-${candidate.id}`}>
+                    <h3 className="font-semibold text-neutral-900" data-testid={`candidate-name-${candidate.id}`}>
                       {candidate.name}
                     </h3>
-                    <p className="text-sm text-[#5C667B]" data-testid={`candidate-email-${candidate.id}`}>
+                    <p className="text-sm text-neutral-600" data-testid={`candidate-email-${candidate.id}`}>
                       {candidate.email}
                     </p>
                   </div>
                 </div>
                 {candidate.status === 'favorite' && (
-                  <Star className="w-4 h-4 text-yellow-500 fill-current" data-testid={`candidate-favorite-${candidate.id}`} />
+                  <Star className="w-4 h-4 text-warning-500 fill-current" data-testid={`candidate-favorite-${candidate.id}`} />
                 )}
               </div>
 
               <div className="space-y-2 text-sm">
                 {candidate.phone && (
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <Phone className="w-4 h-4" />
                     <span data-testid={`candidate-phone-${candidate.id}`}>{candidate.phone}</span>
                   </div>
                 )}
                 
                 {candidate.location && (
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <MapPin className="w-4 h-4" />
                     <span data-testid={`candidate-location-${candidate.id}`}>{candidate.location}</span>
                   </div>
                 )}
                 
                 {candidate.currentJobTitle && (
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <Briefcase className="w-4 h-4" />
                     <span data-testid={`candidate-job-title-${candidate.id}`}>{candidate.currentJobTitle}</span>
                   </div>
                 )}
                 
                 {candidate.currentEmployer && (
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <Building2 className="w-4 h-4" />
                     <span data-testid={`candidate-employer-${candidate.id}`}>{candidate.currentEmployer}</span>
                   </div>
                 )}
                 
-                <div className="flex items-center gap-2 text-[#5C667B]">
+                <div className="flex items-center gap-2 text-neutral-600">
                   <Clock className="w-4 h-4" />
                   <span data-testid={`candidate-created-${candidate.id}`}>
                     Added {(() => {
@@ -142,10 +142,10 @@ export function VirtualizedCandidatesList({
                 <Badge 
                   className={`text-xs ${
                     candidate.status === 'active' 
-                      ? 'bg-green-100 text-green-800' 
+                      ? 'bg-success-100 text-success-700' 
                       : candidate.status === 'favorite'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-[#F0F4F8] text-[#5C667B]'
+                      ? 'bg-warning-100 text-warning-700'
+                      : 'bg-tp-card-surface text-neutral-600'
                   }`}
                   data-testid={`candidate-status-${candidate.id}`}
                 >
@@ -153,7 +153,7 @@ export function VirtualizedCandidatesList({
                 </Badge>
                 
                 {candidate.skills && candidate.skills.length > 0 && (
-                  <div className="flex items-center gap-1 text-xs text-[#5C667B]">
+                  <div className="flex items-center gap-1 text-xs text-neutral-600">
                     <span>{candidate.skills.length} skills</span>
                   </div>
                 )}

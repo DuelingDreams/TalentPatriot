@@ -91,19 +91,19 @@ export default function ForgotPassword() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+      <div className="min-h-screen flex items-center justify-center bg-tp-page px-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-[#1F3A5F] rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-tp-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-white" />
             </div>
-            <h1 className="heading-1 text-[#1A1A1A]">Check your email</h1>
+            <h1 className="heading-1 text-neutral-900">Check your email</h1>
             <p className="body-text mt-2">Reset instructions sent to your inbox</p>
           </div>
 
           <Card>
             <CardContent className="p-8 text-center">
-              <p className="text-sm text-[#5C667B] mb-6">
+              <p className="text-sm text-neutral-600 mb-6">
                 If that email is registered, you'll receive a password reset link shortly.
                 Check your spam folder if you don't see it in your inbox.
               </p>
@@ -133,13 +133,13 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4">
+    <div className="min-h-screen flex items-center justify-center bg-tp-page px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#1F3A5F] rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-tp-primary rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Building2 className="w-8 h-8 text-white" />
           </div>
-          <h1 className="heading-1 text-[#1A1A1A]">Reset your password</h1>
+          <h1 className="heading-1 text-neutral-900">Reset your password</h1>
           <p className="body-text mt-2">Enter your email to receive reset instructions</p>
         </div>
 
@@ -191,7 +191,7 @@ export default function ForgotPassword() {
             
             <div className="mt-6 text-center">
               <Link href="/login">
-                <span className="text-sm text-[#5C667B] hover:text-[#1F3A5F] transition-colors">
+                <span className="text-sm text-neutral-600 hover:text-tp-primary transition-colors">
                   <ArrowLeft className="w-3 h-3 inline mr-1" />
                   Back to Sign In
                 </span>

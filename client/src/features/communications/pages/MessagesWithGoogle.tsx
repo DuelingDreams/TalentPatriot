@@ -464,9 +464,9 @@ export default function Messages() {
             <CardContent className="flex items-center justify-between p-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Unread</p>
-                <p className="text-2xl font-bold text-red-600">{unreadCount}</p>
+                <p className="text-2xl font-bold text-error-600">{unreadCount}</p>
               </div>
-              <Bell className="h-8 w-8 text-red-500" />
+              <Bell className="h-8 w-8 text-error-500" />
             </CardContent>
           </Card>
 
@@ -538,23 +538,23 @@ export default function Messages() {
               <TabsContent value="email" className="space-y-4 mt-4">
                 {!googleStatus?.connected ? (
                   <div className="p-6 text-center space-y-4">
-                    <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
-                      <Mail className="h-8 w-8 text-blue-600" />
+                    <div className="w-16 h-16 mx-auto bg-info-100 rounded-full flex items-center justify-center">
+                      <Mail className="h-8 w-8 text-info-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">Connect Your Email</h3>
-                      <p className="text-sm text-gray-600 mt-1 max-w-sm mx-auto">
+                      <h3 className="text-lg font-semibold text-neutral-900">Connect Your Email</h3>
+                      <p className="text-sm text-neutral-600 mt-1 max-w-sm mx-auto">
                         Connect your Google account to send emails directly from TalentPatriot and schedule interviews with calendar integration.
                       </p>
                     </div>
                     <div className="flex flex-col items-center gap-2">
                       <Link href="/account-settings">
-                        <Button className="bg-[#1F3A5F] hover:bg-[#264C99]" data-testid="button-connect-google-email">
+                        <Button className="bg-tp-primary hover:bg-tp-accent" data-testid="button-connect-google-email">
                           <Mail className="h-4 w-4 mr-2" />
                           Connect Google Account
                         </Button>
                       </Link>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-neutral-500">
                         Go to Account Settings to connect your Google account
                       </p>
                     </div>
@@ -594,58 +594,60 @@ export default function Messages() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email-body">Message</Label>
+                      <Label htmlFor="email-message">Message</Label>
                       <Textarea
-                        id="email-body"
-                        placeholder="Write your email..."
+                        id="email-message"
+                        placeholder="Message..."
                         value={emailForm.message}
                         onChange={(e) => setEmailForm(prev => ({ ...prev, message: e.target.value }))}
-                        rows={6}
-                        data-testid="textarea-email-body"
+                        rows={4}
+                        data-testid="textarea-email-message"
                       />
                     </div>
 
-                    {/* Google Integration Buttons */}
-                    <div className="flex items-center gap-2 flex-wrap">
+                    {/* Smart Actions */}
+                    <div className="flex flex-wrap gap-2 p-3 bg-neutral-50 rounded-lg">
+                      <span className="text-xs text-neutral-600 font-medium">Smart Actions:</span>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={handleProposeTimes}
-                        className="flex items-center gap-2"
+                        className="text-xs"
                         data-testid="button-propose-times"
                       >
-                        <Clock className="h-4 w-4" />
+                        <Clock className="h-3 w-3 mr-1" />
                         Propose Times
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={handleAddCalendarInvite}
-                        className="flex items-center gap-2"
-                        data-testid="button-add-calendar-invite"
+                        className="text-xs"
+                        data-testid="button-add-calendar"
                       >
-                        <Calendar className="h-4 w-4" />
+                        <Calendar className="h-3 w-3 mr-1" />
                         Add Calendar Invite
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={handleCreateVideo}
-                        className="flex items-center gap-2"
+                        className="text-xs"
                         data-testid="button-create-video"
                       >
-                        <Video className="h-4 w-4" />
-                        Create Video
+                        <Video className="h-3 w-3 mr-1" />
+                        Create Video Link
                       </Button>
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex gap-2">
                       <Button onClick={handleSendEmail} data-testid="button-send-email">
+                        <Send className="h-4 w-4 mr-2" />
                         Send Email
                       </Button>
-                      <Button onClick={handleSendWithInvite} variant="outline" data-testid="button-send-invite">
-                        Send + Invite
+                      <Button variant="outline" onClick={handleSendWithInvite} data-testid="button-send-with-invite">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Send with Invite
                       </Button>
                     </div>
                   </>
@@ -669,7 +671,7 @@ export default function Messages() {
                   <Label htmlFor="portal-message">Message</Label>
                   <Textarea
                     id="portal-message"
-                    placeholder="Message to client portal..."
+                    placeholder="Message..."
                     value={portalForm.message}
                     onChange={(e) => setPortalForm(prev => ({ ...prev, message: e.target.value }))}
                     rows={4}
@@ -678,78 +680,58 @@ export default function Messages() {
                 </div>
 
                 <Button onClick={handlePostToPortal} data-testid="button-post-portal">
-                  Post to Portal
+                  Post to Client Portal
                 </Button>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
 
-        {/* Quick Filters */}
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            Has Open Invite
-          </Button>
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
-            Needs Reply
-          </Button>
-          <Button variant="outline" size="sm" className="flex items-center gap-2">
-            Upcoming Meetings
-          </Button>
-        </div>
-
-        {/* Thread Timeline Section */}
-        {selectedMessage && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Thread Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ThreadTimeline events={getTimelineEvents()} />
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Messages List Section */}
+        {/* Messages Inbox */}
         <Card>
           <CardHeader>
-            <CardTitle>Conversations</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Messages</CardTitle>
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as any)}>
+                  <TabsList>
+                    <TabsTrigger value="internal" data-testid="tab-view-internal">
+                      Internal ({internalMessages.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="email" data-testid="tab-view-email">
+                      Email ({emailMessages.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="client_portal" data-testid="tab-view-portal">
+                      Portal ({clientPortalMessages.length})
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <Tabs value={viewTab} onValueChange={(v) => setViewTab(v as any)}>
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="internal" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Internal
-                  <Badge variant="secondary" className="text-xs">
-                    {internalMessages.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger value="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email
-                  <Badge variant="secondary" className="text-xs">
-                    {emailMessages.length}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger value="client_portal" className="flex items-center gap-2">
-                  <Send className="h-4 w-4" />
-                  Client Portal
-                  <Badge variant="secondary" className="text-xs">
-                    {clientPortalMessages.length}
-                  </Badge>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value={viewTab} className="mt-4">
-                <MessagesList
-                  messages={getViewMessages()}
-                  selectedMessage={selectedMessage}
-                  onMessageSelect={setSelectedMessage}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Messages List */}
+              <div>
+                <MessagesList 
+                  messages={getViewMessages()} 
+                  onSelectMessage={setSelectedMessage}
+                  selectedMessageId={selectedMessage?.id}
                 />
-              </TabsContent>
-            </Tabs>
+              </div>
+              
+              {/* Thread Timeline */}
+              <div>
+                {selectedMessage ? (
+                  <ThreadTimeline events={getTimelineEvents()} />
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                    <p>Select a message to view the conversation thread</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

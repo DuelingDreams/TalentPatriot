@@ -45,10 +45,10 @@ const demoPipelineData = [
 
 // Demo job status data
 const demoJobStatusData = [
-  { name: 'Open', value: 5, color: '#22c55e' },
-  { name: 'In Progress', value: 3, color: '#3b82f6' },
-  { name: 'On Hold', value: 1, color: '#f59e0b' },
-  { name: 'Filled', value: 2, color: '#8b5cf6' }
+  { name: 'Open', value: 5, color: 'var(--success-500)' },
+  { name: 'In Progress', value: 3, color: 'var(--info-500)' },
+  { name: 'On Hold', value: 1, color: 'var(--warning-500)' },
+  { name: 'Filled', value: 2, color: 'var(--tp-accent)' }
 ]
 
 
@@ -95,7 +95,7 @@ export function DemoDashboard() {
           />
           <Button 
             onClick={() => handleDemoAction("Post Job")}
-            className="bg-[#1F3A5F] hover:bg-[#264C99] text-white"
+            className="bg-tp-primary hover:bg-tp-accent text-white"
           >
             <Briefcase className="w-4 h-4 mr-2" />
             Post New Job
@@ -154,12 +154,12 @@ export function DemoDashboard() {
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Pipeline Conversion</span>
-              <span className="text-sm font-semibold text-gray-900">{demoStats.pipelineConversion}%</span>
+              <span className="text-sm font-medium text-neutral-700">Pipeline Conversion</span>
+              <span className="text-sm font-semibold text-neutral-900">{demoStats.pipelineConversion}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-neutral-200 rounded-full h-2">
               <div 
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                className="bg-info-500 h-2 rounded-full transition-all duration-300" 
                 style={{ width: `${demoStats.pipelineConversion}%` }}
               ></div>
             </div>
@@ -167,21 +167,21 @@ export function DemoDashboard() {
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Avg Time to Hire</span>
-              <span className="text-sm font-semibold text-gray-900">{demoStats.avgTimeToHire} days</span>
+              <span className="text-sm font-medium text-neutral-700">Avg Time to Hire</span>
+              <span className="text-sm font-semibold text-neutral-900">{demoStats.avgTimeToHire} days</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: '70%' }}></div>
+            <div className="w-full bg-neutral-200 rounded-full h-2">
+              <div className="bg-info-500 h-2 rounded-full transition-all duration-300" style={{ width: '70%' }}></div>
             </div>
           </div>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Client Satisfaction</span>
-              <span className="text-sm font-semibold text-gray-900">{demoStats.clientSatisfaction}%</span>
+              <span className="text-sm font-medium text-neutral-700">Client Satisfaction</span>
+              <span className="text-sm font-semibold text-neutral-900">{demoStats.clientSatisfaction}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-500 h-2 rounded-full transition-all duration-300" style={{ width: `${demoStats.clientSatisfaction}%` }}></div>
+            <div className="w-full bg-neutral-200 rounded-full h-2">
+              <div className="bg-info-500 h-2 rounded-full transition-all duration-300" style={{ width: `${demoStats.clientSatisfaction}%` }}></div>
             </div>
           </div>
         </CardContent>
@@ -202,55 +202,55 @@ export function DemoDashboard() {
             <CardContent className="space-y-3">
               <button
                 onClick={() => handleDemoAction("View Jobs")}
-                className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+                className="w-full p-4 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                      <Briefcase className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-info-50 rounded-lg flex items-center justify-center group-hover:bg-info-100 transition-colors">
+                      <Briefcase className="w-5 h-5 text-info-600" />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium text-gray-900">View Jobs</p>
-                      <p className="text-sm text-gray-500">Browse open positions</p>
+                      <p className="font-medium text-neutral-900">View Jobs</p>
+                      <p className="text-sm text-neutral-500">Browse open positions</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  <ChevronRight className="w-5 h-5 text-neutral-400" />
                 </div>
               </button>
               
               <button
                 onClick={() => handleDemoAction("Review Applications")}
-                className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+                className="w-full p-4 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center group-hover:bg-green-100 transition-colors">
-                      <FileText className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 bg-success-50 rounded-lg flex items-center justify-center group-hover:bg-success-100 transition-colors">
+                      <FileText className="w-5 h-5 text-success-600" />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium text-gray-900">Review Applications</p>
-                      <p className="text-sm text-gray-500">8 pending reviews</p>
+                      <p className="font-medium text-neutral-900">Review Applications</p>
+                      <p className="text-sm text-neutral-500">8 pending reviews</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  <ChevronRight className="w-5 h-5 text-neutral-400" />
                 </div>
               </button>
               
               <button
                 onClick={() => handleDemoAction("Schedule Interview")}
-                className="w-full p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+                className="w-full p-4 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                      <Calendar className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-tp-primary-light rounded-lg flex items-center justify-center group-hover:bg-info-100 transition-colors">
+                      <Calendar className="w-5 h-5 text-tp-accent" />
                     </div>
                     <div className="text-left">
-                      <p className="font-medium text-gray-900">Schedule Interview</p>
-                      <p className="text-sm text-gray-500">Book time slots</p>
+                      <p className="font-medium text-neutral-900">Schedule Interview</p>
+                      <p className="text-sm text-neutral-500">Book time slots</p>
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-gray-400" />
+                  <ChevronRight className="w-5 h-5 text-neutral-400" />
                 </div>
               </button>
             </CardContent>
@@ -259,24 +259,24 @@ export function DemoDashboard() {
       </div>
 
       {/* Demo Welcome Banner */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-info-50 to-tp-primary-light border-info-200">
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">
+              <h3 className="text-lg font-semibold text-tp-primary mb-2">
                 🎯 Demo Mode Active
               </h3>
-              <p className="text-blue-700 mb-4">
+              <p className="text-info-700 mb-4">
                 You're viewing a fully interactive demo with sample data. All features are available to explore!
               </p>
               <Link href="/pipeline">
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                <Button className="bg-info-600 hover:bg-info-700 text-white">
                   <PlayCircle className="w-4 h-4 mr-2" />
                   Try Interactive Pipeline
                 </Button>
               </Link>
             </div>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+            <Badge variant="secondary" className="bg-info-100 text-info-700 border-info-200">
               Demo
             </Badge>
           </div>

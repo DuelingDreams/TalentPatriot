@@ -19,7 +19,7 @@ const goalOptions = [
     title: 'Post a job',
     description: 'Create your first job posting and start attracting candidates',
     icon: Plus,
-    color: 'bg-blue-500',
+    color: 'bg-info-500',
     path: '/jobs?onboarding=true&action=create-guided',
     action: 'create-job'
   },
@@ -28,7 +28,7 @@ const goalOptions = [
     title: 'Import candidates',
     description: 'Upload your existing candidate database or resume files',
     icon: Users,
-    color: 'bg-green-500',
+    color: 'bg-success-500',
     path: '/candidates?onboarding=true&action=import-guided',
     action: 'import-candidates'
   },
@@ -37,7 +37,7 @@ const goalOptions = [
     title: 'Invite a teammate',
     description: 'Add team members to collaborate on hiring decisions',
     icon: UserPlus,
-    color: 'bg-purple-500',
+    color: 'bg-tp-accent',
     path: '/onboarding/checklist?focus=team',
     action: 'invite-team'
   },
@@ -46,7 +46,7 @@ const goalOptions = [
     title: 'Explore the dashboard',
     description: 'Take a tour of TalentPatriot and see what you can do',
     icon: BarChart3,
-    color: 'bg-orange-500',
+    color: 'bg-warning-500',
     path: '/dashboard?onboarding=true&tour=welcome',
     action: 'explore'
   }
@@ -108,7 +108,7 @@ export default function OnboardingStep3() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 font-[Inter,sans-serif]">
+    <div className="min-h-screen flex items-center justify-center bg-tp-page-bg px-4 font-[Inter,sans-serif]">
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
@@ -118,10 +118,10 @@ export default function OnboardingStep3() {
               className="w-16 h-16 object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2 tracking-tight">
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2 tracking-tight">
             What do you want to do first?
           </h1>
-          <p className="text-[#5C667B]">
+          <p className="text-neutral-600">
             Choose your starting point to personalize your TalentPatriot experience
           </p>
         </div>
@@ -139,15 +139,15 @@ export default function OnboardingStep3() {
                     className={`
                       relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-200
                       ${isSelected 
-                        ? 'border-indigo-500 bg-indigo-50 shadow-md' 
-                        : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                        ? 'border-tp-accent bg-tp-primary-light shadow-md' 
+                        : 'border-neutral-200 hover:border-neutral-300 hover:shadow-sm'
                       }
                     `}
                     onClick={() => handleGoalSelect(option.id)}
                   >
                     {isSelected && (
                       <div className="absolute top-3 right-3">
-                        <CheckCircle className="w-5 h-5 text-indigo-600" />
+                        <CheckCircle className="w-5 h-5 text-tp-accent" />
                       </div>
                     )}
                     
@@ -160,10 +160,10 @@ export default function OnboardingStep3() {
                       </div>
                       
                       <div className="flex-1">
-                        <h3 className="font-semibold text-slate-900 mb-2">
+                        <h3 className="font-semibold text-neutral-900 mb-2">
                           {option.title}
                         </h3>
-                        <p className="text-sm text-slate-600 leading-relaxed">
+                        <p className="text-sm text-neutral-600 leading-relaxed">
                           {option.description}
                         </p>
                       </div>
@@ -176,7 +176,7 @@ export default function OnboardingStep3() {
             <Button 
               onClick={handleGetStarted}
               disabled={!selectedGoal || loading}
-              className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-base transition-colors"
+              className="w-full h-12 bg-tp-primary hover:bg-tp-accent text-white font-semibold text-base transition-colors"
             >
               {loading ? (
                 <div className="flex items-center">
@@ -192,7 +192,7 @@ export default function OnboardingStep3() {
             </Button>
             
             <div className="mt-6 text-center">
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-neutral-500 leading-relaxed">
                 Step 3 of 5 • You can always change this later in your dashboard
               </p>
             </div>

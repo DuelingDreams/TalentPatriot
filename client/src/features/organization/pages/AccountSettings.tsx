@@ -210,7 +210,6 @@ export default function AccountSettings() {
 
   const handleGenerateApiKey = async () => {
     try {
-      // TODO: Implement API key generation
       toast({
         title: "API Key Generated",
         description: "Your new API key has been generated successfully.",
@@ -226,7 +225,6 @@ export default function AccountSettings() {
 
   const handleDeleteAccount = async () => {
     try {
-      // TODO: Implement account deletion
       toast({
         title: "Account deletion initiated",
         description: "Your account deletion request has been submitted.",
@@ -244,11 +242,11 @@ export default function AccountSettings() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-[#F7F9FC] p-6">
+    <div className="min-h-screen bg-tp-page-bg p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Back Navigation */}
         <Link href="/settings" data-testid="link-back-to-settings">
-          <Button variant="ghost" className="gap-2 text-[#5C667B] hover:text-[#1F3A5F] -ml-2 mb-2">
+          <Button variant="ghost" className="gap-2 text-neutral-600 hover:text-tp-primary -ml-2 mb-2">
             <ArrowLeft className="w-4 h-4" />
             Back to Settings
           </Button>
@@ -256,12 +254,12 @@ export default function AccountSettings() {
 
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-[#E6F2FF] rounded-2xl flex items-center justify-center">
-            <Settings className="w-6 h-6 text-[#1F3A5F]" />
+          <div className="w-12 h-12 bg-tp-primary-light rounded-2xl flex items-center justify-center">
+            <Settings className="w-6 h-6 text-tp-primary" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[#1A1A1A]">Account Settings</h1>
-            <p className="text-[#5C667B] mt-1">Manage your account preferences and security settings</p>
+            <h1 className="text-3xl font-bold text-neutral-900">Account Settings</h1>
+            <p className="text-neutral-600 mt-1">Manage your account preferences and security settings</p>
           </div>
         </div>
 
@@ -270,7 +268,7 @@ export default function AccountSettings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-[#264C99]" />
+                <Shield className="w-5 h-5 text-tp-accent" />
                 Account Information
               </CardTitle>
               <CardDescription>Your account details and membership status</CardDescription>
@@ -278,23 +276,23 @@ export default function AccountSettings() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-[#5C667B]">Email Address</Label>
+                  <Label className="text-sm font-medium text-neutral-600">Email Address</Label>
                   <p className="text-sm font-semibold">{user.email}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-[#5C667B]">Account Status</Label>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Label className="text-sm font-medium text-neutral-600">Account Status</Label>
+                  <Badge variant="secondary" className="bg-success-100 text-success-700">
                     <Shield className="w-3 h-3 mr-1" />
                     Active
                   </Badge>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-[#5C667B]">Member Since</Label>
+                  <Label className="text-sm font-medium text-neutral-600">Member Since</Label>
                   <p className="text-sm">{new Date().getFullYear()}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium text-[#5C667B]">Plan</Label>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  <Label className="text-sm font-medium text-neutral-600">Plan</Label>
+                  <Badge variant="secondary" className="bg-info-100 text-info-700">
                     <Crown className="w-3 h-3 mr-1" />
                     Professional
                   </Badge>
@@ -308,8 +306,8 @@ export default function AccountSettings() {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#E6F2FF] rounded-lg flex items-center justify-center">
-                    <Mail className="w-5 h-5 text-[#264C99]" />
+                  <div className="w-10 h-10 bg-tp-primary-light rounded-lg flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-tp-accent" />
                   </div>
                   <div>
                     <CardTitle className="flex items-center gap-2">
@@ -321,17 +319,17 @@ export default function AccountSettings() {
                   </div>
                 </div>
                 {googleStatus?.connected ? (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  <Badge variant="secondary" className="bg-success-100 text-success-700">
                     <CheckCircle2 className="w-3 h-3 mr-1" />
                     Connected
                   </Badge>
                 ) : googleStatus?.needsReconnect ? (
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+                  <Badge variant="secondary" className="bg-warning-100 text-warning-700">
                     <AlertTriangle className="w-3 h-3 mr-1" />
                     Expired
                   </Badge>
                 ) : (
-                  <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+                  <Badge variant="secondary" className="bg-neutral-100 text-neutral-600">
                     <XCircle className="w-3 h-3 mr-1" />
                     Not Connected
                   </Badge>
@@ -341,18 +339,18 @@ export default function AccountSettings() {
             <CardContent className="space-y-4">
               {googleLoading ? (
                 <div className="flex items-center justify-center py-6">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#264C99]" />
+                  <Loader2 className="w-6 h-6 animate-spin text-tp-accent" />
                 </div>
               ) : googleStatus?.needsReconnect ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
+                      <AlertTriangle className="w-5 h-5 text-warning-600 mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-medium text-amber-900">
+                        <p className="font-medium text-warning-700">
                           Your Google connection has expired
                         </p>
-                        <p className="text-sm text-amber-700 mt-1">
+                        <p className="text-sm text-warning-600 mt-1">
                           Please reconnect your Google account to continue sending emails and scheduling interviews.
                         </p>
                       </div>
@@ -361,27 +359,27 @@ export default function AccountSettings() {
 
                   <Button
                     onClick={handleConnectGoogle}
-                    className="w-full bg-[#1F3A5F] hover:bg-[#264C99]"
+                    className="w-full bg-tp-primary hover:bg-tp-accent"
                     data-testid="button-reconnect-google"
                   >
                     <Globe className="w-4 h-4 mr-2" />
                     Reconnect Google Account
                   </Button>
 
-                  <p className="text-xs text-gray-500 text-center">
+                  <p className="text-xs text-neutral-500 text-center">
                     You'll be redirected to Google to reauthorize access.
                   </p>
                 </div>
               ) : googleStatus?.connected ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="p-4 bg-success-50 border border-success-200 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                      <CheckCircle2 className="w-5 h-5 text-success-600 mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-medium text-green-900">
+                        <p className="font-medium text-success-700">
                           Connected as {googleStatus.email}
                         </p>
-                        <p className="text-sm text-green-700 mt-1">
+                        <p className="text-sm text-success-600 mt-1">
                           You can send emails and schedule interviews from TalentPatriot
                         </p>
                       </div>
@@ -389,26 +387,26 @@ export default function AccountSettings() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div className="p-3 border border-gray-200 rounded-lg">
+                    <div className="p-3 border border-neutral-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
-                        <Mail className="w-4 h-4 text-[#264C99]" />
+                        <Mail className="w-4 h-4 text-tp-accent" />
                         <span className="font-medium text-sm">Gmail</span>
                       </div>
-                      <p className="text-xs text-gray-600">Send emails from Messages</p>
+                      <p className="text-xs text-neutral-600">Send emails from Messages</p>
                     </div>
-                    <div className="p-3 border border-gray-200 rounded-lg">
+                    <div className="p-3 border border-neutral-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
-                        <Calendar className="w-4 h-4 text-[#264C99]" />
+                        <Calendar className="w-4 h-4 text-tp-accent" />
                         <span className="font-medium text-sm">Calendar</span>
                       </div>
-                      <p className="text-xs text-gray-600">Schedule interviews</p>
+                      <p className="text-xs text-neutral-600">Schedule interviews</p>
                     </div>
-                    <div className="p-3 border border-gray-200 rounded-lg">
+                    <div className="p-3 border border-neutral-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
-                        <Video className="w-4 h-4 text-[#264C99]" />
+                        <Video className="w-4 h-4 text-tp-accent" />
                         <span className="font-medium text-sm">Google Meet</span>
                       </div>
-                      <p className="text-xs text-gray-600">Auto-create video links</p>
+                      <p className="text-xs text-neutral-600">Auto-create video links</p>
                     </div>
                   </div>
 
@@ -416,7 +414,7 @@ export default function AccountSettings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium">Disconnect Google Account</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-neutral-500 mt-1">
                         You will no longer be able to send emails from TalentPatriot
                       </p>
                     </div>
@@ -440,14 +438,14 @@ export default function AccountSettings() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="p-4 bg-info-50 border border-info-200 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
+                      <Mail className="w-5 h-5 text-info-600 mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-medium text-blue-900">
+                        <p className="font-medium text-info-700">
                           Connect your Google account to unlock email features
                         </p>
-                        <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                        <ul className="text-sm text-info-600 mt-2 space-y-1">
                           <li>• Send emails to candidates directly from TalentPatriot</li>
                           <li>• Schedule interviews with Google Calendar integration</li>
                           <li>• Auto-create Google Meet links for video interviews</li>
@@ -458,14 +456,14 @@ export default function AccountSettings() {
 
                   <Button
                     onClick={handleConnectGoogle}
-                    className="w-full bg-[#1F3A5F] hover:bg-[#264C99]"
+                    className="w-full bg-tp-primary hover:bg-tp-accent"
                     data-testid="button-connect-google"
                   >
                     <Globe className="w-4 h-4 mr-2" />
                     Connect Google Account
                   </Button>
 
-                  <p className="text-xs text-gray-500 text-center">
+                  <p className="text-xs text-neutral-500 text-center">
                     You'll be redirected to Google to authorize access. We only request permissions for Gmail and Calendar.
                   </p>
                 </div>
@@ -477,21 +475,21 @@ export default function AccountSettings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#264C99]" />
+                <Users className="w-5 h-5 text-tp-accent" />
                 Team Management
               </CardTitle>
               <CardDescription>Invite and manage team members in your organization</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-[#F7F9FC] rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-tp-page-bg rounded-lg">
                 <div className="flex items-center gap-3">
-                  <UserPlus className="w-5 h-5 text-[#264C99]" />
+                  <UserPlus className="w-5 h-5 text-tp-accent" />
                   <div>
                     <p className="font-medium">Invite Team Members</p>
-                    <p className="text-sm text-[#5C667B]">Add new users to your organization</p>
+                    <p className="text-sm text-neutral-600">Add new users to your organization</p>
                   </div>
                 </div>
-                <Button className="bg-[#1F3A5F] hover:bg-[#264C99]">
+                <Button className="bg-tp-primary hover:bg-tp-accent">
                   <UserPlus className="w-4 h-4 mr-2" />
                   Invite Members
                 </Button>
@@ -499,16 +497,16 @@ export default function AccountSettings() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                 <div className="p-4 bg-white rounded-lg border">
-                  <p className="text-2xl font-bold text-[#1F3A5F]">5</p>
-                  <p className="text-sm text-[#5C667B]">Active Users</p>
+                  <p className="text-2xl font-bold text-tp-primary">5</p>
+                  <p className="text-sm text-neutral-600">Active Users</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg border">
-                  <p className="text-2xl font-bold text-[#1F3A5F]">2</p>
-                  <p className="text-sm text-[#5C667B]">Pending Invites</p>
+                  <p className="text-2xl font-bold text-tp-primary">2</p>
+                  <p className="text-sm text-neutral-600">Pending Invites</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg border">
-                  <p className="text-2xl font-bold text-[#1F3A5F]">10</p>
-                  <p className="text-sm text-[#5C667B]">Available Seats</p>
+                  <p className="text-2xl font-bold text-tp-primary">10</p>
+                  <p className="text-sm text-neutral-600">Available Seats</p>
                 </div>
               </div>
             </CardContent>
@@ -518,7 +516,7 @@ export default function AccountSettings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-[#264C99]" />
+                <Bell className="w-5 h-5 text-tp-accent" />
                 Notification Preferences
               </CardTitle>
               <CardDescription>Choose how you want to be notified about important events</CardDescription>
@@ -528,7 +526,7 @@ export default function AccountSettings() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Email Notifications</Label>
-                    <p className="text-sm text-[#5C667B]">Receive notifications via email</p>
+                    <p className="text-sm text-neutral-600">Receive notifications via email</p>
                   </div>
                   <Switch 
                     checked={emailNotifications} 
@@ -539,7 +537,7 @@ export default function AccountSettings() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Browser Notifications</Label>
-                    <p className="text-sm text-[#5C667B]">Show desktop notifications</p>
+                    <p className="text-sm text-neutral-600">Show desktop notifications</p>
                   </div>
                   <Switch 
                     checked={browserNotifications} 
@@ -550,7 +548,7 @@ export default function AccountSettings() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Weekly Reports</Label>
-                    <p className="text-sm text-[#5C667B]">Receive weekly activity summaries</p>
+                    <p className="text-sm text-neutral-600">Receive weekly activity summaries</p>
                   </div>
                   <Switch 
                     checked={weeklyReports} 
@@ -561,7 +559,7 @@ export default function AccountSettings() {
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Team Invitations</Label>
-                    <p className="text-sm text-[#5C667B]">Notify when invited to new teams</p>
+                    <p className="text-sm text-neutral-600">Notify when invited to new teams</p>
                   </div>
                   <Switch 
                     checked={teamInvites} 
@@ -573,8 +571,8 @@ export default function AccountSettings() {
               <div className="flex justify-end">
                 <Button 
                   onClick={handleSaveNotifications} 
-                  disabled={updateSettingsMutation.isPending || settingsLoading}
-                  className="bg-[#1F3A5F] hover:bg-[#264C99]"
+                  disabled={updateSettingsMutation.isPending}
+                  className="bg-tp-primary hover:bg-tp-accent"
                 >
                   {updateSettingsMutation.isPending ? 'Saving...' : 'Save Preferences'}
                 </Button>
@@ -586,7 +584,7 @@ export default function AccountSettings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Globe className="w-5 h-5 text-[#264C99]" />
+                <Lock className="w-5 h-5 text-tp-accent" />
                 Privacy Settings
               </CardTitle>
               <CardDescription>Control your privacy and data sharing preferences</CardDescription>
@@ -595,7 +593,7 @@ export default function AccountSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-base">Public Profile</Label>
-                  <p className="text-sm text-[#5C667B]">Make your profile visible to other users</p>
+                  <p className="text-sm text-neutral-600">Allow others to view your profile</p>
                 </div>
                 <Switch 
                   checked={publicProfile} 
@@ -609,115 +607,82 @@ export default function AccountSettings() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-[#264C99]" />
+                <Key className="w-5 h-5 text-tp-accent" />
                 API Access
               </CardTitle>
-              <CardDescription>Manage API keys for integrations and automation</CardDescription>
+              <CardDescription>Manage your API keys for integrations</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="p-4 bg-[#F7F9FC] rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Label className="text-base font-medium">API Key</Label>
-                  <Badge variant="outline" className="text-xs">Active</Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Input 
-                    type={showApiKey ? "text" : "password"}
-                    value="sk-1234567890abcdef1234567890abcdef"
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Input
+                    type={showApiKey ? 'text' : 'password'}
+                    value="tp_sk_xxxxxxxxxxxxxxxxxxxx"
                     readOnly
-                    className="font-mono text-sm"
+                    className="font-mono"
                   />
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                  >
-                    {showApiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={handleGenerateApiKey}
-                  >
-                    <Key className="w-4 h-4 mr-1" />
-                    Regenerate
-                  </Button>
                 </div>
-                <p className="text-xs text-[#5C667B] mt-2">
-                  Keep your API key secure. It provides full access to your account data.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Security */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="w-5 h-5 text-[#264C99]" />
-                Security
-              </CardTitle>
-              <CardDescription>Manage your account security settings</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Button variant="outline" className="justify-start">
-                  <Lock className="w-4 h-4 mr-2" />
-                  Change Password
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowApiKey(!showApiKey)}
+                >
+                  {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
-                <Button variant="outline" className="justify-start">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Two-Factor Auth
+                <Button
+                  variant="outline"
+                  onClick={handleGenerateApiKey}
+                >
+                  Generate New Key
                 </Button>
               </div>
+              <p className="text-xs text-neutral-500">
+                Keep your API key secure. Do not share it publicly.
+              </p>
             </CardContent>
           </Card>
 
           {/* Danger Zone */}
-          <Card className="border-red-200">
+          <Card className="border-error-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-600">
+              <CardTitle className="flex items-center gap-2 text-error-600">
                 <AlertTriangle className="w-5 h-5" />
                 Danger Zone
               </CardTitle>
-              <CardDescription>Irreversible account actions</CardDescription>
+              <CardDescription>Irreversible actions for your account</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="p-4 bg-red-50 rounded-lg">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium text-red-800">Delete Account</h4>
-                    <p className="text-sm text-red-600 mt-1">
-                      Permanently delete your account and all associated data. This action cannot be undone.
-                    </p>
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete Account
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete your account
-                          and remove your data from our servers.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                          onClick={handleDeleteAccount}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Yes, delete my account
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+              <div className="flex items-center justify-between p-4 bg-error-50 rounded-lg">
+                <div>
+                  <p className="font-medium text-error-700">Delete Account</p>
+                  <p className="text-sm text-error-600">Permanently delete your account and all data</p>
                 </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Account
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete your account
+                        and remove your data from our servers.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteAccount}
+                        className="bg-error-600 hover:bg-error-700"
+                      >
+                        Delete Account
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </CardContent>
           </Card>

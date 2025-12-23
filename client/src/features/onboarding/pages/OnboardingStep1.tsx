@@ -116,7 +116,7 @@ export default function OnboardingStep1() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 font-[Inter,sans-serif]">
+    <div className="min-h-screen flex items-center justify-center bg-tp-page-bg px-4 font-[Inter,sans-serif]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
@@ -126,10 +126,10 @@ export default function OnboardingStep1() {
               className="w-16 h-16 object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-[#1A1A1A] mb-2 tracking-tight">
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2 tracking-tight">
             Create your account
           </h1>
-          <p className="text-[#5C667B]">
+          <p className="text-neutral-600">
             Join thousands of teams hiring better with TalentPatriot
           </p>
         </div>
@@ -141,7 +141,7 @@ export default function OnboardingStep1() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-2 hover:bg-slate-50"
+                className="w-full h-12 border-2 hover:bg-neutral-50"
                 onClick={() => handleSSOSignup('google')}
                 disabled={loading}
               >
@@ -152,7 +152,7 @@ export default function OnboardingStep1() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full h-12 border-2 hover:bg-slate-50"
+                className="w-full h-12 border-2 hover:bg-neutral-50"
                 onClick={() => handleSSOSignup('microsoft')}
                 disabled={loading}
               >
@@ -164,7 +164,7 @@ export default function OnboardingStep1() {
             <div className="relative mb-6">
               <Separator />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="bg-white px-4 text-sm text-[#5C667B]">or</span>
+                <span className="bg-white px-4 text-sm text-neutral-600">or</span>
               </div>
             </div>
 
@@ -177,7 +177,7 @@ export default function OnboardingStep1() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 font-medium">
+                <Label htmlFor="email" className="text-neutral-700 font-medium">
                   Work Email
                 </Label>
                 <Input
@@ -186,16 +186,16 @@ export default function OnboardingStep1() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@company.com"
-                  className={`h-12 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`h-12 ${errors.email ? 'border-error-500' : ''}`}
                   disabled={loading}
                 />
                 {errors.email && (
-                  <p className="text-sm text-red-600">{errors.email}</p>
+                  <p className="text-sm text-error-600">{errors.email}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-700 font-medium">
+                <Label htmlFor="password" className="text-neutral-700 font-medium">
                   Password
                 </Label>
                 <div className="relative">
@@ -205,7 +205,7 @@ export default function OnboardingStep1() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a strong password"
-                    className={`h-12 pr-12 ${errors.password ? 'border-red-500' : ''}`}
+                    className={`h-12 pr-12 ${errors.password ? 'border-error-500' : ''}`}
                     disabled={loading}
                   />
                   <button
@@ -214,19 +214,19 @@ export default function OnboardingStep1() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-slate-400" />
+                      <EyeOff className="h-5 w-5 text-neutral-400" />
                     ) : (
-                      <Eye className="h-5 w-5 text-slate-400" />
+                      <Eye className="h-5 w-5 text-neutral-400" />
                     )}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password}</p>
+                  <p className="text-sm text-error-600">{errors.password}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">
+                <Label htmlFor="confirmPassword" className="text-neutral-700 font-medium">
                   Confirm Password
                 </Label>
                 <div className="relative">
@@ -236,7 +236,7 @@ export default function OnboardingStep1() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm your password"
-                    className={`h-12 pr-12 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    className={`h-12 pr-12 ${errors.confirmPassword ? 'border-error-500' : ''}`}
                     disabled={loading}
                   />
                   <button
@@ -245,20 +245,20 @@ export default function OnboardingStep1() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5 text-slate-400" />
+                      <EyeOff className="h-5 w-5 text-neutral-400" />
                     ) : (
-                      <Eye className="h-5 w-5 text-slate-400" />
+                      <Eye className="h-5 w-5 text-neutral-400" />
                     )}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-sm text-red-600">{errors.confirmPassword}</p>
+                  <p className="text-sm text-error-600">{errors.confirmPassword}</p>
                 )}
               </div>
 
               <Button
                 type="submit"
-                className="w-full h-12 bg-[#1F3A5F] hover:bg-[#264C99] text-white font-medium"
+                className="w-full h-12 bg-tp-primary hover:bg-tp-accent text-white font-medium"
                 disabled={loading}
               >
                 {loading ? 'Creating account...' : 'Create Account'}
@@ -266,19 +266,19 @@ export default function OnboardingStep1() {
             </form>
 
             <div className="mt-6 text-center">
-              <p className="text-sm text-[#5C667B]">
+              <p className="text-sm text-neutral-600">
                 Already have an account?{' '}
-                <Link href="/login" className="text-[#264C99] hover:underline font-medium">
+                <Link href="/login" className="text-tp-accent hover:underline font-medium">
                   Sign in
                 </Link>
               </p>
             </div>
 
-            <div className="mt-6 text-xs text-[#5C667B] text-center">
+            <div className="mt-6 text-xs text-neutral-600 text-center">
               By creating an account, you agree to our{' '}
-              <a href="/terms" className="text-[#264C99] hover:underline">Terms of Service</a>
+              <a href="/terms" className="text-tp-accent hover:underline">Terms of Service</a>
               {' '}and{' '}
-              <a href="/privacy" className="text-[#264C99] hover:underline">Privacy Policy</a>
+              <a href="/privacy" className="text-tp-accent hover:underline">Privacy Policy</a>
             </div>
           </CardContent>
         </Card>

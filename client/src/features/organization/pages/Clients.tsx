@@ -65,8 +65,8 @@ export default function Clients() {
       <DashboardLayout pageTitle="Demo Clients">
         <div className="p-6">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-[#1A1A1A] font-[Inter,sans-serif]">Client Directory</h1>
-            <p className="text-[#5C667B] mt-1">Explore our demo client database</p>
+            <h1 className="text-2xl font-bold text-neutral-900 font-[Inter,sans-serif]">Client Directory</h1>
+            <p className="text-neutral-600 mt-1">Explore our demo client database</p>
           </div>
           <DemoClients />
         </div>
@@ -81,11 +81,11 @@ export default function Clients() {
         <div className="p-6">
           <Card className="max-w-2xl mx-auto">
             <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Building2 className="w-8 h-8 text-blue-600" />
+              <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Building2 className="w-8 h-8 text-info-600" />
               </div>
               <CardTitle className="text-2xl">Organization Setup Required</CardTitle>
-              <p className="text-[#5C667B] mt-2">
+              <p className="text-neutral-600 mt-2">
                 You need to set up your organization before you can add clients.
               </p>
             </CardHeader>
@@ -253,11 +253,11 @@ export default function Clients() {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Company Name *</FormLabel>
+                <FormLabel className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Company Name *</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Acme Corporation" 
-                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    className="bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-600 focus:border-tp-accent focus:ring-tp-accent/20"
                     {...field} 
                   />
                 </FormControl>
@@ -271,11 +271,11 @@ export default function Clients() {
             name="industry"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Industry</FormLabel>
+                <FormLabel className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Industry</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Technology" 
-                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    className="bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-600 focus:border-tp-accent focus:ring-tp-accent/20"
                     {...field} 
                   />
                 </FormControl>
@@ -289,11 +289,11 @@ export default function Clients() {
             name="location"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Location</FormLabel>
+                <FormLabel className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Location</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="San Francisco, CA" 
-                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    className="bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-600 focus:border-tp-accent focus:ring-tp-accent/20"
                     {...field} 
                   />
                 </FormControl>
@@ -307,11 +307,11 @@ export default function Clients() {
             name="website"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Website</FormLabel>
+                <FormLabel className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Website</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="https://company.com" 
-                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    className="bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-600 focus:border-tp-accent focus:ring-tp-accent/20"
                     {...field} 
                   />
                 </FormControl>
@@ -325,11 +325,11 @@ export default function Clients() {
             name="contactName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Contact Name</FormLabel>
+                <FormLabel className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Contact Name</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="John Smith" 
-                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    className="bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-600 focus:border-tp-accent focus:ring-tp-accent/20"
                     {...field} 
                   />
                 </FormControl>
@@ -343,11 +343,11 @@ export default function Clients() {
             name="contactEmail"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Contact Email</FormLabel>
+                <FormLabel className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Contact Email</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="john@company.com" 
-                    className="bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20"
+                    className="bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-600 focus:border-tp-accent focus:ring-tp-accent/20"
                     {...field} 
                   />
                 </FormControl>
@@ -362,11 +362,11 @@ export default function Clients() {
           name="notes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-[#1A1A1A] font-[Inter,sans-serif] font-medium text-sm">Notes</FormLabel>
+              <FormLabel className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Notes</FormLabel>
               <FormControl>
                 <Textarea 
                   placeholder="Additional information about the client..."
-                  className="min-h-[80px] bg-white border-gray-200 text-[#1A1A1A] placeholder:text-[#5C667B] focus:border-[#264C99] focus:ring-[#264C99]/20 resize-none"
+                  className="min-h-[80px] bg-white border-neutral-200 text-neutral-900 placeholder:text-neutral-600 focus:border-tp-accent focus:ring-tp-accent/20 resize-none"
                   {...field} 
                 />
               </FormControl>
@@ -375,7 +375,7 @@ export default function Clients() {
           )}
         />
         
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+        <div className="flex justify-end gap-3 pt-4 border-t border-neutral-100">
           <Button 
             type="button" 
             variant="outline" 
@@ -404,12 +404,12 @@ export default function Clients() {
       <div className="space-y-6">
         {/* Demo Mode Banner */}
         {isDemoMode && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-info-50 border border-info-200 rounded-lg p-4">
             <div className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-blue-600" />
-              <span className="text-blue-800 font-medium">Demo Mode - Read Only</span>
+              <AlertCircle className="w-5 h-5 text-info-600" />
+              <span className="text-info-700 font-medium">Demo Mode - Read Only</span>
             </div>
-            <p className="text-sm text-blue-600 mt-1">
+            <p className="text-sm text-info-600 mt-1">
               You're viewing sample client data. All editing features are disabled in demo mode.
             </p>
           </div>
@@ -418,13 +418,13 @@ export default function Clients() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">Client Directory</h1>
-            <p className="text-slate-600 mt-1">Manage your client organizations</p>
+            <h1 className="text-2xl font-semibold text-neutral-900">Client Directory</h1>
+            <p className="text-neutral-600 mt-1">Manage your client organizations</p>
           </div>
           
           <div className="flex gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
               <Input
                 placeholder="Search clients..."
                 value={searchQuery}
@@ -442,7 +442,7 @@ export default function Clients() {
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-0 shadow-xl">
                 <DialogHeader>
-                  <DialogTitle className="text-[#1A1A1A] font-[Inter,sans-serif] font-semibold text-lg">Add New Client</DialogTitle>
+                  <DialogTitle className="text-neutral-900 font-[Inter,sans-serif] font-semibold text-lg">Add New Client</DialogTitle>
                 </DialogHeader>
                 <ClientForm />
               </DialogContent>
@@ -455,39 +455,39 @@ export default function Clients() {
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-slate-600">Total Clients</CardTitle>
-                <Building2 className="w-4 h-4 text-blue-600" />
+                <CardTitle className="text-sm font-medium text-neutral-600">Total Clients</CardTitle>
+                <Building2 className="w-4 h-4 text-info-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{totalClients}</div>
-              <p className="text-xs text-slate-500 mt-1">Active partnerships</p>
+              <div className="text-2xl font-bold text-neutral-900">{totalClients}</div>
+              <p className="text-xs text-neutral-500 mt-1">Active partnerships</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-slate-600">Industries</CardTitle>
-                <Globe className="w-4 h-4 text-green-600" />
+                <CardTitle className="text-sm font-medium text-neutral-600">Industries</CardTitle>
+                <Globe className="w-4 h-4 text-success-600" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{industries}</div>
-              <p className="text-xs text-slate-500 mt-1">Diverse sectors</p>
+              <div className="text-2xl font-bold text-neutral-900">{industries}</div>
+              <p className="text-xs text-neutral-500 mt-1">Diverse sectors</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-slate-600">Open Positions</CardTitle>
-                <Briefcase className="w-4 h-4 text-purple-600" />
+                <CardTitle className="text-sm font-medium text-neutral-600">Open Positions</CardTitle>
+                <Briefcase className="w-4 h-4 text-tp-accent" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-slate-900">{totalOpenPositions}</div>
-              <p className="text-xs text-slate-500 mt-1">Across all clients</p>
+              <div className="text-2xl font-bold text-neutral-900">{totalOpenPositions}</div>
+              <p className="text-xs text-neutral-500 mt-1">Across all clients</p>
             </CardContent>
           </Card>
         </div>
@@ -507,11 +507,11 @@ export default function Clients() {
               </div>
             ) : filteredClients.length === 0 ? (
               <div className="text-center py-8">
-                <Building2 className="w-12 h-12 mx-auto text-slate-400 mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 mb-2">
+                <Building2 className="w-12 h-12 mx-auto text-neutral-400 mb-4" />
+                <h3 className="text-lg font-medium text-neutral-900 mb-2">
                   {searchQuery ? 'No clients found' : 'No clients yet'}
                 </h3>
-                <p className="text-slate-500 mb-4">
+                <p className="text-neutral-500 mb-4">
                   {searchQuery 
                     ? 'Try adjusting your search terms.' 
                     : 'Add your first client to start managing your recruitment pipeline.'
@@ -540,26 +540,26 @@ export default function Clients() {
                   </TableHeader>
                   <TableBody>
                     {filteredClients.map((client: Client) => (
-                      <TableRow key={client.id} className="hover:bg-slate-50">
+                      <TableRow key={client.id} className="hover:bg-neutral-50">
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                              <Building2 className="w-5 h-5 text-blue-600" />
+                            <div className="w-10 h-10 bg-info-100 rounded-lg flex items-center justify-center">
+                              <Building2 className="w-5 h-5 text-info-600" />
                             </div>
                             <div>
                               <Link href={`/clients/${client.id}`}>
-                                <button className="font-medium text-slate-900 hover:text-blue-600 text-left">
+                                <button className="font-medium text-neutral-900 hover:text-info-600 text-left">
                                   {client.name}
                                 </button>
                               </Link>
                               {client.website && (
-                                <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                                <div className="flex items-center gap-1 text-xs text-neutral-500 mt-1">
                                   <Globe className="w-3 h-3" />
                                   <a 
                                     href={client.website} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="hover:text-blue-600"
+                                    className="hover:text-info-600"
                                   >
                                     {client.website.replace(/^https?:\/\//, '')}
                                   </a>
@@ -573,18 +573,18 @@ export default function Clients() {
                           {client.industry ? (
                             <Badge variant="outline">{client.industry}</Badge>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-neutral-400">—</span>
                           )}
                         </TableCell>
                         
                         <TableCell>
                           {client.location ? (
                             <div className="flex items-center gap-1 text-sm">
-                              <MapPin className="w-3 h-3 text-slate-400" />
+                              <MapPin className="w-3 h-3 text-neutral-400" />
                               {client.location}
                             </div>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-neutral-400">—</span>
                           )}
                         </TableCell>
                         
@@ -593,51 +593,39 @@ export default function Clients() {
                             <div className="space-y-1">
                               {client.contactName && (
                                 <div className="flex items-center gap-1 text-sm">
-                                  <User className="w-3 h-3 text-slate-400" />
+                                  <User className="w-3 h-3 text-neutral-400" />
                                   {client.contactName}
                                 </div>
                               )}
                               {client.contactEmail && (
-                                <div className="flex items-center gap-1 text-sm">
-                                  <Mail className="w-3 h-3 text-slate-400" />
-                                  <a 
-                                    href={`mailto:${client.contactEmail}`}
-                                    className="text-blue-600 hover:underline"
-                                  >
-                                    {client.contactEmail}
-                                  </a>
+                                <div className="flex items-center gap-1 text-xs text-neutral-500">
+                                  <Mail className="w-3 h-3" />
+                                  {client.contactEmail}
                                 </div>
                               )}
-
                             </div>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-neutral-400">—</span>
                           )}
                         </TableCell>
                         
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Briefcase className="w-4 h-4 text-slate-400" />
-                            <span className="font-medium">
-                              {client._count?.jobs || 0}
-                            </span>
-                          </div>
+                          <Badge variant="secondary">
+                            {client._count?.jobs || 0} jobs
+                          </Badge>
                         </TableCell>
                         
                         <TableCell>
-                          <div className="flex items-center gap-1 text-sm text-slate-500">
+                          <div className="flex items-center gap-1 text-sm text-neutral-500">
                             <Calendar className="w-3 h-3" />
-                            {client.updatedAt 
-                              ? formatDistanceToNow(new Date(client.updatedAt), { addSuffix: true })
-                              : 'Unknown'
-                            }
+                            {formatDistanceToNow(new Date(client.updatedAt), { addSuffix: true })}
                           </div>
                         </TableCell>
                         
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <MoreHorizontal className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -648,7 +636,7 @@ export default function Clients() {
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 onClick={() => handleDelete(client.id)}
-                                className="text-red-600"
+                                className="text-error-600"
                               >
                                 <Trash2 className="w-4 h-4 mr-2" />
                                 Delete
@@ -665,11 +653,11 @@ export default function Clients() {
           </CardContent>
         </Card>
 
-        {/* Edit Client Modal */}
-        <Dialog open={!!editingClient} onOpenChange={closeModal}>
+        {/* Edit Client Dialog */}
+        <Dialog open={!!editingClient} onOpenChange={(open) => !open && closeModal()}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-white border-0 shadow-xl">
             <DialogHeader>
-              <DialogTitle className="text-[#1A1A1A] font-[Inter,sans-serif] font-semibold text-lg">Edit Client</DialogTitle>
+              <DialogTitle className="text-neutral-900 font-[Inter,sans-serif] font-semibold text-lg">Edit Client</DialogTitle>
             </DialogHeader>
             <ClientForm />
           </DialogContent>

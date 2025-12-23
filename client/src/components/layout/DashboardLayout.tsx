@@ -12,7 +12,7 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-[#F7F9FC]">
+    <div className="flex h-screen bg-tp-page">
       <SkipLink href="#main-content">Skip to main content</SkipLink>
       
       <Sidebar 
@@ -28,7 +28,7 @@ export function DashboardLayout({ children, pageTitle }: DashboardLayoutProps) {
         
         <main 
           id="main-content" 
-          className="flex-1 overflow-auto bg-[#F7F9FC]"
+          className="flex-1 overflow-auto bg-tp-page"
           role="main"
           aria-label={pageTitle ? `${pageTitle} content` : 'Main content'}
         >

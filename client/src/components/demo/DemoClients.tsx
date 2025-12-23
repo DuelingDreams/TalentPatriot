@@ -22,16 +22,16 @@ export function DemoClients() {
   return (
     <div className="tp-container space-y-6">
       {/* Demo Alert */}
-      <Alert className="border-[#264C99]/20 bg-[#264C99]/5">
-        <Info className="w-4 h-4 text-[#264C99]" />
-        <AlertDescription className="text-[#1A1A1A]">
+      <Alert className="border-tp-accent/20 bg-tp-accent/5">
+        <Info className="w-4 h-4 text-tp-accent" />
+        <AlertDescription className="text-neutral-900">
           <strong>Demo Mode:</strong> Viewing sample client data. All client information is fictional for demonstration purposes.
         </AlertDescription>
       </Alert>
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5C667B]" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-600" />
         <Input
           placeholder="Search clients by name, industry, or location..."
           value={searchTerm}
@@ -44,31 +44,31 @@ export function DemoClients() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="card">
           <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Total Clients</CardTitle>
+            <CardTitle className="tp-label text-neutral-600">Total Clients</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">{demoClients.length}</div>
-            <p className="text-xs text-[#5C667B] mt-1">Active partnerships</p>
+            <div className="text-2xl font-bold text-neutral-900">{demoClients.length}</div>
+            <p className="text-xs text-neutral-600 mt-1">Active partnerships</p>
           </CardContent>
         </Card>
         
         <Card className="card">
           <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Industries</CardTitle>
+            <CardTitle className="tp-label text-neutral-600">Industries</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">3</div>
-            <p className="text-xs text-[#5C667B] mt-1">Diverse sectors</p>
+            <div className="text-2xl font-bold text-neutral-900">3</div>
+            <p className="text-xs text-neutral-600 mt-1">Diverse sectors</p>
           </CardContent>
         </Card>
         
         <Card className="card">
           <CardHeader className="pb-3">
-            <CardTitle className="tp-label text-[#5C667B]">Open Positions</CardTitle>
+            <CardTitle className="tp-label text-neutral-600">Open Positions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">5</div>
-            <p className="text-xs text-[#5C667B] mt-1">Across all clients</p>
+            <div className="text-2xl font-bold text-neutral-900">5</div>
+            <p className="text-xs text-neutral-600 mt-1">Across all clients</p>
           </CardContent>
         </Card>
       </div>
@@ -80,12 +80,12 @@ export function DemoClients() {
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#264C99]/10 to-[#264C99]/20 rounded-lg flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-[#264C99]" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-tp-accent/10 to-tp-accent/20 rounded-lg flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-tp-accent" />
                   </div>
                   <div>
-                    <CardTitle className="tp-h2 text-[#1A1A1A]">{client.name}</CardTitle>
-                    <Badge variant="secondary" className="mt-1 bg-[#F0F4F8] text-[#5C667B]">
+                    <CardTitle className="tp-h2 text-neutral-900">{client.name}</CardTitle>
+                    <Badge variant="secondary" className="mt-1 bg-tp-card-surface text-neutral-600">
                       {client.industry}
                     </Badge>
                   </div>
@@ -93,16 +93,16 @@ export function DemoClients() {
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="tp-body text-[#5C667B]">{client.notes}</p>
+              <p className="tp-body text-neutral-600">{client.notes}</p>
               
               <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-[#5C667B]">
+                <div className="flex items-center gap-2 text-neutral-600">
                   <MapPin className="w-4 h-4" />
                   <span>{client.location}</span>
                 </div>
                 
                 {client.website && (
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <Globe className="w-4 h-4" />
                     <span className="truncate">{client.website}</span>
                     <ExternalLink className="w-3 h-3" />
@@ -110,23 +110,23 @@ export function DemoClients() {
                 )}
                 
                 {client.contactName && (
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <User className="w-4 h-4" />
                     <span>{client.contactName}</span>
                   </div>
                 )}
                 
                 {client.contactEmail && (
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <Mail className="w-4 h-4" />
                     <span className="truncate">{client.contactEmail}</span>
                   </div>
                 )}
               </div>
               
-              <div className="pt-3 border-t border-[#F0F4F8]">
+              <div className="pt-3 border-t border-tp-card-surface">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[#5C667B]">
+                  <div className="flex items-center gap-2 text-neutral-600">
                     <Briefcase className="w-4 h-4" />
                     <span className="text-sm">5 open positions</span>
                   </div>

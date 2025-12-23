@@ -166,7 +166,7 @@ export default function OnboardingStep2() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F7F9FC] px-4 font-[Inter,sans-serif]">
+    <div className="min-h-screen flex items-center justify-center bg-tp-page-bg px-4 font-[Inter,sans-serif]">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6">
@@ -176,10 +176,10 @@ export default function OnboardingStep2() {
               className="w-16 h-16 object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+          <h1 className="text-3xl font-bold text-neutral-900 mb-2 tracking-tight">
             Tell us about your team
           </h1>
-          <p className="text-slate-600">
+          <p className="text-neutral-600">
             Help us personalize TalentPatriot for your organization
           </p>
         </div>
@@ -188,17 +188,17 @@ export default function OnboardingStep2() {
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <Alert variant="destructive" className="border-red-200 bg-red-50">
-                  <AlertDescription className="text-red-800">{error}</AlertDescription>
+                <Alert variant="destructive" className="border-error-200 bg-error-50">
+                  <AlertDescription className="text-error-700">{error}</AlertDescription>
                 </Alert>
               )}
               
               <div className="space-y-2">
-                <Label htmlFor="companyName" className="text-slate-700 font-medium">
+                <Label htmlFor="companyName" className="text-neutral-700 font-medium">
                   Company Name
                 </Label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400" />
                   <Input
                     id="companyName"
                     type="text"
@@ -209,30 +209,30 @@ export default function OnboardingStep2() {
                       if (companyNameError) setCompanyNameError('')
                     }}
                     disabled={loading}
-                    className={`pl-10 h-12 ${companyNameError ? 'border-red-500 focus-visible:ring-red-500' : 'border-slate-300 focus-visible:ring-indigo-500'}`}
+                    className={`pl-10 h-12 ${companyNameError ? 'border-error-500 focus-visible:ring-error-500' : 'border-neutral-300 focus-visible:ring-tp-accent'}`}
                   />
                 </div>
                 {companyNameError && (
-                  <p className="text-sm text-red-600 mt-1">{companyNameError}</p>
+                  <p className="text-sm text-error-600 mt-1">{companyNameError}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="companySize" className="text-slate-700 font-medium">
+                <Label htmlFor="companySize" className="text-neutral-700 font-medium">
                   Company Size
                 </Label>
                 <div className="relative">
-                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
+                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400 z-10" />
                   <Select value={companySize} onValueChange={setCompanySize} disabled={loading}>
-                    <SelectTrigger className="pl-10 h-12 border-slate-300 focus:ring-indigo-500">
+                    <SelectTrigger className="pl-10 h-12 border-neutral-300 focus:ring-tp-accent">
                       <SelectValue placeholder="Select company size" />
                     </SelectTrigger>
-                    <SelectContent className="z-50 bg-white border border-slate-200 shadow-lg rounded-md">
+                    <SelectContent className="z-50 bg-white border border-neutral-200 shadow-lg rounded-md">
                       {companySizeOptions.map((option) => (
                         <SelectItem 
                           key={option.value} 
                           value={option.value}
-                          className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3"
+                          className="hover:bg-neutral-50 focus:bg-neutral-100 cursor-pointer py-2 px-3"
                         >
                           {option.label}
                         </SelectItem>
@@ -243,25 +243,25 @@ export default function OnboardingStep2() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="userRole" className="text-slate-700 font-medium">
+                <Label htmlFor="userRole" className="text-neutral-700 font-medium">
                   Your Role
                 </Label>
                 <div className="relative">
-                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 z-10" />
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-neutral-400 z-10" />
                   <Select value={userRole} onValueChange={setUserRole} disabled={loading}>
-                    <SelectTrigger className="pl-10 h-12 border-slate-300 focus:ring-indigo-500">
+                    <SelectTrigger className="pl-10 h-12 border-neutral-300 focus:ring-tp-accent">
                       <SelectValue placeholder="Select your role" />
                     </SelectTrigger>
-                    <SelectContent className="z-50 bg-white border border-slate-200 shadow-lg rounded-md max-h-60 overflow-y-auto">
+                    <SelectContent className="z-50 bg-white border border-neutral-200 shadow-lg rounded-md max-h-60 overflow-y-auto">
                       {roleOptions.map((option) => (
                         <SelectItem 
                           key={option.value} 
                           value={option.value}
-                          className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-3 px-3"
+                          className="hover:bg-neutral-50 focus:bg-neutral-100 cursor-pointer py-3 px-3"
                         >
                           <div>
-                            <div className="font-medium text-slate-900">{option.label}</div>
-                            <div className="text-xs text-slate-600 mt-1">{option.description}</div>
+                            <div className="font-medium text-neutral-900">{option.label}</div>
+                            <div className="text-xs text-neutral-600 mt-1">{option.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -272,7 +272,7 @@ export default function OnboardingStep2() {
               
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-base transition-colors mt-8" 
+                className="w-full h-12 bg-tp-primary hover:bg-tp-accent text-white font-semibold text-base transition-colors mt-8" 
                 disabled={loading}
               >
                 {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
@@ -281,7 +281,7 @@ export default function OnboardingStep2() {
             </form>
             
             <div className="mt-6 text-center">
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <p className="text-xs text-neutral-500 leading-relaxed">
                 Step 2 of 3 • This helps us customize your TalentPatriot experience
               </p>
             </div>

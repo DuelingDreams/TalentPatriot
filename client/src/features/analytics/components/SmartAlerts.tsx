@@ -147,10 +147,10 @@ export function SmartAlerts({ orgId, onDismiss }: SmartAlertsProps) {
             {getAlertIcon(alert.type)}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-medium text-[#1A1A1A] text-sm">{alert.title}</h4>
+                <h4 className="font-medium text-neutral-900 text-sm">{alert.title}</h4>
                 {getAlertBadge(alert.type)}
               </div>
-              <AlertDescription className="text-[#5C667B] text-sm">
+              <AlertDescription className="text-neutral-600 text-sm">
                 {alert.description}
               </AlertDescription>
               {alert.action && (

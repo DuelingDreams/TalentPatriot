@@ -197,8 +197,8 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
     <Card className="card">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="tp-h2 text-[#1A1A1A]">Quick Actions</h3>
-          <Badge variant="secondary" className="bg-[#264C99]/10 text-[#264C99]">
+          <h3 className="tp-h2 text-neutral-900">Quick Actions</h3>
+          <Badge variant="secondary" className="bg-tp-accent/10 text-tp-accent">
             {items.length} available
           </Badge>
         </div>
@@ -216,12 +216,12 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-[#264C99]/10 rounded-lg">
-                      <Icon className="w-4 h-4 text-[#264C99]" />
+                    <div className="p-2 bg-tp-accent/10 rounded-lg">
+                      <Icon className="w-4 h-4 text-tp-accent" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="tp-label text-[#1A1A1A] font-medium text-sm">
+                        <h4 className="tp-label text-neutral-900 font-medium text-sm">
                           {action.title}
                         </h4>
                         {action.badge && (
@@ -230,12 +230,12 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
                           </Badge>
                         )}
                       </div>
-                      <p className="tp-body text-[#5C667B] text-xs">
+                      <p className="tp-body text-neutral-600 text-xs">
                         {action.description}
                       </p>
                     </div>
                   </div>
-                  <ChevronRight className="w-3 h-3 text-[#5C667B] mt-1" />
+                  <ChevronRight className="w-3 h-3 text-neutral-600 mt-1" />
                 </div>
               </div>
             )
@@ -271,9 +271,9 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
           })}
         </div>
         
-        <div className="mt-4 pt-4 border-t border-[#F0F4F8]">
-          <p className="tp-body text-[#5C667B] text-xs text-center">
-            Need help? <Link href="/help" className="text-[#264C99] hover:underline">View all actions</Link>
+        <div className="mt-4 pt-4 border-t border-tp-card-surface">
+          <p className="tp-body text-neutral-600 text-xs text-center">
+            Need help? <Link href="/help" className="text-tp-accent hover:underline">View all actions</Link>
           </p>
         </div>
       </CardContent>
