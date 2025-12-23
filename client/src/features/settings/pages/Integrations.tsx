@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -16,11 +16,14 @@ interface ConnectionStatus {
   email?: string;
   scopes?: string[];
   error?: string;
+  needsReconnect?: boolean;
+  healthStatus?: 'healthy' | 'needs_reconnect' | 'error' | 'unknown';
 }
 
 export default function Integrations() {
   const { user, currentOrgId } = useAuth()
   const { toast } = useToast()
+  const [isConnecting, setIsConnecting] = useState(false)
 
   // Check Google Calendar connection status
   // CRITICAL: Include currentOrgId in queryKey to prevent cross-org cache pollution
@@ -59,11 +62,37 @@ export default function Integrations() {
     },
   })
 
-  const handleConnect = (provider: string) => {
-    // Redirect to OAuth flow
-    // Note: user_id and org_id are extracted from authenticated session by middleware
-    const authUrl = `/auth/${provider}/login`
-    window.location.href = authUrl
+  const handleConnect = async (provider: string) => {
+    if (!user) {
+      toast({
+        title: 'Not authenticated',
+        description: 'Please log in again to connect your Google account.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsConnecting(true)
+    try {
+      const response = await apiRequest<{ redirectUrl: string }>(`/auth/${provider}/init`, {
+        method: 'POST',
+        body: JSON.stringify({ returnTo: '/settings/integrations' }),
+      })
+
+      if (response.redirectUrl) {
+        window.location.href = response.redirectUrl
+      } else {
+        throw new Error('No redirect URL received')
+      }
+    } catch (error: any) {
+      console.error('Failed to initiate OAuth:', error)
+      setIsConnecting(false)
+      toast({
+        title: 'Connection failed',
+        description: error.message || 'Failed to start Google connection. Please try again.',
+        variant: 'destructive',
+      })
+    }
   }
 
   const handleDisconnect = (provider: string) => {
@@ -75,12 +104,67 @@ export default function Integrations() {
   const googleConnected = urlParams.get('google') === 'connected'
   const error = urlParams.get('error')
 
+  // User-friendly error messages for common OAuth failures
+  const getErrorMessage = (errorCode: string): { title: string; description: string } => {
+    const errorMap: Record<string, { title: string; description: string }> = {
+      'access_denied': {
+        title: 'Permission Denied',
+        description: 'You declined to grant access. Please try again and click "Allow" to connect your Google account.',
+      },
+      'oauth_access_denied': {
+        title: 'Permission Denied',
+        description: 'You declined to grant access. Please try again and click "Allow" to connect your Google account.',
+      },
+      'invalid_state': {
+        title: 'Session Expired',
+        description: 'Your connection session has expired. Please try connecting again.',
+      },
+      'session_expired': {
+        title: 'Session Expired',
+        description: 'Your session has expired. Please try connecting again.',
+      },
+      'invalid_grant': {
+        title: 'Token Expired',
+        description: 'Your Google authorization has expired. Please reconnect your account.',
+      },
+      'oauth_invalid_grant': {
+        title: 'Token Expired',
+        description: 'Your Google authorization has expired. Please reconnect your account.',
+      },
+      'missing_params': {
+        title: 'Connection Error',
+        description: 'Something went wrong during the connection. Please try again.',
+      },
+      'oauth_init_failed': {
+        title: 'Connection Failed',
+        description: 'Failed to start the Google connection. Please try again.',
+      },
+      'token_exchange_failed': {
+        title: 'Connection Failed',
+        description: 'Failed to complete the Google connection. Please try again.',
+      },
+    }
+    
+    return errorMap[errorCode] || {
+      title: 'Connection Failed',
+      description: `An error occurred: ${errorCode.replace(/_/g, ' ')}. Please try again.`,
+    }
+  }
+
   // Handle OAuth callback - invalidate cache and refetch connection status
   useEffect(() => {
     if (googleConnected) {
+      // Reset connecting state after successful OAuth return
+      setIsConnecting(false)
+      
       // Invalidate the cache with the correct key (including orgId) and refetch to show updated connection status
       queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status', currentOrgId] })
       refetchGoogle()
+      
+      toast({
+        title: 'Google Connected',
+        description: 'Your Google account has been successfully connected!',
+      })
       
       // Clean up URL after 3 seconds to remove the success message
       setTimeout(() => {
@@ -89,7 +173,29 @@ export default function Integrations() {
         window.history.replaceState({}, '', url.toString())
       }, 3000)
     }
-  }, [googleConnected, refetchGoogle, currentOrgId])
+  }, [googleConnected, refetchGoogle, currentOrgId, toast])
+
+  // Show toast for OAuth errors and clean up URL
+  useEffect(() => {
+    if (error) {
+      // Reset connecting state after OAuth error return
+      setIsConnecting(false)
+      
+      const errorInfo = getErrorMessage(error)
+      toast({
+        title: errorInfo.title,
+        description: errorInfo.description,
+        variant: 'destructive',
+      })
+      
+      // Clean up URL after showing the error
+      setTimeout(() => {
+        const url = new URL(window.location.href)
+        url.searchParams.delete('error')
+        window.history.replaceState({}, '', url.toString())
+      }, 5000)
+    }
+  }, [error, toast])
 
   return (
     <DashboardLayout pageTitle="Integrations">
@@ -116,7 +222,18 @@ export default function Integrations() {
           <Alert variant="destructive">
             <XCircle className="h-4 w-4" />
             <AlertDescription>
-              Connection failed: {error.replace(/_/g, ' ')}. Please try again.
+              <span className="font-medium">{getErrorMessage(error).title}:</span>{' '}
+              {getErrorMessage(error).description}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Needs Reconnection Warning */}
+        {googleStatus?.needsReconnect && (
+          <Alert className="bg-amber-50 border-amber-200">
+            <XCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              Your Google connection has expired. Please reconnect to continue using Gmail and Calendar features.
             </AlertDescription>
           </Alert>
         )}
@@ -132,10 +249,16 @@ export default function Integrations() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     Google Workspace
-                    {googleStatus?.connected && (
+                    {googleStatus?.connected && !googleStatus?.needsReconnect && (
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         Connected
+                      </Badge>
+                    )}
+                    {googleStatus?.needsReconnect && (
+                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                        <XCircle className="h-3 w-3 mr-1" />
+                        Needs Reconnection
                       </Badge>
                     )}
                   </CardTitle>
@@ -199,6 +322,39 @@ export default function Integrations() {
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Checking connection...
                 </Button>
+              ) : googleStatus?.needsReconnect ? (
+                <>
+                  <Button
+                    onClick={() => handleConnect('google')}
+                    disabled={isConnecting}
+                    className="bg-amber-600 hover:bg-amber-700"
+                    data-testid="button-reconnect-google"
+                  >
+                    {isConnecting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Reconnecting...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Reconnect Google Account
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDisconnect('google')}
+                    disabled={disconnectMutation.isPending}
+                    data-testid="button-disconnect-google"
+                  >
+                    {disconnectMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      'Remove'
+                    )}
+                  </Button>
+                </>
               ) : googleStatus?.connected ? (
                 <Button
                   variant="destructive"
@@ -221,10 +377,20 @@ export default function Integrations() {
               ) : (
                 <Button
                   onClick={() => handleConnect('google')}
+                  disabled={isConnecting}
                   data-testid="button-connect-google"
                 >
-                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                  Connect Google Account
+                  {isConnecting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Connect Google Account
+                    </>
+                  )}
                 </Button>
               )}
               <Button
