@@ -533,7 +533,7 @@ export default function JobApplicationForm() {
                   onChange={(e) => handleInputChange('coverLetter', e.target.value)}
                   maxLength={2000}
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 mt-1">
                   Optional. Maximum 2000 characters.
                 </p>
               </div>
@@ -555,7 +555,7 @@ export default function JobApplicationForm() {
                       }}
                       className="cursor-pointer"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 mt-1">
                       Optional. Accepted formats: PDF, DOC, DOCX (max 10MB)
                     </p>
                   </div>
@@ -572,7 +572,7 @@ export default function JobApplicationForm() {
                       </span>
                     </div>
                     <Progress value={uploadState.progress} className="mb-2" />
-                    <p className="text-xs text-gray-600">
+                    <p className="text-sm text-gray-600">
                       {formData.resume?.name} - {uploadState.progress}%
                     </p>
                   </div>
@@ -595,7 +595,7 @@ export default function JobApplicationForm() {
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
-                    <p className="text-xs text-green-700 mt-1">
+                    <p className="text-sm text-green-700 mt-1">
                       {formData.resume?.name}
                     </p>
                   </div>
@@ -629,11 +629,11 @@ export default function JobApplicationForm() {
                         </Button>
                       </div>
                     </div>
-                    <p className="text-xs text-red-700">
+                    <p className="text-sm text-red-700">
                       {uploadState.uploadError}
                     </p>
                     {uploadState.retryCount >= MAX_RETRIES && (
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="text-sm text-red-600 mt-1">
                         Maximum retry attempts reached. Please try selecting the file again.
                       </p>
                     )}
@@ -665,7 +665,7 @@ export default function JobApplicationForm() {
               </Button>
               
               {(uploadState.isUploading || jobApplication.isPending) && (
-                <p className="text-xs text-center text-gray-500 mt-2">
+                <p className="text-sm text-center text-gray-500 mt-2">
                   {uploadState.isUploading ? 'Please wait for the resume upload to complete before submitting' : 'Submitting your application...'}
                 </p>
               )}

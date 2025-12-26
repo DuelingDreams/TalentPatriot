@@ -18,7 +18,7 @@ function ErrorFallback({ error, resetErrorBoundary, title, description }: ErrorF
           <AlertTriangle className="w-6 h-6 text-red-600" />
         </div>
         <div className="mt-4 text-center">
-          <h3 className="text-lg font-medium text-gray-900">
+          <h3 className="text-lg font-bold leading-tight text-gray-900">
             {title || 'Something went wrong'}
           </h3>
           <p className="mt-2 text-sm text-gray-500">

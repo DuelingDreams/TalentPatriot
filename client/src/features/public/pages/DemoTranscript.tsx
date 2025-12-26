@@ -225,7 +225,7 @@ export default function DemoTranscript() {
                   loading="lazy"
                 />
               </div>
-              <span className="text-lg font-semibold text-neutral-900 font-[Inter,sans-serif]">TalentPatriot</span>
+              <span className="text-lg font-bold leading-tight text-neutral-900 font-[Inter,sans-serif]">TalentPatriot</span>
             </div>
             
             <nav className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-neutral-600 text-center font-[Inter,sans-serif]">

@@ -136,7 +136,7 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto p-6 z-[9999] bg-white shadow-lg border">
         <DialogHeader className="space-y-3">
-          <DialogTitle className="text-xl font-semibold">Schedule Interview</DialogTitle>
+          <DialogTitle className="text-xl font-bold leading-tight">Schedule Interview</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Create a new interview appointment with a candidate
           </DialogDescription>
@@ -310,7 +310,7 @@ export function ScheduleInterviewDialog({ trigger, candidateId, onScheduled }: S
               className="h-10"
               required
             />
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               This connects the interview to a specific job application. You can find this ID in the candidate's job applications.
             </p>
           </div>

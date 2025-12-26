@@ -47,7 +47,7 @@ export function VirtualizedJobsList({
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold text-gray-900" data-testid={`job-title-${job.id}`}>
+                  <h3 className="text-xl font-bold leading-tight text-gray-900" data-testid={`job-title-${job.id}`}>
                     {job.title}
                   </h3>
                   <Badge className={getStatusColor(job.status)} data-testid={`job-status-${job.id}`}>

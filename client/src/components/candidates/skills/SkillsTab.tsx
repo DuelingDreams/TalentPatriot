@@ -150,7 +150,7 @@ export function SkillsTab({ candidateId, orgId, className }: SkillsTabProps) {
       {/* Header with stats */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold flex items-center gap-2">
+          <h2 className="text-xl font-bold leading-tight flex items-center gap-2">
             <Tag className="h-5 w-5" />
             Skills & Expertise
           </h2>
@@ -226,7 +226,7 @@ export function SkillsTab({ candidateId, orgId, className }: SkillsTabProps) {
               <p className="text-sm text-muted-foreground mb-4">
                 Start building this candidate's skill profile by adding their technical expertise below.
               </p>
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                 <Lightbulb className="h-3 w-3" />
                 <span>Skills help match candidates to relevant opportunities</span>
               </div>
@@ -295,7 +295,7 @@ export function SkillsTab({ candidateId, orgId, className }: SkillsTabProps) {
               />
               
               <div className="flex justify-between items-center">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Paste skills from any source. They'll be automatically cleaned and deduplicated.
                 </p>
                 
@@ -318,7 +318,7 @@ export function SkillsTab({ candidateId, orgId, className }: SkillsTabProps) {
 
           <Separator />
 
-          <div className="grid gap-2 text-xs text-muted-foreground">
+          <div className="grid gap-2 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Lightbulb className="h-3 w-3" />
               <span><strong>Pro tip:</strong> Skills are learned from your organization's candidate data</span>

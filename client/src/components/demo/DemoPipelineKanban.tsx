@@ -159,19 +159,19 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
               <h4 className="font-medium text-slate-900 truncate">
                 {candidateInfo.name}
               </h4>
-              <p className="text-xs text-slate-600 mt-1">{jobInfo.title}</p>
-              <div className="flex items-center gap-1 text-xs text-slate-600 mt-2">
+              <p className="text-sm text-slate-600 mt-1">{jobInfo.title}</p>
+              <div className="flex items-center gap-1 text-sm text-slate-600 mt-2">
                 <Mail className="w-3 h-3" />
                 <span className="truncate">{candidateInfo.email}</span>
               </div>
               {candidateInfo.phone && (
-                <div className="flex items-center gap-1 text-xs text-slate-600 mt-1">
+                <div className="flex items-center gap-1 text-sm text-slate-600 mt-1">
                   <Phone className="w-3 h-3" />
                   <span>{candidateInfo.phone}</span>
                 </div>
               )}
               {candidate.notes && typeof candidate.notes === 'string' && (
-                <p className="text-xs text-slate-500 mt-2 line-clamp-2">
+                <p className="text-sm text-slate-500 mt-2 line-clamp-2">
                   {candidate.notes}
                 </p>
               )}

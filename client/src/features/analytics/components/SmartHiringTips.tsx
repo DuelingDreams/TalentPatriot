@@ -116,8 +116,8 @@ export function SmartHiringTips({
               <div key={tip.id} className="flex items-start space-x-2">
                 <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-xs font-medium text-gray-900">{tip.title}</p>
-                  <p className="text-xs text-gray-600">{tip.description}</p>
+                  <p className="text-sm font-medium text-gray-900">{tip.title}</p>
+                  <p className="text-sm text-gray-600">{tip.description}</p>
                 </div>
               </div>
             ))}

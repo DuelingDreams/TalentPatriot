@@ -76,7 +76,7 @@ export function AddClientDialog({ children }: AddClientDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto bg-white border-0 shadow-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-neutral-900 font-[Inter,sans-serif] font-semibold text-lg">
+          <DialogTitle className="flex items-center gap-2 text-neutral-900 font-[Inter,sans-serif] font-bold leading-tight text-lg text-lg">
             <Building2 className="w-5 h-5 text-tp-accent" />
             Add New Client
           </DialogTitle>

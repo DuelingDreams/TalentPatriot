@@ -202,16 +202,16 @@ export function AIInsights() {
             {/* Metrics Overview */}
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="p-2 bg-neutral-50 rounded-lg">
-                <div className="text-lg font-semibold text-neutral-900">{insights.metrics.trendsAnalyzed}</div>
-                <div className="text-xs text-neutral-600">Trends Analyzed</div>
+                <div className="text-lg font-bold leading-tight text-neutral-900">{insights.metrics.trendsAnalyzed}</div>
+                <div className="text-sm text-neutral-600">Trends Analyzed</div>
               </div>
               <div className="p-2 bg-neutral-50 rounded-lg">
-                <div className="text-lg font-semibold text-neutral-900">{insights.metrics.patternsDetected}</div>
-                <div className="text-xs text-neutral-600">Patterns Found</div>
+                <div className="text-lg font-bold leading-tight text-neutral-900">{insights.metrics.patternsDetected}</div>
+                <div className="text-sm text-neutral-600">Patterns Found</div>
               </div>
               <div className="p-2 bg-neutral-50 rounded-lg">
-                <div className="text-lg font-semibold text-neutral-900">{insights.metrics.recommendationsGenerated}</div>
-                <div className="text-xs text-neutral-600">Recommendations</div>
+                <div className="text-lg font-bold leading-tight text-neutral-900">{insights.metrics.recommendationsGenerated}</div>
+                <div className="text-sm text-neutral-600">Recommendations</div>
               </div>
             </div>
 
@@ -239,21 +239,21 @@ export function AIInsights() {
                         </div>
                       </div>
                       
-                      <p className="text-xs text-neutral-600 leading-relaxed">
+                      <p className="text-sm text-neutral-600 leading-relaxed">
                         {rec.description}
                       </p>
                       
-                      <div className="text-xs">
+                      <div className="text-sm">
                         <span className="font-medium text-success-700">Expected Impact: </span>
                         <span className="text-success-600">{rec.impact}</span>
                       </div>
                       
                       {rec.actionItems.length > 0 && (
                         <div>
-                          <span className="font-medium text-xs text-neutral-700">Action Items:</span>
+                          <span className="font-medium text-sm text-neutral-700">Action Items:</span>
                           <ul className="mt-1 space-y-1">
                             {rec.actionItems.map((item, index) => (
-                              <li key={index} className="text-xs text-neutral-600 ml-3">
+                              <li key={index} className="text-sm text-neutral-600 ml-3">
                                 • {item}
                               </li>
                             ))}

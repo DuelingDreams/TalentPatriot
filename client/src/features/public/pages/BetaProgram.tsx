@@ -251,7 +251,7 @@ export default function BetaProgram() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Company Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                       <Building2 className="w-5 h-5 text-tp-accent" />
                       Company Information
                     </h3>
@@ -315,7 +315,7 @@ export default function BetaProgram() {
 
                   {/* Contact Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                       <UserCheck className="w-5 h-5 text-tp-accent" />
                       Contact Information
                     </h3>
@@ -369,7 +369,7 @@ export default function BetaProgram() {
 
                   {/* Current State & Expectations */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                       <Target className="w-5 h-5 text-tp-accent" />
                       Current State & Goals
                     </h3>

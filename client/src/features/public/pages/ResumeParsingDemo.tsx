@@ -304,14 +304,14 @@ CERTIFICATIONS
                             <Badge variant="secondary">
                               {candidate.experience_level || 'Not specified'}
                             </Badge>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-sm text-gray-500 mt-1">
                               Experience: {candidate.total_years_experience || 0} years
                             </p>
                           </div>
                         </div>
                         {candidate.skills && candidate.skills.length > 0 && (
                           <div className="mt-3">
-                            <p className="text-xs font-medium text-gray-600 mb-1">Skills:</p>
+                            <p className="text-sm font-medium text-gray-600 mb-1">Skills:</p>
                             <div className="flex flex-wrap gap-1">
                               {candidate.skills.slice(0, 6).map((skill: string, i: number) => (
                                 <Badge key={i} variant="outline" className="text-xs">

@@ -253,7 +253,7 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
     <div className="space-y-6">
       {/* Header with status */}
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-gray-900">Resume Insights</h2>
+        <h2 className="text-lg font-bold leading-tight text-gray-900">Resume Insights</h2>
         <ParsingStatusBadge />
       </div>
 

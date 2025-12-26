@@ -162,15 +162,15 @@ function CandidateCard({ candidate, jobCandidate }: CandidateCardProps) {
         <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-2xl font-bold">5</p>
-            <p className="text-xs text-muted-foreground">Years Exp</p>
+            <p className="text-sm text-muted-foreground">Years Exp</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">$120k</p>
-            <p className="text-xs text-muted-foreground">Expected</p>
+            <p className="text-sm text-muted-foreground">Expected</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold">2w</p>
-            <p className="text-xs text-muted-foreground">Notice</p>
+            <p className="text-sm text-muted-foreground">Notice</p>
           </div>
         </div>
       </CardContent>
@@ -279,7 +279,7 @@ export default function ProfessionalCandidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">{filteredCandidates.length}</div>
-              <p className="text-xs text-slate-500 mt-1">Total profiles</p>
+              <p className="text-sm text-slate-500 mt-1">Total profiles</p>
             </CardContent>
           </Card>
 
@@ -296,7 +296,7 @@ export default function ProfessionalCandidates() {
                   ['phone_screen', 'interview', 'technical', 'final', 'offer'].includes(jc.stage)
                 ).length : 0}
               </div>
-              <p className="text-xs text-slate-500 mt-1">In process</p>
+              <p className="text-sm text-slate-500 mt-1">In process</p>
             </CardContent>
           </Card>
 
@@ -316,7 +316,7 @@ export default function ProfessionalCandidates() {
                   return createdDate >= weekAgo
                 }).length : 0}
               </div>
-              <p className="text-xs text-slate-500 mt-1">Recent additions</p>
+              <p className="text-sm text-slate-500 mt-1">Recent additions</p>
             </CardContent>
           </Card>
 
@@ -329,7 +329,7 @@ export default function ProfessionalCandidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">0</div>
-              <p className="text-xs text-slate-500 mt-1">Starred profiles</p>
+              <p className="text-sm text-slate-500 mt-1">Starred profiles</p>
             </CardContent>
           </Card>
         </div>

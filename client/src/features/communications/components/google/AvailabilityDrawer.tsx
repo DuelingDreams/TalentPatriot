@@ -152,7 +152,7 @@ export function AvailabilityDrawer({ onTimeSelected }: AvailabilityDrawerProps) 
         </div>
 
         <div className="mt-6 p-4 bg-muted rounded-lg">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             <strong>Tip:</strong> Available time slots are shown in your local timezone. 
             Busy times are automatically hidden based on your Google Calendar.
           </p>

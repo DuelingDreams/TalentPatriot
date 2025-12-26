@@ -137,7 +137,7 @@ export function DemoMessages() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{demoMessages.length}</div>
-            <p className="text-xs text-slate-500 mt-1">All conversations</p>
+            <p className="text-sm text-slate-500 mt-1">All conversations</p>
           </CardContent>
         </Card>
 
@@ -150,7 +150,7 @@ export function DemoMessages() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{unreadCount}</div>
-            <p className="text-xs text-slate-500 mt-1">Need attention</p>
+            <p className="text-sm text-slate-500 mt-1">Need attention</p>
           </CardContent>
         </Card>
 
@@ -163,7 +163,7 @@ export function DemoMessages() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{teamCount}</div>
-            <p className="text-xs text-slate-500 mt-1">Internal discussions</p>
+            <p className="text-sm text-slate-500 mt-1">Internal discussions</p>
           </CardContent>
         </Card>
 
@@ -176,7 +176,7 @@ export function DemoMessages() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{clientCount}</div>
-            <p className="text-xs text-slate-500 mt-1">External communications</p>
+            <p className="text-sm text-slate-500 mt-1">External communications</p>
           </CardContent>
         </Card>
       </div>
@@ -207,7 +207,7 @@ export function DemoMessages() {
 
             <div className="p-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
+                <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" />
                   Messages ({filteredMessages.length})
                 </h3>

@@ -8,9 +8,9 @@ export class ErrorBoundary extends React.Component<{children: React.ReactNode},{
     if (this.state.error){
       return (
         <div className="p-6 max-w-lg mx-auto text-center">
-          <h1 className="text-2xl font-semibold mb-2">Something went wrong</h1>
+          <h1 className="text-2xl font-bold leading-tight mb-2">Something went wrong</h1>
           <p className="mb-4">Please try reloading the page.</p>
-          <pre className="text-left text-xs overflow-auto max-h-40 bg-gray-100 p-3 rounded">{this.state.error.message}</pre>
+          <pre className="text-left text-sm overflow-auto max-h-40 bg-gray-100 p-3 rounded">{this.state.error.message}</pre>
           <button onClick={()=>location.reload()} className="px-4 py-2 rounded bg-blue-600 text-white">Reload</button>
         </div>
       );

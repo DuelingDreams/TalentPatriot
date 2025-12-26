@@ -418,7 +418,7 @@ export default function Clients() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900">Client Directory</h1>
+            <h1 className="text-2xl font-bold leading-tight text-neutral-900">Client Directory</h1>
             <p className="text-neutral-600 mt-1">Manage your client organizations</p>
           </div>
           
@@ -461,7 +461,7 @@ export default function Clients() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-neutral-900">{totalClients}</div>
-              <p className="text-xs text-neutral-500 mt-1">Active partnerships</p>
+              <p className="text-sm text-neutral-500 mt-1">Active partnerships</p>
             </CardContent>
           </Card>
 
@@ -474,7 +474,7 @@ export default function Clients() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-neutral-900">{industries}</div>
-              <p className="text-xs text-neutral-500 mt-1">Diverse sectors</p>
+              <p className="text-sm text-neutral-500 mt-1">Diverse sectors</p>
             </CardContent>
           </Card>
 
@@ -487,7 +487,7 @@ export default function Clients() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-neutral-900">{totalOpenPositions}</div>
-              <p className="text-xs text-neutral-500 mt-1">Across all clients</p>
+              <p className="text-sm text-neutral-500 mt-1">Across all clients</p>
             </CardContent>
           </Card>
         </div>
@@ -553,7 +553,7 @@ export default function Clients() {
                                 </button>
                               </Link>
                               {client.website && (
-                                <div className="flex items-center gap-1 text-xs text-neutral-500 mt-1">
+                                <div className="flex items-center gap-1 text-sm text-neutral-500 mt-1">
                                   <Globe className="w-3 h-3" />
                                   <a 
                                     href={client.website} 
@@ -598,7 +598,7 @@ export default function Clients() {
                                 </div>
                               )}
                               {client.contactEmail && (
-                                <div className="flex items-center gap-1 text-xs text-neutral-500">
+                                <div className="flex items-center gap-1 text-sm text-neutral-500">
                                   <Mail className="w-3 h-3" />
                                   {client.contactEmail}
                                 </div>

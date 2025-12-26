@@ -55,7 +55,7 @@ export default function PrivacyPolicy() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Eye className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">Information We Collect</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">Information We Collect</h2>
             </div>
             
             <div className="space-y-6">
@@ -95,7 +95,7 @@ export default function PrivacyPolicy() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <UserCheck className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">How We Use Your Information</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">How We Use Your Information</h2>
             </div>
             
             <ul className="list-disc list-inside space-y-2 text-neutral-600">
@@ -113,7 +113,7 @@ export default function PrivacyPolicy() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Lock className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">Data Security</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">Data Security</h2>
             </div>
             
             <p className="text-neutral-600 mb-4">
@@ -134,7 +134,7 @@ export default function PrivacyPolicy() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Globe className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">Data Sharing and Disclosure</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">Data Sharing and Disclosure</h2>
             </div>
             
             <p className="text-neutral-600 mb-4">
@@ -154,7 +154,7 @@ export default function PrivacyPolicy() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <FileText className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">Your Rights and Choices</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">Your Rights and Choices</h2>
             </div>
             
             <p className="text-neutral-600 mb-4">
@@ -173,7 +173,7 @@ export default function PrivacyPolicy() {
 
           {/* Data Retention */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">Data Retention</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">Data Retention</h2>
             
             <p className="text-neutral-600">
               We retain personal information for as long as necessary to provide our services and comply with legal obligations. Specific retention periods include:
@@ -189,7 +189,7 @@ export default function PrivacyPolicy() {
 
           {/* International Data Transfers */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">International Data Transfers</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">International Data Transfers</h2>
             
             <p className="text-neutral-600">
               Your information may be transferred to and processed in countries other than your country of residence. We ensure appropriate safeguards are in place for international transfers, including standard contractual clauses and other transfer mechanisms approved by relevant authorities.
@@ -198,7 +198,7 @@ export default function PrivacyPolicy() {
 
           {/* Children's Privacy */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">Children's Privacy</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">Children's Privacy</h2>
             
             <p className="text-neutral-600">
               Our services are not intended for children under 16 years of age. We do not knowingly collect personal information from children. If we learn that we have collected information from a child under 16, we will delete that information promptly.
@@ -207,7 +207,7 @@ export default function PrivacyPolicy() {
 
           {/* Changes to Privacy Policy */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">Changes to This Privacy Policy</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">Changes to This Privacy Policy</h2>
             
             <p className="text-neutral-600">
               We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new Privacy Policy on this page and updating the "Last updated" date. We encourage you to review this Privacy Policy periodically.
@@ -218,7 +218,7 @@ export default function PrivacyPolicy() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Mail className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">Contact Us</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">Contact Us</h2>
             </div>
             
             <p className="text-neutral-600 mb-4">
@@ -234,7 +234,7 @@ export default function PrivacyPolicy() {
 
           {/* Legal Basis */}
           <section>
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">Legal Basis for Processing</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">Legal Basis for Processing</h2>
             
             <p className="text-neutral-600 mb-4">
               We process personal information under the following legal bases:

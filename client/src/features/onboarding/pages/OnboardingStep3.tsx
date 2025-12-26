@@ -192,7 +192,7 @@ export default function OnboardingStep3() {
             </Button>
             
             <div className="mt-6 text-center">
-              <p className="text-xs text-neutral-500 leading-relaxed">
+              <p className="text-sm text-neutral-500 leading-relaxed">
                 Step 3 of 5 • You can always change this later in your dashboard
               </p>
             </div>

@@ -274,7 +274,7 @@ export default function OnboardingStep1() {
               </p>
             </div>
 
-            <div className="mt-6 text-xs text-neutral-600 text-center">
+            <div className="mt-6 text-sm text-neutral-600 text-center">
               By creating an account, you agree to our{' '}
               <a href="/terms" className="text-tp-accent hover:underline">Terms of Service</a>
               {' '}and{' '}

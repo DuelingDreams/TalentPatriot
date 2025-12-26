@@ -402,7 +402,7 @@ export default function Jobs() {
                               <div className="flex items-start gap-3 mb-3">
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-lg font-semibold text-neutral-900 truncate" data-testid={`job-title-${job.id}`}>
+                                    <h3 className="text-lg font-bold leading-tight text-neutral-900 truncate" data-testid={`job-title-${job.id}`}>
                                       {job.title}
                                     </h3>
                                     <Badge className={getStatusColor(job.status)} data-testid={`job-status-${job.id}`}>

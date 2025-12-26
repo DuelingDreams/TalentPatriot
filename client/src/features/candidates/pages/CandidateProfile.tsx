@@ -290,7 +290,7 @@ export default function CandidateProfile() {
                             <Badge className={getStageColor(app.stage)}>
                               {formatStageLabel(app.stage)}
                             </Badge>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-sm text-gray-500 mt-1">
                               Updated {formatDistanceToNow(new Date(app.dateUpdated), { addSuffix: true })}
                             </p>
                           </div>
@@ -302,7 +302,7 @@ export default function CandidateProfile() {
                           </div>
                         )}
                         
-                        <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
+                        <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
                           <span>Applied {format(new Date(app.dateApplied), 'MMM d, yyyy')}</span>
                           {app.assignedTo && <span>Assigned to recruiter</span>}
                         </div>
@@ -406,7 +406,7 @@ export default function CandidateProfile() {
                 {applications.map((app: any) => (
                   <div key={app.id}>
                     <div className="mb-4">
-                      <h3 className="text-lg font-semibold">{app.jobTitle}</h3>
+                      <h3 className="text-lg font-bold leading-tight">{app.jobTitle}</h3>
                       <p className="text-sm text-gray-600">{app.clientName}</p>
                     </div>
                     <CandidateNotes
@@ -439,7 +439,7 @@ export default function CandidateProfile() {
                 <div className="text-center py-8 text-gray-500">
                   <Mail className="w-12 h-12 mx-auto mb-2 text-gray-300" />
                   <p>Communication tracking coming soon</p>
-                  <p className="text-xs">Email logs and messages will appear here</p>
+                  <p className="text-sm">Email logs and messages will appear here</p>
                 </div>
               </CardContent>
             </Card>

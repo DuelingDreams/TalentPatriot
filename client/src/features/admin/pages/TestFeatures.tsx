@@ -256,7 +256,7 @@ export function TestFeatures() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Candidate Notes Test */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold leading-tight mb-4 flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
             Candidate Notes Component
           </h2>
@@ -268,7 +268,7 @@ export function TestFeatures() {
 
         {/* Resume Upload Test */}
         <div>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-xl font-bold leading-tight mb-4 flex items-center gap-2">
             <Upload className="h-5 w-5" />
             Resume Upload Component
           </h2>

@@ -204,21 +204,21 @@ export default function IntegrationsSettings() {
                         <Mail className="w-4 h-4 text-slate-600" />
                         <span className="font-medium text-sm text-slate-900">Gmail</span>
                       </div>
-                      <p className="text-xs text-slate-600">Send emails directly</p>
+                      <p className="text-sm text-slate-600">Send emails directly</p>
                     </div>
                     <div className="p-3 border border-slate-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
                         <Calendar className="w-4 h-4 text-slate-600" />
                         <span className="font-medium text-sm text-slate-900">Calendar</span>
                       </div>
-                      <p className="text-xs text-slate-600">Schedule interviews</p>
+                      <p className="text-sm text-slate-600">Schedule interviews</p>
                     </div>
                     <div className="p-3 border border-slate-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
                         <Video className="w-4 h-4 text-slate-600" />
                         <span className="font-medium text-sm text-slate-900">Google Meet</span>
                       </div>
-                      <p className="text-xs text-slate-600">Create video calls</p>
+                      <p className="text-sm text-slate-600">Create video calls</p>
                     </div>
                   </div>
                 </div>
@@ -228,7 +228,7 @@ export default function IntegrationsSettings() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-slate-900">Disconnect Google Account</p>
-                    <p className="text-xs text-slate-600 mt-1">
+                    <p className="text-sm text-slate-600 mt-1">
                       This will remove access to Gmail, Calendar, and Meet features
                     </p>
                   </div>
@@ -278,7 +278,7 @@ export default function IntegrationsSettings() {
                   Connect Google Account
                 </Button>
 
-                <p className="text-xs text-slate-500 text-center">
+                <p className="text-sm text-slate-500 text-center">
                   You'll be redirected to Google to authorize access. We only request permissions for Calendar and Gmail.
                 </p>
               </div>
@@ -302,7 +302,7 @@ export default function IntegrationsSettings() {
                 </div>
                 <div>
                   <p className="font-medium text-slate-700">Microsoft 365</p>
-                  <p className="text-xs text-slate-500">Outlook, Teams, and OneDrive</p>
+                  <p className="text-sm text-slate-500">Outlook, Teams, and OneDrive</p>
                 </div>
               </div>
               <Badge variant="outline">Coming Soon</Badge>
@@ -314,7 +314,7 @@ export default function IntegrationsSettings() {
                 </div>
                 <div>
                   <p className="font-medium text-slate-700">Zoom</p>
-                  <p className="text-xs text-slate-500">Video interviews and recordings</p>
+                  <p className="text-sm text-slate-500">Video interviews and recordings</p>
                 </div>
               </div>
               <Badge variant="outline">Coming Soon</Badge>

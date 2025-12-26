@@ -81,7 +81,7 @@ export default function GuidedCandidateImport({ isOpen, onClose, onComplete }: G
           <div className="space-y-6">
             <div className="text-center">
               <Users className="w-12 h-12 text-indigo-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">How would you like to add candidates?</h3>
+              <h3 className="text-lg font-bold leading-tight mb-2">How would you like to add candidates?</h3>
               <p className="text-slate-600">Choose the method that works best for you</p>
             </div>
             
@@ -148,7 +148,7 @@ export default function GuidedCandidateImport({ isOpen, onClose, onComplete }: G
           return (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold mb-2">Upload Your CSV File</h3>
+                <h3 className="text-lg font-bold leading-tight mb-2">Upload Your CSV File</h3>
                 <p className="text-slate-600">Make sure your file includes columns for name, email, and phone</p>
               </div>
               
@@ -175,7 +175,7 @@ Jane Doe,jane@email.com,555-0124,3 years`}
           return (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold mb-2">Upload Resume Files</h3>
+                <h3 className="text-lg font-bold leading-tight mb-2">Upload Resume Files</h3>
                 <p className="text-slate-600">Support for PDF, DOC, and DOCX files</p>
               </div>
               
@@ -200,7 +200,7 @@ Jane Doe,jane@email.com,555-0124,3 years`}
           return (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold mb-2">Add Candidate Information</h3>
+                <h3 className="text-lg font-bold leading-tight mb-2">Add Candidate Information</h3>
                 <p className="text-slate-600">Enter basic details to get started</p>
               </div>
               
@@ -247,7 +247,7 @@ Jane Doe,jane@email.com,555-0124,3 years`}
           <div className="space-y-6">
             <div className="text-center mb-6">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Ready to Import</h3>
+              <h3 className="text-lg font-bold leading-tight mb-2">Ready to Import</h3>
               <p className="text-slate-600">
                 {importMethod === 'csv' && 'Your CSV file will be processed and candidates added to your database.'}
                 {importMethod === 'resume' && 'Resume files will be parsed and candidate profiles created automatically.'}

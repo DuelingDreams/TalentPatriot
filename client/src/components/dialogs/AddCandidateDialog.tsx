@@ -187,7 +187,7 @@ export function AddCandidateDialog({ children, onSuccess }: AddCandidateDialogPr
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+              <h3 className="text-lg font-bold leading-tight text-gray-900">Basic Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -246,7 +246,7 @@ export function AddCandidateDialog({ children, onSuccess }: AddCandidateDialogPr
 
             {/* Professional Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Professional Information</h3>
+              <h3 className="text-lg font-bold leading-tight text-gray-900">Professional Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -319,7 +319,7 @@ export function AddCandidateDialog({ children, onSuccess }: AddCandidateDialogPr
 
             {/* Resume Upload */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Resume</h3>
+              <h3 className="text-lg font-bold leading-tight text-gray-900">Resume</h3>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
                 {selectedFile ? (
                   <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
@@ -366,7 +366,7 @@ export function AddCandidateDialog({ children, onSuccess }: AddCandidateDialogPr
 
             {/* Additional Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Additional Information</h3>
+              <h3 className="text-lg font-bold leading-tight text-gray-900">Additional Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}

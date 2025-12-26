@@ -1329,7 +1329,7 @@ export default function JobPipeline() {
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Briefcase className="w-8 h-8 text-slate-400" />
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-2">No Jobs Available</h3>
+              <h3 className="text-lg font-bold leading-tight text-slate-900 mb-2">No Jobs Available</h3>
               <p className="text-slate-600 mb-6">Create a job to start managing candidates in the pipeline.</p>
               <Link href="/jobs">
                 <Button>
@@ -1462,7 +1462,7 @@ export default function JobPipeline() {
                     <Label htmlFor="include-completed" className="text-sm font-medium text-slate-700">
                       Show completed candidates
                     </Label>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-sm text-slate-500 mt-1">
                       Include hired and rejected candidates in the pipeline view
                     </p>
                   </div>
@@ -1475,7 +1475,7 @@ export default function JobPipeline() {
                 />
               </div>
               {jobPipelineData?.applications && (
-                <div className="flex items-center gap-4 mt-3 text-xs text-slate-600">
+                <div className="flex items-center gap-4 mt-3 text-sm text-slate-600">
                   <span>
                     Active: {jobPipelineData.applications.filter((app: any) => 
                       !['hired', 'rejected'].includes(app.stage)

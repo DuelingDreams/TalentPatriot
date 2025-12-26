@@ -281,7 +281,7 @@ export default function Landing() {
                   loading="lazy"
                 />
               </div>
-              <span className="text-lg font-semibold text-neutral-900">TalentPatriot</span>
+              <span className="text-lg font-bold leading-tight text-neutral-900">TalentPatriot</span>
             </div>
             
             <nav className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm text-neutral-500">

@@ -40,7 +40,7 @@ export class ComponentErrorBoundary extends React.Component<Props, State> {
         <Card className="m-4">
           <CardContent className="p-6 text-center">
             <AlertTriangle className="w-12 h-12 text-orange-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-bold leading-tight text-gray-900 mb-2">
               Something went wrong
             </h3>
             <p className="text-gray-600 mb-4">

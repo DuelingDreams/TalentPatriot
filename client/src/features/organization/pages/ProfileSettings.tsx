@@ -204,7 +204,7 @@ export default function ProfileSettings() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   {/* Basic Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                       <UserCheck className="w-5 h-5 text-tp-accent" />
                       Basic Information
                     </h3>
@@ -254,7 +254,7 @@ export default function ProfileSettings() {
                             />
                           </FormControl>
                           <FormMessage />
-                          <p className="text-xs text-neutral-600">
+                          <p className="text-sm text-neutral-600">
                             Email address cannot be changed. Contact support if you need to update it.
                           </p>
                         </FormItem>
@@ -266,7 +266,7 @@ export default function ProfileSettings() {
 
                   {/* Contact Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                       <Phone className="w-5 h-5 text-tp-accent" />
                       Contact Information
                     </h3>
@@ -304,7 +304,7 @@ export default function ProfileSettings() {
 
                   {/* Professional Information */}
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <h3 className="text-lg font-bold leading-tight flex items-center gap-2">
                       <Building2 className="w-5 h-5 text-tp-accent" />
                       Professional Information
                     </h3>

@@ -45,7 +45,7 @@ export function PipelineOverview({ data = defaultData, loading }: PipelineOvervi
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-lg font-semibold">Pipeline Overview</CardTitle>
+        <CardTitle className="text-lg font-bold leading-tight">Pipeline Overview</CardTitle>
         <BarChart3 className="w-4 h-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>

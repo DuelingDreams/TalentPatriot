@@ -542,7 +542,7 @@ export default function Messages() {
                       <Mail className="h-8 w-8 text-info-600" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-neutral-900">Connect Your Email</h3>
+                      <h3 className="text-lg font-bold leading-tight text-neutral-900">Connect Your Email</h3>
                       <p className="text-sm text-neutral-600 mt-1 max-w-sm mx-auto">
                         Connect your Google account to send emails directly from TalentPatriot and schedule interviews with calendar integration.
                       </p>

@@ -40,7 +40,7 @@ export function JobsChart({ data = defaultData, loading }: JobsChartProps) {
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-lg font-semibold">Jobs by Status</CardTitle>
+        <CardTitle className="text-lg font-bold leading-tight">Jobs by Status</CardTitle>
         <PieChartIcon className="w-4 h-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>

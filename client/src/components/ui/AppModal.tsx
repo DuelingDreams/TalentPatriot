@@ -115,7 +115,7 @@ export function AppModal({ open, onClose, title, children, footer, className = "
             aria-labelledby="modal-title"
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4 px-6 pt-6">
-              <CardTitle id="modal-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <CardTitle id="modal-title" className="text-lg font-bold leading-tight text-slate-900 dark:text-slate-100">
                 {title}
               </CardTitle>
               <Button

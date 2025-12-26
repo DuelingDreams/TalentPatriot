@@ -366,7 +366,7 @@ export default function AccountSettings() {
                     Reconnect Google Account
                   </Button>
 
-                  <p className="text-xs text-neutral-500 text-center">
+                  <p className="text-sm text-neutral-500 text-center">
                     You'll be redirected to Google to reauthorize access.
                   </p>
                 </div>
@@ -392,21 +392,21 @@ export default function AccountSettings() {
                         <Mail className="w-4 h-4 text-tp-accent" />
                         <span className="font-medium text-sm">Gmail</span>
                       </div>
-                      <p className="text-xs text-neutral-600">Send emails from Messages</p>
+                      <p className="text-sm text-neutral-600">Send emails from Messages</p>
                     </div>
                     <div className="p-3 border border-neutral-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
                         <Calendar className="w-4 h-4 text-tp-accent" />
                         <span className="font-medium text-sm">Calendar</span>
                       </div>
-                      <p className="text-xs text-neutral-600">Schedule interviews</p>
+                      <p className="text-sm text-neutral-600">Schedule interviews</p>
                     </div>
                     <div className="p-3 border border-neutral-200 rounded-lg">
                       <div className="flex items-center gap-2 mb-1">
                         <Video className="w-4 h-4 text-tp-accent" />
                         <span className="font-medium text-sm">Google Meet</span>
                       </div>
-                      <p className="text-xs text-neutral-600">Auto-create video links</p>
+                      <p className="text-sm text-neutral-600">Auto-create video links</p>
                     </div>
                   </div>
 
@@ -414,7 +414,7 @@ export default function AccountSettings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium">Disconnect Google Account</p>
-                      <p className="text-xs text-neutral-500 mt-1">
+                      <p className="text-sm text-neutral-500 mt-1">
                         You will no longer be able to send emails from TalentPatriot
                       </p>
                     </div>
@@ -463,7 +463,7 @@ export default function AccountSettings() {
                     Connect Google Account
                   </Button>
 
-                  <p className="text-xs text-neutral-500 text-center">
+                  <p className="text-sm text-neutral-500 text-center">
                     You'll be redirected to Google to authorize access. We only request permissions for Gmail and Calendar.
                   </p>
                 </div>
@@ -636,7 +636,7 @@ export default function AccountSettings() {
                   Generate New Key
                 </Button>
               </div>
-              <p className="text-xs text-neutral-500">
+              <p className="text-sm text-neutral-500">
                 Keep your API key secure. Do not share it publicly.
               </p>
             </CardContent>

@@ -129,7 +129,7 @@ export function OrganizationUsers({ orgId }: OrganizationUsersProps) {
                       <Badge variant={getRoleBadgeVariant(member.role) as any}>
                         {member.role}
                       </Badge>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-sm text-gray-500">
                         Joined {new Date(member.joined_at).toLocaleDateString()}
                       </span>
                     </div>

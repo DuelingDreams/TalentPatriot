@@ -149,7 +149,7 @@ export function DemoDashboard() {
       {/* Performance Overview */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Performance Overview</CardTitle>
+          <CardTitle className="text-lg font-bold leading-tight">Performance Overview</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
@@ -197,7 +197,7 @@ export function DemoDashboard() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+              <CardTitle className="text-lg font-bold leading-tight">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <button
@@ -263,7 +263,7 @@ export function DemoDashboard() {
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-tp-primary mb-2">
+              <h3 className="text-lg font-bold leading-tight text-tp-primary mb-2">
                 🎯 Demo Mode Active
               </h3>
               <p className="text-info-700 mb-4">

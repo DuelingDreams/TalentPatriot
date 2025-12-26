@@ -55,7 +55,7 @@ export default function TermsOfService() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Scale className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">1. Acceptance of Terms</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">1. Acceptance of Terms</h2>
             </div>
             
             <p className="text-neutral-600 mb-4">
@@ -69,7 +69,7 @@ export default function TermsOfService() {
 
           {/* Service Description */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">2. Service Description</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">2. Service Description</h2>
             
             <p className="text-neutral-600 mb-4">
               TalentPatriot provides a cloud-based applicant tracking system that enables organizations to:
@@ -89,7 +89,7 @@ export default function TermsOfService() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Users className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">3. Account Registration and Security</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">3. Account Registration and Security</h2>
             </div>
             
             <div className="space-y-4 text-neutral-600">
@@ -111,7 +111,7 @@ export default function TermsOfService() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Shield className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">4. Acceptable Use Policy</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">4. Acceptable Use Policy</h2>
             </div>
             
             <p className="text-neutral-600 mb-4">
@@ -132,7 +132,7 @@ export default function TermsOfService() {
 
           {/* Intellectual Property */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">5. Intellectual Property Rights</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">5. Intellectual Property Rights</h2>
             
             <div className="space-y-4 text-neutral-600">
               <div>
@@ -160,7 +160,7 @@ export default function TermsOfService() {
 
           {/* Payment Terms */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">6. Payment Terms</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">6. Payment Terms</h2>
             
             <div className="space-y-4 text-neutral-600">
               <p>Certain features of the Service require payment. You agree to:</p>
@@ -186,7 +186,7 @@ export default function TermsOfService() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <Ban className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">7. Termination</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">7. Termination</h2>
             </div>
             
             <div className="space-y-4 text-neutral-600">
@@ -215,7 +215,7 @@ export default function TermsOfService() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <AlertCircle className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">8. Disclaimers and Limitations</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">8. Disclaimers and Limitations</h2>
             </div>
             
             <div className="space-y-4 text-neutral-600">
@@ -242,7 +242,7 @@ export default function TermsOfService() {
 
           {/* Indemnification */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">9. Indemnification</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">9. Indemnification</h2>
             
             <p className="text-neutral-600">
               You agree to indemnify, defend, and hold harmless TalentPatriot and its officers, directors, employees, and agents from any claims, liabilities, damages, losses, and expenses arising from your use of the Service or violation of these Terms.
@@ -251,7 +251,7 @@ export default function TermsOfService() {
 
           {/* Governing Law */}
           <section className="mb-10">
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">10. Governing Law and Disputes</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">10. Governing Law and Disputes</h2>
             
             <div className="space-y-4 text-neutral-600">
               <p>
@@ -268,7 +268,7 @@ export default function TermsOfService() {
           <section className="mb-10">
             <div className="flex items-center gap-3 mb-4">
               <RefreshCw className="w-6 h-6 text-tp-accent" />
-              <h2 className="text-2xl font-semibold text-neutral-900">11. Changes to Terms</h2>
+              <h2 className="text-2xl font-bold leading-tight text-neutral-900">11. Changes to Terms</h2>
             </div>
             
             <p className="text-neutral-600">
@@ -278,7 +278,7 @@ export default function TermsOfService() {
 
           {/* Contact Information */}
           <section>
-            <h2 className="text-2xl font-semibold text-neutral-900 mb-4">12. Contact Information</h2>
+            <h2 className="text-2xl font-bold leading-tight text-neutral-900 mb-4">12. Contact Information</h2>
             
             <p className="text-neutral-600 mb-4">
               If you have any questions about these Terms, please contact us:

@@ -115,7 +115,7 @@ export default function Candidates() {
               <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Building2 className="w-8 h-8 text-info-600" />
               </div>
-              <CardTitle className="text-xl font-semibold">Organization Setup Required</CardTitle>
+              <CardTitle className="text-xl font-bold leading-tight">Organization Setup Required</CardTitle>
               <p className="text-base text-neutral-700 mt-2">
                 You need to set up your organization before you can manage candidates.
               </p>
@@ -159,7 +159,7 @@ export default function Candidates() {
             <div className="w-16 h-16 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileX className="w-8 h-8 text-error-600" />
             </div>
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Unable to Load Candidates</h3>
+            <h3 className="text-lg font-bold leading-tight text-neutral-900 mb-2">Unable to Load Candidates</h3>
             <p className="text-neutral-600 mb-4">There was an issue loading your candidates. Please try refreshing the page.</p>
             <Button onClick={() => window.location.reload()} className="bg-tp-accent text-white">
               Refresh Page
@@ -239,7 +239,7 @@ export default function Candidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-neutral-900">{totalCandidates}</div>
-              <p className="text-xs text-neutral-600 mt-1">Total in database</p>
+              <p className="text-sm text-neutral-600 mt-1">Total in database</p>
             </CardContent>
           </Card>
           
@@ -249,7 +249,7 @@ export default function Candidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-neutral-900">{activeCandidates}</div>
-              <p className="text-xs text-neutral-600 mt-1">Currently interviewing</p>
+              <p className="text-sm text-neutral-600 mt-1">Currently interviewing</p>
             </CardContent>
           </Card>
           
@@ -259,7 +259,7 @@ export default function Candidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-neutral-900">{newThisWeek}</div>
-              <p className="text-xs text-neutral-600 mt-1">Recent additions</p>
+              <p className="text-sm text-neutral-600 mt-1">Recent additions</p>
             </CardContent>
           </Card>
           
@@ -269,7 +269,7 @@ export default function Candidates() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-neutral-900">{favoriteCandidates}</div>
-              <p className="text-xs text-neutral-600 mt-1">Starred candidates</p>
+              <p className="text-sm text-neutral-600 mt-1">Starred candidates</p>
             </CardContent>
           </Card>
         </div>
@@ -420,7 +420,7 @@ export default function Candidates() {
               <div className="w-16 h-16 bg-info-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-info-600" />
               </div>
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              <h3 className="text-lg font-bold leading-tight text-neutral-900 mb-2">
                 {searchQuery ? 'No candidates found' : 'Start Building Your Talent Pool'}
               </h3>
               <p className="text-neutral-600 mb-6">

@@ -406,7 +406,7 @@ export function ResumeUpload({
               View Resume
             </Button>
           ) : (
-            <span className="text-xs text-slate-500">No resume uploaded</span>
+            <span className="text-sm text-slate-500">No resume uploaded</span>
           )}
         </div>
 
@@ -443,14 +443,14 @@ export function ResumeUpload({
         {uploading && (
           <div className="space-y-2">
             <Progress value={uploadProgress} className="h-2" />
-            <p className="text-xs text-slate-600">Uploading resume...</p>
+            <p className="text-sm text-slate-600">Uploading resume...</p>
           </div>
         )}
 
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs">{error}</AlertDescription>
+            <AlertDescription className="text-sm">{error}</AlertDescription>
           </Alert>
         )}
       </div>
@@ -577,7 +577,7 @@ export function ResumeUpload({
                 />
               </div>
               
-              <div className="text-xs text-gray-500">
+              <div className="text-sm text-gray-500">
                 Supported formats: {acceptedFileTypes.map(type => {
                   switch(type) {
                     case 'application/pdf': return 'PDF'

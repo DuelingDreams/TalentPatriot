@@ -327,7 +327,7 @@ export function DataExport() {
               <p className="text-yellow-800 dark:text-yellow-200 text-sm font-medium mb-2">
                 Warnings ({importProgress.errors.length}):
               </p>
-              <ul className="text-yellow-700 dark:text-yellow-300 text-xs space-y-1">
+              <ul className="text-yellow-700 dark:text-yellow-300 text-sm space-y-1">
                 {importProgress.errors.slice(0, 5).map((error, index) => (
                   <li key={index}>• {error}</li>
                 ))}
@@ -338,7 +338,7 @@ export function DataExport() {
             </div>
           )}
 
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             <p className="font-medium mb-1">Supported formats:</p>
             <ul className="space-y-1">
               <li>• CSV files with headers matching our candidate fields</li>
@@ -394,7 +394,7 @@ export function DataExport() {
             </div>
           </div>
 
-          <div className="text-xs text-gray-600 dark:text-gray-400">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
             <p className="font-medium mb-1">Backup includes:</p>
             <ul className="space-y-1">
               <li>• All candidate profiles and resumes</li>

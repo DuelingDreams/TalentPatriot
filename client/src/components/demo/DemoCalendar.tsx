@@ -122,7 +122,7 @@ export function DemoCalendar() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">{demoInterviews.length}</div>
-            <p className="text-xs text-slate-500 mt-1">Scheduled</p>
+            <p className="text-sm text-slate-500 mt-1">Scheduled</p>
           </CardContent>
         </Card>
 
@@ -135,7 +135,7 @@ export function DemoCalendar() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">12</div>
-            <p className="text-xs text-slate-500 mt-1">Total interviews</p>
+            <p className="text-sm text-slate-500 mt-1">Total interviews</p>
           </CardContent>
         </Card>
 
@@ -148,7 +148,7 @@ export function DemoCalendar() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">8</div>
-            <p className="text-xs text-slate-500 mt-1">Remote interviews</p>
+            <p className="text-sm text-slate-500 mt-1">Remote interviews</p>
           </CardContent>
         </Card>
 
@@ -161,7 +161,7 @@ export function DemoCalendar() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-slate-900">94%</div>
-            <p className="text-xs text-slate-500 mt-1">This month</p>
+            <p className="text-sm text-slate-500 mt-1">This month</p>
           </CardContent>
         </Card>
       </div>
@@ -171,7 +171,7 @@ export function DemoCalendar() {
         <Card className="lg:col-span-2">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold">{currentMonth}</CardTitle>
+              <CardTitle className="text-lg font-bold leading-tight">{currentMonth}</CardTitle>
               <div className="flex gap-2">
                 <Button variant="ghost" size="sm">
                   <ChevronLeft className="w-4 h-4" />
@@ -234,7 +234,7 @@ export function DemoCalendar() {
         {/* Selected Day Details */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">
+            <CardTitle className="text-lg font-bold leading-tight">
               {selectedDate === today ? 'Today, July 16' : `July ${selectedDate}`}
             </CardTitle>
           </CardHeader>

@@ -68,7 +68,7 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
               <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-lg">T</span>
               </div>
-              <span className="text-lg font-semibold text-white">TalentPatriot</span>
+              <span className="text-lg font-bold leading-tight text-white">TalentPatriot</span>
             </div>
           </div>
 

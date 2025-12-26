@@ -53,7 +53,7 @@ function FileUploadArea({ onFileSelect, isUploading }: FileUploadAreaProps) {
       <p className="text-sm text-gray-500 mb-4">
         Drag and drop your file here, or click to browse
       </p>
-      <p className="text-xs text-gray-400">
+      <p className="text-sm text-gray-400">
         Supported formats: CSV, XLS, XLSX (Max 10MB)
       </p>
     </div>
@@ -244,7 +244,7 @@ function ImportDetails({ importData, onBack }: ImportDetailsProps) {
                   <div className="font-medium text-sm">Row {record.rowNumber}</div>
                   <div className="text-sm text-red-600">{record.errorMessage}</div>
                   {record.originalData && (
-                    <div className="text-xs text-gray-600 mt-1 font-mono">
+                    <div className="text-sm text-gray-600 mt-1 font-mono">
                       {JSON.stringify(record.originalData, null, 2).substring(0, 200)}...
                     </div>
                   )}

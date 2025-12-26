@@ -243,7 +243,7 @@ export default function Reports() {
             <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <BarChart3 className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-bold leading-tight text-gray-900 dark:text-white mb-2">
               No Data Available
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
@@ -282,7 +282,7 @@ export default function Reports() {
             <div className="text-2xl font-bold" data-testid="text-avg-time-to-hire">
               {metrics?.summary?.avgTimeToHire || metrics?.timeToHire.average || 0} days
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {metrics?.timeToHire.trend && metrics.timeToHire.trend > 0 ? '+' : ''}
               {metrics?.timeToHire.trend || 0}% from last period
             </p>
@@ -298,7 +298,7 @@ export default function Reports() {
             <div className="text-2xl font-bold" data-testid="text-total-applications">
               {metrics?.summary?.totalApplications || metrics?.pipelineConversion?.applied || 0}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Across all open positions
             </p>
           </CardContent>
@@ -316,7 +316,7 @@ export default function Reports() {
                 ? (((metrics?.pipelineConversion?.hired || 0) / (metrics?.pipelineConversion?.applied || 1)) * 100).toFixed(1)
                 : 0)}%
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Application to hire rate
             </p>
           </CardContent>
@@ -331,7 +331,7 @@ export default function Reports() {
             <div className="text-2xl font-bold" data-testid="text-total-hires">
               {metrics?.summary?.totalHires || metrics?.pipelineConversion?.hired || 0}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Successfully placed candidates
             </p>
           </CardContent>

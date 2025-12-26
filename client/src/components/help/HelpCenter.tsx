@@ -213,7 +213,7 @@ export function HelpCenter() {
           <TabsContent value="getting-started" className="space-y-8">
             {/* Quick Actions */}
             <div className="mb-8">
-              <h2 className="text-2xl font-semibold mb-4">Quick Actions</h2>
+              <h2 className="text-2xl font-bold leading-tight mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {quickActions.map((action, index) => (
                   <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
@@ -241,7 +241,7 @@ export function HelpCenter() {
 
             {/* Popular Tutorials */}
             <div>
-              <h2 className="text-2xl font-semibold mb-4">Popular Tutorials</h2>
+              <h2 className="text-2xl font-bold leading-tight mb-4">Popular Tutorials</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {helpItems.slice(0, 3).map((item) => (
                   <Card key={item.id} className="hover:shadow-md transition-shadow">
@@ -340,7 +340,7 @@ export function HelpCenter() {
             {filteredItems.length === 0 && (
               <div className="text-center py-12">
                 <Search className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-slate-600 mb-2">No results found</h3>
+                <h3 className="text-lg font-bold leading-tight text-slate-600 mb-2">No results found</h3>
                 <p className="text-slate-500">Try adjusting your search or browse different categories</p>
               </div>
             )}
@@ -349,7 +349,7 @@ export function HelpCenter() {
           {/* FAQ Tab */}
           <TabsContent value="faq">
             <div className="max-w-4xl mx-auto">
-              <h2 className="text-2xl font-semibold mb-6">Frequently Asked Questions</h2>
+              <h2 className="text-2xl font-bold leading-tight mb-6">Frequently Asked Questions</h2>
               <div className="space-y-4">
                 {faqItems.map((faq) => (
                   <Card key={faq.id}>

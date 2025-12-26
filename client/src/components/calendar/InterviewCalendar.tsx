@@ -71,7 +71,7 @@ const InterviewCard = ({ interview }: { interview: any }) => (
             <StatusBadge status={interview.status} />
           </div>
           
-          <div className="space-y-1 text-xs text-muted-foreground">
+          <div className="space-y-1 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               <span>{format(interview.scheduledAt, 'h:mm a')} ({interview.duration} min)</span>
@@ -97,7 +97,7 @@ const InterviewCard = ({ interview }: { interview: any }) => (
       </div>
       
       {interview.notes && (
-        <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
+        <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
           {interview.notes}
         </p>
       )}

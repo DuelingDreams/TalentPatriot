@@ -255,7 +255,7 @@ export default function OnboardingStep4() {
                   <div className={`w-24 h-24 ${currentStepData.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
                     <currentStepData.icon className="w-12 h-12 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+                  <h3 className="text-lg font-bold leading-tight text-neutral-900 mb-2">
                     Interactive Preview
                   </h3>
                   <p className="text-neutral-600 text-sm">

@@ -226,7 +226,7 @@ export default function ResetPassword() {
                 {passwordError && (
                   <p className="text-sm text-red-600">{passwordError}</p>
                 )}
-                <p className="text-xs text-neutral-600">
+                <p className="text-sm text-neutral-600">
                   Password must be at least 6 characters long
                 </p>
               </div>

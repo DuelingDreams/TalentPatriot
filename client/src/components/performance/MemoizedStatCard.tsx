@@ -47,7 +47,7 @@ export const MemoizedStatCard = React.memo(function StatCard({
           <p className="text-2xl font-bold text-slate-900">{value}</p>
           <p className="text-sm font-medium text-slate-600">{title}</p>
           {description && (
-            <p className="text-xs text-slate-500">{description}</p>
+            <p className="text-sm text-slate-500">{description}</p>
           )}
         </div>
       </CardContent>

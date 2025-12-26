@@ -72,7 +72,7 @@ export function CandidateNotesDialog({
         {/* Add Note Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-slate-900">Add New Note</h3>
+            <h3 className="font-bold leading-tight text-slate-900">Add New Note</h3>
             <Button
               size="sm"
               onClick={() => setIsAddingNote(!isAddingNote)}
@@ -133,7 +133,7 @@ export function CandidateNotesDialog({
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-slate-600" />
-            <h3 className="font-medium text-slate-900">All Notes ({notes.length})</h3>
+            <h3 className="font-bold leading-tight text-slate-900">All Notes ({notes.length})</h3>
           </div>
 
           {isLoading ? (

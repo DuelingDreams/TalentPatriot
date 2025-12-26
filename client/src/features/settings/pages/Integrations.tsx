@@ -407,7 +407,7 @@ export default function Integrations() {
 
         {/* Coming Soon Integrations */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Coming Soon</h2>
+          <h2 className="text-xl font-bold leading-tight">Coming Soon</h2>
           
           <Card className="opacity-60">
             <CardHeader>

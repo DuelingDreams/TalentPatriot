@@ -264,7 +264,7 @@ export default function Signup() {
                 </Link>
               </p>
               
-              <p className="text-xs text-slate-500 mt-4 leading-relaxed">
+              <p className="text-sm text-slate-500 mt-4 leading-relaxed">
                 By creating an account, you agree to TalentPatriot's{' '}
                 <a href="#" className="text-indigo-600 hover:underline">Terms of Service</a>
                 {' '}and{' '}

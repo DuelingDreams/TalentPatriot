@@ -230,7 +230,7 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
                           </Badge>
                         )}
                       </div>
-                      <p className="tp-body text-neutral-600 text-xs">
+                      <p className="tp-body text-neutral-600 text-sm">
                         {action.description}
                       </p>
                     </div>
@@ -272,7 +272,7 @@ export function QuickActions({ actions, onActionClick }: QuickActionsProps) {
         </div>
         
         <div className="mt-4 pt-4 border-t border-tp-card-surface">
-          <p className="tp-body text-neutral-600 text-xs text-center">
+          <p className="tp-body text-neutral-600 text-sm text-center">
             Need help? <Link href="/help" className="text-tp-accent hover:underline">View all actions</Link>
           </p>
         </div>

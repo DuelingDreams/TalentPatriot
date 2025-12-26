@@ -90,7 +90,7 @@ export function EmailComposer({
           className="bg-muted"
           data-testid="input-email-from"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           This is your organization's sending email address
         </p>
       </div>

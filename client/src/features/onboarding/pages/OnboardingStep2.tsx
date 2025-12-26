@@ -261,7 +261,7 @@ export default function OnboardingStep2() {
                         >
                           <div>
                             <div className="font-medium text-neutral-900">{option.label}</div>
-                            <div className="text-xs text-neutral-600 mt-1">{option.description}</div>
+                            <div className="text-sm text-neutral-600 mt-1">{option.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -281,7 +281,7 @@ export default function OnboardingStep2() {
             </form>
             
             <div className="mt-6 text-center">
-              <p className="text-xs text-neutral-500 leading-relaxed">
+              <p className="text-sm text-neutral-500 leading-relaxed">
                 Step 2 of 3 • This helps us customize your TalentPatriot experience
               </p>
             </div>

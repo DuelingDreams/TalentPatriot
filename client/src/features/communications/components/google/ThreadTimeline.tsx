@@ -107,13 +107,13 @@ export function ThreadTimeline({ events, className }: ThreadTimelineProps) {
                   {event.type}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground mb-2">
+              <p className="text-sm text-muted-foreground mb-2">
                 {safeFormatDate(event.timestamp)}
               </p>
 
               {/* Event metadata */}
               {event.metadata && (
-                <div className="text-xs text-muted-foreground space-y-1">
+                <div className="text-sm text-muted-foreground space-y-1">
                   {event.metadata.to && (
                     <p>To: {event.metadata.to}</p>
                   )}

@@ -130,7 +130,7 @@ export function SupportCenter() {
 
         {/* Support Options */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6">Contact Support</h2>
+          <h2 className="text-2xl font-bold leading-tight mb-6">Contact Support</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {supportOptions.map((option, index) => (
               <Card key={index} className="hover:shadow-md transition-shadow">
@@ -177,7 +177,7 @@ export function SupportCenter() {
 
         {/* Common Issues */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6">Common Issues & Solutions</h2>
+          <h2 className="text-2xl font-bold leading-tight mb-6">Common Issues & Solutions</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {commonIssues.map((item, index) => (
               <Card key={index} className="hover:shadow-sm transition-shadow">
@@ -207,7 +207,7 @@ export function SupportCenter() {
 
         {/* Quick Fixes */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold mb-6">Quick Troubleshooting Steps</h2>
+          <h2 className="text-2xl font-bold leading-tight mb-6">Quick Troubleshooting Steps</h2>
           <Card>
             <CardHeader>
               <CardTitle>Before contacting support, try these steps:</CardTitle>
@@ -249,7 +249,7 @@ export function SupportCenter() {
                   Critical Issues Email
                 </Button>
               </div>
-              <p className="text-xs text-red-600 mt-3">
+              <p className="text-sm text-red-600 mt-3">
                 Emergency support is available 24/7 for critical issues only
               </p>
             </CardContent>

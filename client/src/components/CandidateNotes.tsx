@@ -280,7 +280,7 @@ export function CandidateNotes({ candidateId, jobCandidateId, className }: Candi
                       <p className="font-medium text-sm">
                         {note.authorEmail || 'Unknown User'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-sm text-gray-500">
                         {formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })}
                       </p>
                     </div>

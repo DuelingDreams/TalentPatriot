@@ -64,7 +64,7 @@ export default function ClientDetail() {
                 <Building2 className="w-6 h-6 text-info-600" />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold text-neutral-900">{client.name}</h1>
+                <h1 className="text-2xl font-bold leading-tight text-neutral-900">{client.name}</h1>
                 <div className="flex items-center gap-4 mt-1">
                   {client.industry && (
                     <Badge variant="outline">{client.industry}</Badge>

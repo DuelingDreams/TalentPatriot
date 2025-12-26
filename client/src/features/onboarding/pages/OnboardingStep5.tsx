@@ -150,7 +150,7 @@ export default function OnboardingStep5() {
 
         {/* Quick Actions */}
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-center mb-2 text-tp-primary">
+          <h2 className="text-2xl font-bold leading-tight text-center mb-2 text-tp-primary">
             {selectedGoal === 'create-job' ? "Let's post your first job!" :
              selectedGoal === 'import-candidates' ? "Let's import your candidates!" :
              selectedGoal === 'invite-team' ? "Let's build your team!" :
@@ -196,7 +196,7 @@ export default function OnboardingStep5() {
           <CardContent className="p-8 text-center">
             <MessageCircle className="w-12 h-12 text-tp-accent mx-auto mb-4" />
             
-            <h3 className="text-xl font-semibold mb-3 text-tp-primary">
+            <h3 className="text-xl font-bold leading-tight mb-3 text-tp-primary">
               Need help getting started?
             </h3>
             
