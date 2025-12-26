@@ -17,38 +17,61 @@ const SCOPES = [
 ];
 
 /**
- * Production domain for OAuth redirects
- * Uses centralized callback pattern - Google OAuth does NOT support wildcard redirect URIs
+ * Allowed domains for OAuth redirects
+ * Each domain must be registered in Google Cloud Console as an authorized redirect URI
  */
-const PRODUCTION_DOMAIN = 'talentpatriot.com';
+const ALLOWED_OAUTH_DOMAINS = [
+  'talentpatriot.com',
+  'talentpatriot.replit.app',
+];
 
 /**
- * Centralized OAuth redirect URI
- * Google Cloud Console Configuration: https://talentpatriot.com/auth/google/callback
+ * Get the OAuth redirect URI based on the request host
+ * Dynamically determines the correct callback URL based on which domain the user is accessing
  * 
- * NOTE: Google does NOT support wildcard redirect URIs (*.talentpatriot.com)
- * We use a single callback URL and handle subdomain redirects server-side
- */
-const OAUTH_REDIRECT_URI = `https://${PRODUCTION_DOMAIN}/auth/google/callback`;
-
-/**
- * Get the centralized OAuth redirect URI
- * Uses GOOGLE_REDIRECT_URI environment variable if set, otherwise falls back to production domain
+ * Priority:
+ * 1. GOOGLE_REDIRECT_URI environment variable (if set)
+ * 2. Dynamic detection based on request host (if in allowed list)
+ * 3. Fallback to talentpatriot.com
  * 
- * @param host - The host header from the request (used for validation in production)
- * @returns Centralized redirect URI from env or production default
+ * IMPORTANT: All domains must be registered in Google Cloud Console:
+ * - https://talentpatriot.com/auth/google/callback
+ * - https://talentpatriot.replit.app/auth/google/callback
+ * 
+ * @param host - The host header from the request
+ * @returns OAuth redirect URI matching the user's access domain
  */
 export function getRedirectUri(host: string | undefined): string {
-  // Use the environment variable if set (for both dev and prod)
+  // Priority 1: Use environment variable if set (for explicit override)
   const envRedirectUri = process.env.GOOGLE_REDIRECT_URI;
   if (envRedirectUri) {
     console.log('📍 [OAuth] Using GOOGLE_REDIRECT_URI from environment:', envRedirectUri);
     return envRedirectUri;
   }
 
-  // Fallback to production domain
-  console.log('📍 [OAuth] No GOOGLE_REDIRECT_URI set, using production default:', OAUTH_REDIRECT_URI);
-  return OAUTH_REDIRECT_URI;
+  // Priority 2: Dynamic detection based on request host
+  if (host) {
+    // Remove port if present
+    const hostWithoutPort = host.split(':')[0];
+    
+    // Check if the host is in our allowed domains list
+    const matchedDomain = ALLOWED_OAUTH_DOMAINS.find(domain => 
+      hostWithoutPort === domain || hostWithoutPort.endsWith(`.${domain}`)
+    );
+    
+    if (matchedDomain) {
+      const redirectUri = `https://${hostWithoutPort}/auth/google/callback`;
+      console.log('📍 [OAuth] Using dynamic redirect URI based on host:', redirectUri);
+      return redirectUri;
+    }
+    
+    console.log('⚠️ [OAuth] Host not in allowed list:', hostWithoutPort, '- falling back to default');
+  }
+
+  // Priority 3: Fallback to primary domain
+  const fallbackUri = `https://${ALLOWED_OAUTH_DOMAINS[0]}/auth/google/callback`;
+  console.log('📍 [OAuth] Using fallback redirect URI:', fallbackUri);
+  return fallbackUri;
 }
 
 /**
