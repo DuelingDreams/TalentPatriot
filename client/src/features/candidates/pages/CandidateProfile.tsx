@@ -34,7 +34,7 @@ import { useCandidateCampaigns } from '@/features/candidates/hooks/useCandidateC
 import { useAuth } from '@/contexts/AuthContext'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { toCamelCase } from '@shared/utils/caseConversion'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/shared/hooks/use-toast'
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>()
