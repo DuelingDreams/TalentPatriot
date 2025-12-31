@@ -9,7 +9,8 @@ import {
   MessageSquare,
   BarChart3,
   Settings,
-  Globe
+  Globe,
+  Building2
 } from 'lucide-react'
 import { useCurrentOrganization } from '@/features/organization/hooks/useOrganizations'
 
@@ -22,6 +23,7 @@ interface SidebarProps {
 const navigationItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Jobs', href: '/jobs', icon: Briefcase, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
+  { label: 'Clients', href: '/clients', icon: Building2, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Pipeline', href: '/pipeline', icon: Kanban, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Candidates', href: '/candidates', icon: Users, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
