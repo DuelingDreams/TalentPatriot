@@ -1,15 +1,11 @@
-import type { Express, Request, Response } from "express";
-import express from "express";
-import rateLimit from "express-rate-limit";
+import type { Express, Response } from "express";
 import { createServer, type Server } from "http";
-import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { storage } from "./storage/index";
 import { z } from 'zod';
 import { uploadRouter } from "./routes/upload";
 import { createGoogleAuthRoutes } from "./routes/google-auth";
 import { createGoogleCalendarRoutes } from "./routes/google-calendar";
-// Unused pipeline imports removed - using job-specific functions instead
 import { 
   insertCandidateSchema, 
   insertJobSchema, 
@@ -31,175 +27,22 @@ import {
   type DataImport,
   type ImportRecord
 } from "../shared/schema";
-import { createClient } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 import crypto from "crypto";
-import multer from 'multer';
 import { ImportService } from './lib/importService';
 
-// Configure multer for file uploads (in-memory storage)
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    // Accept CSV and Excel files
-    const allowedMimes = [
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
-    
-    if (allowedMimes.includes(file.mimetype) || file.originalname.match(/\.(csv|xls|xlsx)$/i)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only CSV, XLS, and XLSX files are allowed'), false);
-    }
-  }
-});
-
-// Authentication and Authorization Middleware
-interface AuthenticatedRequest extends express.Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
-
-// Middleware to verify Supabase authentication
-async function requireAuth(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
-    }
-
-    const token = authHeader.substring(7);
-    if (!supabaseAdmin) {
-      return res.status(500).json({ error: 'Authentication system unavailable', code: 'AUTH_SYSTEM_UNAVAILABLE' });
-    }
-
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !user) {
-      return res.status(401).json({ error: 'Invalid authentication token', code: 'INVALID_TOKEN' });
-    }
-
-    // Get user profile for role information
-    const userProfile = await storage.auth.getUserProfile(user.id);
-    
-    req.user = {
-      id: user.id,
-      email: user.email || '',
-      role: userProfile?.role || 'hiring_manager'
-    };
-
-    next();
-  } catch (error) {
-    console.error('Authentication middleware error:', error);
-    res.status(500).json({ error: 'Authentication check failed', code: 'AUTH_CHECK_FAILED' });
-  }
-}
-
-// Middleware to require platform admin role (for beta applications)
-function requirePlatformAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
-  }
-
-  // Only platform_admin can review beta applications (not organization admins)
-  const platformAdminRoles = ['platform_admin'];
-  if (!platformAdminRoles.includes(req.user.role)) {
-    return res.status(403).json({ 
-      error: 'Platform admin access required for beta application management', 
-      code: 'INSUFFICIENT_PERMISSIONS',
-      userRole: req.user.role,
-      requiredRoles: platformAdminRoles
-    });
-  }
-
-  next();
-}
-
-// Middleware to require organization admin role (for org management)
-async function requireOrgAdmin(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
-  }
-
-  const orgId = req.params.orgId || req.headers['x-org-id'] as string;
-  if (!orgId) {
-    return res.status(400).json({ error: 'Organization ID required', code: 'ORG_ID_REQUIRED' });
-  }
-
-  try {
-    // Check if user is org admin or owner
-    const userOrg = await storage.auth.getUserOrganization(req.user.id, orgId);
-    const organization = await storage.auth.getOrganization(orgId);
-    
-    const isOrgAdmin = userOrg?.role === 'admin' || organization?.ownerId === req.user.id;
-    
-    if (!isOrgAdmin) {
-      return res.status(403).json({ 
-        error: 'Organization admin access required', 
-        code: 'INSUFFICIENT_PERMISSIONS',
-        userRole: userOrg?.role || 'none'
-      });
-    }
-
-    next();
-  } catch (error) {
-    console.error('Organization admin check error:', error);
-    res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
-  }
-}
-
-// Middleware to require recruiting capabilities (role + seat)
-async function requireRecruiting(req: AuthenticatedRequest, res: express.Response, next: express.NextFunction) {
-  if (!req.user) {
-    return res.status(401).json({ error: 'Authentication required', code: 'AUTH_REQUIRED' });
-  }
-
-  const orgId = req.params.orgId || req.headers['x-org-id'] as string;
-  if (!orgId) {
-    return res.status(400).json({ error: 'Organization ID required', code: 'ORG_ID_REQUIRED' });
-  }
-
-  try {
-    const userOrg = await storage.auth.getUserOrganization(req.user.id, orgId);
-    
-    // Check if user has recruiting role (recruiter, admin, or hiring_manager with seat)
-    const hasRecruiterRole = userOrg?.role === 'recruiter' || userOrg?.role === 'admin';
-    const hasHiringManagerWithSeat = userOrg?.role === 'hiring_manager' && userOrg?.isRecruiterSeat;
-    
-    if (!hasRecruiterRole && !hasHiringManagerWithSeat) {
-      return res.status(403).json({ 
-        error: 'Recruiting access required', 
-        code: 'RECRUITING_ACCESS_REQUIRED',
-        message: 'This feature requires a recruiter role or hiring manager with recruiter seat.',
-        userRole: userOrg?.role || 'none',
-        hasRecruiterSeat: userOrg?.isRecruiterSeat || false
-      });
-    }
-
-    // For billing purposes, ensure they have a paid seat (unless admin)
-    if (userOrg?.role !== 'admin' && !userOrg?.isRecruiterSeat) {
-      return res.status(403).json({ 
-        error: 'Paid recruiter seat required', 
-        code: 'RECRUITER_SEAT_REQUIRED',
-        message: 'This feature requires a paid recruiter seat. Contact your organization admin to upgrade.'
-      });
-    }
-
-    next();
-  } catch (error) {
-    console.error('Recruiting access check error:', error);
-    res.status(500).json({ error: 'Authorization check failed', code: 'AUTH_CHECK_FAILED' });
-  }
-}
+import { 
+  type AuthenticatedRequest, 
+  requireAuth, 
+  requirePlatformAdmin, 
+  requireOrgAdmin, 
+  requireRecruiting,
+  supabaseAdmin 
+} from './middleware/auth';
+import { writeLimiter, authLimiter, publicJobLimiter } from './middleware/rate-limit';
+import { upload } from './middleware/upload';
 
 // Utility functions for ETag generation and caching
 function generateETag(data: unknown): string {
@@ -283,59 +126,6 @@ function mapPublicJobRow(row: JobDatabaseRow) {
     updatedAt: row.updated_at ?? null,
   };
 }
-
-// Write operation rate limiter
-const writeLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 write operations per windowMs
-  message: {
-    error: "Too many write operations from this IP, please try again later."
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Supabase client for server-side operations
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-// Create service role client for server-side auth operations
-let supabaseAdmin: SupabaseClient | null = null;
-if (supabaseUrl && supabaseServiceKey) {
-  supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
-  console.log('✅ Supabase admin client initialized for organization creation');
-} else {
-  console.warn('⚠️ Supabase credentials missing - organization creation may fail');
-}
-
-// Authentication rate limiter
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // Limit each IP to 20 auth attempts per windowMs
-  message: {
-    error: "Too many authentication attempts from this IP, please try again later."
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-// Public job application rate limiter
-const publicJobLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 50, // Limit each IP to 50 job applications per windowMs
-  message: {
-    error: "Too many job applications from this IP, please try again later."
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-
 
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log('📡 Registered all API routes');
