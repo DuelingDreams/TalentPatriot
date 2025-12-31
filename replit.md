@@ -25,12 +25,34 @@ Preferred communication style: Simple, everyday language.
 - **Framework**: Express.js with TypeScript.
 - **API**: RESTful endpoints with Zod validation, centralized error handling.
 - **Authentication**: Supabase Auth with RBAC and RLS.
+- **Middleware Architecture** (Modular):
+  - `server/middleware/auth.ts`: Auth middleware (requireAuth, requirePlatformAdmin, requireOrgAdmin, requireRecruiting), supabaseAdmin client
+  - `server/middleware/rate-limit.ts`: Rate limiters (writeLimiter, authLimiter, publicJobLimiter)
+  - `server/middleware/upload.ts`: Multer file upload configuration
+  - `server/middleware/subdomainResolver.ts`: Subdomain-based org resolution
 
 ## Data Storage
 - **ORM**: Drizzle ORM.
 - **Database**: PostgreSQL via Supabase.
-- **Schema**: ATS-specific tables, UUID primary keys, `org_id` foreign keys for multi-tenancy.
-- **Migrations**: Drizzle-kit.
+- **Schema Architecture** (Modular):
+  - `shared/schema/index.ts`: Consolidated exports for all schema modules
+  - `shared/schema/enums.ts`: PostgreSQL enums (status, roles, job types, etc.)
+  - `shared/schema/users.ts`: Organizations, user profiles, user organizations
+  - `shared/schema/clients.ts`: Client/company records
+  - `shared/schema/jobs.ts`: Job postings
+  - `shared/schema/candidates.ts`: Candidates, job candidates, notes, applications
+  - `shared/schema/pipelines.ts`: Pipeline columns, ordering
+  - `shared/schema/messages.ts`: Internal messaging system
+  - `shared/schema/interviews.ts`: Interview scheduling
+  - `shared/schema/oauth.ts`: OAuth sessions, connected accounts
+  - `shared/schema/beta.ts`: Beta applications and signups
+  - `shared/schema/analytics.ts`: AI insights, recommendations
+  - `shared/schema/imports.ts`: Data import/export
+  - `shared/schema/emails.ts`: Email settings, templates, events
+  - `shared/schema/misc.ts`: Audit logs, activity tracking
+  - `shared/schema/queries.ts`: Zod schemas for API query validation
+  - Original `shared/schema.ts` re-exports all for backward compatibility
+- **Migrations**: Drizzle-kit (`npm run db:push` to sync schema).
 - **Key Decisions**: Multi-tenancy, RBAC with Row-Level Security, dynamic Kanban-style pipeline system, performance optimization (indexing, caching, materialized views, full-text search), UUID-based security, comprehensive onboarding workflow, and user-organization assignment API.
 
 ## Core Features
