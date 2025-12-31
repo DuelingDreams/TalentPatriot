@@ -87,7 +87,7 @@ export function AddSubmissionDialog({
         method: 'POST',
         body: JSON.stringify({
           ...data,
-          jobId: data.jobId || null,
+          jobId: data.jobId && data.jobId !== 'no_job' ? data.jobId : null,
           submittedBy: user?.id,
         }),
       })
@@ -170,7 +170,7 @@ export function AddSubmissionDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">No specific job</SelectItem>
+                      <SelectItem value="no_job">No specific job</SelectItem>
                       {jobsLoading ? (
                         <SelectItem value="loading" disabled>Loading...</SelectItem>
                       ) : filteredJobs && filteredJobs.length > 0 ? (
