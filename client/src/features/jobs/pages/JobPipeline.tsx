@@ -1316,7 +1316,7 @@ export default function JobPipeline() {
             <p className="text-slate-600">Select a job to view its recruitment pipeline and manage candidates.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.isArray(jobs) && jobs.map((job: any) => {
               return (
                 <JobPipelineCard key={job.id} job={job} />
@@ -1513,7 +1513,7 @@ export default function JobPipeline() {
                 <CardTitle>Job Overview</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
                       {jobCandidates?.length || 0}

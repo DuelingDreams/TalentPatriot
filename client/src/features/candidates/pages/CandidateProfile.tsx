@@ -122,7 +122,7 @@ export default function CandidateProfile() {
           </Link>
           
           <div className="flex items-start justify-between">
-            <div className="flex items-start gap-6">
+            <div className="flex items-start gap-4">
               <Avatar className="w-20 h-20">
                 <AvatarImage src={`https://i.pravatar.cc/150?u=${candidate?.email || 'default'}`} />
                 <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
@@ -202,7 +202,7 @@ export default function CandidateProfile() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Quick Stats */}
               <Card>
                 <CardHeader>

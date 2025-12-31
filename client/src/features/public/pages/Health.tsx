@@ -130,7 +130,7 @@ export default function HealthPage() {
           <p className="text-gray-600">Monitor the health status of API endpoints and database connections</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {healthChecks.map((check) => (
             <Card key={check.name} className="border-2">
               <CardHeader>

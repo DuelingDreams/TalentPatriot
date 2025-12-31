@@ -115,7 +115,7 @@ export function DemoCandidates() {
       </div>
 
       {/* Candidates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCandidates.map((candidate) => (
           <Card key={candidate.id} className="card hover:shadow-lg transition-all duration-200">
             <CardContent className="p-6">

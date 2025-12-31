@@ -320,7 +320,7 @@ export default function Candidates() {
 
         {/* Candidates List */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="card">
                 <CardContent className="p-6">
@@ -347,7 +347,7 @@ export default function Candidates() {
             />
           ) : (
             // Use regular grid layout for smaller datasets
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-testid="candidates-list-regular">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-testid="candidates-list-regular">
               {filteredCandidates.map((candidate: any) => (
                 <Link key={candidate.id} href={`/candidates/${candidate.id}`}>
                   <Card className="card hover:shadow-lg transition-all duration-200 cursor-pointer" data-testid={`candidate-card-${candidate.id}`}>

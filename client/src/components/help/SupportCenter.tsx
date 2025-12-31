@@ -131,7 +131,7 @@ export function SupportCenter() {
         {/* Support Options */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold leading-tight mb-6">Contact Support</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {supportOptions.map((option, index) => (
               <Card key={index} className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -257,7 +257,7 @@ export function SupportCenter() {
         </div>
 
         {/* Additional Resources */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

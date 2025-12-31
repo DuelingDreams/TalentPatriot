@@ -286,7 +286,7 @@ export default function Clients() {
 
   const ClientForm = () => (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 mt-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField control={form.control} name="name" render={({ field }) => (
             <FormItem>
@@ -668,7 +668,7 @@ export default function Clients() {
             </div>
           ) : (
             /* Kanban View */
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-4">
               {['Prospect', 'Active', 'Inactive'].map((status) => {
                 const statusClients = filteredClients.filter(c => c.displayStatus === status)
                 const statusColors: Record<string, string> = {

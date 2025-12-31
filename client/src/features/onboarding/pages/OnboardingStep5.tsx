@@ -163,7 +163,7 @@ export default function OnboardingStep5() {
             </p>
           )}
           
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-4">
             {quickActions.map((action, index) => (
               <Link key={action.title} href={action.link}>
                 <Card className={`${action.color} border-2 transition-all duration-300 hover:shadow-lg hover:scale-105 cursor-pointer group`}>

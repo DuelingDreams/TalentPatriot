@@ -118,7 +118,7 @@ export default function Pricing() {
 
         {/* Pricing Cards */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6">
             {plans.map((plan, index) => {
               const IconComponent = plan.icon
               return (

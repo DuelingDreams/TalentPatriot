@@ -336,7 +336,7 @@ CERTIFICATIONS
         </TabsContent>
 
         <TabsContent value="features" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Enhanced Search */}
             <Card>
               <CardHeader>

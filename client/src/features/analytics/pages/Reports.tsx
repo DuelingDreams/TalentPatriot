@@ -131,7 +131,7 @@ export default function Reports() {
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Reports & Analytics</h1>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardHeader className="pb-2">
@@ -344,7 +344,7 @@ export default function Reports() {
         <>
           {/* Overview Tab */}
           {activeTab === 'overview' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Monthly Trends */}
               <Card data-testid="card-monthly-trends">
                 <CardHeader>
@@ -440,7 +440,7 @@ export default function Reports() {
 
           {/* Pipeline Tab */}
           {activeTab === 'pipeline' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Pipeline Conversion Funnel */}
               <Card className="lg:col-span-2" data-testid="card-pipeline-funnel">
                 <CardHeader>
@@ -519,7 +519,7 @@ export default function Reports() {
 
           {/* Sources Tab */}
           {activeTab === 'sources' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Source Performance Table */}
               <Card className="lg:col-span-2" data-testid="card-source-performance">
                 <CardHeader>
@@ -562,7 +562,7 @@ export default function Reports() {
 
           {/* Skills Tab */}
           {activeTab === 'skills' && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Top Skills in Demand */}
               <Card data-testid="card-top-skills">
                 <CardHeader>
@@ -672,7 +672,7 @@ export default function Reports() {
 
           {/* Team Tab */}
           {activeTab === 'team' && (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-4">
               {/* Recruiter Performance */}
               <Card data-testid="card-recruiter-performance">
                 <CardHeader>
@@ -717,7 +717,7 @@ export default function Reports() {
 
           {/* Clients Tab */}
           {activeTab === 'clients' && (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-4">
               {/* Client Performance */}
               <Card data-testid="card-client-performance">
                 <CardHeader>

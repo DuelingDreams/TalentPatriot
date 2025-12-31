@@ -134,7 +134,7 @@ export default function Jobs() {
             </p>
           </div>
           {/* Demo stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -395,7 +395,7 @@ export default function Jobs() {
                     const HealthIcon = getHealthIcon(job.health)
                     return (
                       <Card key={job.id} className="border border-neutral-200 hover:border-neutral-300 hover:shadow-md transition-all duration-200" data-testid={`job-card-${job.id}`}>
-                        <CardContent className="p-5">
+                        <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             {/* Left side - Job info */}
                             <div className="flex-1 min-w-0">

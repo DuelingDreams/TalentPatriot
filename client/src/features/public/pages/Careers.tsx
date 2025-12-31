@@ -158,7 +158,7 @@ export default function Careers() {
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         ) : filteredJobs.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredJobs.map((job: Job) => (
               <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => {

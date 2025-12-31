@@ -151,7 +151,7 @@ export default function ClientDetail() {
           </TabsList>
           
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Client Information */}
               <Card>
                 <CardHeader>

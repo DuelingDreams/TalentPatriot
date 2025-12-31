@@ -242,7 +242,7 @@ export function HelpCenter() {
             {/* Popular Tutorials */}
             <div>
               <h2 className="text-2xl font-bold leading-tight mb-4">Popular Tutorials</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {helpItems.slice(0, 3).map((item) => (
                   <Card key={item.id} className="hover:shadow-md transition-shadow">
                     <CardHeader>
@@ -299,7 +299,7 @@ export function HelpCenter() {
             </div>
 
             {/* Documentation Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredItems.map((item) => (
                 <Card key={item.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>

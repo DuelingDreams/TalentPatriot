@@ -265,7 +265,7 @@ export default function EmailSettingsAdmin() {
             <CardContent>
               <Form {...settingsForm}>
                 <form onSubmit={settingsForm.handleSubmit(onSettingsSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={settingsForm.control}
                       name="fromEmail"
@@ -492,7 +492,7 @@ export default function EmailSettingsAdmin() {
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Template List */}
             <Card>
               <CardHeader>

@@ -168,7 +168,7 @@ export function TestFeatures() {
       </Card>
 
       {/* Feature Tests */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Messaging Test */}
         <Card>
           <CardHeader>
@@ -253,7 +253,7 @@ export function TestFeatures() {
       <Separator />
 
       {/* Component Tests */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         {/* Candidate Notes Test */}
         <div>
           <h2 className="text-xl font-bold leading-tight mb-4 flex items-center gap-2">

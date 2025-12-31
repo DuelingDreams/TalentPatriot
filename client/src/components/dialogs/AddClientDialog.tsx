@@ -81,7 +81,7 @@ export function AddClientDialog({ children }: AddClientDialogProps) {
             Add New Client
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-neutral-900 font-[Inter,sans-serif] font-medium text-sm">Company Name *</Label>
             <Input
