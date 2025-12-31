@@ -16,6 +16,7 @@ import {
   insertCandidateDocumentSchema,
   insertDripCampaignSchema,
   insertCandidateCampaignEnrollmentSchema,
+  insertCampaignEmailSchema,
   jobsQuerySchema,
   candidatesQuerySchema,
   messagesQuerySchema,
@@ -33,7 +34,8 @@ import {
   type ClientSubmission,
   type CandidateDocument,
   type DripCampaign,
-  type CandidateCampaignEnrollment
+  type CandidateCampaignEnrollment,
+  type CampaignEmail
 } from "../shared/schema";
 import { supabase } from './lib/supabase';
 import { subdomainResolver } from './middleware/subdomainResolver';
@@ -3614,6 +3616,259 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.error('Campaign enrollment deletion error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({ error: "Failed to remove campaign enrollment", details: errorMessage });
+    }
+  });
+
+  // ==================== CAMPAIGN EMAILS API ====================
+  // GET /api/campaigns/:campaignId/emails - Get all emails for a campaign
+  app.get("/api/campaigns/:campaignId/emails", async (req, res) => {
+    try {
+      const { campaignId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Verify the campaign belongs to this org
+      const { data: campaign, error: campaignError } = await supabase
+        .from('drip_campaigns')
+        .select('id')
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (campaignError || !campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      const { data, error } = await supabase
+        .from('campaign_emails')
+        .select('*')
+        .eq('campaign_id', campaignId)
+        .order('delay_days', { ascending: true })
+        .order('order_index', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching campaign emails:', error);
+        throw error;
+      }
+
+      res.json(data || []);
+    } catch (error) {
+      console.error('Campaign emails fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch campaign emails", details: errorMessage });
+    }
+  });
+
+  // POST /api/campaigns/:campaignId/emails - Create a new email in a campaign
+  app.post("/api/campaigns/:campaignId/emails", writeLimiter, async (req, res) => {
+    try {
+      const { campaignId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Verify the campaign belongs to this org
+      const { data: campaign, error: campaignError } = await supabase
+        .from('drip_campaigns')
+        .select('id')
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (campaignError || !campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      // Validate only the email-specific fields from request body
+      const emailData = z.object({
+        subject: z.string().min(1),
+        body: z.string().optional().nullable(),
+        delayDays: z.number().min(0).optional().default(0),
+      }).parse(req.body);
+
+      // Get max order_index for this campaign
+      const { data: existingEmails } = await supabase
+        .from('campaign_emails')
+        .select('order_index')
+        .eq('campaign_id', campaignId)
+        .order('order_index', { ascending: false })
+        .limit(1);
+
+      const nextOrderIndex = existingEmails && existingEmails.length > 0 
+        ? (existingEmails[0].order_index || 0) + 1 
+        : 1;
+
+      // Always use campaignId from route parameter (already validated for org ownership above)
+      const { data, error } = await supabase
+        .from('campaign_emails')
+        .insert({
+          campaign_id: campaignId,
+          subject: emailData.subject,
+          body: emailData.body || null,
+          delay_days: emailData.delayDays,
+          order_index: nextOrderIndex
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating campaign email:', error);
+        throw error;
+      }
+
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Campaign email creation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to create campaign email", details: errorMessage });
+    }
+  });
+
+  // PUT /api/campaigns/:campaignId/emails/:emailId - Update a campaign email
+  app.put("/api/campaigns/:campaignId/emails/:emailId", writeLimiter, async (req, res) => {
+    try {
+      const { campaignId, emailId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Verify the campaign belongs to this org
+      const { data: campaign, error: campaignError } = await supabase
+        .from('drip_campaigns')
+        .select('id')
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (campaignError || !campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      // Verify the email belongs to this campaign
+      const { data: existingEmail, error: emailError } = await supabase
+        .from('campaign_emails')
+        .select('id')
+        .eq('id', emailId)
+        .eq('campaign_id', campaignId)
+        .single();
+
+      if (emailError || !existingEmail) {
+        return res.status(404).json({ error: "Campaign email not found" });
+      }
+
+      const updateData: Record<string, any> = {};
+      if (req.body.subject !== undefined) updateData.subject = req.body.subject;
+      if (req.body.body !== undefined) updateData.body = req.body.body;
+      if (req.body.delayDays !== undefined) updateData.delay_days = req.body.delayDays;
+      if (req.body.orderIndex !== undefined) updateData.order_index = req.body.orderIndex;
+      updateData.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('campaign_emails')
+        .update(updateData)
+        .eq('id', emailId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating campaign email:', error);
+        throw error;
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Campaign email update error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(400).json({ error: "Failed to update campaign email", details: errorMessage });
+    }
+  });
+
+  // DELETE /api/campaigns/:campaignId/emails/:emailId - Delete a campaign email
+  app.delete("/api/campaigns/:campaignId/emails/:emailId", writeLimiter, async (req, res) => {
+    try {
+      const { campaignId, emailId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Verify the campaign belongs to this org
+      const { data: campaign, error: campaignError } = await supabase
+        .from('drip_campaigns')
+        .select('id')
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (campaignError || !campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      const { error } = await supabase
+        .from('campaign_emails')
+        .delete()
+        .eq('id', emailId)
+        .eq('campaign_id', campaignId);
+
+      if (error) {
+        console.error('Error deleting campaign email:', error);
+        throw error;
+      }
+
+      res.json({ success: true, message: "Campaign email deleted successfully" });
+    } catch (error) {
+      console.error('Campaign email deletion error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to delete campaign email", details: errorMessage });
+    }
+  });
+
+  // GET /api/enrollments/:enrollmentId/email-sends - Get email sends for an enrollment
+  app.get("/api/enrollments/:enrollmentId/email-sends", async (req, res) => {
+    try {
+      const { enrollmentId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Verify enrollment belongs to this org
+      const { data: enrollment, error: enrollmentError } = await supabase
+        .from('candidate_campaign_enrollments')
+        .select('id')
+        .eq('id', enrollmentId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (enrollmentError || !enrollment) {
+        return res.status(404).json({ error: "Enrollment not found" });
+      }
+
+      const { data, error } = await supabase
+        .from('campaign_email_sends')
+        .select('*, campaign_emails(id, subject, delay_days, order_index)')
+        .eq('enrollment_id', enrollmentId)
+        .order('scheduled_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching email sends:', error);
+        throw error;
+      }
+
+      res.json(data || []);
+    } catch (error) {
+      console.error('Email sends fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch email sends", details: errorMessage });
     }
   });
 

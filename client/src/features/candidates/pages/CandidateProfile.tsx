@@ -40,6 +40,7 @@ import { EditCandidateProfileDialog } from '@/components/dialogs/EditCandidatePr
 import { AddSubmissionDialog } from '@/components/dialogs/AddSubmissionDialog'
 import { UploadDocumentDialog } from '@/components/dialogs/UploadDocumentDialog'
 import { EnrollCampaignDialog } from '@/components/dialogs/EnrollCampaignDialog'
+import { CampaignEnrollmentCard } from '@/components/CampaignEnrollmentCard'
 import { apiRequest } from '@/lib/queryClient'
 
 export default function CandidateProfile() {
@@ -449,31 +450,11 @@ export default function CandidateProfile() {
                 ) : enrollments && enrollments.length > 0 ? (
                   <div className="space-y-4" data-testid="campaigns-list">
                     {enrollments.map((enrollment: any) => (
-                      <div key={enrollment.id} className="border border-gray-200 rounded-lg p-4" data-testid={`campaign-${enrollment.id}`}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="font-semibold text-lg">
-                              {enrollment.campaign?.name || enrollment.campaignName || 'Campaign'}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                              Enrolled: {enrollment.enrolledAt || enrollment.enrolled_at 
-                                ? format(new Date(enrollment.enrolledAt || enrollment.enrolled_at), 'MMM d, yyyy') 
-                                : 'Recently'}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className={enrollment.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                              {enrollment.status === 'active' ? 'Active' : formatStageLabel(enrollment.status)}
-                            </Badge>
-                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => showComingSoon('Campaign management')}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        {enrollment.campaign?.description && (
-                          <p className="text-sm text-gray-600 mb-3">{enrollment.campaign.description}</p>
-                        )}
-                      </div>
+                      <CampaignEnrollmentCard
+                        key={enrollment.id}
+                        enrollment={enrollment}
+                        candidateName={candidate?.name}
+                      />
                     ))}
                   </div>
                 ) : (
