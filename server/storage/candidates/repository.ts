@@ -126,6 +126,14 @@ export class CandidatesRepository implements ICandidatesRepository {
       if (updateData.totalYearsExperience !== undefined) dbUpdate.total_years_experience = updateData.totalYearsExperience;
       if (updateData.education !== undefined) dbUpdate.education = updateData.education;
       if (updateData.summary !== undefined) dbUpdate.summary = updateData.summary;
+      if (updateData.desiredSalaryMin !== undefined) dbUpdate.desired_salary_min = updateData.desiredSalaryMin;
+      if (updateData.desiredSalaryMax !== undefined) dbUpdate.desired_salary_max = updateData.desiredSalaryMax;
+      if (updateData.availability !== undefined) dbUpdate.availability = updateData.availability;
+      if (updateData.rating !== undefined) dbUpdate.rating = updateData.rating;
+      if (updateData.currentTitle !== undefined) dbUpdate.current_title = updateData.currentTitle;
+      if (updateData.workExperience !== undefined) dbUpdate.work_experience = updateData.workExperience;
+      if (updateData.linkedinUrl !== undefined) dbUpdate.linkedin_url = updateData.linkedinUrl;
+      if (updateData.portfolioUrl !== undefined) dbUpdate.portfolio_url = updateData.portfolioUrl;
       
       const { data, error } = await supabase
         .from('candidates')

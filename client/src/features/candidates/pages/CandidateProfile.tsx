@@ -35,6 +35,8 @@ import { useAuth } from '@/contexts/AuthContext'
 import { CandidateNotes } from '@/components/CandidateNotes'
 import { toCamelCase } from '@shared/utils/caseConversion'
 import { useToast } from '@/shared/hooks/use-toast'
+import { EditCandidateProfileDialog } from '@/components/dialogs/EditCandidateProfileDialog'
+import { queryClient } from '@/lib/queryClient'
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>()
@@ -150,9 +152,21 @@ export default function CandidateProfile() {
     return stage.charAt(0).toUpperCase() + stage.slice(1).replace('_', ' ')
   }
 
-  const workExperience = candidate?.workExperience && Array.isArray(candidate.workExperience) 
-    ? candidate.workExperience 
-    : []
+  const parseJsonField = (field: any) => {
+    if (!field) return []
+    if (Array.isArray(field)) return field
+    if (typeof field === 'string') {
+      try {
+        const parsed = JSON.parse(field)
+        return Array.isArray(parsed) ? parsed : []
+      } catch {
+        return []
+      }
+    }
+    return []
+  }
+
+  const workExperience = parseJsonField(candidate?.workExperience)
 
   const skills = candidate?.skills && Array.isArray(candidate.skills) 
     ? candidate.skills 
@@ -251,10 +265,12 @@ export default function CandidateProfile() {
                   Download Resume
                 </Button>
               )}
-              <Button variant="outline" size="sm" data-testid="edit-profile-button">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
+              {candidate && (
+                <EditCandidateProfileDialog 
+                  candidate={candidate}
+                  onSuccess={() => queryClient.invalidateQueries({ queryKey: ['/api/candidates', id] })}
+                />
+              )}
             </div>
           </CardContent>
         </Card>

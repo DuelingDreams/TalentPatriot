@@ -1,4 +1,4 @@
-import { useGenericList, useGenericItem, useGenericCreate } from '@/shared/hooks/useGenericCrud'
+import { useGenericList, useGenericItem, useGenericCreate, useGenericUpdate } from '@/shared/hooks/useGenericCrud'
 import { demoCandidates } from '@/lib/demo-data-consolidated'
 import type { Candidate, InsertCandidate } from '@shared/schema'
 
@@ -79,5 +79,9 @@ export function useCandidate(id?: string) {
       education: null
     } as Candidate;
   })
+}
+
+export function useUpdateCandidate() {
+  return useGenericUpdate<Candidate, Partial<InsertCandidate>>('/api/candidates', '/api/candidates')
 }
 
