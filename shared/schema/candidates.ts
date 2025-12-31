@@ -3,6 +3,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { organizations } from "./users";
 import { jobs } from "./jobs";
+import { clients } from "./clients";
 import { pipelineColumns } from "./pipelines";
 import { recordStatusEnum, candidateStageEnum, experienceLevelEnum, parsingStatusEnum } from "./enums";
 
@@ -48,6 +49,11 @@ export const candidates = pgTable("candidates", {
   parsingStatus: parsingStatusEnum("parsing_status").default('pending'),
   resumeParsedAt: timestamp("resume_parsed_at"),
   parsingError: text("parsing_error"),
+  desiredSalaryMin: integer("desired_salary_min"),
+  desiredSalaryMax: integer("desired_salary_max"),
+  availability: varchar("availability", { length: 100 }),
+  rating: integer("rating").default(0),
+  currentTitle: varchar("current_title", { length: 255 }),
 });
 
 export const jobCandidate = pgTable("job_candidate", {
@@ -109,6 +115,87 @@ export const applyEvents = pgTable("apply_events", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Candidate Documents - for multiple file management per candidate
+export const candidateDocuments = pgTable("candidate_documents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  fileUrl: text("file_url").notNull(),
+  fileType: varchar("file_type", { length: 50 }),
+  fileSize: integer("file_size"),
+  uploadedBy: uuid("uploaded_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Drip Campaigns - email campaign templates
+export const dripCampaigns = pgTable("drip_campaigns", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  status: varchar("status", { length: 20 }).default('active').notNull(),
+  createdBy: uuid("created_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Campaign Emails - email sequence items within a campaign
+export const campaignEmails = pgTable("campaign_emails", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  campaignId: uuid("campaign_id").references(() => dripCampaigns.id).notNull(),
+  subject: varchar("subject", { length: 255 }).notNull(),
+  body: text("body"),
+  delayDays: integer("delay_days").default(0).notNull(),
+  sequenceOrder: integer("sequence_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Candidate Campaign Enrollments - tracks which candidates are in which campaigns
+export const candidateCampaignEnrollments = pgTable("candidate_campaign_enrollments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  campaignId: uuid("campaign_id").references(() => dripCampaigns.id).notNull(),
+  status: varchar("status", { length: 20 }).default('active').notNull(),
+  enrolledAt: timestamp("enrolled_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  uniqueEnrollment: uniqueIndex("unique_candidate_campaign").on(table.candidateId, table.campaignId),
+}));
+
+// Campaign Email Sends - tracks sent/scheduled emails for enrollments
+export const campaignEmailSends = pgTable("campaign_email_sends", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  enrollmentId: uuid("enrollment_id").references(() => candidateCampaignEnrollments.id).notNull(),
+  campaignEmailId: uuid("campaign_email_id").references(() => campaignEmails.id).notNull(),
+  status: varchar("status", { length: 20 }).default('scheduled').notNull(),
+  scheduledAt: timestamp("scheduled_at"),
+  sentAt: timestamp("sent_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Client Submissions - tracks candidate submissions to clients
+export const clientSubmissions = pgTable("client_submissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  orgId: uuid("org_id").references(() => organizations.id).notNull(),
+  candidateId: uuid("candidate_id").references(() => candidates.id).notNull(),
+  clientId: uuid("client_id").references(() => clients.id).notNull(),
+  jobId: uuid("job_id").references(() => jobs.id),
+  positionTitle: varchar("position_title", { length: 255 }),
+  rate: varchar("rate", { length: 50 }),
+  status: varchar("status", { length: 50 }).default('submitted').notNull(),
+  feedback: text("feedback"),
+  submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+  submittedBy: uuid("submitted_by"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertCandidateSchema = createInsertSchema(candidates).omit({ id: true, createdAt: true, updatedAt: true }).extend({
   skills: z.array(z.string()).optional(),
   skillLevels: z.record(z.string(), z.number()).optional(),
@@ -117,12 +204,30 @@ export const insertJobCandidateSchema = createInsertSchema(jobCandidate).omit({ 
 export const insertCandidateNoteSchema = createInsertSchema(candidateNotes).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertApplicationSchema = createInsertSchema(applications).omit({ id: true });
 export const insertApplicationMetadataSchema = createInsertSchema(applicationMetadata).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertApplyEventSchema = createInsertSchema(applyEvents).omit({ id: true, createdAt: true });
+
+// New table insert schemas
+export const insertCandidateDocumentSchema = createInsertSchema(candidateDocuments).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDripCampaignSchema = createInsertSchema(dripCampaigns).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCampaignEmailSchema = createInsertSchema(campaignEmails).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCandidateCampaignEnrollmentSchema = createInsertSchema(candidateCampaignEnrollments).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertCampaignEmailSendSchema = createInsertSchema(campaignEmailSends).omit({ id: true, createdAt: true });
+export const insertClientSubmissionSchema = createInsertSchema(clientSubmissions).omit({ id: true, createdAt: true, updatedAt: true });
 
 export type InsertCandidate = z.infer<typeof insertCandidateSchema>;
 export type InsertJobCandidate = z.infer<typeof insertJobCandidateSchema>;
 export type InsertCandidateNote = z.infer<typeof insertCandidateNoteSchema>;
 export type InsertApplication = z.infer<typeof insertApplicationSchema>;
 export type InsertApplicationMetadata = z.infer<typeof insertApplicationMetadataSchema>;
+export type InsertApplyEvent = z.infer<typeof insertApplyEventSchema>;
+
+// New table insert types
+export type InsertCandidateDocument = z.infer<typeof insertCandidateDocumentSchema>;
+export type InsertDripCampaign = z.infer<typeof insertDripCampaignSchema>;
+export type InsertCampaignEmail = z.infer<typeof insertCampaignEmailSchema>;
+export type InsertCandidateCampaignEnrollment = z.infer<typeof insertCandidateCampaignEnrollmentSchema>;
+export type InsertCampaignEmailSend = z.infer<typeof insertCampaignEmailSendSchema>;
+export type InsertClientSubmission = z.infer<typeof insertClientSubmissionSchema>;
 
 export type Candidate = typeof candidates.$inferSelect;
 export type JobCandidate = typeof jobCandidate.$inferSelect;
@@ -132,6 +237,11 @@ export type InsertCandidateNotes = z.infer<typeof insertCandidateNoteSchema>;
 export type Application = typeof applications.$inferSelect;
 export type ApplicationMetadata = typeof applicationMetadata.$inferSelect;
 export type ApplyEvent = typeof applyEvents.$inferSelect;
-export type InsertApplyEvent = z.infer<typeof insertApplyEventSchema>;
 
-export const insertApplyEventSchema = createInsertSchema(applyEvents).omit({ id: true, createdAt: true });
+// New table select types
+export type CandidateDocument = typeof candidateDocuments.$inferSelect;
+export type DripCampaign = typeof dripCampaigns.$inferSelect;
+export type CampaignEmail = typeof campaignEmails.$inferSelect;
+export type CandidateCampaignEnrollment = typeof candidateCampaignEnrollments.$inferSelect;
+export type CampaignEmailSend = typeof campaignEmailSends.$inferSelect;
+export type ClientSubmission = typeof clientSubmissions.$inferSelect;
