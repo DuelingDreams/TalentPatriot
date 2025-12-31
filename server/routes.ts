@@ -12,6 +12,10 @@ import {
   insertJobCandidateSchema,
   insertDataImportSchema,
   insertImportRecordSchema,
+  insertClientSubmissionSchema,
+  insertCandidateDocumentSchema,
+  insertDripCampaignSchema,
+  insertCandidateCampaignEnrollmentSchema,
   jobsQuerySchema,
   candidatesQuerySchema,
   messagesQuerySchema,
@@ -25,7 +29,11 @@ import {
   type Candidate,
   type JobCandidate,
   type DataImport,
-  type ImportRecord
+  type ImportRecord,
+  type ClientSubmission,
+  type CandidateDocument,
+  type DripCampaign,
+  type CandidateCampaignEnrollment
 } from "../shared/schema";
 import { supabase } from './lib/supabase';
 import { subdomainResolver } from './middleware/subdomainResolver';
@@ -2969,6 +2977,550 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.error('Skills update error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({ error: "Failed to update skills", details: errorMessage });
+    }
+  });
+
+  // ==================== CLIENT SUBMISSIONS API ====================
+  // GET /api/candidates/:candidateId/submissions - Get all submissions for a candidate
+  app.get("/api/candidates/:candidateId/submissions", async (req, res) => {
+    try {
+      const { candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const candidate = await storage.candidates.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId && candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      const { data, error } = await supabase
+        .from('client_submissions')
+        .select('*, clients(id, name), jobs(id, title)')
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching submissions:', error);
+        throw error;
+      }
+
+      res.json(data || []);
+    } catch (error) {
+      console.error('Submissions fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch submissions", details: errorMessage });
+    }
+  });
+
+  // POST /api/candidates/:candidateId/submissions - Create a new submission
+  app.post("/api/candidates/:candidateId/submissions", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const candidate = await storage.candidates.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId && candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      const validatedData = insertClientSubmissionSchema.parse({
+        ...req.body,
+        candidateId,
+        orgId
+      });
+
+      const { data, error } = await supabase
+        .from('client_submissions')
+        .insert({
+          org_id: validatedData.orgId,
+          candidate_id: validatedData.candidateId,
+          client_id: validatedData.clientId,
+          job_id: validatedData.jobId || null,
+          position_title: validatedData.positionTitle || null,
+          rate: validatedData.rate || null,
+          status: validatedData.status || 'submitted',
+          feedback: validatedData.feedback || null,
+          submitted_by: validatedData.submittedBy || null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating submission:', error);
+        throw error;
+      }
+
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Submission creation error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to create submission", details: errorMessage });
+    }
+  });
+
+  // PATCH /api/candidates/:candidateId/submissions/:id - Update a submission
+  app.patch("/api/candidates/:candidateId/submissions/:id", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId, id } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { data: existing, error: fetchError } = await supabase
+        .from('client_submissions')
+        .select('*')
+        .eq('id', id)
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (fetchError || !existing) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+
+      const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (req.body.status) updateData.status = req.body.status;
+      if (req.body.feedback !== undefined) updateData.feedback = req.body.feedback;
+      if (req.body.rate !== undefined) updateData.rate = req.body.rate;
+      if (req.body.positionTitle !== undefined) updateData.position_title = req.body.positionTitle;
+
+      const { data, error } = await supabase
+        .from('client_submissions')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating submission:', error);
+        throw error;
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Submission update error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to update submission", details: errorMessage });
+    }
+  });
+
+  // DELETE /api/candidates/:candidateId/submissions/:id - Delete a submission
+  app.delete("/api/candidates/:candidateId/submissions/:id", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId, id } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { data: existing, error: fetchError } = await supabase
+        .from('client_submissions')
+        .select('*')
+        .eq('id', id)
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (fetchError || !existing) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+
+      const { error } = await supabase
+        .from('client_submissions')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting submission:', error);
+        throw error;
+      }
+
+      res.json({ success: true, message: "Submission deleted successfully" });
+    } catch (error) {
+      console.error('Submission deletion error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to delete submission", details: errorMessage });
+    }
+  });
+
+  // ==================== CANDIDATE DOCUMENTS API ====================
+  // GET /api/candidates/:candidateId/documents - Get all documents for a candidate
+  app.get("/api/candidates/:candidateId/documents", async (req, res) => {
+    try {
+      const { candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const candidate = await storage.candidates.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId && candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      const { data, error } = await supabase
+        .from('candidate_documents')
+        .select('*')
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching documents:', error);
+        throw error;
+      }
+
+      res.json(data || []);
+    } catch (error) {
+      console.error('Documents fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch documents", details: errorMessage });
+    }
+  });
+
+  // POST /api/candidates/:candidateId/documents - Create a new document record
+  app.post("/api/candidates/:candidateId/documents", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const candidate = await storage.candidates.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId && candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      const validatedData = insertCandidateDocumentSchema.parse({
+        ...req.body,
+        candidateId,
+        orgId
+      });
+
+      const { data, error } = await supabase
+        .from('candidate_documents')
+        .insert({
+          org_id: validatedData.orgId,
+          candidate_id: validatedData.candidateId,
+          name: validatedData.name,
+          file_url: validatedData.fileUrl,
+          file_type: validatedData.fileType || null,
+          file_size: validatedData.fileSize || null,
+          uploaded_by: validatedData.uploadedBy || null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating document:', error);
+        throw error;
+      }
+
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Document creation error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to create document", details: errorMessage });
+    }
+  });
+
+  // DELETE /api/candidates/:candidateId/documents/:id - Delete a document
+  app.delete("/api/candidates/:candidateId/documents/:id", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId, id } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { data: existing, error: fetchError } = await supabase
+        .from('candidate_documents')
+        .select('*')
+        .eq('id', id)
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (fetchError || !existing) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      const { error } = await supabase
+        .from('candidate_documents')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting document:', error);
+        throw error;
+      }
+
+      res.json({ success: true, message: "Document deleted successfully" });
+    } catch (error) {
+      console.error('Document deletion error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to delete document", details: errorMessage });
+    }
+  });
+
+  // ==================== DRIP CAMPAIGNS API ====================
+  // GET /api/campaigns - Get all campaigns for the org
+  app.get("/api/campaigns", async (req, res) => {
+    try {
+      const orgId = req.headers['x-org-id'] as string || req.query.org_id as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { data, error } = await supabase
+        .from('drip_campaigns')
+        .select('*')
+        .eq('org_id', orgId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching campaigns:', error);
+        throw error;
+      }
+
+      res.json(data || []);
+    } catch (error) {
+      console.error('Campaigns fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch campaigns", details: errorMessage });
+    }
+  });
+
+  // POST /api/campaigns - Create a new campaign
+  app.post("/api/campaigns", writeLimiter, async (req, res) => {
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const validatedData = insertDripCampaignSchema.parse({
+        ...req.body,
+        orgId
+      });
+
+      const { data, error } = await supabase
+        .from('drip_campaigns')
+        .insert({
+          org_id: validatedData.orgId,
+          name: validatedData.name,
+          description: validatedData.description || null,
+          status: validatedData.status || 'active',
+          created_by: validatedData.createdBy || null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating campaign:', error);
+        throw error;
+      }
+
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Campaign creation error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to create campaign", details: errorMessage });
+    }
+  });
+
+  // GET /api/candidates/:candidateId/campaigns - Get campaign enrollments for a candidate
+  app.get("/api/candidates/:candidateId/campaigns", async (req, res) => {
+    try {
+      const { candidateId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const candidate = await storage.candidates.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId && candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      const { data, error } = await supabase
+        .from('candidate_campaign_enrollments')
+        .select('*, drip_campaigns(id, name, description, status)')
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .order('enrolled_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching campaign enrollments:', error);
+        throw error;
+      }
+
+      res.json(data || []);
+    } catch (error) {
+      console.error('Campaign enrollments fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch campaign enrollments", details: errorMessage });
+    }
+  });
+
+  // POST /api/candidates/:candidateId/campaigns/:campaignId/enroll - Enroll candidate in a campaign
+  app.post("/api/candidates/:candidateId/campaigns/:campaignId/enroll", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId, campaignId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const candidate = await storage.candidates.getCandidate(candidateId);
+      if (!candidate) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+      
+      if (candidate.orgId && candidate.orgId !== orgId) {
+        return res.status(404).json({ error: "Candidate not found" });
+      }
+
+      const { data: campaign, error: campaignError } = await supabase
+        .from('drip_campaigns')
+        .select('*')
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (campaignError || !campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      const { data: existing } = await supabase
+        .from('candidate_campaign_enrollments')
+        .select('id')
+        .eq('candidate_id', candidateId)
+        .eq('campaign_id', campaignId)
+        .single();
+
+      if (existing) {
+        return res.status(400).json({ error: "Candidate is already enrolled in this campaign" });
+      }
+
+      const { data, error } = await supabase
+        .from('candidate_campaign_enrollments')
+        .insert({
+          org_id: orgId,
+          candidate_id: candidateId,
+          campaign_id: campaignId,
+          status: 'active'
+        })
+        .select('*, drip_campaigns(id, name, description, status)')
+        .single();
+
+      if (error) {
+        console.error('Error enrolling candidate in campaign:', error);
+        throw error;
+      }
+
+      res.status(201).json(data);
+    } catch (error) {
+      console.error('Campaign enrollment error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to enroll candidate in campaign", details: errorMessage });
+    }
+  });
+
+  // DELETE /api/candidates/:candidateId/campaigns/:enrollmentId - Remove candidate from a campaign
+  app.delete("/api/candidates/:candidateId/campaigns/:enrollmentId", writeLimiter, async (req, res) => {
+    try {
+      const { candidateId, enrollmentId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { data: existing, error: fetchError } = await supabase
+        .from('candidate_campaign_enrollments')
+        .select('*')
+        .eq('id', enrollmentId)
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (fetchError || !existing) {
+        return res.status(404).json({ error: "Campaign enrollment not found" });
+      }
+
+      const { error } = await supabase
+        .from('candidate_campaign_enrollments')
+        .delete()
+        .eq('id', enrollmentId);
+
+      if (error) {
+        console.error('Error removing candidate from campaign:', error);
+        throw error;
+      }
+
+      res.json({ success: true, message: "Campaign enrollment removed successfully" });
+    } catch (error) {
+      console.error('Campaign enrollment deletion error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to remove campaign enrollment", details: errorMessage });
     }
   });
 
