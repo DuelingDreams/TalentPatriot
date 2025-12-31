@@ -140,10 +140,26 @@ export default function Clients() {
   })
 
   const clientsWithStats: ClientWithStats[] = useMemo(() => {
-    if (!clients || !Array.isArray(clients)) return []
+    // Handle different response shapes from useClients hook
+    let clientsArray: ClientData[] = []
+    if (Array.isArray(clients)) {
+      clientsArray = clients
+    } else if (clients && typeof clients === 'object' && 'data' in clients && Array.isArray((clients as any).data)) {
+      clientsArray = (clients as any).data
+    }
     
-    return clients.map((client: ClientData) => {
-      const clientJobs = jobs?.filter((job: any) => job.clientId === client.id) || []
+    if (clientsArray.length === 0) return []
+    
+    // Handle different response shapes from useJobs hook
+    let jobsArray: any[] = []
+    if (Array.isArray(jobs)) {
+      jobsArray = jobs
+    } else if (jobs && typeof jobs === 'object' && 'data' in jobs && Array.isArray((jobs as any).data)) {
+      jobsArray = (jobs as any).data
+    }
+    
+    return clientsArray.map((client: ClientData) => {
+      const clientJobs = jobsArray.filter((job: any) => job.clientId === client.id) || []
       const openJobs = clientJobs.filter((job: any) => job.status === 'open').length
       const hasActiveJobs = openJobs > 0
       const hasRecentActivity = client.lastContactAt 
