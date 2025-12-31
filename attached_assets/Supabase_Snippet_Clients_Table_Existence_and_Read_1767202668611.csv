@@ -1,0 +1,18 @@
+column_name,data_type,character_maximum_length,is_nullable,column_default
+id,uuid,null,NO,gen_random_uuid()
+org_id,uuid,null,YES,null
+name,text,null,NO,null
+industry,text,null,YES,null
+location,text,null,YES,null
+website,text,null,YES,null
+contact_name,text,null,YES,null
+contact_email,text,null,YES,null
+notes,text,null,YES,null
+status,USER-DEFINED,null,YES,'active'::record_status
+created_by,uuid,null,YES,null
+created_at,timestamp with time zone,null,YES,now()
+updated_at,timestamp with time zone,null,YES,now()
+client_type,USER-DEFINED,null,YES,'commercial'::client_type
+pocs,jsonb,null,YES,'[]'::jsonb
+region,text,null,YES,null
+priority,text,null,YES,null
