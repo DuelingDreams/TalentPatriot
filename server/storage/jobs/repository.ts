@@ -143,9 +143,26 @@ export class JobsRepository implements IJobsRepository {
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
+    // Map camelCase fields to snake_case for Supabase
+    const dbClient = {
+      name: insertClient.name,
+      org_id: insertClient.orgId,
+      industry: insertClient.industry || null,
+      location: insertClient.location || null,
+      website: insertClient.website || null,
+      contact_name: insertClient.contactName || null,
+      contact_email: insertClient.contactEmail || null,
+      contact_phone: insertClient.contactPhone || null,
+      notes: insertClient.notes || null,
+      status: insertClient.status || 'active',
+      created_by: insertClient.createdBy || null,
+      priority: insertClient.priority || null,
+      payment_terms: insertClient.paymentTerms || null,
+    };
+
     const { data, error } = await supabase
       .from('clients')
-      .insert(insertClient)
+      .insert(dbClient)
       .select()
       .single();
     
@@ -157,9 +174,23 @@ export class JobsRepository implements IJobsRepository {
   }
 
   async updateClient(id: string, client: Partial<InsertClient>): Promise<Client> {
+    // Map camelCase fields to snake_case for Supabase
+    const dbUpdate: Record<string, unknown> = {};
+    if (client.name !== undefined) dbUpdate.name = client.name;
+    if (client.industry !== undefined) dbUpdate.industry = client.industry;
+    if (client.location !== undefined) dbUpdate.location = client.location;
+    if (client.website !== undefined) dbUpdate.website = client.website;
+    if (client.contactName !== undefined) dbUpdate.contact_name = client.contactName;
+    if (client.contactEmail !== undefined) dbUpdate.contact_email = client.contactEmail;
+    if (client.contactPhone !== undefined) dbUpdate.contact_phone = client.contactPhone;
+    if (client.notes !== undefined) dbUpdate.notes = client.notes;
+    if (client.status !== undefined) dbUpdate.status = client.status;
+    if (client.priority !== undefined) dbUpdate.priority = client.priority;
+    if (client.paymentTerms !== undefined) dbUpdate.payment_terms = client.paymentTerms;
+
     const { data, error } = await supabase
       .from('clients')
-      .update(client)
+      .update(dbUpdate)
       .eq('id', id)
       .select()
       .single();

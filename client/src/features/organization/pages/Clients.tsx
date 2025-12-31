@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -453,6 +453,7 @@ export default function Clients() {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Add New Client</DialogTitle>
+                    <DialogDescription>Fill in the details below to add a new client to your organization.</DialogDescription>
                   </DialogHeader>
                   <ClientForm />
                 </DialogContent>
@@ -755,6 +756,7 @@ export default function Clients() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Client</DialogTitle>
+            <DialogDescription>Update the client information below.</DialogDescription>
           </DialogHeader>
           <ClientForm />
         </DialogContent>

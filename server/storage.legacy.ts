@@ -1017,9 +1017,12 @@ export class DatabaseStorage implements IStorage {
         website: insertClient.website || null,
         contact_name: insertClient.contactName || null,
         contact_email: insertClient.contactEmail || null,
+        contact_phone: insertClient.contactPhone || null,
         notes: insertClient.notes || null,
         status: insertClient.status || 'active',
         created_by: insertClient.createdBy || null,
+        priority: insertClient.priority || null,
+        payment_terms: insertClient.paymentTerms || null,
       }
       
       const { data, error } = await supabase
@@ -1049,8 +1052,11 @@ export class DatabaseStorage implements IStorage {
       if (updateData.website !== undefined) dbUpdate.website = updateData.website
       if (updateData.contactName !== undefined) dbUpdate.contact_name = updateData.contactName
       if (updateData.contactEmail !== undefined) dbUpdate.contact_email = updateData.contactEmail
+      if (updateData.contactPhone !== undefined) dbUpdate.contact_phone = updateData.contactPhone
       if (updateData.notes !== undefined) dbUpdate.notes = updateData.notes
       if (updateData.status !== undefined) dbUpdate.status = updateData.status
+      if (updateData.priority !== undefined) dbUpdate.priority = updateData.priority
+      if (updateData.paymentTerms !== undefined) dbUpdate.payment_terms = updateData.paymentTerms
       
       const { data, error } = await supabase
         .from('clients')

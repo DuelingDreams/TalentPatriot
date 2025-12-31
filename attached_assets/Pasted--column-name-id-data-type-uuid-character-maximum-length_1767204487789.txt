@@ -1,0 +1,149 @@
+[
+  {
+    "column_name": "id",
+    "data_type": "uuid",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "gen_random_uuid()"
+  },
+  {
+    "column_name": "org_id",
+    "data_type": "uuid",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "name",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "column_name": "industry",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "location",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "website",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "contact_name",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "contact_email",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "notes",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "status",
+    "data_type": "USER-DEFINED",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "'active'::record_status"
+  },
+  {
+    "column_name": "created_by",
+    "data_type": "uuid",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "column_name": "updated_at",
+    "data_type": "timestamp with time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "now()"
+  },
+  {
+    "column_name": "client_type",
+    "data_type": "USER-DEFINED",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "'commercial'::client_type"
+  },
+  {
+    "column_name": "pocs",
+    "data_type": "jsonb",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "'[]'::jsonb"
+  },
+  {
+    "column_name": "region",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "priority",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "payment_terms",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "last_contact_at",
+    "data_type": "timestamp with time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "margin_trend",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "column_name": "contact_phone",
+    "data_type": "text",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  }
+]
