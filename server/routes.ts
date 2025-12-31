@@ -51,6 +51,26 @@ import {
 } from './middleware/auth';
 import { writeLimiter, authLimiter, publicJobLimiter } from './middleware/rate-limit';
 import { upload } from './middleware/upload';
+import multer from 'multer';
+
+// Configure multer for document uploads (PDF, DOC, DOCX, TXT)
+const documentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const allowedMimes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
+    if (allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.'));
+    }
+  }
+});
 
 // Utility functions for ETag generation and caching
 function generateETag(data: unknown): string {
@@ -3208,8 +3228,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
-  // POST /api/candidates/:candidateId/documents - Create a new document record
-  app.post("/api/candidates/:candidateId/documents", writeLimiter, async (req, res) => {
+  // POST /api/candidates/:candidateId/documents - Upload a new document
+  app.post("/api/candidates/:candidateId/documents", writeLimiter, documentUpload.single('file'), async (req, res) => {
     try {
       const { candidateId } = req.params;
       const orgId = req.headers['x-org-id'] as string;
@@ -3227,42 +3247,58 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(404).json({ error: "Candidate not found" });
       }
 
-      const validatedData = insertCandidateDocumentSchema.parse({
-        ...req.body,
-        candidateId,
-        orgId
-      });
+      const file = (req as any).file;
+      if (!file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+
+      const { nanoid } = await import('nanoid');
+      const uniqueId = nanoid();
+      const ext = file.originalname.split('.').pop() || 'pdf';
+      const storagePath = `${orgId}/documents/${candidateId}/${uniqueId}.${ext}`;
+
+      // Upload to Supabase Storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(storagePath, file.buffer, {
+          contentType: file.mimetype,
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        return res.status(500).json({ error: "Failed to upload file" });
+      }
+
+      const documentName = req.body.name || file.originalname.replace(/\.[^/.]+$/, '');
 
       const { data, error } = await supabase
         .from('candidate_documents')
         .insert({
-          org_id: validatedData.orgId,
-          candidate_id: validatedData.candidateId,
-          name: validatedData.name,
-          file_url: validatedData.fileUrl,
-          file_type: validatedData.fileType || null,
-          file_size: validatedData.fileSize || null,
-          uploaded_by: validatedData.uploadedBy || null
+          org_id: orgId,
+          candidate_id: candidateId,
+          name: documentName,
+          file_url: storagePath,
+          file_type: file.mimetype,
+          file_size: file.size,
+          uploaded_by: req.body.uploadedBy || null
         })
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating document:', error);
+        console.error('Error creating document record:', error);
+        // Clean up uploaded file if database insert fails
+        await supabase.storage.from('resumes').remove([storagePath]);
         throw error;
       }
 
       res.status(201).json(data);
     } catch (error) {
-      console.error('Document creation error:', error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          error: 'Validation failed', 
-          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
-        });
-      }
+      console.error('Document upload error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      res.status(500).json({ error: "Failed to create document", details: errorMessage });
+      res.status(500).json({ error: "Failed to upload document", details: errorMessage });
     }
   });
 
@@ -3288,6 +3324,18 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(404).json({ error: "Document not found" });
       }
 
+      // Delete from storage if file_url is a storage path
+      if (existing.file_url && !existing.file_url.startsWith('http')) {
+        const { error: storageError } = await supabase.storage
+          .from('resumes')
+          .remove([existing.file_url]);
+        
+        if (storageError) {
+          console.error('Error deleting file from storage:', storageError);
+          // Continue with database deletion even if storage deletion fails
+        }
+      }
+
       const { error } = await supabase
         .from('candidate_documents')
         .delete()
@@ -3303,6 +3351,51 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.error('Document deletion error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({ error: "Failed to delete document", details: errorMessage });
+    }
+  });
+  
+  // GET /api/candidates/:candidateId/documents/:id/url - Get signed URL for a document
+  app.get("/api/candidates/:candidateId/documents/:id/url", async (req, res) => {
+    try {
+      const { candidateId, id } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { data: doc, error: fetchError } = await supabase
+        .from('candidate_documents')
+        .select('*')
+        .eq('id', id)
+        .eq('candidate_id', candidateId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (fetchError || !doc) {
+        return res.status(404).json({ error: "Document not found" });
+      }
+
+      // If already a full URL, return it directly
+      if (doc.file_url.startsWith('http')) {
+        return res.json({ url: doc.file_url });
+      }
+
+      // Generate signed URL
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('resumes')
+        .createSignedUrl(doc.file_url, 3600); // 1 hour expiry
+
+      if (signedUrlError) {
+        console.error('Error creating signed URL:', signedUrlError);
+        return res.status(500).json({ error: "Failed to generate document URL" });
+      }
+
+      res.json({ url: signedUrlData.signedUrl });
+    } catch (error) {
+      console.error('Document URL error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to get document URL", details: errorMessage });
     }
   });
 

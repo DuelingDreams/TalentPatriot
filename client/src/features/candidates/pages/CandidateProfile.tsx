@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'wouter'
 import { format } from 'date-fns'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -36,13 +37,21 @@ import { CandidateNotes } from '@/components/CandidateNotes'
 import { toCamelCase } from '@shared/utils/caseConversion'
 import { useToast } from '@/shared/hooks/use-toast'
 import { EditCandidateProfileDialog } from '@/components/dialogs/EditCandidateProfileDialog'
-import { queryClient } from '@/lib/queryClient'
+import { AddSubmissionDialog } from '@/components/dialogs/AddSubmissionDialog'
+import { UploadDocumentDialog } from '@/components/dialogs/UploadDocumentDialog'
+import { EnrollCampaignDialog } from '@/components/dialogs/EnrollCampaignDialog'
+import { apiRequest } from '@/lib/queryClient'
 
 export default function CandidateProfile() {
   const { id } = useParams<{ id: string }>()
   const [activeTab, setActiveTab] = useState('overview')
   const { currentOrgId } = useAuth()
   const { toast } = useToast()
+  const queryClient = useQueryClient()
+  
+  const [showSubmissionDialog, setShowSubmissionDialog] = useState(false)
+  const [showUploadDialog, setShowUploadDialog] = useState(false)
+  const [showCampaignDialog, setShowCampaignDialog] = useState(false)
   
   const { data: candidateData, isLoading: candidateLoading } = useCandidate(id)
   
@@ -54,12 +63,29 @@ export default function CandidateProfile() {
   const { data: documents, isLoading: documentsLoading } = useCandidateDocuments(id)
   const { data: enrollments, isLoading: campaignsLoading } = useCandidateCampaigns(id)
 
-  const showComingSoon = (feature: string) => {
-    toast({
-      title: 'Coming Soon',
-      description: `${feature} will be available in a future update.`,
-    })
-  }
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      return apiRequest(`/api/candidates/${id}/documents/${docId}`, {
+        method: 'DELETE',
+      })
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Document Deleted',
+        description: 'The document has been removed.',
+      })
+      queryClient.invalidateQueries({ queryKey: ['/api/candidates', id, 'documents'] })
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete document',
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const enrolledCampaignIds = enrollments?.map((e: any) => e.campaignId || e.campaign_id) || []
 
   if (candidateLoading) {
     return (
@@ -347,7 +373,7 @@ export default function CandidateProfile() {
                   <Send className="w-5 h-5" />
                   Client Submissions
                 </CardTitle>
-                <Button size="sm" data-testid="add-submission-button" onClick={() => showComingSoon('Client submission form')}>
+                <Button size="sm" data-testid="add-submission-button" onClick={() => setShowSubmissionDialog(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add
                 </Button>
@@ -408,7 +434,7 @@ export default function CandidateProfile() {
                   <Megaphone className="w-5 h-5" />
                   Drip Campaigns
                 </CardTitle>
-                <Button size="sm" data-testid="enroll-campaign-button" onClick={() => showComingSoon('Campaign enrollment')}>
+                <Button size="sm" data-testid="enroll-campaign-button" onClick={() => setShowCampaignDialog(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Enroll in Campaign
                 </Button>
@@ -497,7 +523,7 @@ export default function CandidateProfile() {
                   <FileText className="w-5 h-5" />
                   Documents
                 </CardTitle>
-                <Button size="sm" data-testid="upload-document-button" onClick={() => showComingSoon('Document upload')}>
+                <Button size="sm" data-testid="upload-document-button" onClick={() => setShowUploadDialog(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Upload
                 </Button>
@@ -556,7 +582,26 @@ export default function CandidateProfile() {
                             variant="ghost" 
                             size="icon"
                             className="h-8 w-8"
-                            onClick={() => window.open(doc.fileUrl || doc.file_url, '_blank')}
+                            onClick={async () => {
+                              try {
+                                const fileUrl = doc.fileUrl || doc.file_url
+                                if (fileUrl?.startsWith('http')) {
+                                  window.open(fileUrl, '_blank')
+                                } else {
+                                  const response = await apiRequest(`/api/candidates/${id}/documents/${doc.id}/url`)
+                                  if (response?.url) {
+                                    window.open(response.url, '_blank')
+                                  }
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: 'Error',
+                                  description: 'Failed to open document',
+                                  variant: 'destructive',
+                                })
+                              }
+                            }}
+                            data-testid={`download-document-${doc.id}`}
                           >
                             <Download className="w-4 h-4" />
                           </Button>
@@ -564,7 +609,9 @@ export default function CandidateProfile() {
                             variant="ghost" 
                             size="icon"
                             className="h-8 w-8 text-red-500 hover:text-red-700"
-                            onClick={() => showComingSoon('Document deletion')}
+                            onClick={() => deleteDocumentMutation.mutate(doc.id)}
+                            disabled={deleteDocumentMutation.isPending}
+                            data-testid={`delete-document-${doc.id}`}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -585,6 +632,28 @@ export default function CandidateProfile() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <AddSubmissionDialog
+        open={showSubmissionDialog}
+        onOpenChange={setShowSubmissionDialog}
+        candidateId={id!}
+        candidateName={candidate?.name}
+      />
+      
+      <UploadDocumentDialog
+        open={showUploadDialog}
+        onOpenChange={setShowUploadDialog}
+        candidateId={id!}
+        candidateName={candidate?.name}
+      />
+      
+      <EnrollCampaignDialog
+        open={showCampaignDialog}
+        onOpenChange={setShowCampaignDialog}
+        candidateId={id!}
+        candidateName={candidate?.name}
+        enrolledCampaignIds={enrolledCampaignIds}
+      />
     </DashboardLayout>
   )
 }
