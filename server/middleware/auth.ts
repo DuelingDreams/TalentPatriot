@@ -120,11 +120,13 @@ export async function requireAuth(
     }
 
     const userProfile = await storage.auth.getUserProfile(user.id);
+    const orgId = user.user_metadata?.currentOrgId || req.headers['x-org-id'] as string;
     
     req.user = {
       id: user.id,
       email: user.email || '',
-      role: userProfile?.role || 'hiring_manager'
+      role: userProfile?.role || 'hiring_manager',
+      orgId: orgId
     };
 
     next();
