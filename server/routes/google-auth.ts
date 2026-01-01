@@ -75,14 +75,16 @@ export function createGoogleAuthRoutes(storage: IStorage) {
         return res.redirect('/settings/integrations?error=session_expired');
       }
 
-      const { userId, orgId, returnTo, stateNonce } = session;
+      const { userId, orgId, returnTo, stateNonce, redirectHost } = session;
 
       console.log('✅ [OAuth Login] Database session consumed for user:', userId.substring(0, 8) + '...');
+      console.log('📍 [OAuth Login] Origin host from session:', redirectHost || 'not set');
 
       const redirectUri = getRedirectUri(req.headers.host);
       console.log('🔗 [OAuth Login] Generated redirect URI:', redirectUri);
       
-      const state = generateState(userId, orgId, returnTo, stateNonce);
+      // Include originHost in state so callback can redirect back to the correct environment
+      const state = generateState(userId, orgId, returnTo, stateNonce, redirectHost);
       const authUrl = getAuthUrl(state, redirectUri);
 
       console.log('🔗 [OAuth Login] Redirecting to Google OAuth consent screen');
@@ -130,8 +132,8 @@ export function createGoogleAuthRoutes(storage: IStorage) {
         return res.redirect('/settings/integrations?error=invalid_state');
       }
 
-      const { userId, orgId, returnTo } = stateData;
-      console.log(`✅ [OAuth Callback] State verified - userId: ${userId}, orgId: ${orgId}, returnTo: ${returnTo}`);
+      const { userId, orgId, returnTo, originHost } = stateData;
+      console.log(`✅ [OAuth Callback] State verified - userId: ${userId}, orgId: ${orgId}, returnTo: ${returnTo}, originHost: ${originHost || 'same as callback'}`);
 
       // Check if this user already has a Google connection in a DIFFERENT org
       const existingConnections = await storage.communications.getConnectedAccounts(userId, orgId);
@@ -176,14 +178,32 @@ export function createGoogleAuthRoutes(storage: IStorage) {
       });
 
       // Redirect back to the original page (returnTo from state)
+      // If originHost is different from current host, redirect to that environment
       console.log('🎉 Google OAuth connection completed successfully!');
-      res.redirect(`${returnTo}?google=connected`);
+      
+      const currentHost = req.headers.host;
+      let redirectUrl = `${returnTo}?google=connected`;
+      
+      if (originHost && originHost !== currentHost) {
+        // Redirect back to the originating environment (e.g., dev server)
+        redirectUrl = `https://${originHost}${returnTo}?google=connected`;
+        console.log(`🔀 [OAuth Callback] Redirecting back to origin host: ${redirectUrl}`);
+      }
+      
+      res.redirect(redirectUrl);
     } catch (error: any) {
       console.error('❌ Error in Google OAuth callback:');
       console.error('   Message:', error.message);
       console.error('   Stack:', error.stack);
       console.error('   Full error:', error);
-      res.redirect('/settings/integrations?error=callback_failed');
+      
+      // Try to redirect to origin host for errors too
+      const state = req.query.state as string;
+      const stateData = state ? verifyState(state) : null;
+      const errorRedirect = stateData?.originHost 
+        ? `https://${stateData.originHost}/settings/integrations?error=callback_failed`
+        : '/settings/integrations?error=callback_failed';
+      res.redirect(errorRedirect);
     }
   });
 

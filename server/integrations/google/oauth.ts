@@ -23,55 +23,40 @@ const SCOPES = [
 const ALLOWED_OAUTH_DOMAINS = [
   'talentpatriot.com',
   'talentpatriot.replit.app',
+  'replit.dev', // Development URLs (must be registered in Google Cloud Console)
 ];
 
 /**
- * Get the OAuth redirect URI based on the request host
- * Dynamically determines the correct callback URL based on which domain the user is accessing
+ * Get the canonical OAuth redirect URI
  * 
- * Priority:
- * 1. GOOGLE_REDIRECT_URI environment variable (if set)
- * 2. Dynamic detection based on request host (if in allowed list)
- * 3. Fallback to talentpatriot.com
+ * IMPORTANT: This uses the "canonical callback relay" pattern:
+ * - All OAuth flows use a single registered callback URL (GOOGLE_REDIRECT_URI)
+ * - The originating host is stored in the OAuth state
+ * - After token exchange, the user is redirected back to their originating environment
  * 
- * IMPORTANT: All domains must be registered in Google Cloud Console:
- * - https://talentpatriot.com/auth/google/callback
- * - https://talentpatriot.replit.app/auth/google/callback
+ * This pattern allows development and production to share the same OAuth flow
+ * without needing to register every possible development URL in Google Cloud Console.
  * 
- * @param host - The host header from the request
- * @returns OAuth redirect URI matching the user's access domain
+ * Required: GOOGLE_REDIRECT_URI must be set and registered in Google Cloud Console
+ * 
+ * @param host - The host header from the request (used only for logging)
+ * @returns Canonical OAuth redirect URI
  */
 export function getRedirectUri(host: string | undefined): string {
-  // Priority 1: Use environment variable if set (for explicit override)
   const envRedirectUri = process.env.GOOGLE_REDIRECT_URI;
-  if (envRedirectUri) {
-    console.log('📍 [OAuth] Using GOOGLE_REDIRECT_URI from environment:', envRedirectUri);
-    return envRedirectUri;
+  
+  if (!envRedirectUri) {
+    console.error('❌ [OAuth] GOOGLE_REDIRECT_URI environment variable is not set!');
+    console.error('   This is required for Google OAuth to work properly.');
+    console.error('   Set it to your canonical callback URL registered in Google Cloud Console.');
+    // Fall back to production URL but log the error
+    const fallbackUri = 'https://talentpatriot.replit.app/auth/google/callback';
+    console.warn(`⚠️ [OAuth] Using hardcoded fallback: ${fallbackUri}`);
+    return fallbackUri;
   }
-
-  // Priority 2: Dynamic detection based on request host
-  if (host) {
-    // Remove port if present
-    const hostWithoutPort = host.split(':')[0];
-    
-    // Check if the host is in our allowed domains list
-    const matchedDomain = ALLOWED_OAUTH_DOMAINS.find(domain => 
-      hostWithoutPort === domain || hostWithoutPort.endsWith(`.${domain}`)
-    );
-    
-    if (matchedDomain) {
-      const redirectUri = `https://${hostWithoutPort}/auth/google/callback`;
-      console.log('📍 [OAuth] Using dynamic redirect URI based on host:', redirectUri);
-      return redirectUri;
-    }
-    
-    console.log('⚠️ [OAuth] Host not in allowed list:', hostWithoutPort, '- falling back to default');
-  }
-
-  // Priority 3: Fallback to primary domain
-  const fallbackUri = `https://${ALLOWED_OAUTH_DOMAINS[0]}/auth/google/callback`;
-  console.log('📍 [OAuth] Using fallback redirect URI:', fallbackUri);
-  return fallbackUri;
+  
+  console.log('📍 [OAuth] Using canonical GOOGLE_REDIRECT_URI:', envRedirectUri);
+  return envRedirectUri;
 }
 
 /**
@@ -137,8 +122,9 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string): 
  * @param orgId - The organization ID
  * @param returnTo - Optional return URL after OAuth completes (defaults to /settings/integrations)
  * @param nonce - Session nonce for additional CSRF protection
+ * @param originHost - The originating host (for redirecting back after callback)
  */
-export function generateState(userId: string, orgId: string, returnTo?: string, nonce?: string): string {
+export function generateState(userId: string, orgId: string, returnTo?: string, nonce?: string, originHost?: string): string {
   if (!process.env.APP_JWT_SECRET) {
     throw new Error('APP_JWT_SECRET environment variable is required for secure OAuth state signing');
   }
@@ -151,6 +137,7 @@ export function generateState(userId: string, orgId: string, returnTo?: string, 
     orgId, 
     returnTo: safeReturnTo,
     nonce: nonce || null,
+    originHost: originHost || null,
     timestamp: Date.now() 
   });
   const signature = crypto
@@ -164,7 +151,7 @@ export function generateState(userId: string, orgId: string, returnTo?: string, 
 /**
  * Verify and parse state parameter
  */
-export function verifyState(state: string): { userId: string; orgId: string; returnTo: string; nonce: string | null } | null {
+export function verifyState(state: string): { userId: string; orgId: string; returnTo: string; nonce: string | null; originHost: string | null } | null {
   if (!process.env.APP_JWT_SECRET) {
     console.error('APP_JWT_SECRET not configured');
     return null;
@@ -197,11 +184,26 @@ export function verifyState(state: string): { userId: string; orgId: string; ret
     const storedReturnTo = typeof parsed.returnTo === 'string' ? parsed.returnTo.trim() : '';
     const safeReturnTo = storedReturnTo.startsWith('/') ? storedReturnTo : '/settings/integrations';
     
+    // Validate originHost if present (must be in allowed domains)
+    let safeOriginHost: string | null = null;
+    if (parsed.originHost) {
+      const hostWithoutPort = parsed.originHost.split(':')[0];
+      const isAllowed = ALLOWED_OAUTH_DOMAINS.some(domain => 
+        hostWithoutPort === domain || hostWithoutPort.endsWith(`.${domain}`)
+      );
+      if (isAllowed) {
+        safeOriginHost = parsed.originHost;
+      } else {
+        console.warn('⚠️ [OAuth] Origin host not in allowed list:', parsed.originHost);
+      }
+    }
+    
     return { 
       userId: parsed.userId, 
       orgId: parsed.orgId,
       returnTo: safeReturnTo,
-      nonce: parsed.nonce || null
+      nonce: parsed.nonce || null,
+      originHost: safeOriginHost
     };
   } catch (error) {
     console.error('Error verifying state:', error);
