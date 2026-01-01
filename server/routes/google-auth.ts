@@ -18,7 +18,14 @@ export function createGoogleAuthRoutes(storage: IStorage) {
    * Initialize Google OAuth flow by creating a session token and returning redirect URL
    * This endpoint is called by the frontend with Bearer token
    */
-  router.post('/init', requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
+  router.post('/init', async (req: AuthenticatedRequest, res: Response, next) => {
+    console.log('🔍 [OAuth Init] Request received');
+    console.log('🔍 [OAuth Init] Headers:', JSON.stringify({
+      'x-org-id': req.headers['x-org-id'],
+      'authorization': req.headers.authorization ? 'Bearer [present]' : 'missing'
+    }));
+    next();
+  }, requireAuth, requireOrgContext, async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.user!.id;
       const orgId = req.user!.orgId!;
