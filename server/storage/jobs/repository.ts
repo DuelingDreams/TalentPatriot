@@ -8,6 +8,7 @@ import type {
   InsertPipelineColumn
 } from "@shared/schema";
 import type { IJobsRepository, UserContext, ApplicantData, ApplicationResult, PublishResult } from './interface';
+import { toCamelCase } from '@shared/utils/caseConversion';
 
 // Helper functions migrated from lib/jobService.ts
 
@@ -236,7 +237,7 @@ export class JobsRepository implements IJobsRepository {
       throw new Error(error.message);
     }
     
-    return data as Job;
+    return data ? toCamelCase(data) as Job : undefined;
   }
 
   async getJobs(): Promise<Job[]> {
@@ -249,7 +250,7 @@ export class JobsRepository implements IJobsRepository {
       throw new Error(error.message);
     }
     
-    return data as Job[];
+    return data ? data.map(job => toCamelCase(job) as Job) : [];
   }
 
   async getJobsByOrg(orgId: string): Promise<Job[]> {
@@ -267,7 +268,7 @@ export class JobsRepository implements IJobsRepository {
       }
       
       console.log(`Found ${data?.length || 0} jobs for orgId: ${orgId}`);
-      return data as Job[];
+      return data ? data.map(job => toCamelCase(job) as Job) : [];
     } catch (err) {
       console.error('Exception in getJobsByOrg:', err);
       throw err;
@@ -285,7 +286,7 @@ export class JobsRepository implements IJobsRepository {
       throw new Error(error.message);
     }
     
-    return data as Job[];
+    return data ? data.map(job => toCamelCase(job) as Job) : [];
   }
 
   async createJob(insertJob: InsertJob): Promise<Job> {
@@ -629,7 +630,7 @@ export class JobsRepository implements IJobsRepository {
         throw new Error(`Failed to search jobs: ${error.message}`);
       }
 
-      return data as Job[];
+      return data ? data.map(job => toCamelCase(job) as Job) : [];
     } catch (err) {
       console.error('Advanced job search exception:', err);
       throw err;
@@ -725,7 +726,10 @@ export class JobsRepository implements IJobsRepository {
       }
 
       const hasMore = data.length > limit;
-      const jobs = hasMore ? data.slice(0, limit) : data;
+      const rawJobs = hasMore ? data.slice(0, limit) : data;
+      
+      // Convert snake_case to camelCase for frontend consumption
+      const jobs = rawJobs.map(job => toCamelCase(job) as Job);
 
       let nextCursor: string | undefined;
       if (hasMore && jobs.length > 0) {
@@ -738,7 +742,7 @@ export class JobsRepository implements IJobsRepository {
       }
 
       return {
-        data: jobs as Job[],
+        data: jobs,
         pagination: {
           hasMore,
           nextCursor,
