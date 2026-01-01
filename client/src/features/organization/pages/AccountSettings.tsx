@@ -563,7 +563,7 @@ export default function AccountSettings() {
                 <div className="p-4 bg-white rounded-lg border">
                   <p className="text-2xl font-bold text-tp-primary" data-testid="text-recruiter-seats-count">
                     {teamLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 
-                      teamData?.data?.filter(m => m.role === 'recruiter' || m.role === 'admin').length || 0}
+                      (teamData?.data ?? []).filter(m => m.role === 'recruiter' || m.role === 'admin').length}
                   </p>
                   <p className="text-sm text-neutral-600">Recruiter Seats</p>
                 </div>
