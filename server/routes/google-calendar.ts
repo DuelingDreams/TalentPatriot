@@ -180,7 +180,8 @@ export function createGoogleCalendarRoutes(storage: IStorage) {
         return res.json({ connected: false });
       }
 
-      let account = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+      // Include inactive accounts to properly report "needs reconnect" status
+      let account = await storage.communications.getConnectedAccount(userId, orgId, 'google', true);
       
       console.log('📊 [Connection Status] Result:', account ? {
         id: account.id,

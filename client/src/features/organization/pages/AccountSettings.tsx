@@ -53,6 +53,19 @@ export default function AccountSettings() {
   const queryClient = useQueryClient()
   const [showApiKey, setShowApiKey] = useState(false)
   
+  // Handle OAuth callback - refresh Google status when returning from OAuth
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('google') === 'connected') {
+      queryClient.invalidateQueries({ queryKey: ['/api/google/connection-status'] })
+      toast({
+        title: 'Google account connected',
+        description: 'Your Google account has been successfully connected.',
+      })
+      window.history.replaceState({}, '', window.location.pathname)
+    }
+  }, [queryClient, toast])
+  
   // Fetch Google connection status for the current user
   const { data: googleStatus, isLoading: googleLoading } = useQuery<GoogleConnectionStatus>({
     queryKey: ['/api/google/connection-status', currentOrgId],
