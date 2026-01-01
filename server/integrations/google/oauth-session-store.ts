@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { supabase } from '../../lib/supabase';
-import type { OauthSession, InsertOauthSession } from '@shared/schema';
+import type { OAuthSession, InsertOAuthSession } from '@shared/schema';
 import { toCamelCase, toSnakeCase } from '@shared/utils/caseConversion';
 
 export interface OAuthSessionData {
@@ -9,6 +9,7 @@ export interface OAuthSessionData {
   returnTo: string;
   stateNonce: string;
   expiresAt: Date;
+  redirectHost?: string;
 }
 
 export interface CreateSessionParams {
@@ -88,7 +89,7 @@ export class OAuthSessionStore {
       return null;
     }
 
-    const session = toCamelCase(deletedSessions[0]) as OauthSession;
+    const session = toCamelCase(deletedSessions[0]) as OAuthSession;
 
     console.log(`✅ [OAuthSession] Session atomically consumed and deleted for user ${session.userId.substring(0, 8)}...`);
 
@@ -98,6 +99,7 @@ export class OAuthSessionStore {
       returnTo: session.returnTo || '/settings/integrations',
       stateNonce: session.stateNonce,
       expiresAt: new Date(session.expiresAt),
+      redirectHost: session.redirectHost || undefined,
     };
   }
 
