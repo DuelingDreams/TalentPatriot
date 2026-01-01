@@ -192,7 +192,7 @@ export async function removeUserFromOrganization(
 /**
  * Get all users in an organization
  * @param orgId - Organization ID
- * @returns Promise with list of organization members
+ * @returns Promise with list of organization members including email
  */
 export async function getOrganizationUsers(
   orgId: string
@@ -220,9 +220,35 @@ export async function getOrganizationUsers(
       throw new Error(`Failed to fetch organization users: ${error.message}`);
     }
 
+    // Fetch user emails from auth.users for each member
+    const membersWithEmail = await Promise.all(
+      (data || []).map(async (member) => {
+        try {
+          const { data: userData } = await supabaseAdmin.auth.admin.getUserById(member.user_id);
+          return {
+            id: member.id,
+            userId: member.user_id,
+            role: member.role,
+            joinedAt: member.joined_at,
+            email: userData?.user?.email || null,
+            name: userData?.user?.user_metadata?.fullName || userData?.user?.user_metadata?.full_name || null
+          };
+        } catch {
+          return {
+            id: member.id,
+            userId: member.user_id,
+            role: member.role,
+            joinedAt: member.joined_at,
+            email: null,
+            name: null
+          };
+        }
+      })
+    );
+
     return {
       success: true,
-      data: data || []
+      data: membersWithEmail
     };
 
   } catch (error: any) {

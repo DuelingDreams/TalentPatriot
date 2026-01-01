@@ -34,6 +34,8 @@ import {
 } from 'lucide-react'
 import { Link } from 'wouter'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface GoogleConnectionStatus {
   connected: boolean
@@ -47,11 +49,40 @@ interface GoogleConnectionStatus {
   lastError?: string
 }
 
+interface TeamMember {
+  id: string
+  userId: string
+  role: string
+  joinedAt: string
+  email?: string
+  name?: string
+}
+
+interface TeamMembersResponse {
+  success: boolean
+  data?: TeamMember[]
+  error?: string
+}
+
 export default function AccountSettings() {
   const { user, session, currentOrgId } = useAuth()
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [showApiKey, setShowApiKey] = useState(false)
+  const [showInviteDialog, setShowInviteDialog] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<string>('hiring_manager')
+  
+  // Fetch team members for the organization
+  const { data: teamData, isLoading: teamLoading } = useQuery<TeamMembersResponse>({
+    queryKey: ['/api/organizations', currentOrgId, 'users', 'details'],
+    queryFn: () => apiRequest(`/api/organizations/${currentOrgId}/users/details`, {
+      headers: {
+        'Authorization': `Bearer ${session?.access_token || ''}`
+      }
+    }),
+    enabled: !!currentOrgId && !!session?.access_token,
+  })
   
   // Handle OAuth callback - refresh Google status when returning from OAuth
   useEffect(() => {
@@ -512,28 +543,134 @@ export default function AccountSettings() {
                     <p className="text-sm text-neutral-600">Add new users to your organization</p>
                   </div>
                 </div>
-                <Button className="bg-tp-primary hover:bg-tp-accent">
+                <Button 
+                  className="bg-tp-primary hover:bg-tp-accent"
+                  onClick={() => setShowInviteDialog(true)}
+                  data-testid="button-invite-members"
+                >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Invite Members
                 </Button>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                 <div className="p-4 bg-white rounded-lg border">
-                  <p className="text-2xl font-bold text-tp-primary">5</p>
+                  <p className="text-2xl font-bold text-tp-primary" data-testid="text-active-users-count">
+                    {teamLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : teamData?.data?.length || 0}
+                  </p>
                   <p className="text-sm text-neutral-600">Active Users</p>
                 </div>
                 <div className="p-4 bg-white rounded-lg border">
-                  <p className="text-2xl font-bold text-tp-primary">2</p>
-                  <p className="text-sm text-neutral-600">Pending Invites</p>
-                </div>
-                <div className="p-4 bg-white rounded-lg border">
-                  <p className="text-2xl font-bold text-tp-primary">10</p>
-                  <p className="text-sm text-neutral-600">Available Seats</p>
+                  <p className="text-2xl font-bold text-tp-primary" data-testid="text-recruiter-seats-count">
+                    {teamLoading ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 
+                      teamData?.data?.filter(m => m.role === 'recruiter' || m.role === 'admin').length || 0}
+                  </p>
+                  <p className="text-sm text-neutral-600">Recruiter Seats</p>
                 </div>
               </div>
+
+              {/* Team Members List */}
+              {teamLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-tp-accent" />
+                </div>
+              ) : teamData?.data && teamData.data.length > 0 ? (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-neutral-700">Team Members</h4>
+                  <div className="divide-y border rounded-lg">
+                    {teamData.data.map((member) => (
+                      <div key={member.id} className="flex items-center justify-between p-3" data-testid={`row-team-member-${member.id}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-tp-primary/10 rounded-full flex items-center justify-center">
+                            <Users className="w-4 h-4 text-tp-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">{member.email || `User ${member.userId.slice(0, 8)}`}</p>
+                            <p className="text-xs text-neutral-500">
+                              Joined {new Date(member.joinedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant={member.role === 'owner' || member.role === 'admin' ? 'default' : 'secondary'}>
+                          {member.role.replace('_', ' ')}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-4 text-neutral-500">
+                  <p className="text-sm">No team members found</p>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Invite Team Member Dialog */}
+          <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Invite Team Member</DialogTitle>
+                <DialogDescription>
+                  Send an invitation to add a new team member to your organization.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invite-email">Email Address</Label>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    placeholder="colleague@company.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    data-testid="input-invite-email"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invite-role">Role</Label>
+                  <Select value={inviteRole} onValueChange={setInviteRole}>
+                    <SelectTrigger data-testid="select-invite-role">
+                      <SelectValue placeholder="Select a role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="recruiter">Recruiter</SelectItem>
+                      <SelectItem value="hiring_manager">Hiring Manager</SelectItem>
+                      <SelectItem value="interviewer">Interviewer</SelectItem>
+                      <SelectItem value="viewer">Viewer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-neutral-500">
+                    {inviteRole === 'admin' && 'Full access to manage the organization and all features.'}
+                    {inviteRole === 'recruiter' && 'Full recruiting access including posting jobs and managing candidates.'}
+                    {inviteRole === 'hiring_manager' && 'Can view candidates and provide feedback on hiring decisions.'}
+                    {inviteRole === 'interviewer' && 'Can view assigned candidates and submit interview feedback.'}
+                    {inviteRole === 'viewer' && 'Read-only access to view jobs and candidates.'}
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowInviteDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  className="bg-tp-primary hover:bg-tp-accent"
+                  onClick={() => {
+                    toast({
+                      title: 'Invitation feature coming soon',
+                      description: 'Team invitations via email will be available in a future update. For now, ask your team member to sign up and contact an admin to be added.',
+                    })
+                    setShowInviteDialog(false)
+                    setInviteEmail('')
+                  }}
+                  data-testid="button-send-invite"
+                >
+                  Send Invitation
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Notification Settings */}
           <Card>
