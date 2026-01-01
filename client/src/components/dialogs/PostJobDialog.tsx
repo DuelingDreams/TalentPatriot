@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -85,9 +85,10 @@ interface PostJobDialogProps {
   trigger?: React.ReactNode
   triggerButton?: React.ReactNode
   onJobCreated?: () => void
+  defaultClientId?: string
 }
 
-export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobDialogProps) {
+export function PostJobDialog({ trigger, triggerButton, onJobCreated, defaultClientId }: PostJobDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
@@ -99,7 +100,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
     defaultValues: {
       title: '',
       description: '',
-      clientId: undefined,
+      clientId: defaultClientId || undefined,
       location: '',
       remoteOption: 'onsite',
       salaryRange: '',
@@ -111,6 +112,25 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated }: PostJobD
       })
     }
   })
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        title: '',
+        description: '',
+        clientId: defaultClientId || undefined,
+        location: '',
+        remoteOption: 'onsite',
+        salaryRange: '',
+        experienceLevel: 'mid',
+        jobType: 'full-time',
+        ...(flags.jobBoardDistribution && {
+          postingTargets: [],
+          autoPost: false
+        })
+      })
+    }
+  }, [isOpen, defaultClientId])
 
   const onSubmit = async (data: JobFormData) => {
     if (userRole === 'demo_viewer') {

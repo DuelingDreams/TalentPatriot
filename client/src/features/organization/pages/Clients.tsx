@@ -26,6 +26,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Link, useLocation } from 'wouter'
+import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
 
 const clientSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -117,7 +118,7 @@ export default function Clients() {
   const [, setLocation] = useLocation()
   
   const { data: clients, isLoading } = useClients()
-  const { data: jobs } = useJobs()
+  const { data: jobs, refetch: refetchJobs } = useJobs()
   const createClientMutation = useCreateClient()
   const updateClientMutation = useUpdateClient()
   const deleteClientMutation = useDeleteClient()
@@ -786,10 +787,18 @@ export default function Clients() {
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button size="sm" data-testid="button-new-job">
-                    <Plus size={16} className="mr-1" />
-                    New Job
-                  </Button>
+                  <PostJobDialog 
+                    defaultClientId={selectedClient.id}
+                    onJobCreated={() => {
+                      refetchJobs?.()
+                    }}
+                    trigger={
+                      <Button size="sm" data-testid="button-new-job">
+                        <Plus size={16} className="mr-1" />
+                        New Job
+                      </Button>
+                    }
+                  />
                   <Button variant="outline" size="sm" data-testid="button-email-client">
                     <Mail size={16} className="mr-1" />
                     Email
