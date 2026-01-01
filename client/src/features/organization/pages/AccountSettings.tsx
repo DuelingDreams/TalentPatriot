@@ -76,11 +76,21 @@ export default function AccountSettings() {
         return
       }
 
+      if (!currentOrgId) {
+        toast({
+          title: 'Organization required',
+          description: 'Please select an organization before connecting your Google account.',
+          variant: 'destructive',
+        })
+        return
+      }
+
       const response = await apiRequest<{ redirectUrl: string }>('/auth/google/init', { 
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'x-org-id': currentOrgId || ''
         },
         body: JSON.stringify({ returnTo: '/account-settings' })
       })
