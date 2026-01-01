@@ -141,8 +141,8 @@ export async function storeOAuthTokens(
     ? new Date(tokens.expiry_date)
     : new Date(Date.now() + 3600 * 1000);
 
-  // Check if account already exists
-  const existingAccount = await storage.communications.getConnectedAccount(userId, orgId, 'google');
+  // Check if account already exists (include inactive accounts for reactivation)
+  const existingAccount = await storage.communications.getConnectedAccount(userId, orgId, 'google', true);
   
   // Determine which refresh token to use
   let encryptedRefreshToken: string;

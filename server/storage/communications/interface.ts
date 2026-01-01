@@ -73,7 +73,7 @@ export interface ICommunicationsRepository {
   updateThread(id: string, thread: Partial<InsertMessageThread>): Promise<MessageThread>;
   
   // Connected Accounts (OAuth providers)
-  getConnectedAccount(userId: string, orgId: string, provider: string): Promise<ConnectedAccount | undefined>;
+  getConnectedAccount(userId: string, orgId: string, provider: string, includeInactive?: boolean): Promise<ConnectedAccount | undefined>;
   getConnectedAccounts(userId: string, orgId: string): Promise<ConnectedAccount[]>;
   createConnectedAccount(account: InsertConnectedAccount): Promise<ConnectedAccount>;
   updateConnectedAccount(id: string, account: Partial<InsertConnectedAccount>): Promise<ConnectedAccount>;

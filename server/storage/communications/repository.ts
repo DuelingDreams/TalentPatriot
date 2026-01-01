@@ -402,15 +402,22 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   }
 
   // Connected Accounts (OAuth)
-  async getConnectedAccount(userId: string, orgId: string, provider: string): Promise<ConnectedAccount | undefined> {
-    const { data, error } = await supabase
+  // Note: includeInactive is used during OAuth to find existing accounts that may need reactivation
+  async getConnectedAccount(userId: string, orgId: string, provider: string, includeInactive = false): Promise<ConnectedAccount | undefined> {
+    let query = supabase
       .from('connected_accounts')
       .select('*')
       .eq('user_id', userId)
       .eq('org_id', orgId)
-      .eq('provider', provider)
-      .eq('is_active', true)
-      .single();
+      .eq('provider', provider);
+    
+    // By default, only return active accounts (for UI display)
+    // During OAuth flow, include inactive accounts so we can reactivate them
+    if (!includeInactive) {
+      query = query.eq('is_active', true);
+    }
+    
+    const { data, error } = await query.single();
 
     if (error) {
       if (error.code === 'PGRST116') return undefined;
