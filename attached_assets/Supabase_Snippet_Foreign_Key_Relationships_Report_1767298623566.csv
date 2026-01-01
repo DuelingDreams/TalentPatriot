@@ -1,0 +1,63 @@
+constraint_name,table_schema,child_table,child_column,parent_schema,parent_table,parent_column,on_update,on_delete
+ai_insights_cache_org_id_fkey,public,ai_insights_cache,org_id,public,organizations,id,NO ACTION,CASCADE
+ai_insights_metrics_org_id_fkey,public,ai_insights_metrics,org_id,public,organizations,id,NO ACTION,CASCADE
+ai_recommendations_history_org_id_fkey,public,ai_recommendations_history,org_id,public,organizations,id,NO ACTION,CASCADE
+application_metadata_candidate_id_fkey,public,application_metadata,candidate_id,public,candidates,id,NO ACTION,NO ACTION
+application_metadata_job_id_fkey,public,application_metadata,job_id,public,jobs,id,NO ACTION,NO ACTION
+application_metadata_org_id_fkey,public,application_metadata,org_id,public,organizations,id,NO ACTION,NO ACTION
+fk_applications_candidate_id,public,applications,candidate_id,public,candidates,id,NO ACTION,CASCADE
+applications_candidate_id_fkey,public,applications,candidate_id,public,candidates,id,NO ACTION,CASCADE
+fk_applications_column_id,public,applications,column_id,public,pipeline_columns,id,NO ACTION,SET NULL
+applications_job_id_fkey,public,applications,job_id,public,jobs,id,NO ACTION,CASCADE
+fk_applications_job_id,public,applications,job_id,public,jobs,id,NO ACTION,CASCADE
+calendar_events_org_id_fkey,public,calendar_events,org_id,public,organizations,id,NO ACTION,CASCADE
+calendar_events_thread_id_fkey,public,calendar_events,thread_id,public,message_threads,id,NO ACTION,SET NULL
+campaign_email_sends_campaign_email_id_fkey,public,campaign_email_sends,campaign_email_id,public,campaign_emails,id,NO ACTION,CASCADE
+campaign_email_sends_enrollment_id_fkey,public,campaign_email_sends,enrollment_id,public,candidate_campaign_enrollments,id,NO ACTION,CASCADE
+campaign_emails_campaign_id_fkey,public,campaign_emails,campaign_id,public,drip_campaigns,id,NO ACTION,CASCADE
+candidate_campaign_enrollments_campaign_id_fkey,public,candidate_campaign_enrollments,campaign_id,public,drip_campaigns,id,NO ACTION,CASCADE
+candidate_campaign_enrollments_candidate_id_fkey,public,candidate_campaign_enrollments,candidate_id,public,candidates,id,NO ACTION,CASCADE
+candidate_campaign_enrollments_org_id_fkey,public,candidate_campaign_enrollments,org_id,public,organizations,id,NO ACTION,NO ACTION
+candidate_documents_candidate_id_fkey,public,candidate_documents,candidate_id,public,candidates,id,NO ACTION,CASCADE
+candidate_documents_org_id_fkey,public,candidate_documents,org_id,public,organizations,id,NO ACTION,NO ACTION
+candidate_notes_job_candidate_id_fkey,public,candidate_notes,job_candidate_id,public,job_candidate,id,NO ACTION,CASCADE
+candidate_notes_org_id_fkey,public,candidate_notes,org_id,public,organizations,id,NO ACTION,CASCADE
+candidates_org_id_fkey,public,candidates,org_id,public,organizations,id,NO ACTION,CASCADE
+client_submissions_candidate_id_fkey,public,client_submissions,candidate_id,public,candidates,id,NO ACTION,CASCADE
+client_submissions_client_id_fkey,public,client_submissions,client_id,public,clients,id,NO ACTION,CASCADE
+client_submissions_job_id_fkey,public,client_submissions,job_id,public,jobs,id,NO ACTION,SET NULL
+client_submissions_org_id_fkey,public,client_submissions,org_id,public,organizations,id,NO ACTION,NO ACTION
+clients_org_id_fkey,public,clients,org_id,public,organizations,id,NO ACTION,CASCADE
+connected_accounts_org_id_fkey,public,connected_accounts,org_id,public,organizations,id,NO ACTION,CASCADE
+daily_analytics_snapshots_org_id_fkey,public,daily_analytics_snapshots,org_id,public,organizations,id,NO ACTION,NO ACTION
+data_imports_org_id_fkey,public,data_imports,org_id,public,organizations,id,NO ACTION,NO ACTION
+drip_campaigns_org_id_fkey,public,drip_campaigns,org_id,public,organizations,id,NO ACTION,NO ACTION
+email_events_candidate_id_fkey,public,email_events,candidate_id,public,candidates,id,NO ACTION,SET NULL
+email_events_job_id_fkey,public,email_events,job_id,public,jobs,id,NO ACTION,SET NULL
+email_events_org_id_fkey,public,email_events,org_id,public,organizations,id,NO ACTION,CASCADE
+email_events_template_id_fkey,public,email_events,template_id,public,email_templates,id,NO ACTION,SET NULL
+email_templates_org_id_fkey,public,email_templates,org_id,public,organizations,id,NO ACTION,CASCADE
+import_records_import_id_fkey,public,import_records,import_id,public,data_imports,id,NO ACTION,NO ACTION
+interviews_job_candidate_id_fkey,public,interviews,job_candidate_id,public,job_candidate,id,NO ACTION,CASCADE
+interviews_org_id_fkey,public,interviews,org_id,public,organizations,id,NO ACTION,CASCADE
+job_candidate_application_id_fkey,public,job_candidate,application_id,public,applications,id,NO ACTION,CASCADE
+job_candidate_candidate_id_fkey,public,job_candidate,candidate_id,public,candidates,id,NO ACTION,CASCADE
+job_candidate_job_id_fkey,public,job_candidate,job_id,public,jobs,id,NO ACTION,CASCADE
+job_candidate_org_id_fkey,public,job_candidate,org_id,public,organizations,id,NO ACTION,CASCADE
+fk_job_candidate_pipeline_col,public,job_candidate,pipeline_column_id,public,pipeline_columns,id,NO ACTION,SET NULL
+job_candidate_pipeline_column_id_fkey,public,job_candidate,pipeline_column_id,public,pipeline_columns,id,NO ACTION,SET NULL
+jobs_client_id_fkey,public,jobs,client_id,public,clients,id,NO ACTION,SET NULL
+jobs_org_id_fkey,public,jobs,org_id,public,organizations,id,NO ACTION,CASCADE
+message_recipients_message_id_fkey,public,message_recipients,message_id,public,messages,id,NO ACTION,CASCADE
+message_threads_org_id_fkey,public,message_threads,org_id,public,organizations,id,NO ACTION,CASCADE
+messages_candidate_id_fkey,public,messages,candidate_id,public,candidates,id,NO ACTION,NO ACTION
+messages_client_id_fkey,public,messages,client_id,public,clients,id,NO ACTION,NO ACTION
+messages_job_id_fkey,public,messages,job_id,public,jobs,id,NO ACTION,NO ACTION
+messages_org_id_fkey,public,messages,org_id,public,organizations,id,NO ACTION,CASCADE
+oauth_sessions_org_id_fkey,public,oauth_sessions,org_id,public,organizations,id,NO ACTION,NO ACTION
+organization_email_settings_org_id_fkey,public,organization_email_settings,org_id,public,organizations,id,NO ACTION,CASCADE
+pipeline_columns_job_id_fkey,public,pipeline_columns,job_id,public,jobs,id,NO ACTION,NO ACTION
+fk_pipeline_columns_org_id,public,pipeline_columns,org_id,public,organizations,id,NO ACTION,CASCADE
+report_queue_org_id_fkey,public,report_queue,org_id,public,organizations,id,NO ACTION,NO ACTION
+report_schedules_org_id_fkey,public,report_schedules,org_id,public,organizations,id,NO ACTION,NO ACTION
+user_organizations_org_id_fkey,public,user_organizations,org_id,public,organizations,id,NO ACTION,CASCADE
