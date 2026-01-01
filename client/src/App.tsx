@@ -69,6 +69,7 @@ const ResumeParsingDemo = lazy(() => import("@/features/public/pages/ResumeParsi
 const EmailSettingsAdmin = lazy(() => import("@/features/admin/pages/EmailSettingsAdmin"));
 const DataImport = lazy(() => import("@/features/admin/pages/DataImport"));
 const DemoTranscript = lazy(() => import("@/features/public/pages/DemoTranscript"));
+const CampaignBuilder = lazy(() => import("@/features/communications/pages/CampaignBuilder"));
 
 
 // Global error handler for SSL and network issues
@@ -246,6 +247,12 @@ function Router() {
         <Route path="/messages">
           <ProtectedRoute type="route">
             <Messages />
+          </ProtectedRoute>
+        </Route>
+        
+        <Route path="/campaigns">
+          <ProtectedRoute type="route">
+            <CampaignBuilder />
           </ProtectedRoute>
         </Route>
         

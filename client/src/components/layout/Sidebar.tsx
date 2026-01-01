@@ -10,7 +10,8 @@ import {
   BarChart3,
   Settings,
   Globe,
-  Building2
+  Building2,
+  Mail
 } from 'lucide-react'
 import { useCurrentOrganization } from '@/features/organization/hooks/useOrganizations'
 
@@ -26,6 +27,7 @@ const navigationItems = [
   { label: 'Clients', href: '/clients', icon: Building2, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Pipeline', href: '/pipeline', icon: Kanban, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Candidates', href: '/candidates', icon: Users, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
+  { label: 'Campaigns', href: '/campaigns', icon: Mail, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Messages', href: '/messages', icon: MessageSquare, roles: ['hiring_manager', 'recruiter', 'admin', 'interviewer', 'demo_viewer'] },
   { label: 'Reports', href: '/reports', icon: BarChart3, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },
   { label: 'Settings', href: '/settings', icon: Settings, roles: ['hiring_manager', 'recruiter', 'admin', 'demo_viewer'] },

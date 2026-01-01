@@ -3475,6 +3475,95 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // PUT /api/campaigns/:campaignId - Update a campaign
+  app.put("/api/campaigns/:campaignId", writeLimiter, async (req, res) => {
+    try {
+      const { campaignId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { data: existing, error: fetchError } = await supabase
+        .from('drip_campaigns')
+        .select('*')
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (fetchError || !existing) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      const updateSchema = insertDripCampaignSchema.partial();
+      const validatedBody = updateSchema.parse(req.body);
+
+      const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
+      
+      if (validatedBody.name !== undefined) updateData.name = validatedBody.name;
+      if (validatedBody.description !== undefined) updateData.description = validatedBody.description;
+      if (validatedBody.status !== undefined) updateData.status = validatedBody.status;
+      if (validatedBody.triggerType !== undefined) updateData.trigger_type = validatedBody.triggerType;
+      if (validatedBody.triggerConditions !== undefined) updateData.trigger_conditions = validatedBody.triggerConditions;
+      if (validatedBody.rules !== undefined) updateData.rules = validatedBody.rules;
+
+      const { data, error } = await supabase
+        .from('drip_campaigns')
+        .update(updateData)
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating campaign:', error);
+        throw error;
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Campaign update error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: 'Validation failed', 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to update campaign", details: errorMessage });
+    }
+  });
+
+  // DELETE /api/campaigns/:campaignId - Delete a campaign
+  app.delete("/api/campaigns/:campaignId", writeLimiter, async (req, res) => {
+    try {
+      const { campaignId } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      const { error } = await supabase
+        .from('drip_campaigns')
+        .delete()
+        .eq('id', campaignId)
+        .eq('org_id', orgId);
+
+      if (error) {
+        console.error('Error deleting campaign:', error);
+        throw error;
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      console.error('Campaign delete error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to delete campaign", details: errorMessage });
+    }
+  });
+
   // GET /api/candidates/:candidateId/campaigns - Get campaign enrollments for a candidate
   app.get("/api/candidates/:candidateId/campaigns", async (req, res) => {
     try {
