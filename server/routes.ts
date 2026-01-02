@@ -4000,39 +4000,17 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const includeCompleted = req.query.includeCompleted === 'true';
       console.log('[Pipeline Route] Fetching pipeline for job:', jobId, 'includeCompleted:', includeCompleted);
 
-      // Get job details to verify it exists and get organization ID
-      const job = await storage.jobs.getJob(jobId);
-      if (!job) {
+      // Optimized: Use storage method that handles pipeline creation and data fetch in one flow
+      // This reduces database round-trips from 4 to 2 queries
+      const pipelineData = await storage.jobs.getJobPipelineDataOptimized(jobId, includeCompleted);
+      
+      if (!pipelineData) {
         return res.status(404).json({ error: "Job not found" });
       }
 
-      // Access org_id from raw data
-      const orgId = (job as { org_id: string }).org_id;
-      console.log('[Pipeline Route] Job orgId extracted:', orgId);
-
-      // Import pipeline service
-      const { ensureDefaultPipelineForJob } = await import('./lib/pipelineService');
-
-      // Ensure pipeline exists for this job
-      await ensureDefaultPipelineForJob({ 
-        jobId, 
-        organizationId: orgId 
-      });
-
-      // Use storage layer method to ensure database consistency
-      // This uses the same Supabase client as the move operations
-      const pipelineData = await storage.jobs.getJobPipelineData(jobId, orgId, includeCompleted);
-
       console.log('[Pipeline Route] Pipeline data fetched successfully:', {
         columnsCount: pipelineData.columns.length,
-        applicationsCount: pipelineData.applications.length,
-        includeCompleted,
-        applications: pipelineData.applications.map(app => ({
-          id: app.id,
-          candidateName: app.candidate?.name,
-          columnId: app.columnId,
-          stage: app.stage || 'unknown'
-        }))
+        applicationsCount: pipelineData.applications.length
       });
 
       res.json(pipelineData);

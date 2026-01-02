@@ -110,6 +110,26 @@ export interface IJobsRepository {
     }>;
   }>;
   
+  // Optimized pipeline data fetch (reduces DB round-trips)
+  getJobPipelineDataOptimized(jobId: string, includeCompleted?: boolean): Promise<{
+    columns: Array<{ id: string; title: string; position: string }>;
+    applications: Array<{
+      id: string;
+      jobId: string;
+      candidateId: string;
+      columnId: string;
+      status: string;
+      appliedAt: string;
+      candidate: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+        resumeUrl: string | null;
+      } | null;
+    }>;
+  } | null>;
+  
   // Advanced search
   searchJobsAdvanced(filters: {
     orgId: string;

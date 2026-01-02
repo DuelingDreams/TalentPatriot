@@ -584,6 +584,127 @@ export class JobsRepository implements IJobsRepository {
     }
   }
 
+  async getJobPipelineDataOptimized(jobId: string, includeCompleted: boolean = false): Promise<{
+    columns: Array<{ id: string; title: string; position: string }>;
+    applications: Array<{
+      id: string;
+      jobId: string;
+      candidateId: string;
+      columnId: string;
+      status: string;
+      appliedAt: string;
+      candidate: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string | null;
+        resumeUrl: string | null;
+      } | null;
+    }>;
+  } | null> {
+    console.log(`[getJobPipelineDataOptimized] Fetching pipeline for job: ${jobId}, includeCompleted: ${includeCompleted}`);
+    
+    try {
+      // Parallel fetch: Get job details and pipeline columns in parallel
+      const [jobResult, columnsResult] = await Promise.all([
+        supabase.from('jobs').select('org_id').eq('id', jobId).single(),
+        supabase.from('pipeline_columns').select('*').eq('job_id', jobId).order('position')
+      ]);
+
+      if (jobResult.error || !jobResult.data) {
+        console.log(`[getJobPipelineDataOptimized] Job not found: ${jobId}`);
+        return null;
+      }
+
+      if (columnsResult.error) {
+        console.error('[getJobPipelineDataOptimized] Error fetching pipeline columns:', columnsResult.error);
+        throw new Error(`Failed to fetch pipeline columns: ${columnsResult.error.message}`);
+      }
+
+      const orgId = jobResult.data.org_id;
+      let columns = columnsResult.data || [];
+
+      // Create default pipeline columns if none exist (first-time setup)
+      if (columns.length === 0) {
+        console.log(`[getJobPipelineDataOptimized] Creating default pipeline for job: ${jobId}`);
+        const defaultColumns = ['Applied', 'Screen', 'Interview', 'Offer', 'Hired'].map((title, index) => ({
+          org_id: orgId,
+          job_id: jobId,
+          title,
+          position: index,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+
+        const { data: createdColumns, error: createError } = await supabase
+          .from('pipeline_columns')
+          .insert(defaultColumns)
+          .select();
+
+        if (createError) {
+          console.error('[getJobPipelineDataOptimized] Error creating default columns:', createError);
+          throw new Error(`Failed to create default pipeline: ${createError.message}`);
+        }
+        columns = createdColumns || [];
+      }
+
+      // Fetch applications with candidate data
+      let query = supabase
+        .from('job_candidate')
+        .select(`
+          id,
+          job_id,
+          candidate_id,
+          pipeline_column_id,
+          status,
+          created_at,
+          stage,
+          candidate:candidates(id, name, email, phone, resume_url)
+        `)
+        .eq('job_id', jobId)
+        .eq('status', 'active');
+
+      if (!includeCompleted) {
+        query = query.not('stage', 'in', '(hired,rejected)');
+      }
+
+      const { data: applications, error: appError } = await query.order('created_at', { ascending: false });
+
+      if (appError) {
+        console.error('[getJobPipelineDataOptimized] Error fetching applications:', appError);
+        throw new Error(`Failed to fetch applications: ${appError.message}`);
+      }
+
+      console.log(`[getJobPipelineDataOptimized] Found ${columns.length} columns and ${applications?.length || 0} applications`);
+
+      return {
+        columns: columns.map((col: any) => ({
+          id: col.id,
+          title: col.title,
+          position: col.position
+        })),
+        applications: (applications || []).map((app: any) => ({
+          id: app.id,
+          jobId: app.job_id,
+          candidateId: app.candidate_id,
+          columnId: app.pipeline_column_id,
+          status: app.status,
+          appliedAt: app.created_at,
+          candidate: app.candidate ? {
+            id: app.candidate.id,
+            name: app.candidate.name,
+            email: app.candidate.email,
+            phone: app.candidate.phone,
+            resumeUrl: app.candidate.resume_url
+          } : null
+        }))
+      };
+    } catch (error) {
+      console.error(`[getJobPipelineDataOptimized] Error:`, error);
+      throw error;
+    }
+  }
+
   async searchJobsAdvanced(filters: {
     orgId: string;
     searchTerm?: string;
