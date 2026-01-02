@@ -463,30 +463,30 @@ export default function Jobs() {
                             
                             {/* Right side - Actions */}
                             <div className="flex items-center gap-2 ml-4">
+                              {!isDemoMode && (
+                                <EditJobDialog 
+                                  job={job}
+                                  onJobUpdated={() => {
+                                    // Refresh jobs data after update
+                                  }}
+                                />
+                              )}
                               {job.status === 'draft' && !isDemoMode && (
-                                <>
-                                  <EditJobDialog 
-                                    job={job}
-                                    onJobUpdated={() => {
-                                      // Refresh jobs data after update
-                                    }}
-                                  />
-                                  <Button
-                                    onClick={() => handlePublish(job.id)}
-                                    disabled={publishJob.isPending}
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex items-center gap-1"
-                                    data-testid={`job-publish-${job.id}`}
-                                  >
-                                    {publishJob.isPending ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Globe className="w-4 h-4" />
-                                    )}
-                                    {publishJob.isPending ? 'Publishing...' : 'Publish'}
-                                  </Button>
-                                </>
+                                <Button
+                                  onClick={() => handlePublish(job.id)}
+                                  disabled={publishJob.isPending}
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex items-center gap-1"
+                                  data-testid={`job-publish-${job.id}`}
+                                >
+                                  {publishJob.isPending ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Globe className="w-4 h-4" />
+                                  )}
+                                  {publishJob.isPending ? 'Publishing...' : 'Publish'}
+                                </Button>
                               )}
                               
                               {/* Quick Actions */}

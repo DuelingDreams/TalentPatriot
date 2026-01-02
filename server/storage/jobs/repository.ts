@@ -113,7 +113,7 @@ export class JobsRepository implements IJobsRepository {
       throw new Error(error.message);
     }
     
-    return data as Client;
+    return toCamelCase(data) as Client;
   }
 
   async getClients(): Promise<Client[]> {
@@ -126,7 +126,7 @@ export class JobsRepository implements IJobsRepository {
       throw new Error(error.message);
     }
     
-    return data as Client[];
+    return (data || []).map(client => toCamelCase(client)) as Client[];
   }
 
   async getClientsByOrg(orgId: string): Promise<Client[]> {
@@ -140,7 +140,7 @@ export class JobsRepository implements IJobsRepository {
       throw new Error(error.message);
     }
     
-    return data as Client[];
+    return (data || []).map(client => toCamelCase(client)) as Client[];
   }
 
   async createClient(insertClient: InsertClient): Promise<Client> {
