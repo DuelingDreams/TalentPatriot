@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useLocation } from 'wouter'
 import { format } from 'date-fns'
@@ -30,7 +30,8 @@ import {
   ChevronRight,
   Play,
   Pause,
-  MoreVertical
+  MoreVertical,
+  Code
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -38,8 +39,11 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuGroup,
 } from '@/components/ui/dropdown-menu'
 import type { DripCampaign, CampaignEmail } from '@shared/schema'
+import { MERGE_FIELDS } from '@shared/utils/mergeFields'
 
 interface CampaignWithEmails extends DripCampaign {
   emails?: CampaignEmail[]
@@ -679,6 +683,39 @@ function EmailEditorDialog({
   const [subject, setSubject] = useState(email?.subject || '')
   const [body, setBody] = useState(email?.body || '')
   const [delayDays, setDelayDays] = useState(email?.delayDays ?? (nextSequenceOrder === 0 ? 0 : 3))
+  const [activeField, setActiveField] = useState<'subject' | 'body'>('body')
+  const subjectRef = useRef<HTMLInputElement>(null)
+  const bodyRef = useRef<HTMLTextAreaElement>(null)
+
+  const insertMergeField = (fieldValue: string) => {
+    if (activeField === 'subject' && subjectRef.current) {
+      const input = subjectRef.current
+      const start = input.selectionStart || 0
+      const end = input.selectionEnd || 0
+      const newValue = subject.slice(0, start) + fieldValue + subject.slice(end)
+      setSubject(newValue)
+      setTimeout(() => {
+        input.focus()
+        input.setSelectionRange(start + fieldValue.length, start + fieldValue.length)
+      }, 0)
+    } else if (activeField === 'body' && bodyRef.current) {
+      const textarea = bodyRef.current
+      const start = textarea.selectionStart || 0
+      const end = textarea.selectionEnd || 0
+      const newValue = body.slice(0, start) + fieldValue + body.slice(end)
+      setBody(newValue)
+      setTimeout(() => {
+        textarea.focus()
+        textarea.setSelectionRange(start + fieldValue.length, start + fieldValue.length)
+      }, 0)
+    }
+  }
+
+  const groupedFields = MERGE_FIELDS.reduce((acc, field) => {
+    if (!acc[field.category]) acc[field.category] = []
+    acc[field.category].push(field)
+    return acc
+  }, {} as Record<string, typeof MERGE_FIELDS[number][]>)
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -769,29 +806,61 @@ function EmailEditorDialog({
           </div>
 
           <div>
-            <Label>Subject Line</Label>
+            <div className="flex items-center justify-between mb-1">
+              <Label>Subject Line</Label>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" data-testid="insert-field-button">
+                    <Code className="w-3 h-3 mr-1" />
+                    Insert Field
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {Object.entries(groupedFields).map(([category, fields]) => (
+                    <DropdownMenuGroup key={category}>
+                      <DropdownMenuLabel>{category}</DropdownMenuLabel>
+                      {fields.map((field) => (
+                        <DropdownMenuItem 
+                          key={field.value}
+                          onClick={() => insertMergeField(field.value)}
+                          data-testid={`merge-field-${field.value}`}
+                        >
+                          <span className="text-sm">{field.label}</span>
+                          <span className="ml-auto text-xs text-gray-400 font-mono">{field.value}</span>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                    </DropdownMenuGroup>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <Input 
+              ref={subjectRef}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
+              onFocus={() => setActiveField('subject')}
               placeholder="Enter email subject"
               data-testid="email-subject-input"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Available variables: {'{candidateName}'}, {'{jobTitle}'}, {'{companyName}'}
+              Click "Insert Field" to add personalization variables
             </p>
           </div>
 
           <div>
             <Label>Email Body</Label>
             <Textarea 
+              ref={bodyRef}
               value={body}
               onChange={(e) => setBody(e.target.value)}
+              onFocus={() => setActiveField('body')}
               placeholder="Write your email content here..."
               rows={10}
               data-testid="email-body-input"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Use variables to personalize: {'{candidateName}'}, {'{jobTitle}'}, {'{companyName}'}, {'{recruiterName}'}
+              Use the "Insert Field" button above to add personalization variables like candidate name, job title, etc.
             </p>
           </div>
         </div>
