@@ -684,29 +684,43 @@ function EmailEditorDialog({
   const [body, setBody] = useState(email?.body || '')
   const [delayDays, setDelayDays] = useState(email?.delayDays ?? (nextSequenceOrder === 0 ? 0 : 3))
   const [activeField, setActiveField] = useState<'subject' | 'body'>('body')
+  const [cursorPosition, setCursorPosition] = useState<{ field: 'subject' | 'body'; start: number; end: number }>({ field: 'body', start: 0, end: 0 })
   const subjectRef = useRef<HTMLInputElement>(null)
   const bodyRef = useRef<HTMLTextAreaElement>(null)
 
+  const saveCursorPosition = (field: 'subject' | 'body') => {
+    if (field === 'subject' && subjectRef.current) {
+      setCursorPosition({
+        field: 'subject',
+        start: subjectRef.current.selectionStart || 0,
+        end: subjectRef.current.selectionEnd || 0,
+      })
+    } else if (field === 'body' && bodyRef.current) {
+      setCursorPosition({
+        field: 'body',
+        start: bodyRef.current.selectionStart || 0,
+        end: bodyRef.current.selectionEnd || 0,
+      })
+    }
+    setActiveField(field)
+  }
+
   const insertMergeField = (fieldValue: string) => {
-    if (activeField === 'subject' && subjectRef.current) {
-      const input = subjectRef.current
-      const start = input.selectionStart || 0
-      const end = input.selectionEnd || 0
+    const { field, start, end } = cursorPosition
+    
+    if (field === 'subject') {
       const newValue = subject.slice(0, start) + fieldValue + subject.slice(end)
       setSubject(newValue)
       setTimeout(() => {
-        input.focus()
-        input.setSelectionRange(start + fieldValue.length, start + fieldValue.length)
+        subjectRef.current?.focus()
+        subjectRef.current?.setSelectionRange(start + fieldValue.length, start + fieldValue.length)
       }, 0)
-    } else if (activeField === 'body' && bodyRef.current) {
-      const textarea = bodyRef.current
-      const start = textarea.selectionStart || 0
-      const end = textarea.selectionEnd || 0
+    } else {
       const newValue = body.slice(0, start) + fieldValue + body.slice(end)
       setBody(newValue)
       setTimeout(() => {
-        textarea.focus()
-        textarea.setSelectionRange(start + fieldValue.length, start + fieldValue.length)
+        bodyRef.current?.focus()
+        bodyRef.current?.setSelectionRange(start + fieldValue.length, start + fieldValue.length)
       }, 0)
     }
   }
@@ -838,8 +852,14 @@ function EmailEditorDialog({
             <Input 
               ref={subjectRef}
               value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              onFocus={() => setActiveField('subject')}
+              onChange={(e) => {
+                setSubject(e.target.value)
+                saveCursorPosition('subject')
+              }}
+              onFocus={() => saveCursorPosition('subject')}
+              onBlur={() => saveCursorPosition('subject')}
+              onSelect={() => saveCursorPosition('subject')}
+              onKeyUp={() => saveCursorPosition('subject')}
               placeholder="Enter email subject"
               data-testid="email-subject-input"
             />
@@ -853,8 +873,14 @@ function EmailEditorDialog({
             <Textarea 
               ref={bodyRef}
               value={body}
-              onChange={(e) => setBody(e.target.value)}
-              onFocus={() => setActiveField('body')}
+              onChange={(e) => {
+                setBody(e.target.value)
+                saveCursorPosition('body')
+              }}
+              onFocus={() => saveCursorPosition('body')}
+              onBlur={() => saveCursorPosition('body')}
+              onSelect={() => saveCursorPosition('body')}
+              onKeyUp={() => saveCursorPosition('body')}
               placeholder="Write your email content here..."
               rows={10}
               data-testid="email-body-input"

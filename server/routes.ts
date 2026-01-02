@@ -43,6 +43,7 @@ import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers
 import crypto from "crypto";
 import { ImportService } from './lib/importService';
 import { toCamelCase } from '../shared/utils/caseConversion';
+import { renderMergeFields, type MergeFieldContext } from '../shared/utils/mergeFields';
 
 import { 
   type AuthenticatedRequest, 
@@ -3939,6 +3940,154 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.error('Campaign email deletion error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       res.status(500).json({ error: "Failed to delete campaign email", details: errorMessage });
+    }
+  });
+
+  // POST /api/campaigns/:campaignId/emails/:emailId/preview - Preview email with merge fields rendered
+  app.post("/api/campaigns/:campaignId/emails/:emailId/preview", requireAuth, async (req, res) => {
+    try {
+      const { campaignId, emailId } = req.params;
+      const { candidateId, jobId } = req.body;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Verify the campaign belongs to this org
+      const { data: campaign, error: campaignError } = await supabase
+        .from('drip_campaigns')
+        .select('id')
+        .eq('id', campaignId)
+        .eq('org_id', orgId)
+        .single();
+
+      if (campaignError || !campaign) {
+        return res.status(404).json({ error: "Campaign not found" });
+      }
+
+      // Get the email
+      const { data: email, error: emailError } = await supabase
+        .from('campaign_emails')
+        .select('*')
+        .eq('id', emailId)
+        .eq('campaign_id', campaignId)
+        .single();
+
+      if (emailError || !email) {
+        return res.status(404).json({ error: "Campaign email not found" });
+      }
+
+      // Build merge field context
+      const context: MergeFieldContext = {};
+
+      // Get candidate data if provided (using Supabase directly with org scoping)
+      if (candidateId) {
+        const { data: candidate } = await supabase
+          .from('candidates')
+          .select('name, email, phone, location, current_title, current_company')
+          .eq('id', candidateId)
+          .eq('org_id', orgId)
+          .single();
+          
+        if (candidate) {
+          const nameParts = (candidate.name || '').split(' ');
+          context.candidate = {
+            firstName: nameParts[0] || '',
+            lastName: nameParts.slice(1).join(' ') || '',
+            name: candidate.name || '',
+            email: candidate.email || '',
+            phone: candidate.phone || '',
+            location: candidate.location || '',
+            currentTitle: candidate.current_title || '',
+            currentCompany: candidate.current_company || '',
+          };
+        }
+      }
+
+      // Get job data if provided (using Supabase directly with org scoping)
+      if (jobId) {
+        const { data: job } = await supabase
+          .from('jobs')
+          .select('title, location, department, employment_type, client_id')
+          .eq('id', jobId)
+          .eq('org_id', orgId)
+          .single();
+          
+        if (job) {
+          context.job = {
+            title: job.title || '',
+            location: job.location || '',
+            department: job.department || '',
+            employmentType: job.employment_type || '',
+          };
+
+          // Get client/company name
+          if (job.client_id) {
+            const { data: client } = await supabase
+              .from('clients')
+              .select('name')
+              .eq('id', job.client_id)
+              .eq('org_id', orgId)
+              .single();
+              
+            if (client) {
+              context.company = {
+                name: client.name || '',
+              };
+            }
+          }
+        }
+      }
+
+      // Get organization as fallback for company name
+      if (!context.company) {
+        const { data: org } = await supabase
+          .from('organizations')
+          .select('name')
+          .eq('id', orgId)
+          .single();
+        if (org) {
+          context.company = { name: org.name || '' };
+        }
+      }
+
+      // Get current user as recruiter
+      const userId = req.headers['x-user-id'] as string;
+      if (userId) {
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('full_name, email, title')
+          .eq('id', userId)
+          .single();
+        if (userProfile) {
+          context.recruiter = {
+            name: userProfile.full_name || '',
+            email: userProfile.email || '',
+            title: userProfile.title || '',
+          };
+        }
+      }
+
+      // Render the merge fields
+      const renderedSubject = renderMergeFields(email.subject || '', context);
+      const renderedBody = renderMergeFields(email.body || '', context);
+
+      res.json({
+        original: {
+          subject: email.subject,
+          body: email.body,
+        },
+        rendered: {
+          subject: renderedSubject,
+          body: renderedBody,
+        },
+        context,
+      });
+    } catch (error) {
+      console.error('Email preview error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to preview email", details: errorMessage });
     }
   });
 
