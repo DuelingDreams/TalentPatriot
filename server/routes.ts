@@ -3574,7 +3574,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         throw error;
       }
 
-      res.status(204).send();
+      res.json({ success: true, message: "Campaign deleted successfully" });
     } catch (error) {
       console.error('Campaign delete error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
