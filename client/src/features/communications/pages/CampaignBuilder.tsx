@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/shared/hooks/use-toast'
@@ -151,6 +152,7 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
   const [activeTab, setActiveTab] = useState('emails')
   const [showEmailDialog, setShowEmailDialog] = useState(false)
   const [editingEmail, setEditingEmail] = useState<CampaignEmail | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const { data: campaign, isLoading: campaignLoading } = useQuery<DripCampaign>({
     queryKey: ['/api/campaigns', campaignId],
@@ -190,6 +192,22 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId, 'emails'] })
       toast({ title: 'Email deleted' })
+    },
+  })
+
+  const deleteCampaignMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/campaigns/${campaignId}`, {
+        method: 'DELETE',
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] })
+      toast({ title: 'Campaign deleted', description: 'The campaign has been permanently removed.' })
+      onBack()
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Failed to delete campaign', description: error.message, variant: 'destructive' })
     },
   })
 
@@ -274,7 +292,11 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
                 Edit Details
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600">
+              <DropdownMenuItem 
+                className="text-red-600"
+                onClick={() => setShowDeleteConfirm(true)}
+                data-testid="delete-campaign-button"
+              >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete Campaign
               </DropdownMenuItem>
@@ -400,6 +422,27 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
         email={editingEmail}
         nextSequenceOrder={sortedEmails.length}
       />
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Campaign</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{campaign.name}"? This will permanently remove all emails in this campaign and cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteCampaignMutation.mutate()}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteCampaignMutation.isPending}
+            >
+              {deleteCampaignMutation.isPending ? 'Deleting...' : 'Delete Campaign'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

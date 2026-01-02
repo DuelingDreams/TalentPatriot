@@ -42,6 +42,7 @@ import { subdomainResolver } from './middleware/subdomainResolver';
 import { addUserToOrganization, removeUserFromOrganization, getOrganizationUsers } from "../lib/userService";
 import crypto from "crypto";
 import { ImportService } from './lib/importService';
+import { toCamelCase } from '../shared/utils/caseConversion';
 
 import { 
   type AuthenticatedRequest, 
@@ -3753,14 +3754,16 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         .select('*')
         .eq('campaign_id', campaignId)
         .order('delay_days', { ascending: true })
-        .order('order_index', { ascending: true });
+        .order('sequence_order', { ascending: true });
 
       if (error) {
         console.error('Error fetching campaign emails:', error);
         throw error;
       }
 
-      res.json(data || []);
+      // Transform snake_case to camelCase for frontend
+      const camelCaseData = (data || []).map(email => toCamelCase(email));
+      res.json(camelCaseData);
     } catch (error) {
       console.error('Campaign emails fetch error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -3797,16 +3800,16 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         delayDays: z.number().min(0).optional().default(0),
       }).parse(req.body);
 
-      // Get max order_index for this campaign
+      // Get max sequence_order for this campaign
       const { data: existingEmails } = await supabase
         .from('campaign_emails')
-        .select('order_index')
+        .select('sequence_order')
         .eq('campaign_id', campaignId)
-        .order('order_index', { ascending: false })
+        .order('sequence_order', { ascending: false })
         .limit(1);
 
-      const nextOrderIndex = existingEmails && existingEmails.length > 0 
-        ? (existingEmails[0].order_index || 0) + 1 
+      const nextSequenceOrder = existingEmails && existingEmails.length > 0 
+        ? (existingEmails[0].sequence_order || 0) + 1 
         : 1;
 
       // Always use campaignId from route parameter (already validated for org ownership above)
@@ -3817,7 +3820,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           subject: emailData.subject,
           body: emailData.body || null,
           delay_days: emailData.delayDays,
-          order_index: nextOrderIndex
+          sequence_order: nextSequenceOrder
         })
         .select()
         .single();
@@ -3827,7 +3830,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         throw error;
       }
 
-      res.status(201).json(data);
+      // Transform snake_case to camelCase for frontend
+      res.status(201).json(toCamelCase(data));
     } catch (error) {
       console.error('Campaign email creation error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -3873,7 +3877,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       if (req.body.subject !== undefined) updateData.subject = req.body.subject;
       if (req.body.body !== undefined) updateData.body = req.body.body;
       if (req.body.delayDays !== undefined) updateData.delay_days = req.body.delayDays;
-      if (req.body.orderIndex !== undefined) updateData.order_index = req.body.orderIndex;
+      if (req.body.sequenceOrder !== undefined) updateData.sequence_order = req.body.sequenceOrder;
       updateData.updated_at = new Date().toISOString();
 
       const { data, error } = await supabase
@@ -3888,7 +3892,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         throw error;
       }
 
-      res.json(data);
+      // Transform snake_case to camelCase for frontend
+      res.json(toCamelCase(data));
     } catch (error) {
       console.error('Campaign email update error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
