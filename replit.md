@@ -71,10 +71,36 @@ Preferred communication style: Simple, everyday language.
 - Comprehensive in-app documentation system (`/docs`).
 - Skills analytics with categorized skills.
 
+## Workflow Automation Infrastructure
+Database-level workflow automation triggered by candidate stage changes. SQL files stored in `docs/workflows/`.
+
+### Tables
+- `workflow_triggers`: Configuration for automated actions (create_task, send_email, create_approval_workflow, trigger_onboarding, send_notification)
+- `job_candidate_stage_history`: Audit trail of all stage changes
+- `tasks`: Workflow tasks with assignment, due dates, priority, completion tracking
+- `workflow_execution_log`: Execution audit log for debugging
+
+### Stage-Based Automation
+| Stage | Automated Actions |
+|-------|-------------------|
+| Applied | Review task, confirmation email |
+| Phone Screen | Phone screen form task, scheduling email |
+| Interview | Feedback task, interview email, hiring manager notification |
+| Offer | Approval workflow, offer generation tasks |
+| Hired | Onboarding tasks (HR, IT, Facilities), welcome email, team notification |
+| Rejected | Rejection email, documentation task |
+
+### Future Implementation
+- Tasks UI for viewing/completing assigned tasks
+- Admin settings for workflow configuration
+- Email action integration with SendGrid
+- Real-time notifications
+
 ## Architecture Decisions
 - **Case Conversion Strategy**: Frontend uses `camelCase`, database uses `snake_case`. Conversion handled by shared utilities in `shared/utils/caseConversion.ts` at the API boundary to maintain idiomatic conventions for each layer.
 - **Org ID in Public Job Applications**: `org_id` derived from the job record for public applications. Legacy candidates with null `org_id` are auto-updated upon access.
 - **OAuth Session Storage**: Migrated from in-memory to PostgreSQL-backed sessions in Supabase (`oauth_sessions` table) with hashed tokens, nonce for CSRF, and 10-minute TTL. `connected_accounts` table tracks health status of external integrations.
+- **Pipeline Stage Synchronization**: `moveJobCandidate()` updates both `pipeline_column_id` and `stage` fields to ensure consistency when candidates move between columns.
 
 # External Dependencies
 
