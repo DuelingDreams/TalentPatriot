@@ -1,0 +1,193 @@
+Recommended Architecture (High-Level)
+Core Principle
+
+Email is not a standalone feature
+It must always be anchored to:
+
+✅ Candidate
+
+✅ Job (optional but preferred)
+
+✅ Thread / conversation
+
+✅ Google message ID
+
+Think:
+
+“Email is a first-class object that lives inside the candidate profile.”
+
+📌 Candidate Profile → Emails Tab (Primary Surface)
+
+Tabs
+
+[ Profile ] [ Resume ] [ Pipeline ] [ Emails ] [ Notes ]
+
+Emails Tab Layout (From the Mockup)
+
+Top Bar
+
+📩 Emails
+
+Send Email (primary CTA)
+
+Filters
+
+Job
+
+Date range
+
+Sent / Received
+
+Internal / Email / Client Portal
+
+Threaded Timeline
+
+Chronological
+
+Grouped by subject + Gmail thread ID
+
+Shows:
+
+Template used (if any)
+
+Job context
+
+Sent vs received
+
+✉️ Compose Email (Template-Driven)
+
+This matches your example screenshots almost exactly.
+
+Template Selector (First Action)
+Use Email Template ▾
+
+
+Templates:
+
+Application Received
+
+Schedule Phone Screen
+
+Request Additional Info
+
+Not Moving Forward
+
+Offer Letter
+
+Reference Check Request
+
+Selecting a template:
+
+Auto-fills Subject
+
+Auto-fills Body
+
+Injects merge fields
+
+🧩 Email Template System (How to Model It)
+email_templates table
+id
+org_id
+name
+subject_template
+body_template
+category
+is_active
+created_at
+
+Merge Fields (Simple + Powerful)
+{{candidate.first_name}}
+{{candidate.last_name}}
+{{job.title}}
+{{company.name}}
+{{recruiter.name}}
+{{interview.link}}
+
+
+💡 Render server-side before send for auditability.
+
+📨 Sending + Syncing (Critical Part)
+When recruiter clicks Send
+
+You should:
+
+Render final email with merge fields
+
+Send via Google Gmail API
+
+Capture:
+
+gmail_message_id
+
+gmail_thread_id
+
+Store email record locally
+
+emails table
+id
+candidate_id
+job_id
+gmail_message_id
+gmail_thread_id
+direction -- sent | received
+subject
+body
+sent_at
+created_by
+
+
+This enables:
+
+Full threading
+
+Reply / forward
+
+Audit history
+
+Multi-job visibility
+
+🔁 Incoming Email Sync
+
+Via Gmail webhook / polling:
+
+Match by thread_id
+
+Attach to candidate
+
+Auto-appear in Emails tab
+
+Mark unread / replied
+
+This is what makes TalentPatriot feel “alive” instead of transactional.
+
+⏱️ Advanced Actions (Already in Mockup)
+
+From the composer:
+
+📅 Schedule for later
+
+💾 Save draft
+
+📎 Attach files (offer letters, PDFs)
+
+From threads:
+
+Reply
+
+Forward
+
+Schedule follow-up task
+
+🧠 Why This Design Works for Small & Boutique Firms
+
+No separate “email module”
+
+No CRM-style inbox complexity
+
+Everything lives where recruiters already are
+
+Templates reduce cognitive load
+
+Google remains source of truth
+
+This feels modern, lightweight, and recruiter-native.
