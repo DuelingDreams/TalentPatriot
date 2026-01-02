@@ -4,6 +4,7 @@ import { useLocation } from 'wouter'
 import { format } from 'date-fns'
 import { apiRequest, queryClient } from '@/lib/queryClient'
 import { useAuth } from '@/contexts/AuthContext'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -875,24 +876,26 @@ export default function CampaignBuilder() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      {selectedCampaignId ? (
-        <CampaignDetail 
-          campaignId={selectedCampaignId} 
-          onBack={() => setSelectedCampaignId(null)} 
-        />
-      ) : (
-        <CampaignList 
-          onSelectCampaign={setSelectedCampaignId}
-          onCreateNew={() => setShowCreateDialog(true)}
-        />
-      )}
+    <DashboardLayout pageTitle="Email Campaigns">
+      <div className="p-6 max-w-6xl mx-auto">
+        {selectedCampaignId ? (
+          <CampaignDetail 
+            campaignId={selectedCampaignId} 
+            onBack={() => setSelectedCampaignId(null)} 
+          />
+        ) : (
+          <CampaignList 
+            onSelectCampaign={setSelectedCampaignId}
+            onCreateNew={() => setShowCreateDialog(true)}
+          />
+        )}
 
-      <CreateCampaignDialog 
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onCreated={handleCampaignCreated}
-      />
-    </div>
+        <CreateCampaignDialog 
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onCreated={handleCampaignCreated}
+        />
+      </div>
+    </DashboardLayout>
   )
 }
