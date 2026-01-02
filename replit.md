@@ -114,6 +114,11 @@ Target: Template-driven email composer matching mockup design.
 - Filters: job, date range, direction (sent/received)
 - "Send Email" primary CTA button
 
+### Messages Page Consolidation
+- Remove email functionality from Messages page
+- Messages page becomes internal team communication only
+- Candidate profile is single source of truth for email communication
+
 ### Backend
 - API endpoint: GET /api/candidates/:id/emails (email history)
 - API endpoint: GET /api/email-templates (list templates)
