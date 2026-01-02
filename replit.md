@@ -160,6 +160,38 @@ Target: UI to display and manage tasks created by database triggers.
 - Log to email_events table
 - Update workflow_execution_log with success/failure
 
+## TalentPatriot Capture Chrome Extension (~2-3 hours)
+Target: Chrome extension to capture LinkedIn profiles and add candidates directly to TalentPatriot.
+Build in separate Replit project.
+
+### Extension Features (from mockup)
+- Parse LinkedIn profile pages (name, title, company, location, LinkedIn URL)
+- Show candidate preview before adding
+- Job dropdown to assign candidate to specific job
+- Stage dropdown (default: Sourced)
+- Optional notes field
+- One-click "Add to TalentPatriot" button
+- Login status indicator
+
+### Extension Structure
+- `manifest.json` - Extension config with LinkedIn permissions
+- `popup.html/js/css` - Popup UI matching mockup design
+- `content.js` - Script to parse LinkedIn profile data
+- `background.js` - Handle auth and API calls to TalentPatriot
+
+### Backend API Additions (this project)
+- `POST /api/extension/candidates` - Create candidate from extension
+  - Body: `{ name, title, company, location, linkedinUrl, jobId, stage, notes }`
+  - Returns: created candidate with job_candidate record
+- `GET /api/extension/jobs` - List active jobs for dropdown
+  - Returns: `[{ id, title, clientName }]`
+- Extension token authentication via Supabase auth or API key
+
+### Duplicate Detection
+- Check if candidate with same LinkedIn URL or email already exists
+- Return existing candidate info if duplicate found
+- Option to update existing or skip
+
 ## Architecture Decisions
 - **Case Conversion Strategy**: Frontend uses `camelCase`, database uses `snake_case`. Conversion handled by shared utilities in `shared/utils/caseConversion.ts` at the API boundary to maintain idiomatic conventions for each layer.
 - **Org ID in Public Job Applications**: `org_id` derived from the job record for public applications. Legacy candidates with null `org_id` are auto-updated upon access.
