@@ -2117,6 +2117,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     remoteOption: z.enum(['onsite', 'remote', 'hybrid']).optional(),
     salaryRange: z.string().optional(),
     experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
+    status: z.enum(['draft', 'open', 'closed', 'on_hold', 'filled', 'archived', 'pending_approval', 'approved', 'closed_cancelled', 'closed_no_hire']).optional(),
   });
 
   app.put("/api/jobs/:jobId", writeLimiter, async (req, res) => {
@@ -2146,9 +2147,25 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(403).json({ error: "Access denied" });
       }
 
-      // Only allow editing draft jobs
+      // For non-draft jobs, only allow status changes (compare actual changes, not just submitted fields)
       if (existingJob.status !== 'draft') {
-        return res.status(400).json({ error: "Only draft jobs can be edited" });
+        const changedNonStatusFields: string[] = [];
+        for (const [key, value] of Object.entries(validatedData)) {
+          if (key === 'status') continue;
+          const existingValue = (existingJob as any)[key];
+          // Normalize undefined/null/"" for comparison
+          const normalizedNew = value === '' ? null : value;
+          const normalizedExisting = existingValue === '' ? null : existingValue;
+          if (normalizedNew !== normalizedExisting) {
+            changedNonStatusFields.push(key);
+          }
+        }
+        if (changedNonStatusFields.length > 0) {
+          return res.status(400).json({ 
+            error: "Only status can be updated on published jobs", 
+            details: `Cannot modify: ${changedNonStatusFields.join(', ')}` 
+          });
+        }
       }
 
       const updatedJob = await storage.jobs.updateJob(jobId, {
