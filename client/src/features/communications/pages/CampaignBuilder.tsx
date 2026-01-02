@@ -155,7 +155,7 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
   const { data: campaign, isLoading: campaignLoading } = useQuery<DripCampaign>({
     queryKey: ['/api/campaigns', campaignId],
     queryFn: async () => {
-      const campaigns = await fetch(`/api/campaigns`).then(r => r.json())
+      const campaigns = await apiRequest<DripCampaign[]>('/api/campaigns')
       return campaigns.find((c: DripCampaign) => c.id === campaignId)
     },
   })
@@ -163,9 +163,7 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
   const { data: emails, isLoading: emailsLoading } = useQuery<CampaignEmail[]>({
     queryKey: ['/api/campaigns', campaignId, 'emails'],
     queryFn: async () => {
-      const response = await fetch(`/api/campaigns/${campaignId}/emails`)
-      if (!response.ok) throw new Error('Failed to fetch emails')
-      return response.json()
+      return apiRequest<CampaignEmail[]>(`/api/campaigns/${campaignId}/emails`)
     },
     enabled: !!campaignId,
   })
