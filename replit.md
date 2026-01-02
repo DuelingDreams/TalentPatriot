@@ -91,10 +91,69 @@ Database-level workflow automation triggered by candidate stage changes. SQL fil
 | Rejected | Rejection email, documentation task |
 
 ### Future Implementation
-- Tasks UI for viewing/completing assigned tasks
-- Admin settings for workflow configuration
-- Email action integration with SendGrid
-- Real-time notifications
+See Planned Features section below.
+
+# Planned Features
+
+## Email Composer Enhancements (~30-45 min)
+Target: Template-driven email composer matching mockup design.
+
+### Email Composer Updates
+- Template selector dropdown that auto-fills subject and body
+- Merge field support: {{candidate.first_name}}, {{job.title}}, {{company.name}}, {{recruiter.name}}
+- CC/BCC toggle fields
+- Basic formatting toolbar (Bold, Italic, Lists, Links)
+- "Insert Field" button for merge field insertion
+- File attachment support (PDF, DOC, DOCX up to 10MB)
+- Save Draft and Cancel buttons alongside Send
+
+### Candidate Profile - Emails Tab
+- Add "Emails" tab between Campaigns and Notes
+- Display threaded email history (grouped by Gmail thread_id)
+- Show sent/received indicator, date, template used, job context
+- Filters: job, date range, direction (sent/received)
+- "Send Email" primary CTA button
+
+### Backend
+- API endpoint: GET /api/candidates/:id/emails (email history)
+- API endpoint: GET /api/email-templates (list templates)
+- Merge field rendering on send
+- Store gmail_message_id and gmail_thread_id for threading
+
+### Default Templates to Seed
+- Application Received
+- Phone Screen Request
+- Interview Invitation
+- Not Moving Forward
+
+## Workflow Automation UI (~1.5-2 hours)
+Target: UI to display and manage tasks created by database triggers.
+
+### Tasks Page (~45-60 min)
+- New /tasks route showing tasks assigned to current user
+- Task cards with: title, description, priority badge, due date, candidate/job context
+- Actions: Mark complete, Mark in-progress
+- Filters: status (pending/in_progress/completed), task_type, due date, priority
+- Empty state when no tasks
+
+### Workflow Settings Admin (~30-40 min)
+- Admin page at /settings/workflows
+- List all workflow triggers by stage
+- Toggle enable/disable per trigger
+- Edit task assignments and due_days configuration
+- Show execution_order for multiple triggers per stage
+
+### Stage History on Candidate Profile (~15-20 min)
+- Add timeline component to candidate profile
+- Show stage change history from job_candidate_stage_history
+- Display: from_stage → to_stage, changed_at, changed_by
+- Link to related tasks created by automation
+
+### Email Action Integration (~15-20 min)
+- Connect workflow send_email triggers to SendGrid
+- Render merge fields before sending
+- Log to email_events table
+- Update workflow_execution_log with success/failure
 
 ## Architecture Decisions
 - **Case Conversion Strategy**: Frontend uses `camelCase`, database uses `snake_case`. Conversion handled by shared utilities in `shared/utils/caseConversion.ts` at the API boundary to maintain idiomatic conventions for each layer.
