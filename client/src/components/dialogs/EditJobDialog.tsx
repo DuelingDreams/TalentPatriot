@@ -35,6 +35,7 @@ const editJobSchema = z.object({
   salaryRange: z.string().optional(),
   experienceLevel: z.enum(['entry', 'mid', 'senior', 'executive']).optional(),
   jobType: z.enum(['full-time', 'part-time', 'contract', 'internship']).optional(),
+  status: z.enum(['draft', 'open', 'closed', 'on_hold', 'filled', 'archived', 'pending_approval', 'approved', 'closed_cancelled', 'closed_no_hire']).optional(),
 })
 
 type EditJobFormData = z.infer<typeof editJobSchema>
@@ -64,6 +65,7 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
       salaryRange: job.salaryRange || '',
       experienceLevel: job.experienceLevel || 'mid',
       jobType: job.jobType || 'full-time',
+      status: job.status || 'draft',
     }
   })
 
@@ -78,6 +80,7 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
       salaryRange: job.salaryRange || '',
       experienceLevel: job.experienceLevel || 'mid',
       jobType: job.jobType || 'full-time',
+      status: job.status || 'draft',
     })
   }, [job, form])
 
@@ -165,6 +168,36 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
                         {...field}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-job-status">
+                          <SelectValue placeholder="Select job status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="draft">Draft</SelectItem>
+                        <SelectItem value="pending_approval">Pending Approval</SelectItem>
+                        <SelectItem value="approved">Approved</SelectItem>
+                        <SelectItem value="open">Open</SelectItem>
+                        <SelectItem value="on_hold">On Hold</SelectItem>
+                        <SelectItem value="filled">Filled</SelectItem>
+                        <SelectItem value="closed">Closed</SelectItem>
+                        <SelectItem value="closed_cancelled">Closed - Cancelled</SelectItem>
+                        <SelectItem value="closed_no_hire">Closed - No Hire</SelectItem>
+                        <SelectItem value="archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

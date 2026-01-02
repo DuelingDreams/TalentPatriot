@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'on_hold', 'filled']);
+export const jobStatusEnum = pgEnum('job_status', ['draft', 'open', 'closed', 'on_hold', 'filled', 'archived', 'pending_approval', 'approved', 'closed_cancelled', 'closed_no_hire']);
 export const jobTypeEnum = pgEnum('job_type', ['full-time', 'part-time', 'contract', 'freelance', 'internship']);
 export const candidateStageEnum = pgEnum('candidate_stage', ['applied', 'phone_screen', 'interview', 'technical', 'final', 'offer', 'hired', 'rejected']);
 export const recordStatusEnum = pgEnum('record_status', ['active', 'inactive', 'demo']);
