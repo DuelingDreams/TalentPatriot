@@ -305,12 +305,93 @@ export class CandidatesRepository implements ICandidatesRepository {
   
   async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
     try {
+      // First, get the column title to update the stage field
+      const { data: columnData, error: columnError } = await supabase
+        .from('pipeline_columns')
+        .select('title')
+        .eq('id', newColumnId)
+        .single();
+      
+      if (columnError) {
+        console.error('Error fetching pipeline column:', columnError);
+        // Continue with just the column ID update if column lookup fails
+      }
+      
+      // Map column title to valid stage enum values
+      // Valid enum: applied, phone_screen, interview, technical, final, offer, hired, rejected
+      const columnTitle = columnData?.title?.toLowerCase().trim() || '';
+      let stage: string | undefined;
+      
+      // Map standard column titles to valid stage enum values
+      // Only exact or close matches to prevent invalid enum values
+      switch (columnTitle) {
+        case 'applied':
+        case 'new':
+        case 'received':
+          stage = 'applied';
+          break;
+        case 'screen':
+        case 'phone screen':
+        case 'screening':
+        case 'phone_screen':
+          stage = 'phone_screen';
+          break;
+        case 'interview':
+        case 'interviews':
+          stage = 'interview';
+          break;
+        case 'technical':
+        case 'technical interview':
+        case 'tech screen':
+          stage = 'technical';
+          break;
+        case 'final':
+        case 'final interview':
+        case 'final round':
+          stage = 'final';
+          break;
+        case 'offer':
+        case 'offer extended':
+        case 'pending offer':
+          stage = 'offer';
+          break;
+        case 'hired':
+        case 'accepted':
+        case 'onboarded':
+          stage = 'hired';
+          break;
+        case 'rejected':
+        case 'declined':
+        case 'withdrawn':
+          stage = 'rejected';
+          break;
+        default:
+          // For custom columns, don't update stage to avoid enum violations
+          // pipeline_column_id is the source of truth for position
+          stage = undefined;
+      }
+      
+      // Build update object
+      const updateObj: Record<string, any> = {
+        pipeline_column_id: newColumnId,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Only update stage if we have a valid enum mapping
+      if (stage) {
+        updateObj.stage = stage;
+      }
+      
+      console.log('[moveJobCandidate] Updating:', { 
+        jobCandidateId, 
+        newColumnId, 
+        columnTitle: columnData?.title,
+        mappedStage: stage 
+      });
+      
       const { data, error } = await supabase
         .from('job_candidate')
-        .update({ 
-          pipeline_column_id: newColumnId,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateObj)
         .eq('id', jobCandidateId)
         .select()
         .single();
