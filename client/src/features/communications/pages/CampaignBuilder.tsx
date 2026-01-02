@@ -205,12 +205,14 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
         method: 'DELETE',
       })
     },
-    onSuccess: async () => {
-      // Invalidate both the list and the specific campaign query
-      await queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] })
-      await queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] })
-      // Also remove the campaign from cache entirely
+    onSuccess: () => {
+      // Optimistically remove the campaign from the cache immediately
+      queryClient.setQueryData<DripCampaign[]>(['/api/campaigns'], (oldData) => {
+        return oldData ? oldData.filter((c) => c.id !== campaignId) : []
+      })
+      // Remove the specific campaign query from cache
       queryClient.removeQueries({ queryKey: ['/api/campaigns', campaignId] })
+      queryClient.removeQueries({ queryKey: ['/api/campaigns', campaignId, 'emails'] })
       toast({ title: 'Campaign deleted', description: 'The campaign has been permanently removed.' })
       onBack()
     },
