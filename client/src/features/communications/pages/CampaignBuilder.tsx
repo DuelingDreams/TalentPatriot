@@ -158,7 +158,7 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
   const [editingEmail, setEditingEmail] = useState<CampaignEmail | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: campaign, isLoading: campaignLoading } = useQuery<DripCampaign>({
+  const { data: campaign, isLoading: campaignLoading } = useQuery<DripCampaign | undefined>({
     queryKey: ['/api/campaigns', campaignId],
     queryFn: async () => {
       const campaigns = await apiRequest<DripCampaign[]>('/api/campaigns')
@@ -205,8 +205,12 @@ function CampaignDetail({ campaignId, onBack }: { campaignId: string; onBack: ()
         method: 'DELETE',
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] })
+    onSuccess: async () => {
+      // Invalidate both the list and the specific campaign query
+      await queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] })
+      await queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] })
+      // Also remove the campaign from cache entirely
+      queryClient.removeQueries({ queryKey: ['/api/campaigns', campaignId] })
       toast({ title: 'Campaign deleted', description: 'The campaign has been permanently removed.' })
       onBack()
     },
