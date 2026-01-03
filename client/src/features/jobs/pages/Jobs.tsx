@@ -1,5 +1,5 @@
-import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
-import { EditJobDialog } from '@/components/dialogs/EditJobDialog'
+import { PostJobDialog } from '@/features/jobs/components/PostJobDialog'
+import { EditJobDialog } from '@/features/jobs/components/EditJobDialog'
 import { VirtualizedJobsList } from '@/components/performance/VirtualizedJobsList'
 import { useState, useEffect } from 'react'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'

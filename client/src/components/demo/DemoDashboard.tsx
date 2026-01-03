@@ -12,7 +12,7 @@ import { JobsChart } from '@/components/dashboard/JobsChart'
 import { SmartAlerts } from '@/components/dashboard/SmartAlerts'
 import { QuickActions } from '@/components/dashboard/QuickActions'
 import { RefreshIndicator } from '@/components/dashboard/RefreshIndicator'
-import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
+import { PostJobDialog } from '@/features/jobs/components/PostJobDialog'
 import { 
   Users, Briefcase, Calendar, TrendingUp, 
   FileText, ChevronRight, PlayCircle,

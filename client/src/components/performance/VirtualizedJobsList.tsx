@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Building2, Calendar, Globe, ExternalLink, Loader2 } from 'lucide-react'
 import { Link } from 'wouter'
-import { EditJobDialog } from '@/components/dialogs/EditJobDialog'
+import { EditJobDialog } from '@/features/jobs/components/EditJobDialog'
 import { VirtualizedList } from './VirtualizedList'
 
 interface VirtualizedJobsListProps {

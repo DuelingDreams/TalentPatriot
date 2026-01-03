@@ -1,5 +1,5 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { InterviewCalendar } from '@/components/calendar/InterviewCalendar'
+import { InterviewCalendar } from '@/features/communications/components/calendar/InterviewCalendar'
 import { useAuth } from '@/contexts/AuthContext'
 import { DemoCalendar } from '@/components/demo/DemoCalendar'
 

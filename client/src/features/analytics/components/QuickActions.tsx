@@ -11,7 +11,7 @@ import {
   ChevronRight
 } from 'lucide-react'
 import { Link } from 'wouter'
-import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
+import { PostJobDialog } from '@/features/jobs/components/PostJobDialog'
 import { useAuth } from '@/contexts/AuthContext'
 import { useJobCandidates } from '@/features/jobs/hooks/useJobCandidates'
 

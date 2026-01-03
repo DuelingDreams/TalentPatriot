@@ -26,7 +26,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { Link, useLocation } from 'wouter'
-import { PostJobDialog } from '@/components/dialogs/PostJobDialog'
+import { PostJobDialog } from '@/features/jobs/components/PostJobDialog'
 
 const clientSchema = z.object({
   name: z.string().min(1, 'Name is required'),
