@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
-import { InsertCandidate, Candidate } from '../../../shared/schema'
+import { InsertCandidate, Candidate } from '@shared/schema'
 import { useAuth } from '@/contexts/AuthContext'
 import toast from 'react-hot-toast'
 

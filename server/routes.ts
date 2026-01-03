@@ -522,8 +522,9 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       try {
         await storage.auth.ensureUserProfile(ownerId);
         console.log('User profile ensured for:', ownerId);
-      } catch (userError: unknown) {
-        console.error('Failed to ensure user profile:', userError?.message);
+      } catch (userError) {
+        const errorMessage = userError instanceof Error ? userError.message : String(userError);
+        console.error('Failed to ensure user profile:', errorMessage);
         return res.status(500).json({ 
           error: "Failed to setup user profile",
           code: "PROFILE_SETUP_FAILED"
@@ -558,11 +559,12 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
       
       res.status(201).json(organization);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Error creating organization:", error);
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       res.status(400).json({ 
         error: "Failed to create organization",
-        details: error?.message || "Unknown error occurred"
+        details: errorMessage
       });
     }
   });
@@ -782,11 +784,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           code: result.error
         });
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error in user-organization assignment endpoint:', error);
       return res.status(500).json({ 
         error: 'Failed to assign user to organization',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -812,11 +814,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           error: result.error
         });
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error fetching organization users:', error);
       return res.status(500).json({ 
         error: 'Failed to fetch organization users',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -848,8 +850,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       res.json(settings);
     } catch (error) {
       console.error('Error updating email settings:', error);
-      if (error.name === 'ZodError') {
-        res.status(400).json({ error: 'Invalid request data', details: error.issues });
+      if (error instanceof Error && error.name === 'ZodError') {
+        res.status(400).json({ error: 'Invalid request data', details: (error as any).issues });
       } else {
         res.status(500).json({ error: 'Failed to update email settings' });
       }
@@ -881,8 +883,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       res.status(201).json(template);
     } catch (error) {
       console.error('Error creating email template:', error);
-      if (error.name === 'ZodError') {
-        res.status(400).json({ error: 'Invalid request data', details: error.issues });
+      if (error instanceof Error && error.name === 'ZodError') {
+        res.status(400).json({ error: 'Invalid request data', details: (error as any).issues });
       } else {
         res.status(500).json({ error: 'Failed to create email template' });
       }
@@ -902,8 +904,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       res.json(template);
     } catch (error) {
       console.error('Error updating email template:', error);
-      if (error.name === 'ZodError') {
-        res.status(400).json({ error: 'Invalid request data', details: error.issues });
+      if (error instanceof Error && error.name === 'ZodError') {
+        res.status(400).json({ error: 'Invalid request data', details: (error as any).issues });
       } else {
         res.status(500).json({ error: 'Failed to update email template' });
       }
@@ -1789,11 +1791,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           code: result.error
         });
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error removing user from organization:', error);
       return res.status(500).json({ 
         error: 'Failed to remove user from organization',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -4285,13 +4287,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       const note = await storage.candidates.createCandidateNote(req.body);
       console.log('[NOTES_API] Note created successfully:', { id: note.id, orgId: note.orgId });
       res.status(201).json(note);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('[NOTES_API] Error creating candidate note:', error);
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       res.status(400).json({ 
         error: "Failed to create candidate note", 
         details: errorMsg,
-        message: error?.message || "Unknown error occurred"
+        message: errorMsg
       });
     }
   });
@@ -5041,12 +5043,12 @@ Expires: 2025-12-31T23:59:59.000Z
       }
       
       res.status(201).json(candidate);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Error creating candidate:", error);
-      if (error.name === 'ZodError') {
+      if (error instanceof Error && error.name === 'ZodError') {
         return res.status(400).json({ 
           error: "Validation failed", 
-          details: error.errors 
+          details: (error as any).errors 
         });
       }
       res.status(500).json({ error: "Failed to create candidate" });
@@ -5067,7 +5069,7 @@ Expires: 2025-12-31T23:59:59.000Z
 
 
   // Auth endpoints - Forgot Password
-  app.post('/api/auth/forgot-password', authLimiter, async (req: express.Request, res: express.Response) => {
+  app.post('/api/auth/forgot-password', authLimiter, async (req, res) => {
     try {
       const { email } = req.body;
       
@@ -5104,7 +5106,7 @@ Expires: 2025-12-31T23:59:59.000Z
         message: 'If that email is registered, you\'ll receive a password reset link shortly.' 
       });
 
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Forgot password error:', error);
       res.status(500).json({ error: 'Failed to send reset email' });
     }
@@ -5205,12 +5207,12 @@ Expires: 2025-12-31T23:59:59.000Z
           timestamp: new Date().toISOString()
         });
       }
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('SendGrid test error:', error);
       res.status(500).json({ 
         success: false, 
         message: 'SendGrid integration test failed',
-        error: error.message,
+        error: error instanceof Error ? error.message : 'Unknown error',
         emailServiceStatus: 'error',
         timestamp: new Date().toISOString()
       });
