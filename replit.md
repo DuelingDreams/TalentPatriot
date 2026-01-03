@@ -20,6 +20,14 @@ Preferred communication style: Simple, everyday language.
   - Neutral gray scale (50-950) for consistent typography and backgrounds
   - TalentPatriot-specific tokens: tp-primary, tp-accent, tp-page, tp-card-surface
   - CSS variables in index.css, Tailwind tokens in tailwind.config.ts
+- **Feature-Based Architecture** (Monolith):
+  - `client/src/features/candidates/` - Candidate management (components, hooks, pages)
+  - `client/src/features/jobs/` - Job postings and pipelines
+  - `client/src/features/communications/` - Email, campaigns, calendar, messaging
+  - `client/src/features/organization/` - Clients, org management
+  - `client/src/features/analytics/` - Dashboard analytics and reports
+  - Each feature has barrel exports via `index.ts` for cleaner imports
+  - Shared UI components remain in `client/src/components/ui/`
 
 ## Backend
 - **Framework**: Express.js with TypeScript.
@@ -30,6 +38,12 @@ Preferred communication style: Simple, everyday language.
   - `server/middleware/rate-limit.ts`: Rate limiters (writeLimiter, authLimiter, publicJobLimiter)
   - `server/middleware/upload.ts`: Multer file upload configuration
   - `server/middleware/subdomainResolver.ts`: Subdomain-based org resolution
+- **Routes Architecture**:
+  - `server/routes.ts`: Main routes file (to be incrementally split into feature modules)
+  - `server/routes/google-auth.ts`: Google OAuth routes
+  - `server/routes/google-calendar.ts`: Google Calendar integration routes
+  - `server/routes/upload.ts`: File upload routes
+  - See `server/routes/README.md` for migration plan to feature-based route modules
 
 ## Data Storage
 - **ORM**: Drizzle ORM.
