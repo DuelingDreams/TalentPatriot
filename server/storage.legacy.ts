@@ -1514,7 +1514,41 @@ export class DatabaseStorage implements IStorage {
       updated_at: data.updated_at
     });
     
+    // Sync client_submissions status
+    if (jobCandidateData.candidate_id && jobCandidateData.job_id) {
+      const submissionStatus = this.mapStageToSubmissionStatus(stage);
+      
+      const { error: syncError } = await supabase
+        .from('client_submissions')
+        .update({ 
+          status: submissionStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('candidate_id', jobCandidateData.candidate_id)
+        .eq('job_id', jobCandidateData.job_id);
+      
+      if (syncError) {
+        console.error('[moveJobCandidateDirect] Failed to sync client_submissions:', syncError);
+      } else {
+        console.log('[moveJobCandidateDirect] Synced client_submissions status to:', submissionStatus);
+      }
+    }
+    
     return data as JobCandidate;
+  }
+  
+  private mapStageToSubmissionStatus(stage: string): string {
+    const stageToSubmissionMap: Record<string, string> = {
+      'applied': 'submitted',
+      'phone_screen': 'reviewing',
+      'interview': 'interviewing',
+      'technical': 'interviewing',
+      'final': 'interviewing',
+      'offer': 'offered',
+      'hired': 'placed',
+      'rejected': 'rejected'
+    };
+    return stageToSubmissionMap[stage] || 'submitted';
   }
 
   async rejectJobCandidate(jobCandidateId: string): Promise<JobCandidate> {

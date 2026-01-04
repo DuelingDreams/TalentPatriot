@@ -305,7 +305,18 @@ export class CandidatesRepository implements ICandidatesRepository {
   
   async moveJobCandidate(jobCandidateId: string, newColumnId: string): Promise<JobCandidate> {
     try {
-      // First, get the column title to update the stage field
+      // First, get the current job_candidate to find candidate_id and job_id for syncing
+      const { data: currentJobCandidate, error: fetchError } = await supabase
+        .from('job_candidate')
+        .select('candidate_id, job_id, org_id')
+        .eq('id', jobCandidateId)
+        .single();
+      
+      if (fetchError) {
+        console.error('Error fetching job candidate for sync:', fetchError);
+      }
+      
+      // Get the column title to update the stage field
       const { data: columnData, error: columnError } = await supabase
         .from('pipeline_columns')
         .select('title')
@@ -401,11 +412,46 @@ export class CandidatesRepository implements ICandidatesRepository {
         throw new Error(`Failed to move job candidate: ${error.message}`);
       }
       
+      // Sync client_submissions status if we have a valid stage and the job/candidate IDs
+      if (stage && currentJobCandidate?.candidate_id && currentJobCandidate?.job_id) {
+        const submissionStatus = this.mapStageToSubmissionStatus(stage);
+        
+        const { error: syncError } = await supabase
+          .from('client_submissions')
+          .update({ 
+            status: submissionStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('candidate_id', currentJobCandidate.candidate_id)
+          .eq('job_id', currentJobCandidate.job_id);
+        
+        if (syncError) {
+          console.error('[moveJobCandidate] Failed to sync client_submissions:', syncError);
+          // Don't throw - this is a secondary sync, main operation succeeded
+        } else {
+          console.log('[moveJobCandidate] Synced client_submissions status to:', submissionStatus);
+        }
+      }
+      
       return data as JobCandidate;
     } catch (err) {
       console.error('Job candidate move exception:', err);
       throw err;
     }
+  }
+  
+  private mapStageToSubmissionStatus(stage: string): string {
+    const stageToSubmissionMap: Record<string, string> = {
+      'applied': 'submitted',
+      'phone_screen': 'reviewing',
+      'interview': 'interviewing',
+      'technical': 'interviewing',
+      'final': 'interviewing',
+      'offer': 'offered',
+      'hired': 'placed',
+      'rejected': 'rejected'
+    };
+    return stageToSubmissionMap[stage] || 'submitted';
   }
   
   async rejectJobCandidate(jobCandidateId: string): Promise<JobCandidate> {
