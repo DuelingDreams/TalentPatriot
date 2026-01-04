@@ -1515,22 +1515,42 @@ export class DatabaseStorage implements IStorage {
     });
     
     // Sync client_submissions status
-    if (jobCandidateData.candidate_id && jobCandidateData.job_id) {
+    if (jobCandidateData.candidate_id) {
       const submissionStatus = this.mapStageToSubmissionStatus(stage);
       
-      const { error: syncError } = await supabase
-        .from('client_submissions')
-        .update({ 
-          status: submissionStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('candidate_id', jobCandidateData.candidate_id)
-        .eq('job_id', jobCandidateData.job_id);
-      
-      if (syncError) {
-        console.error('[moveJobCandidateDirect] Failed to sync client_submissions:', syncError);
-      } else {
-        console.log('[moveJobCandidateDirect] Synced client_submissions status to:', submissionStatus);
+      // First try to sync by candidate_id + job_id (most accurate)
+      if (jobCandidateData.job_id) {
+        const { data: updateResult, error: syncError } = await supabase
+          .from('client_submissions')
+          .update({ 
+            status: submissionStatus,
+            updated_at: new Date().toISOString()
+          })
+          .eq('candidate_id', jobCandidateData.candidate_id)
+          .eq('job_id', jobCandidateData.job_id)
+          .select('id');
+        
+        if (syncError) {
+          console.error('[moveJobCandidateDirect] Failed to sync client_submissions by job_id:', syncError);
+        } else if (updateResult && updateResult.length > 0) {
+          console.log('[moveJobCandidateDirect] Synced client_submissions status to:', submissionStatus);
+        } else {
+          // No matching submission with job_id - try to find one without job_id for this candidate
+          const { error: fallbackError } = await supabase
+            .from('client_submissions')
+            .update({ 
+              status: submissionStatus,
+              updated_at: new Date().toISOString()
+            })
+            .eq('candidate_id', jobCandidateData.candidate_id)
+            .is('job_id', null);
+          
+          if (fallbackError) {
+            console.error('[moveJobCandidateDirect] Fallback sync failed:', fallbackError);
+          } else {
+            console.log('[moveJobCandidateDirect] Synced client_submissions (no job_id) to:', submissionStatus);
+          }
+        }
       }
     }
     
