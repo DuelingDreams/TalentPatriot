@@ -1861,6 +1861,46 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Get placement counts per client (hired candidates count)
+  app.get("/api/clients/stats/placements", async (req, res) => {
+    try {
+      const orgId = req.query.orgId as string || req.headers['x-org-id'] as string;
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Count hired candidates per client by joining jobs and job_candidates
+      const { data, error } = await supabase
+        .from('job_candidate')
+        .select(`
+          job_id,
+          jobs!inner(client_id)
+        `)
+        .eq('org_id', orgId)
+        .eq('stage', 'hired');
+
+      if (error) {
+        console.error('Error fetching placement counts:', error);
+        throw error;
+      }
+
+      // Aggregate counts by client_id
+      const placementCounts: Record<string, number> = {};
+      (data || []).forEach((row: any) => {
+        const clientId = row.jobs?.client_id;
+        if (clientId) {
+          placementCounts[clientId] = (placementCounts[clientId] || 0) + 1;
+        }
+      });
+
+      res.json(placementCounts);
+    } catch (error) {
+      console.error('Error fetching placement counts:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch placement counts", details: errorMessage });
+    }
+  });
+
   // Enhanced Jobs routes with pagination support
   app.get("/api/jobs", async (req, res) => {
     try {
