@@ -296,12 +296,15 @@ router.post('/resume', requireAuth, upload.single('resume'), async (req, res) =>
     }
 
     // Step 2: Insert document record into candidate_documents table
+    // Truncate filename to 255 chars to fit varchar(255) column
+    const truncatedName = req.file.originalname.substring(0, 255)
+    
     const { data: docRecord, error: docError } = await supabase
       .from('candidate_documents')
       .insert({
         org_id: orgId,
         candidate_id: candidateId,
-        name: req.file.originalname,
+        name: truncatedName,
         file_url: storagePath,
         file_type: 'resume',
         file_size: req.file.size,

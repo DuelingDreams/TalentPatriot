@@ -1146,9 +1146,9 @@ export class JobsRepository implements IJobsRepository {
           
           // Create candidate_documents record for the resume
           if (hasNewResume) {
-            // Extract filename from storage path
+            // Extract filename from storage path and truncate to 255 chars
             const pathParts = applicant.resumeUrl!.split('/');
-            const fileName = pathParts[pathParts.length - 1] || 'resume.pdf';
+            const fileName = (pathParts[pathParts.length - 1] || 'resume.pdf').substring(0, 255);
             
             // Check if document already exists to avoid duplicates
             const { data: existingDoc } = await supabase
@@ -1220,9 +1220,9 @@ export class JobsRepository implements IJobsRepository {
         
         // Create candidate_documents record and trigger parsing for new candidate with resume
         if (applicant.resumeUrl) {
-          // Extract filename from storage path
+          // Extract filename from storage path and truncate to 255 chars
           const pathParts = applicant.resumeUrl.split('/');
-          const fileName = pathParts[pathParts.length - 1] || 'resume.pdf';
+          const fileName = (pathParts[pathParts.length - 1] || 'resume.pdf').substring(0, 255);
           
           // Create document record
           const { error: docError } = await supabase
