@@ -1862,6 +1862,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   });
 
   // Get placement counts per client (hired candidates count)
+  // Uses same auth pattern as other client routes
   app.get("/api/clients/stats/placements", async (req, res) => {
     try {
       const orgId = req.query.orgId as string || req.headers['x-org-id'] as string;
@@ -1869,25 +1870,50 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: "Organization ID is required" });
       }
 
-      // Count hired candidates per client by joining jobs and job_candidates
-      const { data, error } = await supabase
-        .from('job_candidate')
-        .select(`
-          job_id,
-          jobs!inner(client_id)
-        `)
+      // Count hired candidates per client
+      // First get all jobs for this org with their client_id, then count hired candidates
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('id, client_id')
         .eq('org_id', orgId)
+        .not('client_id', 'is', null);
+
+      if (jobsError) {
+        console.error('Error fetching jobs for placements:', jobsError);
+        throw jobsError;
+      }
+
+      if (!jobsData || jobsData.length === 0) {
+        return res.json({});
+      }
+
+      // Get job IDs
+      const jobIds = jobsData.map(j => j.id);
+      
+      // Get hired candidates for these jobs
+      const { data: hiredData, error: hiredError } = await supabase
+        .from('job_candidate')
+        .select('job_id')
+        .in('job_id', jobIds)
         .eq('stage', 'hired');
 
-      if (error) {
-        console.error('Error fetching placement counts:', error);
-        throw error;
+      if (hiredError) {
+        console.error('Error fetching hired candidates:', hiredError);
+        throw hiredError;
       }
+
+      // Build job_id to client_id mapping
+      const jobToClient: Record<string, string> = {};
+      jobsData.forEach(job => {
+        if (job.client_id) {
+          jobToClient[job.id] = job.client_id;
+        }
+      });
 
       // Aggregate counts by client_id
       const placementCounts: Record<string, number> = {};
-      (data || []).forEach((row: any) => {
-        const clientId = row.jobs?.client_id;
+      (hiredData || []).forEach((row: any) => {
+        const clientId = jobToClient[row.job_id];
         if (clientId) {
           placementCounts[clientId] = (placementCounts[clientId] || 0) + 1;
         }

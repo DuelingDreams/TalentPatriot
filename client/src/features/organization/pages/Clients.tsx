@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useQuery } from '@tanstack/react-query'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -119,6 +120,20 @@ export default function Clients() {
   
   const { data: clients, isLoading } = useClients()
   const { data: jobs, refetch: refetchJobs } = useJobs()
+  
+  // Fetch placement counts per client
+  const { data: placementCounts } = useQuery({
+    queryKey: ['/api/clients/stats/placements', currentOrgId],
+    queryFn: async () => {
+      if (!currentOrgId) return {}
+      const response = await fetch(`/api/clients/stats/placements?orgId=${currentOrgId}`)
+      if (!response.ok) throw new Error('Failed to fetch placement counts')
+      return response.json()
+    },
+    enabled: !!currentOrgId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+  
   const createClientMutation = useCreateClient()
   const updateClientMutation = useUpdateClient()
   const deleteClientMutation = useDeleteClient()
@@ -177,7 +192,7 @@ export default function Clients() {
       return {
         ...client,
         openJobs,
-        placements: 0,
+        placements: (placementCounts as Record<string, number>)?.[client.id] || 0,
         revenue: 0,
         grossProfit: 0,
         avgMargin: 0,
@@ -185,7 +200,7 @@ export default function Clients() {
         logo: getClientInitials(client.name),
       }
     })
-  }, [clients, jobs])
+  }, [clients, jobs, placementCounts])
 
   const filteredClients = useMemo(() => {
     return clientsWithStats.filter(client =>
