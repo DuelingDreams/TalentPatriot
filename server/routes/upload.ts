@@ -242,6 +242,7 @@ router.post('/public/resume', publicUploadLimiter, upload.single('resume'), asyn
 })
 
 // Resume upload endpoint - REQUIRES AUTHENTICATION (for internal use)
+// This endpoint now creates BOTH the storage file AND the database record atomically
 router.post('/resume', requireAuth, upload.single('resume'), async (req, res) => {
   try {
     if (!req.file) {
@@ -252,8 +253,9 @@ router.post('/resume', requireAuth, upload.single('resume'), async (req, res) =>
     }
 
     const { candidateId } = req.body
-    // Get validated orgId from authentication context (protected from multer overwrite)
+    // Get validated orgId and userId from authentication context
     const orgId = req.authContext?.orgId
+    const userId = req.authContext?.userId
     
     if (!orgId) {
       return res.status(500).json({
@@ -262,15 +264,24 @@ router.post('/resume', requireAuth, upload.single('resume'), async (req, res) =>
       })
     }
 
-    // Generate unique filename with original extension
+    // Validate candidateId is provided for document association
+    if (!candidateId) {
+      return res.status(400).json({
+        error: 'Invalid request',
+        message: 'Candidate ID is required for resume upload'
+      })
+    }
+
+    // Generate unique filename with candidate ID in path for proper organization
     const uniqueId = nanoid()
     const ext = req.file.originalname.split('.').pop()
-    const filename = `${orgId}/resume_${uniqueId}.${ext}`
+    // Path format: {orgId}/{candidateId}/resume_{uniqueId}.{ext}
+    const storagePath = `${orgId}/${candidateId}/resume_${uniqueId}.${ext}`
 
-    // Upload to Supabase Storage
+    // Step 1: Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('resumes')
-      .upload(filename, req.file.buffer, {
+      .upload(storagePath, req.file.buffer, {
         contentType: req.file.mimetype,
         cacheControl: '3600',
         upsert: false
@@ -284,28 +295,62 @@ router.post('/resume', requireAuth, upload.single('resume'), async (req, res) =>
       })
     }
 
-    // Create signed URL for secure access (expires in 24 hours)
+    // Step 2: Insert document record into candidate_documents table
+    const { data: docRecord, error: docError } = await supabase
+      .from('candidate_documents')
+      .insert({
+        org_id: orgId,
+        candidate_id: candidateId,
+        name: req.file.originalname,
+        file_url: storagePath,
+        file_type: 'resume',
+        file_size: req.file.size,
+        uploaded_by: userId
+      })
+      .select()
+      .single()
+
+    if (docError) {
+      console.error('Failed to create document record:', docError)
+      // Attempt to clean up the uploaded file since DB insert failed
+      await supabase.storage.from('resumes').remove([storagePath])
+      return res.status(500).json({
+        error: 'Upload failed',
+        message: 'Failed to save document record. Please try again.'
+      })
+    }
+
+    // Step 3: Also update candidate's resume_url for backward compatibility
+    const { error: updateError } = await supabase
+      .from('candidates')
+      .update({ resume_url: storagePath })
+      .eq('id', candidateId)
+
+    if (updateError) {
+      console.warn('Failed to update candidate resume_url (non-critical):', updateError)
+    }
+
+    // Step 4: Create signed URL for immediate access
     const { data: signedUrlData, error: signedError } = await supabase.storage
       .from('resumes')
-      .createSignedUrl(filename, 86400) // 24 hours expiry
+      .createSignedUrl(storagePath, 86400) // 24 hours expiry
     
     if (signedError) {
       console.error('Failed to create signed URL:', signedError)
-      return res.status(500).json({
-        error: 'Upload completed but failed to generate secure URL',
-        message: 'Please contact support'
-      })
     }
     
+    // Only now show success - both storage AND database are updated
     res.json({
       success: true,
-      fileUrl: signedUrlData.signedUrl,
-      filename: filename,
+      fileUrl: signedUrlData?.signedUrl || null,
+      storagePath: storagePath,
+      filename: storagePath,
       originalName: req.file.originalname,
       size: req.file.size,
       mimetype: req.file.mimetype,
-      candidateId: candidateId || 'temp-job-application',
-      message: 'Resume uploaded successfully'
+      candidateId: candidateId,
+      documentId: docRecord.id,
+      message: 'Resume uploaded and saved successfully'
     })
 
   } catch (error) {

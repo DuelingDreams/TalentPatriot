@@ -1144,8 +1144,38 @@ export class JobsRepository implements IJobsRepository {
             .update(updates)
             .eq('id', candidateId);
           
-          // Trigger auto-parsing if resume was updated
+          // Create candidate_documents record for the resume
           if (hasNewResume) {
+            // Extract filename from storage path
+            const pathParts = applicant.resumeUrl!.split('/');
+            const fileName = pathParts[pathParts.length - 1] || 'resume.pdf';
+            
+            // Check if document already exists to avoid duplicates
+            const { data: existingDoc } = await supabase
+              .from('candidate_documents')
+              .select('id')
+              .eq('candidate_id', candidateId)
+              .eq('file_url', applicant.resumeUrl!)
+              .single();
+            
+            if (!existingDoc) {
+              const { error: docError } = await supabase
+                .from('candidate_documents')
+                .insert({
+                  org_id: orgId,
+                  candidate_id: candidateId,
+                  name: fileName,
+                  file_url: applicant.resumeUrl!,
+                  file_type: 'resume'
+                });
+              
+              if (docError) {
+                console.warn('[JobsRepository] Failed to create document record (non-critical):', docError);
+              } else {
+                console.log('[JobsRepository] Created candidate_documents record for resume');
+              }
+            }
+            
             console.log(`[AUTO-PARSE] Triggering resume parsing for updated candidate ${candidateId}`);
             const { CandidatesRepository } = await import('../candidates/repository');
             const candidatesRepo = new CandidatesRepository();
@@ -1188,8 +1218,29 @@ export class JobsRepository implements IJobsRepository {
           email: applicant.email.toLowerCase()
         });
         
-        // Trigger auto-parsing for new candidate with resume
+        // Create candidate_documents record and trigger parsing for new candidate with resume
         if (applicant.resumeUrl) {
+          // Extract filename from storage path
+          const pathParts = applicant.resumeUrl.split('/');
+          const fileName = pathParts[pathParts.length - 1] || 'resume.pdf';
+          
+          // Create document record
+          const { error: docError } = await supabase
+            .from('candidate_documents')
+            .insert({
+              org_id: orgId,
+              candidate_id: candidateId,
+              name: fileName,
+              file_url: applicant.resumeUrl,
+              file_type: 'resume'
+            });
+          
+          if (docError) {
+            console.warn('[JobsRepository] Failed to create document record (non-critical):', docError);
+          } else {
+            console.log('[JobsRepository] Created candidate_documents record for new candidate resume');
+          }
+          
           console.log(`[AUTO-PARSE] Triggering resume parsing for new candidate ${candidateId}`);
           const { CandidatesRepository } = await import('../candidates/repository');
           const candidatesRepo = new CandidatesRepository();
