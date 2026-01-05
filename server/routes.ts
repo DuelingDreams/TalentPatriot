@@ -3383,6 +3383,40 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         throw error;
       }
 
+      // Check if this is a resume file (PDF, DOC, DOCX, TXT) and update candidate's resume_url
+      const resumeMimeTypes = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'text/plain'
+      ];
+      const isResume = resumeMimeTypes.includes(file.mimetype);
+      
+      if (isResume) {
+        // Update candidate's resume_url field
+        const { error: updateError } = await supabase
+          .from('candidates')
+          .update({ resume_url: storagePath })
+          .eq('id', candidateId);
+
+        if (updateError) {
+          console.warn('Failed to update candidate resume_url (non-critical):', updateError);
+        } else {
+          console.log(`[DOCUMENT UPLOAD] Updated resume_url for candidate ${candidateId}`);
+          
+          // Trigger async resume parsing
+          const { DatabaseStorage: LegacyStorage } = await import('./storage.legacy');
+          const legacyStorage = new LegacyStorage();
+          legacyStorage.parseAndUpdateCandidateFromStorage(candidateId, storagePath)
+            .then(() => {
+              console.log(`[DOCUMENT UPLOAD] Successfully parsed resume for candidate ${candidateId}`);
+            })
+            .catch((err: unknown) => {
+              console.error(`[DOCUMENT UPLOAD] Failed to parse resume for candidate ${candidateId}:`, err);
+            });
+        }
+      }
+
       res.status(201).json(data);
     } catch (error) {
       console.error('Document upload error:', error);
