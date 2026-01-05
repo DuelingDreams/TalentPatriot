@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { PageErrorBoundary } from '@/components/ui/page-error-boundary'
-import { MapPin, Clock, DollarSign, Briefcase, Building2, Search, Loader2, FileX, Calendar, AlertCircle } from 'lucide-react'
+import { MapPin, Clock, Briefcase, Building2, Search, Loader2, Calendar, AlertCircle } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import type { Job } from '@shared/schema'
 
 export default function Careers() {
@@ -158,51 +159,68 @@ export default function Careers() {
             <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
           </div>
         ) : filteredJobs.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredJobs.map((job: Job) => (
-              <Card key={job.id} className="hover:shadow-lg transition-shadow cursor-pointer"
+              <Card 
+                key={job.id} 
+                className="group cursor-pointer overflow-hidden"
                 onClick={() => {
                   const jobPath = orgSlug 
-                    ? `/org/${orgSlug}/careers/${job.public_slug || job.id}`
-                    : `/careers/${job.public_slug || job.id}`;
+                    ? `/org/${orgSlug}/careers/${job.public_slug || job.id}/apply`
+                    : `/careers/${job.public_slug || job.id}/apply`;
                   setLocation(jobPath);
-                }}>
-                <CardHeader>
-                  <CardTitle className="text-xl">{job.title}</CardTitle>
+                }}
+              >
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-xl text-neutral-900 group-hover:text-tp-accent transition-colors">
+                    {job.title}
+                  </CardTitle>
                   {job.department && (
                     <div className="flex items-center gap-2 text-gray-600 mt-1">
                       <Building2 className="w-4 h-4" />
-                      <span>{job.department}</span>
+                      <span className="text-sm">{job.department}</span>
                     </div>
                   )}
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-700 mb-4 line-clamp-3">{job.description}</p>
-                  
-                  <div className="space-y-2 text-sm text-gray-600">
+                  {/* Meta badges */}
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {job.location && (
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4" />
-                        <span>{job.location}</span>
-                      </div>
+                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        {job.location}
+                      </Badge>
                     )}
                     {job.jobType && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        <span className="capitalize">{job.jobType.replace('-', ' ')}</span>
-                      </div>
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                        <Clock className="w-3 h-3 mr-1" />
+                        {job.jobType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
                     )}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>Posted {(() => {
-                        const created = job.createdAt;
-                        return created ? new Date(created).toLocaleDateString() : '—';
-                      })()}</span>
-                    </div>
+                    {job.experienceLevel && (
+                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                        <Briefcase className="w-3 h-3 mr-1" />
+                        {job.experienceLevel.replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                    )}
+                  </div>
+
+                  {/* Description preview */}
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
+                    {job.description}
+                  </p>
+                  
+                  {/* Posted date */}
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Posted {(() => {
+                      const created = job.createdAt;
+                      return created ? new Date(created).toLocaleDateString() : '—';
+                    })()}</span>
                   </div>
 
                   <Button 
-                    className="w-full mt-4"
+                    className="w-full"
                     onClick={(e) => {
                       e.stopPropagation();
                       const jobPath = orgSlug 

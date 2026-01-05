@@ -373,81 +373,52 @@ export default function JobApplicationForm() {
     )
   }
 
+  const scrollToForm = () => {
+    document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <Button 
-                variant="ghost" 
-                onClick={() => {
-                  const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
-                  setLocation(careersPath);
-                }}
-                className="mb-2"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Careers
-              </Button>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Briefcase className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    {job.department && (
-                      <div className="flex items-center gap-1">
-                        <Building2 className="w-4 h-4" />
-                        {job.department}
-                      </div>
-                    )}
-                    {job.location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {job.location}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      Posted {new Date(job.createdAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-600">Submit your application below</p>
-            </div>
-          </div>
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              const careersPath = orgSlug ? `/org/${orgSlug}/careers` : '/careers';
+              setLocation(careersPath);
+            }}
+            className="mb-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Careers
+          </Button>
         </div>
       </header>
 
-      {/* Application Form */}
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
+      {/* Job Description Section */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="mb-8">
+          <CardContent className="p-6 sm:p-8">
+            <JobDescriptionFormatter job={job} showHeader={true} />
+            
+            <div className="mt-8 pt-6 border-t border-neutral-200">
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto"
+                onClick={scrollToForm}
+              >
+                Apply Now
+                <ChevronDown className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Application Form */}
+        <Card id="application-form">
           <CardHeader>
             <CardTitle>Apply for this Position</CardTitle>
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              {job.jobType && (
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span className="capitalize">{job.jobType.replace('-', ' ')}</span>
-                </div>
-              )}
-              {job.location && (
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>{job.location}</span>
-                </div>
-              )}
-              {job.department && (
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  <span>{job.department}</span>
-                </div>
-              )}
-            </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -679,6 +650,17 @@ export default function JobApplicationForm() {
             </form>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Sticky Apply CTA for Mobile */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-neutral-200 shadow-lg md:hidden z-50">
+        <Button 
+          size="lg" 
+          className="w-full"
+          onClick={scrollToForm}
+        >
+          Apply for this role →
+        </Button>
       </div>
     </div>
   )

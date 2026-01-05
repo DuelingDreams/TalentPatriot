@@ -67,20 +67,26 @@ function parseJobDescription(description: string): ParsedSection[] {
   }
   
   if (summaryContent.length > 0 && !sections.some(s => s.type === 'summary')) {
-    const isListLike = summaryContent.some(line => 
-      line.startsWith('-') || line.startsWith('•') || line.startsWith('*') || 
-      /^\d+\./.test(line)
-    )
+    const bulletCount = summaryContent.filter(line => 
+      /^[-•*]\s/.test(line) || /^\d+\.\s/.test(line)
+    ).length
+    const isListLike = bulletCount > summaryContent.length * 0.5
     
     if (isListLike) {
       sections.unshift({
         title: "What You'll Do",
-        content: summaryContent,
+        content: summaryContent.map(line => line.replace(/^[-•*]\s*/, '').replace(/^\d+\.\s*/, '').trim()),
         type: 'responsibilities'
       })
+    } else if (summaryContent.length <= 4) {
+      sections.unshift({
+        title: 'Role Summary',
+        content: [summaryContent.join(' ')],
+        type: 'summary'
+      })
     } else {
-      const summaryText = summaryContent.slice(0, 4).join(' ')
-      const remainingContent = summaryContent.slice(4)
+      const summaryText = summaryContent.slice(0, 3).join(' ')
+      const remainingContent = summaryContent.slice(3)
       
       if (summaryText) {
         sections.unshift({
@@ -123,9 +129,6 @@ function SectionCard({ section }: { section: ParsedSection }) {
           <CardContent className="p-4">
             <p className="text-neutral-700 leading-relaxed">
               {section.content.join(' ')}
-            </p>
-            <p className="text-xs text-neutral-500 mt-2 italic">
-              3-4 lines max. This replaces long "About the Role" paragraphs.
             </p>
           </CardContent>
         </Card>
