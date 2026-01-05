@@ -11,7 +11,7 @@ import { toast } from 'react-hot-toast'
 import { useAuth } from '@/contexts/AuthContext'
 import { useClients } from '@/features/organization/hooks/useClients'
 import { useUpdateJob, useDeleteJob } from '@/features/jobs/hooks/useJobMutation'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { 
   AlertDialog, 
   AlertDialogAction, 
@@ -137,6 +137,9 @@ export function EditJobDialog({ job, trigger, onJobUpdated }: EditJobDialogProps
       <DialogContent className="lg:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Edit Job</DialogTitle>
+          <DialogDescription className="sr-only">
+            Edit the job posting details including title, description, and requirements.
+          </DialogDescription>
         </DialogHeader>
         <div className="max-h-[70vh] overflow-y-auto pr-2">
           <Form {...form}>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -282,6 +282,9 @@ Jane Doe,jane@email.com,555-0124,3 years`}
               Step {step} of {totalSteps}
             </span>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Import candidates from CSV, resumes, or enter them manually.
+          </DialogDescription>
         </DialogHeader>
         
         {/* Progress bar */}

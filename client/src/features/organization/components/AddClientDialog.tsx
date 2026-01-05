@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -76,10 +76,13 @@ export function AddClientDialog({ children }: AddClientDialogProps) {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto bg-white border-0 shadow-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-neutral-900 font-[Inter,sans-serif] font-bold leading-tight text-lg text-lg">
+          <DialogTitle className="flex items-center gap-2 text-neutral-900 font-[Inter,sans-serif] font-bold leading-tight text-lg">
             <Building2 className="w-5 h-5 text-tp-accent" />
             Add New Client
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Add a new client company to your organization.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 mt-4">
           <div className="space-y-2">
