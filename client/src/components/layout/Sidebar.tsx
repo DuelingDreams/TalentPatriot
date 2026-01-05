@@ -87,19 +87,16 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
                   key={item.href} 
                   href={item.href}
                   onClick={onClose}
+                  className={cn(
+                    "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-tp-accent focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800",
+                    isActive 
+                      ? "bg-tp-primary text-white" 
+                      : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
+                  )}
+                  data-testid={`nav-item-${item.label.toLowerCase()}`}
                 >
-                  <div
-                    className={cn(
-                      "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
-                      isActive 
-                        ? "bg-tp-primary text-white" 
-                        : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                    )}
-                    data-testid={`nav-item-${item.label.toLowerCase()}`}
-                  >
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.label}
-                  </div>
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.label}
                 </Link>
               )
             })}
@@ -111,19 +108,16 @@ export function Sidebar({ className, isOpen, onClose }: SidebarProps) {
             <Link 
               href={getCareersUrl()}
               onClick={onClose}
+              className={cn(
+                "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-tp-accent focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-800",
+                location.includes('/careers')
+                  ? "bg-tp-primary text-white" 
+                  : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
+              )}
+              data-testid="nav-item-careers"
             >
-              <div
-                className={cn(
-                  "flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
-                  location.includes('/careers')
-                    ? "bg-tp-primary text-white" 
-                    : "text-neutral-300 hover:bg-neutral-700 hover:text-white"
-                )}
-                data-testid="nav-item-careers"
-              >
-                <Globe className="w-5 h-5 mr-3" />
-                Careers Page
-              </div>
+              <Globe className="w-5 h-5 mr-3" />
+              Careers Page
             </Link>
           </nav>
         </div>

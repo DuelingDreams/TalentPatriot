@@ -202,10 +202,10 @@ function EnhancedApplicationCard({
       `}
     >
       <Card className={`
-        bg-white shadow-sm border transition-all group relative
+        bg-white shadow-sm border transition-all duration-200 group relative
         ${isCurrentlyDragging 
-          ? 'border-blue-500 shadow-xl scale-105 rotate-2' 
-          : 'border-slate-200 hover:shadow-md hover:border-blue-300'
+          ? 'border-tp-accent shadow-xl scale-105 rotate-2' 
+          : 'border-neutral-200 hover:shadow-lg hover:border-tp-accent hover:scale-[1.01]'
         }
       `}>
         <CardContent className="p-3 sm:p-4">
@@ -449,10 +449,10 @@ function CandidateCard({ candidate, isDragging }: CandidateCardProps) {
       `}
     >
       <Card className={`
-        bg-white shadow-sm border mb-3 transition-all group relative overflow-visible
+        bg-white shadow-sm border mb-3 transition-all duration-200 group relative overflow-visible
         ${isCurrentlyDragging 
-          ? 'border-blue-500 shadow-xl scale-105 rotate-3' 
-          : 'border-slate-200 hover:shadow-md hover:border-blue-300'
+          ? 'border-tp-accent shadow-xl scale-105 rotate-3' 
+          : 'border-neutral-200 hover:shadow-lg hover:border-tp-accent hover:scale-[1.01]'
         }
       `}>
         <CardContent className="p-4">

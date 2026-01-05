@@ -81,7 +81,7 @@ function CandidateCard({ candidate, jobCandidate }: CandidateCardProps) {
   }
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 border-0 overflow-hidden">
+    <Card className="hover:shadow-lg hover:scale-[1.01] transition-all duration-200 border-0 overflow-hidden">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start space-x-4">
