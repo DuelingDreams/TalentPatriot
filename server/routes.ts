@@ -1927,6 +1927,91 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Get placements (hired candidates) for a specific client
+  app.get("/api/clients/:clientId/placements", async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const orgId = req.query.orgId as string || req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID is required" });
+      }
+
+      // Get all jobs for this client
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('id, title')
+        .eq('org_id', orgId)
+        .eq('client_id', clientId);
+
+      if (jobsError) {
+        console.error('Error fetching jobs for client placements:', jobsError);
+        throw jobsError;
+      }
+
+      if (!jobsData || jobsData.length === 0) {
+        return res.json([]);
+      }
+
+      const jobIds = jobsData.map(j => j.id);
+      const jobTitleMap: Record<string, string> = {};
+      jobsData.forEach(job => {
+        jobTitleMap[job.id] = job.title;
+      });
+
+      // Get hired candidates for these jobs with candidate details
+      const { data: hiredData, error: hiredError } = await supabase
+        .from('job_candidate')
+        .select('id, job_id, candidate_id, updated_at')
+        .in('job_id', jobIds)
+        .eq('stage', 'hired');
+
+      if (hiredError) {
+        console.error('Error fetching hired candidates:', hiredError);
+        throw hiredError;
+      }
+
+      if (!hiredData || hiredData.length === 0) {
+        return res.json([]);
+      }
+
+      // Get candidate details
+      const candidateIds = hiredData.map(h => h.candidate_id);
+      const { data: candidatesData, error: candidatesError } = await supabase
+        .from('candidates')
+        .select('id, name, email, current_title')
+        .in('id', candidateIds);
+
+      if (candidatesError) {
+        console.error('Error fetching candidate details:', candidatesError);
+        throw candidatesError;
+      }
+
+      const candidateMap: Record<string, { name: string; email: string; currentTitle: string | null }> = {};
+      (candidatesData || []).forEach((c: any) => {
+        candidateMap[c.id] = { name: c.name, email: c.email, currentTitle: c.current_title };
+      });
+
+      // Build placements response
+      const placements = hiredData.map(h => ({
+        id: h.id,
+        candidateId: h.candidate_id,
+        candidateName: candidateMap[h.candidate_id]?.name || 'Unknown',
+        candidateEmail: candidateMap[h.candidate_id]?.email || '',
+        candidateTitle: candidateMap[h.candidate_id]?.currentTitle || null,
+        jobId: h.job_id,
+        jobTitle: jobTitleMap[h.job_id] || 'Unknown Position',
+        hiredAt: h.updated_at,
+      }));
+
+      res.json(placements);
+    } catch (error) {
+      console.error('Error fetching client placements:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch client placements", details: errorMessage });
+    }
+  });
+
   // Enhanced Jobs routes with pagination support
   app.get("/api/jobs", async (req, res) => {
     try {

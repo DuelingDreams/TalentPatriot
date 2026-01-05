@@ -74,6 +74,17 @@ interface ClientWithStats extends ClientData {
   logo: string
 }
 
+interface Placement {
+  id: string
+  candidateId: string
+  candidateName: string
+  candidateEmail: string
+  candidateTitle: string | null
+  jobId: string
+  jobTitle: string
+  hiredAt: string
+}
+
 function getClientInitials(name: string): string {
   return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 }
@@ -132,6 +143,19 @@ export default function Clients() {
     },
     enabled: !!currentOrgId,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+
+  // Fetch placements for selected client
+  const { data: clientPlacements, isLoading: isLoadingPlacements } = useQuery<Placement[]>({
+    queryKey: ['/api/clients', selectedClient?.id, 'placements', currentOrgId],
+    queryFn: async () => {
+      if (!currentOrgId || !selectedClient?.id) return []
+      const response = await fetch(`/api/clients/${selectedClient.id}/placements?orgId=${currentOrgId}`)
+      if (!response.ok) throw new Error('Failed to fetch placements')
+      return response.json()
+    },
+    enabled: !!currentOrgId && !!selectedClient?.id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
   })
   
   const createClientMutation = useCreateClient()
@@ -828,7 +852,7 @@ export default function Clients() {
               <Tabs defaultValue="overview" className="mt-4">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="placements">Placements (0)</TabsTrigger>
+                  <TabsTrigger value="placements">Placements ({clientPlacements?.length || 0})</TabsTrigger>
                   <TabsTrigger value="financials">Financials</TabsTrigger>
                 </TabsList>
 
@@ -920,10 +944,63 @@ export default function Clients() {
                 </TabsContent>
 
                 <TabsContent value="placements" className="mt-4">
-                  <div className="text-center py-8 text-neutral-500">
-                    <Briefcase className="w-12 h-12 mx-auto text-neutral-300 mb-3" />
-                    <p>No placements yet</p>
-                  </div>
+                  {isLoadingPlacements ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-neutral-400" />
+                    </div>
+                  ) : clientPlacements && clientPlacements.length > 0 ? (
+                    <div className="space-y-3">
+                      {clientPlacements.map((placement) => (
+                        <Card key={placement.id} className="hover:shadow-sm transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <Link 
+                                  href={`/candidates/${placement.candidateId}`}
+                                  className="font-medium text-neutral-900 hover:text-info-600 transition-colors"
+                                  data-testid={`link-placement-candidate-${placement.candidateId}`}
+                                >
+                                  {placement.candidateName}
+                                </Link>
+                                <p className="text-sm text-neutral-500 mt-0.5">
+                                  {placement.candidateTitle || 'No title'}
+                                </p>
+                                <div className="flex items-center gap-4 mt-2 text-sm text-neutral-600">
+                                  <div className="flex items-center gap-1.5">
+                                    <Briefcase size={14} className="text-neutral-400" />
+                                    <Link 
+                                      href={`/jobs/${placement.jobId}`}
+                                      className="hover:text-info-600 transition-colors"
+                                      data-testid={`link-placement-job-${placement.jobId}`}
+                                    >
+                                      {placement.jobTitle}
+                                    </Link>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <Calendar size={14} className="text-neutral-400" />
+                                    <span>
+                                      Hired {formatDistanceToNow(new Date(placement.hiredAt), { addSuffix: true })}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <Link href={`/candidates/${placement.candidateId}`}>
+                                <Button variant="outline" size="sm" data-testid={`button-view-placement-${placement.candidateId}`}>
+                                  View Profile
+                                </Button>
+                              </Link>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-neutral-500">
+                      <Briefcase className="w-12 h-12 mx-auto text-neutral-300 mb-3" />
+                      <p>No placements yet</p>
+                      <p className="text-sm mt-1">Hired candidates will appear here</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 <TabsContent value="financials" className="mt-4">
