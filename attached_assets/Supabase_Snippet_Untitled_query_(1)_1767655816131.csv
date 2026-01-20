@@ -1,0 +1,6 @@
+schemaname,tablename,rowsecurity
+public,candidates,true
+public,client_submissions,true
+public,job_candidate,true
+public,jobs,true
+public,pipeline_columns,true

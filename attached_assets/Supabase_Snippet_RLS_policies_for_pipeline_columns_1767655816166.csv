@@ -1,0 +1,7 @@
+policyname,permissive,cmd,using_expression
+Organization admins can manage pipeline columns,PERMISSIVE,ALL,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'recruiter'::organization_role])))))"
+Users can view pipeline columns for their organization,PERMISSIVE,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))"

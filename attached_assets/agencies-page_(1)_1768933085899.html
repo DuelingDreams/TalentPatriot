@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentPatriot - For Staffing Agencies</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #0EA5E9 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-gradient {
+      background: linear-gradient(135deg, #0EA5E9 0%, #10B981 100%);
+    }
+    
+    .btn-gradient:hover {
+      box-shadow: 0 12px 32px rgba(14, 165, 233, 0.3);
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-white">
+  <!-- Navigation -->
+  <nav class="flex justify-between items-center px-[5%] py-6 bg-white shadow-sm sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-10 h-10 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg"></div>
+      <span class="text-2xl font-bold text-neutral-900">TalentPatriot</span>
+    </div>
+    <div class="flex gap-4">
+      <a href="#" class="text-[#0EA5E9] font-semibold hover:text-[#0284C7] px-4 py-2">Sign In</a>
+      <a href="#" class="btn-gradient text-white font-semibold px-6 py-2 rounded-xl">Start Free Trial</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="relative py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4] overflow-hidden">
+    <div class="absolute -top-1/2 -right-[20%] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(14,165,233,0.1)_0%,transparent_70%)] animate-float pointer-events-none"></div>
+    
+    <div class="max-w-[1200px] mx-auto">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="inline-block bg-[#10B981]/10 text-[#10B981] px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            🎯 FOR STAFFING AGENCIES
+          </div>
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-neutral-900 mb-6 tracking-tight leading-[1.1]">
+            Compete With the <span class="gradient-text">Big Agencies</span>
+          </h1>
+          <p class="text-xl text-neutral-600 mb-8 leading-relaxed">
+            Multi-client pipelines, white-label careers pages, and enterprise features—at a price boutique agencies can actually afford.
+          </p>
+          
+          <!-- Key Differentiators -->
+          <div class="bg-white rounded-2xl p-6 shadow-lg mb-8 border-2 border-neutral-100">
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg flex items-center justify-center text-white font-bold">✓</div>
+                <span class="font-semibold text-neutral-900">Manage unlimited clients from one dashboard</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg flex items-center justify-center text-white font-bold">✓</div>
+                <span class="font-semibold text-neutral-900">White-label careers pages for each client</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg flex items-center justify-center text-white font-bold">✓</div>
+                <span class="font-semibold text-neutral-900">Per-recruiter pricing (not per-client)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button class="btn-gradient text-white font-semibold px-8 py-4 rounded-xl text-lg hover:shadow-lg transition-shadow">
+              Start Free Trial
+            </button>
+            <button class="bg-white text-neutral-900 border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all">
+              Request Demo
+            </button>
+          </div>
+          
+          <p class="text-sm text-neutral-500 mt-4">✓ 14-day free trial • ✓ No setup fees • ✓ Cancel anytime</p>
+        </div>
+        
+        <!-- Hero Visual -->
+        <div class="relative">
+          <div class="bg-white rounded-3xl shadow-2xl p-6 border-2 border-neutral-100">
+            <!-- Multi-Client Dashboard -->
+            <div class="text-xs font-semibold text-neutral-500 mb-4">MULTI-CLIENT DASHBOARD</div>
+            <div class="space-y-3">
+              <div class="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border-l-4 border-blue-500">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="font-bold text-neutral-900">Tech Startup Inc.</div>
+                  <div class="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">12 Active Jobs</div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div>
+                    <div class="font-bold text-blue-900">24</div>
+                    <div class="text-blue-700">Applied</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-blue-900">8</div>
+                    <div class="text-blue-700">Screen</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-blue-900">5</div>
+                    <div class="text-blue-700">Interview</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-blue-900">2</div>
+                    <div class="text-blue-700">Offer</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 border-l-4 border-green-500">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="font-bold text-neutral-900">Healthcare Corp</div>
+                  <div class="text-xs bg-green-500 text-white px-2 py-1 rounded-full">8 Active Jobs</div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div>
+                    <div class="font-bold text-green-900">31</div>
+                    <div class="text-green-700">Applied</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-green-900">12</div>
+                    <div class="text-green-700">Screen</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-green-900">7</div>
+                    <div class="text-green-700">Interview</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-green-900">3</div>
+                    <div class="text-green-700">Offer</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4 border-l-4 border-purple-500">
+                <div class="flex justify-between items-center mb-2">
+                  <div class="font-bold text-neutral-900">Retail Solutions LLC</div>
+                  <div class="text-xs bg-purple-500 text-white px-2 py-1 rounded-full">5 Active Jobs</div>
+                </div>
+                <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                  <div>
+                    <div class="font-bold text-purple-900">18</div>
+                    <div class="text-purple-700">Applied</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-purple-900">6</div>
+                    <div class="text-purple-700">Screen</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-purple-900">4</div>
+                    <div class="text-purple-700">Interview</div>
+                  </div>
+                  <div>
+                    <div class="font-bold text-purple-900">1</div>
+                    <div class="text-purple-700">Offer</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="text-center text-xs text-neutral-500 mt-4">
+              ✨ Manage all your clients from one dashboard
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section class="py-24 px-[5%] bg-white">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Agency Challenges We Solve</h2>
+        <p class="text-xl text-neutral-500">Built specifically for boutique staffing firms</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">🔀</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Client Chaos</h3>
+          <p class="text-neutral-600 mb-4">Managing 5+ clients across separate spreadsheets, email threads, and tools. Constantly switching contexts and losing track of candidates.</p>
+          <div class="bg-white rounded-lg p-4 border-2 border-red-300">
+            <div class="font-semibold text-green-700 mb-2">✓ TalentPatriot Solution:</div>
+            <p class="text-sm text-neutral-600">One unified dashboard for all clients. Switch between client pipelines with a single click. Keep candidates organized by client and role.</p>
+          </div>
+        </div>
+        
+        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">💸</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Enterprise Pricing That Kills Margins</h3>
+          <p class="text-neutral-600 mb-4">Bullhorn, JobAdder charging $500-800/month. That's 2-3 placements just to break even on your software costs.</p>
+          <div class="bg-white rounded-lg p-4 border-2 border-amber-300">
+            <div class="font-semibold text-green-700 mb-2">✓ TalentPatriot Solution:</div>
+            <p class="text-sm text-neutral-600">$89/recruiter/month for unlimited clients. Save $400-700/month compared to enterprise ATS while getting 90% of the features.</p>
+          </div>
+        </div>
+        
+        <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">🏷️</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">No White-Label Options</h3>
+          <p class="text-neutral-600 mb-4">Sending candidates to generic careers pages that don't match your client's brand. Looks unprofessional and hurts conversion.</p>
+          <div class="bg-white rounded-lg p-4 border-2 border-purple-300">
+            <div class="font-semibold text-green-700 mb-2">✓ TalentPatriot Solution:</div>
+            <p class="text-sm text-neutral-600">White-label careers pages for every client. Custom domain, logo, colors. Candidates never see "TalentPatriot" branding.</p>
+          </div>
+        </div>
+        
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">📊</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Can't Prove ROI to Clients</h3>
+          <p class="text-neutral-600 mb-4">Clients ask "How's my search going?" and you scramble through emails and notes. No clean way to show progress or metrics.</p>
+          <div class="bg-white rounded-lg p-4 border-2 border-blue-300">
+            <div class="font-semibold text-green-700 mb-2">✓ TalentPatriot Solution:</div>
+            <p class="text-sm text-neutral-600">Client-facing dashboards showing pipeline status, time-to-fill, and candidate quality. Generate reports with one click.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4]">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Built for Agency Workflows</h2>
+        <p class="text-xl text-neutral-500">Everything you need to scale your staffing business</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            🏢
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Multi-Client Pipelines</h3>
+          <p class="text-neutral-600 mb-4">Manage unlimited clients from one dashboard. Each client gets their own pipeline, jobs, and candidate pool—all organized in one place.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Unlimited client accounts</li>
+            <li>• Switch between clients instantly</li>
+            <li>• Separate pipelines & analytics per client</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            🎨
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">White-Label Careers Pages</h3>
+          <p class="text-neutral-600 mb-4">Create branded careers pages for each client. Custom domain, logo, and colors. Candidates never see TalentPatriot branding.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Custom domains (jobs.clientname.com)</li>
+            <li>• Client logo & brand colors</li>
+            <li>• Fully customizable templates</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            🗂️
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Candidate Re-Deployment</h3>
+          <p class="text-neutral-600 mb-4">Tag candidates for multiple roles and clients. When a new job opens, instantly see which candidates from your pool are qualified.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Tag candidates by skills & industry</li>
+            <li>• Cross-client candidate search</li>
+            <li>• Automated matching suggestions</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 4 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            📊
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Client Reporting & Dashboards</h3>
+          <p class="text-neutral-600 mb-4">Share read-only dashboards with clients. They see real-time pipeline status, candidate progress, and time-to-fill metrics.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Client-facing portal access</li>
+            <li>• Automated weekly reports</li>
+            <li>• Custom KPIs by client</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 5 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            🔗
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">LinkedIn Integration</h3>
+          <p class="text-neutral-600 mb-4">Chrome extension to save LinkedIn profiles directly to TalentPatriot. One-click import with automatic profile parsing.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Import profiles from LinkedIn</li>
+            <li>• Auto-parse experience & skills</li>
+            <li>• Bulk import for sourcing campaigns</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 6 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            👥
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Team Permissions</h3>
+          <p class="text-neutral-600 mb-4">Control what each recruiter can see. Assign clients to specific team members. Track individual performance and placements.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Role-based access control</li>
+            <li>• Client assignment by recruiter</li>
+            <li>• Individual performance tracking</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="py-24 px-[5%] bg-white">
+    <div class="max-w-[900px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Agency Pricing That Makes Sense</h2>
+        <p class="text-xl text-neutral-500">Pay per recruiter, not per client. Unlimited clients included.</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Growth Plan -->
+        <div class="bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-[#0EA5E9] transition-all">
+          <h3 class="text-2xl font-bold text-neutral-900 mb-2">Growth</h3>
+          <div class="mb-4">
+            <span class="text-4xl font-bold text-neutral-900">$89</span>
+            <span class="text-neutral-500">/recruiter/month</span>
+          </div>
+          <p class="text-sm text-neutral-500 mb-6">Perfect for: 2-10 recruiter agencies</p>
+          <ul class="space-y-3 mb-8 text-neutral-700">
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span><strong>Unlimited clients</strong></span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Multi-client pipelines</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>White-label careers pages</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>AI resume parsing</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>LinkedIn Chrome extension</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Client reporting dashboards</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Team permissions</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Priority support (4hr)</span></li>
+          </ul>
+          <button class="w-full btn-gradient text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-shadow">
+            Start Free Trial
+          </button>
+        </div>
+        
+        <!-- Enterprise Plan -->
+        <div class="bg-white rounded-2xl p-8 border-2 border-[#0EA5E9] relative">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#0EA5E9] text-white px-4 py-1 rounded-full text-sm font-semibold">
+            ⭐ Most Popular
+          </div>
+          <h3 class="text-2xl font-bold text-neutral-900 mb-2">Enterprise</h3>
+          <div class="mb-4">
+            <span class="text-4xl font-bold text-neutral-900">Custom</span>
+            <div class="text-sm text-neutral-500">starting at $149/recruiter</div>
+          </div>
+          <p class="text-sm text-neutral-500 mb-6">Perfect for: 10+ recruiter agencies</p>
+          <ul class="space-y-3 mb-8 text-neutral-700">
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span><strong>Everything in Growth, plus:</strong></span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Dedicated success manager</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>API access</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>SSO (Single Sign-On)</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Custom HRIS integrations</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Phone support</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Volume discounts (15% off 10+ seats)</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Custom onboarding & training</span></li>
+          </ul>
+          <button class="w-full bg-neutral-900 text-white hover:bg-neutral-800 font-semibold py-3 rounded-xl transition-all">
+            Contact Sales
+          </button>
+        </div>
+      </div>
+      
+      <div class="mt-12 bg-gradient-to-r from-blue-50 to-green-50 rounded-2xl p-8 border-2 border-blue-200">
+        <h3 class="text-xl font-bold text-neutral-900 mb-4 text-center">Compare to Enterprise ATS</h3>
+        <div class="grid md:grid-cols-3 gap-6 text-center">
+          <div>
+            <div class="text-3xl font-bold text-red-500 mb-2">Bullhorn</div>
+            <div class="text-sm text-neutral-600 mb-2">$600-800/mo</div>
+            <div class="text-xs text-neutral-500">Complex setup, 2-week training</div>
+          </div>
+          <div>
+            <div class="text-3xl font-bold text-red-500 mb-2">JobAdder</div>
+            <div class="text-sm text-neutral-600 mb-2">$500-700/mo</div>
+            <div class="text-xs text-neutral-500">Per-user pricing, limited features</div>
+          </div>
+          <div class="bg-white rounded-xl p-4 border-2 border-green-500">
+            <div class="text-3xl font-bold text-green-600 mb-2">TalentPatriot</div>
+            <div class="text-sm text-neutral-900 font-semibold mb-2">$89-149/mo</div>
+            <div class="text-xs text-green-700 font-medium">Setup in 1 hour, no training needed</div>
+          </div>
+        </div>
+      </div>
+      
+      <p class="text-center text-neutral-500 mt-8">✓ 14-day free trial • ✓ No setup fees • ✓ Cancel anytime</p>
+    </div>
+  </section>
+
+  <!-- Social Proof -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4]">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Trusted by Staffing Pros</h2>
+        <p class="text-xl text-neutral-500">See what agency owners are saying</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-white rounded-2xl p-8 border-2 border-blue-100">
+          <div class="text-2xl mb-4">⭐⭐⭐⭐⭐</div>
+          <p class="text-neutral-700 mb-6 italic">"We were paying $650/

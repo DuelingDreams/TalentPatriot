@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentPatriot Navigation Flow</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .arrow {
+      position: relative;
+    }
+    
+    .arrow::after {
+      content: '→';
+      font-size: 2rem;
+      color: #0EA5E9;
+      font-weight: bold;
+    }
+    
+    .arrow-down::after {
+      content: '↓';
+    }
+    
+    @keyframes pulse-border {
+      0%, 100% { border-color: #0EA5E9; }
+      50% { border-color: #10B981; }
+    }
+    
+    .animate-pulse-border {
+      animation: pulse-border 2s ease-in-out infinite;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(14, 165, 233, 0.2);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 p-8">
+  <div class="max-w-[1400px] mx-auto">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-neutral-900 mb-4">TalentPatriot Navigation Flow</h1>
+      <p class="text-xl text-neutral-600">How users discover and navigate to persona-specific pages</p>
+    </div>
+
+    <!-- Main Landing Page -->
+    <div class="mb-16">
+      <div class="bg-white rounded-2xl shadow-2xl p-8 border-4 border-[#0EA5E9] max-w-[900px] mx-auto">
+        <div class="text-center mb-6">
+          <div class="inline-block bg-[#0EA5E9] text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
+            MAIN LANDING PAGE
+          </div>
+          <h2 class="text-3xl font-bold text-neutral-900 mb-2">talentpatriot.com</h2>
+          <p class="text-neutral-600">Universal landing page for all visitors</p>
+        </div>
+        
+        <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-xl p-6 mb-6">
+          <div class="text-sm font-semibold text-neutral-700 mb-3">Hero Section CTA Options:</div>
+          <div class="grid md:grid-cols-2 gap-3">
+            <button class="bg-gradient-to-r from-[#0EA5E9] to-[#10B981] text-white font-semibold py-3 rounded-lg hover:shadow-lg transition-all">
+              Start Free Beta →
+            </button>
+            <button class="bg-white border-2 border-[#0EA5E9] text-neutral-900 font-semibold py-3 rounded-lg hover:bg-[#0EA5E9] hover:text-white transition-all">
+              Watch 2-Min Demo
+            </button>
+          </div>
+        </div>
+
+        <!-- Solution Finder Section -->
+        <div class="bg-neutral-50 rounded-xl p-6 border-2 border-neutral-200">
+          <div class="text-lg font-bold text-neutral-900 mb-4 text-center">
+            "Find Your Solution" Section
+          </div>
+          <div class="text-sm text-neutral-600 text-center mb-4">
+            This is the PRIMARY navigation entry point for persona pages
+          </div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="bg-white rounded-lg p-4 border-2 border-blue-200 card-hover cursor-pointer">
+              <div class="text-2xl mb-2">👔</div>
+              <div class="font-bold text-neutral-900 mb-1">For Recruiters</div>
+              <div class="text-xs text-neutral-600 mb-3">Stop fighting your ATS...</div>
+              <div class="text-[#0EA5E9] text-sm font-semibold">Learn More →</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 border-2 border-green-200 card-hover cursor-pointer">
+              <div class="text-2xl mb-2">🏢</div>
+              <div class="font-bold text-neutral-900 mb-1">For Small Businesses</div>
+              <div class="text-xs text-neutral-600 mb-3">Hire without enterprise complexity...</div>
+              <div class="text-[#0EA5E9] text-sm font-semibold">Learn More →</div>
+            </div>
+            <div class="bg-white rounded-lg p-4 border-2 border-purple-200 card-hover cursor-pointer">
+              <div class="text-2xl mb-2">🎯</div>
+              <div class="font-bold text-neutral-900 mb-1">For Staffing Agencies</div>
+              <div class="text-xs text-neutral-600 mb-3">Compete with larger firms...</div>
+              <div class="text-[#0EA5E9] text-sm font-semibold">Learn More →</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Arrows -->
+    <div class="flex justify-center items-center gap-12 mb-16">
+      <div class="text-center">
+        <div class="w-16 h-16 bg-[#0EA5E9] rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">1</div>
+        <div class="text-sm font-semibold text-neutral-700">User clicks<br>"Learn More"</div>
+      </div>
+      <div class="arrow arrow-down"></div>
+      <div class="text-center">
+        <div class="w-16 h-16 bg-[#10B981] rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">2</div>
+        <div class="text-sm font-semibold text-neutral-700">Lands on<br>Persona Page</div>
+      </div>
+    </div>
+
+    <!-- Persona Pages -->
+    <div class="grid md:grid-cols-3 gap-8 mb-16">
+      <!-- Recruiters Page -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 border-4 border-blue-300 animate-pulse-border">
+        <div class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold mb-4">
+          PERSONA PAGE
+        </div>
+        <h3 class="text-2xl font-bold text-neutral-900 mb-2">For Recruiters</h3>
+        <p class="text-sm text-neutral-600 mb-4">talentpatriot.com/recruiters</p>
+        
+        <div class="space-y-3 mb-6">
+          <div class="bg-blue-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Hero Message:</div>
+            <div class="text-neutral-600">"Stop Fighting Your ATS"</div>
+          </div>
+          <div class="bg-blue-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Key Features:</div>
+            <div class="text-neutral-600">AI parsing, pipelines, talent pools</div>
+          </div>
+          <div class="bg-blue-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Pain Points:</div>
+            <div class="text-neutral-600">Clunky ATS, missed candidates</div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <button class="w-full bg-gradient-to-r from-[#0EA5E9] to-[#10B981] text-white text-sm font-semibold py-3 rounded-lg">
+            Start Free Trial
+          </button>
+          <button class="w-full border-2 border-[#0EA5E9] text-[#0EA5E9] text-sm font-semibold py-3 rounded-lg">
+            Watch Demo
+          </button>
+        </div>
+      </div>
+
+      <!-- Small Business Page -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 border-4 border-green-300 animate-pulse-border">
+        <div class="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold mb-4">
+          PERSONA PAGE
+        </div>
+        <h3 class="text-2xl font-bold text-neutral-900 mb-2">For Small Business</h3>
+        <p class="text-sm text-neutral-600 mb-4">talentpatriot.com/small-business</p>
+        
+        <div class="space-y-3 mb-6">
+          <div class="bg-green-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Hero Message:</div>
+            <div class="text-neutral-600">"Hire Like a Big Company"</div>
+          </div>
+          <div class="bg-green-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Key Benefits:</div>
+            <div class="text-neutral-600">$49/mo, <1hr setup, zero training</div>
+          </div>
+          <div class="bg-green-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Pain Points:</div>
+            <div class="text-neutral-600">Email chaos, expensive tools</div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <button class="w-full bg-gradient-to-r from-[#0EA5E9] to-[#10B981] text-white text-sm font-semibold py-3 rounded-lg">
+            Start Free Trial
+          </button>
+          <button class="w-full border-2 border-[#0EA5E9] text-[#0EA5E9] text-sm font-semibold py-3 rounded-lg">
+            See How It Works
+          </button>
+        </div>
+      </div>
+
+      <!-- Agencies Page -->
+      <div class="bg-white rounded-2xl shadow-xl p-6 border-4 border-purple-300 animate-pulse-border">
+        <div class="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold mb-4">
+          PERSONA PAGE
+        </div>
+        <h3 class="text-2xl font-bold text-neutral-900 mb-2">For Agencies</h3>
+        <p class="text-sm text-neutral-600 mb-4">talentpatriot.com/agencies</p>
+        
+        <div class="space-y-3 mb-6">
+          <div class="bg-purple-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Hero Message:</div>
+            <div class="text-neutral-600">"Compete With Big Agencies"</div>
+          </div>
+          <div class="bg-purple-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Key Features:</div>
+            <div class="text-neutral-600">Multi-client, white-label, unlimited</div>
+          </div>
+          <div class="bg-purple-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-900 mb-1">Pain Points:</div>
+            <div class="text-neutral-600">Client chaos, enterprise pricing</div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <button class="w-full bg-gradient-to-r from-[#0EA5E9] to-[#10B981] text-white text-sm font-semibold py-3 rounded-lg">
+            Start Free Trial
+          </button>
+          <button class="w-full border-2 border-[#0EA5E9] text-[#0EA5E9] text-sm font-semibold py-3 rounded-lg">
+            Request Demo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alternative Entry Points -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8">
+      <h3 class="text-2xl font-bold text-neutral-900 mb-6 text-center">Alternative Navigation Entry Points</h3>
+      
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Top Nav -->
+        <div class="border-2 border-neutral-200 rounded-xl p-6">
+          <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl mb-4">📍</div>
+          <h4 class="font-bold text-neutral-900 mb-2">Top Navigation Dropdown</h4>
+          <p class="text-sm text-neutral-600 mb-4">Add "Solutions" menu with persona links</p>
+          <div class="bg-neutral-50 rounded-lg p-3 text-xs">
+            <div class="font-mono text-neutral-700">Solutions ▼</div>
+            <div class="ml-4 mt-2 space-y-1 text-neutral-600">
+              <div>→ For Recruiters</div>
+              <div>→ For Small Business</div>
+              <div>→ For Agencies</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="border-2 border-neutral-200 rounded-xl p-6">
+          <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl mb-4">⬇️</div>
+          <h4 class="font-bold text-neutral-900 mb-2">Footer Links</h4>
+          <p class="text-sm text-neutral-600 mb-4">Include persona links in footer navigation</p>
+          <div class="bg-neutral-50 rounded-lg p-3 text-xs">
+            <div class="font-semibold text-neutral-700 mb-2">Solutions</div>
+            <div class="space-y-1 text-neutral-600">
+              <div>• For Recruiters</div>
+              <div>• For Small Business</div>
+              <div>• For Agencies</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Direct Traffic -->
+        <div class="border-2 border-neutral-200 rounded-xl p-6">
+          <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl mb-4">🎯</div>
+          <h4 class="font-bold text-neutral-900 mb-2">Direct/Paid Traffic</h4>
+          <p class="text-sm text-neutral-600 mb-4">Google Ads can link directly to persona pages</p>
+          <div class="bg-neutral-50 rounded-lg p-3 text-xs">
+            <div class="text-neutral-700 mb-2"><strong>Ad Example:</strong></div>
+            <div class="text-neutral-600">"ATS for Recruiters"</div>
+            <div class="text-blue-600 text-[10px]">→ /recruiters</div>
+            <div class="text-neutral-600 mt-2">"Small Business Hiring"</div>
+            <div class="text-blue-600 text-[10px]">→ /small-business</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conversion Flow -->
+    <div class="bg-gradient-to-r from-[#0EA5E9] to-[#10B981] rounded-2xl shadow-xl p-8 text-white">
+      <h3 class="text-2xl font-bold mb-6 text-center">Complete Conversion Flow</h3>
+      
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-white text-[#0EA5E9] rounded-full flex items-center justify-center text-xl font-bold mb-2">1</div>
+          <div class="font-semibold">User Lands on<br>talentpatriot.com</div>
+        </div>
+        <div class="text-4xl">→</div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-white text-[#0EA5E9] rounded-full flex items-center justify-center text-xl font-bold mb-2">2</div>
+          <div class="font-semibold">Clicks Persona Card<br>in "Find Your Solution"</div>
+        </div>
+        <div class="text-4xl">→</div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-white text-[#0EA5E9] rounded-full flex items-center justify-center text-xl font-bold mb-2">3</div>
+          <div class="font-semibold">Reads Tailored<br>Persona Page</div>
+        </div>
+        <div class="text-4xl">→</div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-white text-[#0EA5E9] rounded-full flex items-center justify-center text-xl font-bold mb-2">4</div>
+          <div class="font-semibold">Clicks "Start Free Trial"<br>or "Request Demo"</div>
+        </div>
+        <div class="text-4xl">→</div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-white text-[#10B981] rounded-full flex items-center justify-center text-xl font-bold mb-2">✓</div>
+          <div class="font-semibold">Conversion<br>(Signup/Demo)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Implementation Notes -->
+    <div class="mt-12 bg-amber-50 border-2 border-amber-200 rounded-2xl p-8">
+      <h3 class="text-xl font-bold text-neutral-900 mb-4">🚀 Implementation Recommendations</h3>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="font-semibold text-neutral-900 mb-2">✅ DO:</h4>
+          <ul class="space-y-2 text-sm text-neutral-700">
+            <li>• Keep persona cards prominent on main landing page</li>
+            <li>• Use consistent CTAs across all pages ("Start Free Trial")</li>
+            <li>• Track which persona page converts best</li>
+            <li>• A/B test different hero messages per persona</li>
+            <li>• Add breadcrumbs on persona pages (Home > For Recruiters)</li>
+            <li>• Include "Compare Solutions" link between persona pages</li>
+          </ul>
+        </div>
+        <div>
+          <h4 class="font-semibold text-neutral-900 mb-2">❌ DON'T:</h4>
+          <ul class="space-y-2 text-sm text-neutral-700">
+            <li>• Hide persona pages - make them easy to find</li>
+            <li>• Force users to fill out forms before seeing content</li>
+            <li>• Use different branding/colors on persona pages</li>
+            <li>• Create dead-end pages without clear CTAs</li>
+            <li>• Forget mobile optimization - most traffic is mobile</li>
+            <li>• Neglect SEO - each persona page should rank independently</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- URL Structure -->
+    <div class="mt-8 bg-neutral-900 text-white rounded-2xl p-8">
+      <h3 class="text-xl font-bold mb-4">🔗 Recommended URL Structure</h3>
+      <div class="space-y-3 font-mono text-sm">
+        <div class="flex items-center gap-3">
+          <div class="text-green-400">✓</div>
+          <div>talentpatriot.com <span class="text-neutral-400">(main landing)</span></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-green-400">✓</div>
+          <div>talentpatriot.com/recruiters <span class="text-neutral-400">(recruiter persona)</span></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-green-400">✓</div>
+          <div>talentpatriot.com/small-business <span class="text-neutral-400">(SMB persona)</span></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-green-400">✓</div>
+          <div>talentpatriot.com/agencies <span class="text-neutral-400">(agency persona)</span></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="text-green-400">✓</div>
+          <div>talentpatriot.com/beta <span class="text-neutral-400">(signup page - all personas lead here)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentPatriot - For Small Businesses</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #0EA5E9 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-gradient {
+      background: linear-gradient(135deg, #0EA5E9 0%, #10B981 100%);
+    }
+    
+    .btn-gradient:hover {
+      box-shadow: 0 12px 32px rgba(14, 165, 233, 0.3);
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-white">
+  <!-- Navigation -->
+  <nav class="flex justify-between items-center px-[5%] py-6 bg-white shadow-sm sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-10 h-10 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg"></div>
+      <span class="text-2xl font-bold text-neutral-900">TalentPatriot</span>
+    </div>
+    <div class="flex gap-4">
+      <a href="#" class="text-[#0EA5E9] font-semibold hover:text-[#0284C7] px-4 py-2">Sign In</a>
+      <a href="#" class="btn-gradient text-white font-semibold px-6 py-2 rounded-xl">Start Free Trial</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="relative py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4] overflow-hidden">
+    <div class="absolute -top-1/2 -right-[20%] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(14,165,233,0.1)_0%,transparent_70%)] animate-float pointer-events-none"></div>
+    
+    <div class="max-w-[1200px] mx-auto">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="inline-block bg-[#10B981]/10 text-[#10B981] px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            🏢 FOR SMALL BUSINESSES
+          </div>
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-neutral-900 mb-6 tracking-tight leading-[1.1]">
+            Hire Like a Big Company.<br>
+            <span class="gradient-text">Without the Complexity.</span>
+          </h1>
+          <p class="text-xl text-neutral-600 mb-8 leading-relaxed">
+            You don't need enterprise software. You need a simple, affordable ATS that helps you find great people fast—without a learning curve.
+          </p>
+          
+          <!-- Key Benefits -->
+          <div class="bg-white rounded-2xl p-6 shadow-lg mb-8 border-2 border-neutral-100">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">⚡</div>
+                <div>
+                  <div class="font-bold text-neutral-900">Under 1 Hour</div>
+                  <div class="text-sm text-neutral-500">Setup Time</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">💰</div>
+                <div>
+                  <div class="font-bold text-neutral-900">$49/month</div>
+                  <div class="text-sm text-neutral-500">Starting Price</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">👥</div>
+                <div>
+                  <div class="font-bold text-neutral-900">Free</div>
+                  <div class="text-sm text-neutral-500">Team Members</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="text-2xl">📚</div>
+                <div>
+                  <div class="font-bold text-neutral-900">Zero</div>
+                  <div class="text-sm text-neutral-500">Training Needed</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button class="btn-gradient text-white font-semibold px-8 py-4 rounded-xl text-lg hover:shadow-lg transition-shadow">
+              Start Free Trial
+            </button>
+            <button class="bg-white text-neutral-900 border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all">
+              See How It Works
+            </button>
+          </div>
+          
+          <p class="text-sm text-neutral-500 mt-4">✓ No credit card • ✓ No training required • ✓ Cancel anytime</p>
+        </div>
+        
+        <!-- Hero Image -->
+        <div class="relative">
+          <div class="bg-white rounded-3xl shadow-2xl p-6 border-2 border-neutral-100">
+            <!-- Careers Page Preview -->
+            <div class="mb-4">
+              <div class="text-xs font-semibold text-neutral-500 mb-2">YOUR BRANDED CAREERS PAGE</div>
+              <div class="bg-gradient-to-br from-blue-50 to-green-50 rounded-xl p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-12 h-12 bg-neutral-800 rounded-lg"></div>
+                  <div>
+                    <div class="font-bold text-lg">Your Company</div>
+                    <div class="text-sm text-neutral-600">We're Hiring!</div>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div class="bg-white rounded-lg p-4 shadow-sm">
+                    <div class="font-semibold text-neutral-900 mb-1">Sales Manager</div>
+                    <div class="text-sm text-neutral-500">Full-time • $80k-$100k</div>
+                  </div>
+                  <div class="bg-white rounded-lg p-4 shadow-sm">
+                    <div class="font-semibold text-neutral-900 mb-1">Marketing Coordinator</div>
+                    <div class="text-sm text-neutral-500">Full-time • $55k-$70k</div>
+                  </div>
+                  <div class="bg-white rounded-lg p-4 shadow-sm">
+                    <div class="font-semibold text-neutral-900 mb-1">Customer Success Rep</div>
+                    <div class="text-sm text-neutral-500">Full-time • $50k-$65k</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="text-center text-sm text-neutral-500">
+              ✨ Live in under 1 hour with your branding
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem Section -->
+  <section class="py-24 px-[5%] bg-white">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Hiring Shouldn't Feel This Hard</h2>
+        <p class="text-xl text-neutral-500">Most small businesses struggle with the same hiring challenges</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center">
+          <div class="text-4xl mb-4">📧</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Overwhelmed by Applications</h3>
+          <p class="text-neutral-600">Resumes scattered across email, LinkedIn, and job boards. No way to track who applied where or when.</p>
+        </div>
+        
+        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-8 text-center">
+          <div class="text-4xl mb-4">💸</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Enterprise Tools Too Expensive</h3>
+          <p class="text-neutral-600">$300-500/month for features you'll never use. Built for 500-person companies, not 20-person teams.</p>
+        </div>
+        
+        <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-8 text-center">
+          <div class="text-4xl mb-4">⏰</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Hiring Takes Too Long</h3>
+          <p class="text-neutral-600">Manual screening, spreadsheet tracking, endless back-and-forth. By the time you decide, candidates are gone.</p>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <div class="inline-flex items-center gap-3 bg-gradient-to-r from-[#0EA5E9] to-[#10B981] text-white px-8 py-4 rounded-2xl text-lg font-semibold">
+          <span>✨</span>
+          <span>TalentPatriot solves all three problems—for $49/month</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4]">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Simple as 1-2-3</h2>
+        <p class="text-xl text-neutral-500">From setup to your first hire in days, not months</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-12">
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] text-white rounded-3xl flex items-center justify-center text-5xl font-bold mx-auto mb-6 shadow-lg">
+            1
+          </div>
+          <h3 class="text-2xl font-bold text-neutral-900 mb-4">Set Up Your Careers Page</h3>
+          <p class="text-neutral-600">Add your logo, company info, and job listings. Get a professional careers page with your own domain in under an hour. No coding required.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] text-white rounded-3xl flex items-center justify-center text-5xl font-bold mx-auto mb-6 shadow-lg">
+            2
+          </div>
+          <h3 class="text-2xl font-bold text-neutral-900 mb-4">Applications Flow In Automatically</h3>
+          <p class="text-neutral-600">Candidates apply through your careers page. AI instantly parses resumes, extracts skills, and ranks candidates by fit. You focus on the top 10%.</p>
+        </div>
+        
+        <div class="text-center">
+          <div class="w-24 h-24 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] text-white rounded-3xl flex items-center justify-center text-5xl font-bold mx-auto mb-6 shadow-lg">
+            3
+          </div>
+          <h3 class="text-2xl font-bold text-neutral-900 mb-4">Collaborate & Hire Fast</h3>
+          <p class="text-neutral-600">Your whole team can review candidates, leave feedback, and schedule interviews—all in one place. Make offers before your competitors do.</p>
+        </div>
+      </div>
+      
+      <div class="text-center mt-12">
+        <button class="btn-gradient text-white font-semibold px-10 py-4 rounded-xl text-lg hover:shadow-lg transition-shadow">
+          Try It Free for 14 Days →
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-24 px-[5%] bg-white">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Everything You Need, Nothing You Don't</h2>
+        <p class="text-xl text-neutral-500">Built for small business simplicity</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Feature 1 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-50 rounded-2xl flex items-center justify-center text-3xl">
+              🎨
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Branded Careers Page</h3>
+            <p class="text-neutral-600">Launch your professional careers site with your logo, colors, and custom domain. Show candidates you're legit—even if you're a 10-person team.</p>
+          </div>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 bg-gradient-to-br from-green-100 to-green-50 rounded-2xl flex items-center justify-center text-3xl">
+              🤖
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">AI Resume Screening</h3>
+            <p class="text-neutral-600">Upload 50 resumes, get instant rankings. Our AI extracts skills, experience, and education—then highlights your best matches automatically.</p>
+          </div>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-50 rounded-2xl flex items-center justify-center text-3xl">
+              👥
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Team Collaboration (Free)</h3>
+            <p class="text-neutral-600">Invite your whole team—hiring managers, executives, anyone. They can review candidates, leave notes, and vote. No extra cost.</p>
+          </div>
+        </div>
+        
+        <!-- Feature 4 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-50 rounded-2xl flex items-center justify-center text-3xl">
+              📧
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Email & Scheduling</h3>
+            <p class="text-neutral-600">Send emails to candidates and schedule interviews without leaving TalentPatriot. Syncs with your Gmail or Outlook calendar automatically.</p>
+          </div>
+        </div>
+        
+        <!-- Feature 5 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 bg-gradient-to-br from-pink-100 to-pink-50 rounded-2xl flex items-center justify-center text-3xl">
+              📊
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Simple Pipeline View</h3>
+            <p class="text-neutral-600">Drag-and-drop candidates through stages (Applied → Interview → Offer). See your entire hiring process at a glance. No spreadsheet juggling.</p>
+          </div>
+        </div>
+        
+        <!-- Feature 6 -->
+        <div class="flex gap-6">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 bg-gradient-to-br from-cyan-100 to-cyan-50 rounded-2xl flex items-center justify-center text-3xl">
+              📱
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-neutral-900 mb-2">Mobile-Friendly</h3>
+            <p class="text-neutral-600">Review candidates and send updates from your phone. Perfect for busy founders who aren't always at their desk.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Section -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4]">
+    <div class="max-w-[1000px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">The Smart Choice for Small Business</h2>
+        <p class="text-xl text-neutral-500">See how we compare to other hiring methods</p>
+      </div>
+      
+      <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gradient-to-r from-[#0EA5E9] to-[#10B981] text-white">
+            <tr>
+              <th class="text-left p-6 font-semibold">Feature</th>
+              <th class="text-center p-6 font-semibold">Email & Spreadsheets</th>
+              <th class="text-center p-6 font-semibold">Enterprise ATS</th>
+              <th class="text-center p-6 font-semibold bg-white/20">TalentPatriot</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-neutral-200">
+            <tr>
+              <td class="p-6 font-medium">Price</td>
+              <td class="p-6 text-center text-neutral-600">Free</td>
+              <td class="p-6 text-center text-neutral-600">$300-500/mo</td>
+              <td class="p-6 text-center font-bold text-[#10B981]">$49/mo</td>
+            </tr>
+            <tr class="bg-neutral-50">
+              <td class="p-6 font-medium">Setup Time</td>
+              <td class="p-6 text-center text-neutral-600">—</td>
+              <td class="p-6 text-center text-neutral-600">2-4 weeks</td>
+              <td class="p-6 text-center font-bold text-[#10B981]">Under 1 hour</td>
+            </tr>
+            <tr>
+              <td class="p-6 font-medium">AI Resume Screening</td>
+              <td class="p-6 text-center text-red-500">✗</td>
+              <td class="p-6 text-center text-green-500">✓</td>
+              <td class="p-6 text-center text-green-500 font-bold">✓</td>
+            </tr>
+            <tr class="bg-neutral-50">
+              <td class="p-6 font-medium">Branded Careers Page</td>
+              <td class="p-6 text-center text-red-500">✗</td>
+              <td class="p-6 text-center text-green-500">✓</td>
+              <td class="p-6 text-center text-green-500 font-bold">✓</td>
+            </tr>
+            <tr>
+              <td class="p-6 font-medium">Team Collaboration</td>
+              <td class="p-6 text-center text-neutral-600">Limited</td>
+              <td class="p-6 text-center text-neutral-600">Extra cost</td>
+              <td class="p-6 text-center font-bold text-[#10B981]">Free & unlimited</td>
+            </tr>
+            <tr class="bg-neutral-50">
+              <td class="p-6 font-medium">Training Required</td>
+              <td class="p-6 text-center text-neutral-600">—</td>
+              <td class="p-6 text-center text-neutral-600">1-2 days</td>
+              <td class="p-6 text-center font-bold text-[#10B981]">None</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="text-center mt-12">
+        <button class="btn-gradient text-white font-semibold px-10 py-4 rounded-xl text-lg hover:shadow-lg transition-shadow">
+          Start Free Trial →
+        </button>
+        <p class="text-sm text-neutral-500 mt-4">No credit card required • Cancel anytime</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof -->
+  <section class="py-24 px-[5%] bg-white">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Loved by Growing Businesses</h2>
+        <p class="text-xl text-neutral-500">Here's what small business owners are saying</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border-2 border-blue-100">
+          <div class="text-2xl mb-4">⭐⭐⭐⭐⭐</div>
+          <p class="text-neutral-700 mb-6 italic">"We went from spreadsheet chaos to a real hiring system in one afternoon. Worth every penny."</p>
+          <div class="font-semibold text-neutral-900">Michael Torres</div>
+          <div class="text-sm text-neutral-500">CEO, 15-person marketing agency</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 border-2 border-green-100">
+          <div class="text-2xl mb-4">⭐⭐⭐⭐⭐</div>
+          <p class="text-neutral-700 mb-6 italic">"Finally, an ATS that doesn't require a PhD to use. My whole team was up and running in 20 minutes."</p>
+          <div class="font-semibold text-neutral-900">Sarah Patel</div>
+          <div class="text-sm text-neutral-500">Founder, Tech Startup</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-8 border-2 border-purple-100">
+          <div class="text-2xl mb-4">⭐⭐⭐⭐⭐</div>
+          <p class="text-neutral-700 mb-6 italic">"We hired 3 people in our first month. TalentPatriot made us look like a much bigger company than we are."</p>
+          <div class="font-semibold text-neutral-900">James Wilson</div>
+          <div class="text-sm text-neutral-500">Owner, Local Service Business</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#0EA5E9] to-[#10B981] text-white text-center">
+    <div class="max-w-[800px] mx-auto">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">Ready to Hire Smarter?</h2>
+      <p class="text-xl mb-8 opacity-95">Join hundreds of small businesses already using TalentPatriot</p>
+      <button class="bg-white text-[#0EA5E9] hover:bg-neutral-100 font-bold px-10 py-5 rounded-xl text-lg transition-all hover:shadow-2xl">
+        Start Your Free Trial →
+      </button>
+      <p class="text-sm mt-4 opacity-90">No credit card • Setup in under 1 hour • Cancel anytime</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white py-12 border-t border-neutral-200">
+    <div class="max-w-[1200px] mx-auto px-[5%]">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg"></div>
+          <span class="text-lg font-bold text-neutral-900">TalentPatriot</span>
+        </div>
+        <nav class="flex gap-6 text-sm text-neutral-500">
+          <a href="#" class="hover:text-neutral-900">About</a>
+          <a href="#" class="hover:text-neutral-900">Privacy</a>
+          <a href="#" class="hover:text-neutral-900">Terms</a>
+          <a href="#" class="hover:text-neutral-900">Contact</a>
+        </nav>
+        <p class="text-sm text-neutral-500">© 2025 TalentPatriot</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

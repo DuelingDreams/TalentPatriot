@@ -1,0 +1,2 @@
+job_candidate_id,candidate_id,job_id,org_id,pipeline_column_id,stage,candidate_name,job_title
+2dcaf582-6073-4dc6-8cd1-ee3d6f1c14da,d48d5788-00b8-436f-9cb9-a141fa6d00aa,e9d1f4b8-144a-4b44-9863-33d934b237f2,64eea1fa-1993-4966-bbd8-3d5109957c20,4a9561fe-960b-41cd-87d8-6eb70623f429,phone_screen,Sophia Ramirez,DevOps Engineer

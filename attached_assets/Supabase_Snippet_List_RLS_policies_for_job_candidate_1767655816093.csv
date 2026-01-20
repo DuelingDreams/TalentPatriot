@@ -1,0 +1,16 @@
+policyname,permissive,cmd,using_expression,with_check_expression
+job_candidate_anon_insert_public_jobs,PERMISSIVE,INSERT,null,"(job_id IN ( SELECT jobs.id
+   FROM jobs
+  WHERE ((jobs.status = 'open'::job_status) AND (jobs.public_slug IS NOT NULL) AND (jobs.published_at IS NOT NULL))))"
+job_candidate_authenticated_consolidated,PERMISSIVE,ALL,"((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND ((get_user_role() = ANY (ARRAY['admin'::text, 'recruiter'::text])) OR ((get_user_role() = 'pm'::text) AND (assigned_to = ( SELECT auth.uid() AS uid))) OR (get_user_role() = 'bd'::text) OR ((get_user_role() = 'demo_viewer'::text) AND (status = 'demo'::record_status)) OR is_authenticated()))","((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND ((get_user_role() = ANY (ARRAY['admin'::text, 'recruiter'::text, 'pm'::text])) OR (is_authenticated() AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))))"
+job_candidate_block_anon_except_insert,PERMISSIVE,ALL,false,false
+job_candidate_secure_select,PERMISSIVE,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+job_candidate_secure_update,PERMISSIVE,UPDATE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null

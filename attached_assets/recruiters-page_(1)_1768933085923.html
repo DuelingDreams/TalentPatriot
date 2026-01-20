@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TalentPatriot - For Recruiters</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #0EA5E9 0%, #10B981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-gradient {
+      background: linear-gradient(135deg, #0EA5E9 0%, #10B981 100%);
+    }
+    
+    .btn-gradient:hover {
+      box-shadow: 0 12px 32px rgba(14, 165, 233, 0.3);
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+    }
+    
+    .animate-float {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    .card-hover {
+      transition: all 0.3s ease;
+    }
+    
+    .card-hover:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+<body class="bg-white">
+  <!-- Navigation -->
+  <nav class="flex justify-between items-center px-[5%] py-6 bg-white shadow-sm sticky top-0 z-50">
+    <div class="flex items-center gap-2">
+      <div class="w-10 h-10 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg"></div>
+      <span class="text-2xl font-bold text-neutral-900">TalentPatriot</span>
+    </div>
+    <div class="flex gap-4">
+      <a href="#" class="text-[#0EA5E9] font-semibold hover:text-[#0284C7] px-4 py-2">Sign In</a>
+      <a href="#" class="btn-gradient text-white font-semibold px-6 py-2 rounded-xl">Start Free Trial</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="relative py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4] overflow-hidden">
+    <div class="absolute -top-1/2 -right-[20%] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(14,165,233,0.1)_0%,transparent_70%)] animate-float pointer-events-none"></div>
+    
+    <div class="max-w-[1200px] mx-auto">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <div class="inline-block bg-[#0EA5E9]/10 text-[#0EA5E9] px-4 py-2 rounded-full text-sm font-semibold mb-6">
+            👔 FOR RECRUITERS
+          </div>
+          <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-neutral-900 mb-6 tracking-tight leading-[1.1]">
+            Stop Fighting Your <span class="gradient-text">ATS</span>
+          </h1>
+          <p class="text-xl text-neutral-600 mb-8 leading-relaxed">
+            Built by recruiters, for recruiters. Manage your pipeline faster with tools that actually make your job easier—not harder.
+          </p>
+          
+          <!-- Key Stats -->
+          <div class="grid grid-cols-3 gap-4 mb-8">
+            <div>
+              <div class="text-3xl font-bold text-[#0EA5E9]">10+</div>
+              <div class="text-sm text-neutral-500">Hours Saved<br>Per Week</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-[#0EA5E9]">40%</div>
+              <div class="text-sm text-neutral-500">Faster<br>Time-to-Fill</div>
+            </div>
+            <div>
+              <div class="text-3xl font-bold text-[#0EA5E9]">3x</div>
+              <div class="text-sm text-neutral-500">More Candidate<br>Engagement</div>
+            </div>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-4">
+            <button class="btn-gradient text-white font-semibold px-8 py-4 rounded-xl text-lg hover:shadow-lg transition-shadow">
+              Start Free Trial
+            </button>
+            <button class="bg-white text-neutral-900 border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all">
+              Watch Demo
+            </button>
+          </div>
+          
+          <p class="text-sm text-neutral-500 mt-4">✓ No credit card required • ✓ 14-day free trial • ✓ Cancel anytime</p>
+        </div>
+        
+        <!-- Hero Image Placeholder -->
+        <div class="relative">
+          <div class="bg-white rounded-3xl shadow-2xl p-8 border-2 border-neutral-100">
+            <div class="space-y-4">
+              <!-- Pipeline Visual -->
+              <div class="text-sm font-semibold text-neutral-700 mb-4">Your Pipeline, Simplified</div>
+              <div class="grid grid-cols-4 gap-2">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 text-center">
+                  <div class="text-xs font-semibold text-blue-700 mb-1">Applied</div>
+                  <div class="text-2xl font-bold text-blue-900">24</div>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-3 text-center">
+                  <div class="text-xs font-semibold text-purple-700 mb-1">Screening</div>
+                  <div class="text-2xl font-bold text-purple-900">12</div>
+                </div>
+                <div class="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg p-3 text-center">
+                  <div class="text-xs font-semibold text-amber-700 mb-1">Interview</div>
+                  <div class="text-2xl font-bold text-amber-900">8</div>
+                </div>
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 text-center">
+                  <div class="text-xs font-semibold text-green-700 mb-1">Offer</div>
+                  <div class="text-2xl font-bold text-green-900">3</div>
+                </div>
+              </div>
+              
+              <!-- Candidate Cards -->
+              <div class="space-y-2 mt-6">
+                <div class="bg-gradient-to-r from-blue-50 to-transparent rounded-lg p-4 border-l-4 border-blue-500">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="font-semibold text-neutral-900">Sarah Chen</div>
+                      <div class="text-sm text-neutral-500">Senior Software Engineer • 95% Match</div>
+                    </div>
+                    <div class="text-2xl">⭐</div>
+                  </div>
+                </div>
+                <div class="bg-gradient-to-r from-green-50 to-transparent rounded-lg p-4 border-l-4 border-green-500">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="font-semibold text-neutral-900">Marcus Johnson</div>
+                      <div class="text-sm text-neutral-500">Product Manager • 92% Match</div>
+                    </div>
+                    <div class="text-2xl">⭐</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pain Points Section -->
+  <section class="py-24 px-[5%] bg-white">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Sound Familiar?</h2>
+        <p class="text-xl text-neutral-500">We built TalentPatriot to solve the problems recruiters face every day</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-6 mb-12">
+        <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">😤</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Your ATS is slowing you down</h3>
+          <p class="text-neutral-600">Clunky interfaces, endless clicks, and features you'll never use. You spend more time fighting the tool than filling roles.</p>
+        </div>
+        <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">📧</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Great candidates slip through the cracks</h3>
+          <p class="text-neutral-600">Manual resume screening means you miss qualified people buried in your inbox. By the time you find them, they've accepted elsewhere.</p>
+        </div>
+        <div class="bg-purple-50 border-2 border-purple-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">💰</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Overpriced enterprise tools</h3>
+          <p class="text-neutral-600">You're paying for features built for 500-person HR teams. All you need is a fast, simple pipeline—not a bloated system.</p>
+        </div>
+        <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
+          <div class="text-3xl mb-4">🔄</div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Disconnected workflow</h3>
+          <p class="text-neutral-600">Switching between spreadsheets, email, calendar, and your ATS. No single source of truth for candidate status.</p>
+        </div>
+      </div>
+      
+      <div class="text-center">
+        <div class="inline-block bg-gradient-to-r from-[#0EA5E9] to-[#10B981] text-white px-8 py-4 rounded-2xl text-lg font-semibold">
+          ✨ TalentPatriot fixes all of this—and more
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4]">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Built for Speed & Simplicity</h2>
+        <p class="text-xl text-neutral-500">Everything you need to recruit faster. Nothing you don't.</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            🎯
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">AI-Powered Resume Parsing</h3>
+          <p class="text-neutral-600 mb-4">Upload 50 resumes, get instant parsing with skills extraction, experience matching, and fit scoring. Find your top 5 candidates in seconds.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Automatic skills & experience extraction</li>
+            <li>• Match score based on job requirements</li>
+            <li>• Highlight qualified candidates instantly</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            📊
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Visual Pipeline Management</h3>
+          <p class="text-neutral-600 mb-4">Drag-and-drop Kanban boards that actually work. See your entire pipeline at a glance and move candidates through stages effortlessly.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Customizable pipeline stages</li>
+            <li>• Bulk actions for efficiency</li>
+            <li>• Filter by skills, location, salary</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            📧
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Built-in Email & Scheduling</h3>
+          <p class="text-neutral-600 mb-4">Send personalized emails and schedule interviews without leaving the platform. Gmail integration keeps everything in sync.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Email templates for every stage</li>
+            <li>• Calendar integration (Google/Outlook)</li>
+            <li>• Automated follow-ups & reminders</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 4 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            🗂️
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Talent Pools (CRM-Lite)</h3>
+          <p class="text-neutral-600 mb-4">Build your own talent database. Tag strong candidates for future roles and keep them warm with automated nurture campaigns.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Save candidates for future openings</li>
+            <li>• Custom tags & notes</li>
+            <li>• Re-engage with one click</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 5 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            💬
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Team Collaboration</h3>
+          <p class="text-neutral-600 mb-4">@mention hiring managers, leave notes, and keep everyone aligned. Slack integration brings updates to your team channel.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Internal notes & mentions</li>
+            <li>• Slack notifications</li>
+            <li>• Hiring manager feedback loops</li>
+          </ul>
+        </div>
+        
+        <!-- Feature 6 -->
+        <div class="bg-white rounded-2xl p-8 card-hover border-2 border-neutral-100">
+          <div class="w-16 h-16 bg-gradient-to-br from-[#0EA5E9]/10 to-[#10B981]/10 rounded-2xl flex items-center justify-center text-3xl mb-6">
+            📈
+          </div>
+          <h3 class="text-xl font-bold text-neutral-900 mb-3">Recruiter Analytics</h3>
+          <p class="text-neutral-600 mb-4">Track your metrics that matter: time-to-fill, source quality, conversion rates. Prove your impact with real data.</p>
+          <ul class="space-y-2 text-sm text-neutral-600">
+            <li>• Pipeline velocity & bottlenecks</li>
+            <li>• Source effectiveness</li>
+            <li>• Individual recruiter performance</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Proof -->
+  <section class="py-24 px-[5%] bg-white">
+    <div class="max-w-[1200px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Trusted by Recruiters</h2>
+        <p class="text-xl text-neutral-500">See what recruiting pros are saying</p>
+      </div>
+      
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-8 border-2 border-blue-100">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="text-2xl">⭐⭐⭐⭐⭐</div>
+          </div>
+          <p class="text-neutral-700 mb-6 italic">"Finally, an ATS that doesn't make me want to pull my hair out. I'm filling roles 40% faster and my candidates actually respond to my emails now."</p>
+          <div class="font-semibold text-neutral-900">Jessica Martinez</div>
+          <div class="text-sm text-neutral-500">Senior Technical Recruiter</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-green-50 to-white rounded-2xl p-8 border-2 border-green-100">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="text-2xl">⭐⭐⭐⭐⭐</div>
+          </div>
+          <p class="text-neutral-700 mb-6 italic">"The AI resume parsing saves me 10+ hours a week. I can focus on building relationships instead of manually screening hundreds of resumes."</p>
+          <div class="font-semibold text-neutral-900">David Kim</div>
+          <div class="text-sm text-neutral-500">Agency Recruiter</div>
+        </div>
+        
+        <div class="bg-gradient-to-br from-purple-50 to-white rounded-2xl p-8 border-2 border-purple-100">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="text-2xl">⭐⭐⭐⭐⭐</div>
+          </div>
+          <p class="text-neutral-700 mb-6 italic">"Switched from Greenhouse and never looked back. TalentPatriot does 80% of what Greenhouse does at 20% of the price. Perfect for solo recruiters."</p>
+          <div class="font-semibold text-neutral-900">Amanda Chen</div>
+          <div class="text-sm text-neutral-500">Independent Recruiter</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4]">
+    <div class="max-w-[900px] mx-auto">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-neutral-900 mb-4">Simple, Transparent Pricing</h2>
+        <p class="text-xl text-neutral-500">Pay only for recruiter seats. Hiring managers collaborate for free.</p>
+      </div>
+      
+      <div class="grid md:grid-cols-2 gap-8">
+        <!-- Starter -->
+        <div class="bg-white rounded-2xl p-8 border-2 border-neutral-200 hover:border-[#0EA5E9] transition-all">
+          <h3 class="text-2xl font-bold text-neutral-900 mb-2">Starter</h3>
+          <div class="mb-4">
+            <span class="text-4xl font-bold text-neutral-900">$49</span>
+            <span class="text-neutral-500">/recruiter/month</span>
+          </div>
+          <p class="text-sm text-neutral-500 mb-6">Perfect for solo recruiters & small teams</p>
+          <ul class="space-y-3 mb-8 text-neutral-700">
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Unlimited job postings</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>AI resume parsing</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Visual pipeline management</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Email & calendar integration</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Talent pools (CRM-lite)</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Unlimited collaborators (FREE)</span></li>
+          </ul>
+          <button class="w-full btn-gradient text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-shadow">
+            Start Free Trial
+          </button>
+        </div>
+        
+        <!-- Growth -->
+        <div class="bg-white rounded-2xl p-8 border-2 border-[#0EA5E9] relative">
+          <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#0EA5E9] text-white px-4 py-1 rounded-full text-sm font-semibold">
+            ⭐ Most Popular
+          </div>
+          <h3 class="text-2xl font-bold text-neutral-900 mb-2">Growth</h3>
+          <div class="mb-4">
+            <span class="text-4xl font-bold text-neutral-900">$89</span>
+            <span class="text-neutral-500">/recruiter/month</span>
+          </div>
+          <p class="text-sm text-neutral-500 mb-6">For agencies & growing teams</p>
+          <ul class="space-y-3 mb-8 text-neutral-700">
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span><strong>Everything in Starter, plus:</strong></span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Multi-client pipelines</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Advanced analytics & reporting</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>White-label careers pages</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>LinkedIn Chrome extension</span></li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-1">✓</span><span>Priority support (4hr response)</span></li>
+          </ul>
+          <button class="w-full btn-gradient text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-shadow">
+            Start Free Trial
+          </button>
+        </div>
+      </div>
+      
+      <p class="text-center text-neutral-500 mt-8">✓ 14-day free trial • ✓ No credit card required • ✓ Cancel anytime</p>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="py-24 px-[5%] bg-gradient-to-br from-[#0EA5E9] to-[#10B981] text-white text-center">
+    <div class="max-w-[800px] mx-auto">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">Ready to Recruit Smarter?</h2>
+      <p class="text-xl mb-8 opacity-95">Join hundreds of recruiters who've ditched clunky ATSs for TalentPatriot</p>
+      <button class="bg-white text-[#0EA5E9] hover:bg-neutral-100 font-bold px-10 py-5 rounded-xl text-lg transition-all hover:shadow-2xl">
+        Start Your Free Trial →
+      </button>
+      <p class="text-sm mt-4 opacity-90">No credit card required • Setup in under 10 minutes</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white py-12 border-t border-neutral-200">
+    <div class="max-w-[1200px] mx-auto px-[5%]">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-gradient-to-br from-[#0EA5E9] to-[#10B981] rounded-lg"></div>
+          <span class="text-lg font-bold text-neutral-900">TalentPatriot</span>
+        </div>
+        <nav class="flex gap-6 text-sm text-neutral-500">
+          <a href="#" class="hover:text-neutral-900">About</a>
+          <a href="#" class="hover:text-neutral-900">Privacy</a>
+          <a href="#" class="hover:text-neutral-900">Terms</a>
+          <a href="#" class="hover:text-neutral-900">Contact</a>
+        </nav>
+        <p class="text-sm text-neutral-500">© 2025 TalentPatriot</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
