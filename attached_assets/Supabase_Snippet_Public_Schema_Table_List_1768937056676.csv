@@ -1,0 +1,63 @@
+table_name,table_type
+_job_candidate_stage_shadow,BASE TABLE
+ai_insights_cache,BASE TABLE
+ai_insights_metrics,BASE TABLE
+ai_recommendations_history,BASE TABLE
+application_metadata,BASE TABLE
+applications,BASE TABLE
+apply_events,BASE TABLE
+beta_applications,BASE TABLE
+beta_organizations,VIEW
+beta_program_stats,VIEW
+beta_users,BASE TABLE
+calendar_events,BASE TABLE
+campaign_email_sends,BASE TABLE
+campaign_emails,BASE TABLE
+candidate_campaign_enrollments,BASE TABLE
+candidate_documents,BASE TABLE
+candidate_full_profile,VIEW
+candidate_notes,BASE TABLE
+candidates,BASE TABLE
+client_submissions,BASE TABLE
+clients,BASE TABLE
+connected_accounts,BASE TABLE
+daily_analytics_snapshots,BASE TABLE
+data_imports,BASE TABLE
+drip_campaigns,BASE TABLE
+email_events,BASE TABLE
+email_signups,BASE TABLE
+email_templates,BASE TABLE
+import_records,BASE TABLE
+interviews,BASE TABLE
+job_candidate,BASE TABLE
+job_candidate_stage_history,BASE TABLE
+job_pipeline_stage_events,BASE TABLE
+jobs,BASE TABLE
+message_recipients,BASE TABLE
+message_threads,BASE TABLE
+messages,BASE TABLE
+notes,BASE TABLE
+oauth_sessions,BASE TABLE
+organization_email_settings,BASE TABLE
+organizations,BASE TABLE
+pipeline_columns,BASE TABLE
+public_jobs,VIEW
+report_queue,BASE TABLE
+report_schedules,BASE TABLE
+schema_migrations,BASE TABLE
+stage_order,BASE TABLE
+tasks,BASE TABLE
+timezone_cache,BASE TABLE
+user_organizations,BASE TABLE
+user_profiles,BASE TABLE
+user_settings,BASE TABLE
+v_candidate_skills_analysis,VIEW
+v_candidate_skills_flattened,VIEW
+v_candidate_skills_summary,VIEW
+v_dashboard_activity,VIEW
+v_dashboard_pipeline_snapshot,VIEW
+v_job_health,VIEW
+v_pipeline_stage_avg_time,VIEW
+v_pipeline_stage_counts,VIEW
+workflow_execution_log,BASE TABLE
+workflow_triggers,BASE TABLE

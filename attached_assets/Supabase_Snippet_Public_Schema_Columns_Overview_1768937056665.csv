@@ -1,0 +1,101 @@
+table_name,column_name,data_type,column_default,is_nullable
+_job_candidate_stage_shadow,job_candidate_id,uuid,null,NO
+_job_candidate_stage_shadow,last_stage,text,null,YES
+_job_candidate_stage_shadow,updated_at,timestamp with time zone,now(),NO
+ai_insights_cache,id,uuid,gen_random_uuid(),NO
+ai_insights_cache,org_id,uuid,null,NO
+ai_insights_cache,insights_data,jsonb,null,NO
+ai_insights_cache,recruitment_metrics,jsonb,null,NO
+ai_insights_cache,generated_at,timestamp with time zone,now(),YES
+ai_insights_cache,expires_at,timestamp with time zone,(now() + '01:00:00'::interval),YES
+ai_insights_cache,created_at,timestamp with time zone,now(),YES
+ai_insights_cache,updated_at,timestamp with time zone,now(),YES
+ai_insights_metrics,id,uuid,gen_random_uuid(),NO
+ai_insights_metrics,org_id,uuid,null,NO
+ai_insights_metrics,total_insights_generated,integer,0,YES
+ai_insights_metrics,recommendations_implemented,integer,0,YES
+ai_insights_metrics,recommendations_dismissed,integer,0,YES
+ai_insights_metrics,avg_user_rating,numeric,null,YES
+ai_insights_metrics,api_calls_count,integer,0,YES
+ai_insights_metrics,last_generation_time,timestamp with time zone,null,YES
+ai_insights_metrics,created_at,timestamp with time zone,now(),YES
+ai_insights_metrics,updated_at,timestamp with time zone,now(),YES
+ai_recommendations_history,id,uuid,gen_random_uuid(),NO
+ai_recommendations_history,org_id,uuid,null,NO
+ai_recommendations_history,recommendation_id,character varying,null,NO
+ai_recommendations_history,recommendation_type,character varying,null,NO
+ai_recommendations_history,priority,character varying,null,NO
+ai_recommendations_history,title,text,null,NO
+ai_recommendations_history,description,text,null,NO
+ai_recommendations_history,impact,text,null,NO
+ai_recommendations_history,action_items,jsonb,'[]'::jsonb,YES
+ai_recommendations_history,confidence,integer,null,YES
+ai_recommendations_history,user_feedback,character varying,null,YES
+ai_recommendations_history,implemented_at,timestamp with time zone,null,YES
+ai_recommendations_history,dismissed_at,timestamp with time zone,null,YES
+ai_recommendations_history,created_at,timestamp with time zone,now(),YES
+ai_recommendations_history,updated_at,timestamp with time zone,now(),YES
+application_metadata,id,uuid,gen_random_uuid(),NO
+application_metadata,org_id,uuid,null,NO
+application_metadata,candidate_id,uuid,null,NO
+application_metadata,job_id,uuid,null,NO
+application_metadata,education_details,text,null,YES
+application_metadata,employment_details,text,null,YES
+application_metadata,application_source,character varying,null,YES
+application_metadata,submission_timestamp,timestamp without time zone,CURRENT_TIMESTAMP,YES
+application_metadata,form_version,character varying,'v1.0'::character varying,YES
+application_metadata,created_at,timestamp without time zone,CURRENT_TIMESTAMP,YES
+application_metadata,updated_at,timestamp without time zone,CURRENT_TIMESTAMP,YES
+applications,id,uuid,gen_random_uuid(),NO
+applications,job_id,uuid,null,YES
+applications,candidate_id,uuid,null,YES
+applications,status,USER-DEFINED,'active'::record_status,YES
+applications,applied_at,timestamp with time zone,now(),YES
+applications,column_id,uuid,null,YES
+apply_events,id,uuid,gen_random_uuid(),NO
+apply_events,job_id,uuid,null,NO
+apply_events,applicant_email,text,null,NO
+apply_events,requester_ip,inet,null,YES
+apply_events,created_at,timestamp with time zone,now(),NO
+beta_applications,id,uuid,gen_random_uuid(),NO
+beta_applications,company_name,text,null,NO
+beta_applications,contact_name,text,null,NO
+beta_applications,email,text,null,NO
+beta_applications,phone,text,null,YES
+beta_applications,website,text,null,YES
+beta_applications,company_size,text,null,NO
+beta_applications,current_ats,text,null,YES
+beta_applications,pain_points,text,null,NO
+beta_applications,expectations,text,null,YES
+beta_applications,status,text,'pending'::text,YES
+beta_applications,user_id,uuid,null,YES
+beta_applications,org_id,uuid,null,YES
+beta_applications,created_at,timestamp without time zone,now(),NO
+beta_applications,updated_at,timestamp without time zone,now(),NO
+beta_applications,processed_at,timestamp without time zone,null,YES
+beta_applications,processed_by,uuid,null,YES
+beta_applications,notes,text,null,YES
+beta_organizations,id,uuid,null,YES
+beta_organizations,name,text,null,YES
+beta_organizations,slug,text,null,YES
+beta_organizations,created_at,timestamp with time zone,null,YES
+beta_organizations,beta_applied_at,timestamp without time zone,null,YES
+beta_organizations,beta_approved_at,timestamp without time zone,null,YES
+beta_organizations,beta_notes,text,null,YES
+beta_organizations,original_company_name,text,null,YES
+beta_organizations,contact_email,text,null,YES
+beta_organizations,company_size,text,null,YES
+beta_organizations,pain_points,text,null,YES
+beta_organizations,team_size,bigint,null,YES
+beta_organizations,total_jobs,bigint,null,YES
+beta_organizations,total_candidates,bigint,null,YES
+beta_program_stats,pending_applications,bigint,null,YES
+beta_program_stats,approved_applications,bigint,null,YES
+beta_program_stats,rejected_applications,bigint,null,YES
+beta_program_stats,converted_users,bigint,null,YES
+beta_program_stats,created_organizations,bigint,null,YES
+beta_users,id,uuid,gen_random_uuid(),NO
+beta_users,email,character varying,null,NO
+beta_users,full_name,character varying,null,NO
+beta_users,company_name,character varying,null,YES
+beta_users,company_size,character varying,null,YES

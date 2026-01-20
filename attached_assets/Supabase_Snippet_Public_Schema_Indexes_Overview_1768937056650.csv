@@ -1,0 +1,101 @@
+tablename,indexname,indexdef
+_job_candidate_stage_shadow,_job_candidate_stage_shadow_pkey,CREATE UNIQUE INDEX _job_candidate_stage_shadow_pkey ON public._job_candidate_stage_shadow USING btree (job_candidate_id)
+ai_insights_cache,ai_insights_cache_pkey,CREATE UNIQUE INDEX ai_insights_cache_pkey ON public.ai_insights_cache USING btree (id)
+ai_insights_cache,idx_ai_insights_cache_expires_at,CREATE INDEX idx_ai_insights_cache_expires_at ON public.ai_insights_cache USING btree (expires_at)
+ai_insights_cache,idx_ai_insights_cache_org_id,CREATE INDEX idx_ai_insights_cache_org_id ON public.ai_insights_cache USING btree (org_id)
+ai_insights_metrics,ai_insights_metrics_pkey,CREATE UNIQUE INDEX ai_insights_metrics_pkey ON public.ai_insights_metrics USING btree (id)
+ai_insights_metrics,idx_ai_insights_metrics_org_id,CREATE INDEX idx_ai_insights_metrics_org_id ON public.ai_insights_metrics USING btree (org_id)
+ai_recommendations_history,ai_recommendations_history_pkey,CREATE UNIQUE INDEX ai_recommendations_history_pkey ON public.ai_recommendations_history USING btree (id)
+ai_recommendations_history,idx_ai_recommendations_history_org_id,CREATE INDEX idx_ai_recommendations_history_org_id ON public.ai_recommendations_history USING btree (org_id)
+ai_recommendations_history,idx_ai_recommendations_history_priority,CREATE INDEX idx_ai_recommendations_history_priority ON public.ai_recommendations_history USING btree (priority)
+ai_recommendations_history,idx_ai_recommendations_history_type,CREATE INDEX idx_ai_recommendations_history_type ON public.ai_recommendations_history USING btree (recommendation_type)
+application_metadata,application_metadata_candidate_id_job_id_key,"CREATE UNIQUE INDEX application_metadata_candidate_id_job_id_key ON public.application_metadata USING btree (candidate_id, job_id)"
+application_metadata,application_metadata_pkey,CREATE UNIQUE INDEX application_metadata_pkey ON public.application_metadata USING btree (id)
+application_metadata,idx_app_metadata_candidate,CREATE INDEX idx_app_metadata_candidate ON public.application_metadata USING btree (candidate_id)
+application_metadata,idx_app_metadata_job,CREATE INDEX idx_app_metadata_job ON public.application_metadata USING btree (job_id)
+application_metadata,idx_app_metadata_org,CREATE INDEX idx_app_metadata_org ON public.application_metadata USING btree (org_id)
+application_metadata,idx_app_metadata_org_job,"CREATE INDEX idx_app_metadata_org_job ON public.application_metadata USING btree (org_id, job_id)"
+application_metadata,idx_application_metadata_org_source,"CREATE INDEX idx_application_metadata_org_source ON public.application_metadata USING btree (org_id, application_source)"
+applications,applications_job_id_candidate_id_key,"CREATE UNIQUE INDEX applications_job_id_candidate_id_key ON public.applications USING btree (job_id, candidate_id)"
+applications,applications_pkey,CREATE UNIQUE INDEX applications_pkey ON public.applications USING btree (id)
+applications,idx_applications_applied_at,CREATE INDEX idx_applications_applied_at ON public.applications USING btree (applied_at)
+applications,idx_applications_candidate_id,CREATE INDEX idx_applications_candidate_id ON public.applications USING btree (candidate_id)
+applications,idx_applications_column_id,CREATE INDEX idx_applications_column_id ON public.applications USING btree (column_id)
+applications,idx_applications_job_candidate,"CREATE INDEX idx_applications_job_candidate ON public.applications USING btree (job_id, candidate_id)"
+applications,idx_applications_job_id,CREATE INDEX idx_applications_job_id ON public.applications USING btree (job_id)
+applications,idx_applications_status,CREATE INDEX idx_applications_status ON public.applications USING btree (status)
+apply_events,apply_events_pkey,CREATE UNIQUE INDEX apply_events_pkey ON public.apply_events USING btree (id)
+apply_events,idx_apply_events_email_time,"CREATE INDEX idx_apply_events_email_time ON public.apply_events USING btree (lower(applicant_email), created_at DESC)"
+apply_events,idx_apply_events_ip_time,"CREATE INDEX idx_apply_events_ip_time ON public.apply_events USING btree (requester_ip, created_at DESC)"
+apply_events,idx_apply_events_job_time,"CREATE INDEX idx_apply_events_job_time ON public.apply_events USING btree (job_id, created_at DESC)"
+beta_applications,beta_applications_pkey,CREATE UNIQUE INDEX beta_applications_pkey ON public.beta_applications USING btree (id)
+beta_applications,idx_beta_applications_created,CREATE INDEX idx_beta_applications_created ON public.beta_applications USING btree (created_at)
+beta_applications,idx_beta_applications_email,CREATE INDEX idx_beta_applications_email ON public.beta_applications USING btree (email)
+beta_applications,idx_beta_applications_status,CREATE INDEX idx_beta_applications_status ON public.beta_applications USING btree (status)
+beta_users,beta_users_email_key,CREATE UNIQUE INDEX beta_users_email_key ON public.beta_users USING btree (email)
+beta_users,beta_users_pkey,CREATE UNIQUE INDEX beta_users_pkey ON public.beta_users USING btree (id)
+cached_timezones,idx_cached_timezones_name,CREATE INDEX idx_cached_timezones_name ON public.cached_timezones USING btree (name)
+calendar_events,calendar_events_pkey,CREATE UNIQUE INDEX calendar_events_pkey ON public.calendar_events USING btree (id)
+calendar_events,idx_calendar_events_created_by,CREATE INDEX idx_calendar_events_created_by ON public.calendar_events USING btree (created_by)
+calendar_events,idx_calendar_events_org_id,CREATE INDEX idx_calendar_events_org_id ON public.calendar_events USING btree (org_id)
+calendar_events,idx_calendar_events_provider,CREATE INDEX idx_calendar_events_provider ON public.calendar_events USING btree (provider)
+calendar_events,idx_calendar_events_start_at,CREATE INDEX idx_calendar_events_start_at ON public.calendar_events USING btree (start_at)
+calendar_events,idx_calendar_events_status,CREATE INDEX idx_calendar_events_status ON public.calendar_events USING btree (status)
+calendar_events,idx_calendar_events_thread_id,CREATE INDEX idx_calendar_events_thread_id ON public.calendar_events USING btree (thread_id)
+campaign_email_sends,campaign_email_sends_pkey,CREATE UNIQUE INDEX campaign_email_sends_pkey ON public.campaign_email_sends USING btree (id)
+campaign_email_sends,idx_campaign_email_sends_campaign_email_id,CREATE INDEX idx_campaign_email_sends_campaign_email_id ON public.campaign_email_sends USING btree (campaign_email_id)
+campaign_email_sends,idx_campaign_email_sends_enrollment_id,CREATE INDEX idx_campaign_email_sends_enrollment_id ON public.campaign_email_sends USING btree (enrollment_id)
+campaign_emails,campaign_emails_pkey,CREATE UNIQUE INDEX campaign_emails_pkey ON public.campaign_emails USING btree (id)
+campaign_emails,idx_campaign_emails_campaign_id,CREATE INDEX idx_campaign_emails_campaign_id ON public.campaign_emails USING btree (campaign_id)
+candidate_campaign_enrollments,candidate_campaign_enrollments_candidate_id_campaign_id_key,"CREATE UNIQUE INDEX candidate_campaign_enrollments_candidate_id_campaign_id_key ON public.candidate_campaign_enrollments USING btree (candidate_id, campaign_id)"
+candidate_campaign_enrollments,candidate_campaign_enrollments_pkey,CREATE UNIQUE INDEX candidate_campaign_enrollments_pkey ON public.candidate_campaign_enrollments USING btree (id)
+candidate_campaign_enrollments,idx_campaign_enrollments_campaign_id,CREATE INDEX idx_campaign_enrollments_campaign_id ON public.candidate_campaign_enrollments USING btree (campaign_id)
+candidate_campaign_enrollments,idx_campaign_enrollments_candidate_id,CREATE INDEX idx_campaign_enrollments_candidate_id ON public.candidate_campaign_enrollments USING btree (candidate_id)
+candidate_campaign_enrollments,idx_candidate_campaign_enrollments_org_id,CREATE INDEX idx_candidate_campaign_enrollments_org_id ON public.candidate_campaign_enrollments USING btree (org_id)
+candidate_documents,candidate_documents_pkey,CREATE UNIQUE INDEX candidate_documents_pkey ON public.candidate_documents USING btree (id)
+candidate_documents,idx_candidate_documents_candidate_id,CREATE INDEX idx_candidate_documents_candidate_id ON public.candidate_documents USING btree (candidate_id)
+candidate_documents,idx_candidate_documents_org_id,CREATE INDEX idx_candidate_documents_org_id ON public.candidate_documents USING btree (org_id)
+candidate_notes,candidate_notes_pkey,CREATE UNIQUE INDEX candidate_notes_pkey ON public.candidate_notes USING btree (id)
+candidate_notes,idx_candidate_notes_author,CREATE INDEX idx_candidate_notes_author ON public.candidate_notes USING btree (author_id)
+candidate_notes,idx_candidate_notes_created_at,CREATE INDEX idx_candidate_notes_created_at ON public.candidate_notes USING btree (created_at)
+candidate_notes,idx_candidate_notes_job_candidate,CREATE INDEX idx_candidate_notes_job_candidate ON public.candidate_notes USING btree (job_candidate_id)
+candidate_notes,idx_candidate_notes_org,CREATE INDEX idx_candidate_notes_org ON public.candidate_notes USING btree (org_id)
+candidate_notes,idx_candidate_notes_org_job_candidate,"CREATE INDEX idx_candidate_notes_org_job_candidate ON public.candidate_notes USING btree (org_id, job_candidate_id)"
+candidates,candidates_pkey,CREATE UNIQUE INDEX candidates_pkey ON public.candidates USING btree (id)
+candidates,idx_candidates_created_by,CREATE INDEX idx_candidates_created_by ON public.candidates USING btree (created_by)
+candidates,idx_candidates_email,CREATE INDEX idx_candidates_email ON public.candidates USING btree (email)
+candidates,idx_candidates_experience_level,CREATE INDEX idx_candidates_experience_level ON public.candidates USING btree (experience_level) WHERE (experience_level IS NOT NULL)
+candidates,idx_candidates_linkedin,CREATE INDEX idx_candidates_linkedin ON public.candidates USING btree (linkedin_url)
+candidates,idx_candidates_org_created,"CREATE INDEX idx_candidates_org_created ON public.candidates USING btree (org_id, created_at DESC)"
+candidates,idx_candidates_org_email,"CREATE INDEX idx_candidates_org_email ON public.candidates USING btree (org_id, email)"
+candidates,idx_candidates_org_exp_level,"CREATE INDEX idx_candidates_org_exp_level ON public.candidates USING btree (org_id, experience_level) WHERE (status = 'active'::record_status)"
+candidates,idx_candidates_org_experience,"CREATE INDEX idx_candidates_org_experience ON public.candidates USING btree (org_id, experience_level, status)"
+candidates,idx_candidates_org_id,CREATE INDEX idx_candidates_org_id ON public.candidates USING btree (org_id)
+candidates,idx_candidates_org_updated,"CREATE INDEX idx_candidates_org_updated ON public.candidates USING btree (org_id, updated_at DESC)"
+candidates,idx_candidates_parsing_status,CREATE INDEX idx_candidates_parsing_status ON public.candidates USING btree (parsing_status)
+candidates,idx_candidates_referral_source,CREATE INDEX idx_candidates_referral_source ON public.candidates USING btree (referral_source)
+candidates,idx_candidates_resume_parsed,CREATE INDEX idx_candidates_resume_parsed ON public.candidates USING btree (resume_parsed) WHERE (resume_parsed = true)
+candidates,idx_candidates_search_gin,"CREATE INDEX idx_candidates_search_gin ON public.candidates USING gin (to_tsvector('english'::regconfig, COALESCE(searchable_content, ''::text)))"
+candidates,idx_candidates_searchable_content,"CREATE INDEX idx_candidates_searchable_content ON public.candidates USING gin (to_tsvector('english'::regconfig, searchable_content))"
+candidates,idx_candidates_searchable_gin,"CREATE INDEX idx_candidates_searchable_gin ON public.candidates USING gin (to_tsvector('english'::regconfig, searchable_content))"
+candidates,idx_candidates_skill_levels,CREATE INDEX idx_candidates_skill_levels ON public.candidates USING gin (skill_levels)
+candidates,idx_candidates_skill_levels_gin,CREATE INDEX idx_candidates_skill_levels_gin ON public.candidates USING gin (skill_levels) WHERE (skill_levels IS NOT NULL)
+candidates,idx_candidates_skills,CREATE INDEX idx_candidates_skills ON public.candidates USING gin (skills)
+candidates,idx_candidates_skills_gin,CREATE INDEX idx_candidates_skills_gin ON public.candidates USING gin (skills)
+candidates,idx_candidates_skills_search,CREATE INDEX idx_candidates_skills_search ON public.candidates USING gin (skills) WHERE (status = 'active'::record_status)
+candidates,idx_candidates_source,CREATE INDEX idx_candidates_source ON public.candidates USING btree (source)
+candidates,idx_candidates_work_auth,CREATE INDEX idx_candidates_work_auth ON public.candidates USING btree (work_authorization)
+candidates,uq_candidates_org_lower_email,"CREATE UNIQUE INDEX uq_candidates_org_lower_email ON public.candidates USING btree (org_id, lower(email))"
+client_submissions,client_submissions_pkey,CREATE UNIQUE INDEX client_submissions_pkey ON public.client_submissions USING btree (id)
+client_submissions,idx_client_submissions_candidate_id,CREATE INDEX idx_client_submissions_candidate_id ON public.client_submissions USING btree (candidate_id)
+client_submissions,idx_client_submissions_client_id,CREATE INDEX idx_client_submissions_client_id ON public.client_submissions USING btree (client_id)
+client_submissions,idx_client_submissions_job_id,CREATE INDEX idx_client_submissions_job_id ON public.client_submissions USING btree (job_id)
+client_submissions,idx_client_submissions_org_id,CREATE INDEX idx_client_submissions_org_id ON public.client_submissions USING btree (org_id)
+clients,clients_pkey,CREATE UNIQUE INDEX clients_pkey ON public.clients USING btree (id)
+clients,idx_clients_created_by,CREATE INDEX idx_clients_created_by ON public.clients USING btree (created_by)
+clients,idx_clients_org_id,CREATE INDEX idx_clients_org_id ON public.clients USING btree (org_id)
+clients,idx_clients_org_status,"CREATE INDEX idx_clients_org_status ON public.clients USING btree (org_id, status)"
+connected_accounts,connected_accounts_connector_account_id_key,CREATE UNIQUE INDEX connected_accounts_connector_account_id_key ON public.connected_accounts USING btree (connector_account_id)
+connected_accounts,connected_accounts_pkey,CREATE UNIQUE INDEX connected_accounts_pkey ON public.connected_accounts USING btree (id)
+connected_accounts,connected_accounts_user_id_org_id_provider_key,"CREATE UNIQUE INDEX connected_accounts_user_id_org_id_provider_key ON public.connected_accounts USING btree (user_id, org_id, provider)"
+connected_accounts,idx_connected_accounts_health,"CREATE INDEX idx_connected_accounts_health ON public.connected_accounts USING btree (health_status, needs_attention)"

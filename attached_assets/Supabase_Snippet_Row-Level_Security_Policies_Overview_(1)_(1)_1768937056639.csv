@@ -1,0 +1,225 @@
+tablename,policyname,command,using_expression,with_check
+_job_candidate_stage_shadow,shadow_table_delete_auth,DELETE,"(job_candidate_id IN ( SELECT jc.id
+   FROM (job_candidate jc
+     JOIN user_organizations uo ON ((jc.org_id = uo.org_id)))
+  WHERE (uo.user_id = ( SELECT auth.uid() AS uid))))",null
+_job_candidate_stage_shadow,shadow_table_insert_auth,INSERT,null,"(job_candidate_id IN ( SELECT jc.id
+   FROM (job_candidate jc
+     JOIN user_organizations uo ON ((jc.org_id = uo.org_id)))
+  WHERE (uo.user_id = ( SELECT auth.uid() AS uid))))"
+_job_candidate_stage_shadow,shadow_table_select_auth,SELECT,"(job_candidate_id IN ( SELECT jc.id
+   FROM (job_candidate jc
+     JOIN user_organizations uo ON ((jc.org_id = uo.org_id)))
+  WHERE (uo.user_id = ( SELECT auth.uid() AS uid))))",null
+_job_candidate_stage_shadow,shadow_table_update_auth,UPDATE,"(job_candidate_id IN ( SELECT jc.id
+   FROM (job_candidate jc
+     JOIN user_organizations uo ON ((jc.org_id = uo.org_id)))
+  WHERE (uo.user_id = ( SELECT auth.uid() AS uid))))",null
+ai_insights_cache,ai_insights_cache_secure_delete,DELETE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))",null
+ai_insights_cache,ai_insights_cache_secure_insert,INSERT,null,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'hiring_manager'::organization_role, 'recruiter'::organization_role])))))"
+ai_insights_cache,ai_insights_cache_secure_select,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+ai_insights_cache,ai_insights_cache_secure_update,UPDATE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'hiring_manager'::organization_role, 'recruiter'::organization_role])))))",null
+ai_insights_cache,block_anon_ai_insights_cache,ALL,false,null
+ai_insights_metrics,ai_insights_metrics_secure_delete,DELETE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))",null
+ai_insights_metrics,ai_insights_metrics_secure_insert,INSERT,null,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'hiring_manager'::organization_role, 'recruiter'::organization_role])))))"
+ai_insights_metrics,ai_insights_metrics_secure_select,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+ai_insights_metrics,ai_insights_metrics_secure_update,UPDATE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'hiring_manager'::organization_role, 'recruiter'::organization_role])))))",null
+ai_insights_metrics,block_anon_ai_insights_metrics,ALL,false,null
+ai_recommendations_history,ai_recommendations_history_secure_delete,DELETE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))",null
+ai_recommendations_history,ai_recommendations_history_secure_insert,INSERT,null,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'hiring_manager'::organization_role, 'recruiter'::organization_role])))))"
+ai_recommendations_history,ai_recommendations_history_secure_select,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+ai_recommendations_history,ai_recommendations_history_secure_update,UPDATE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'hiring_manager'::organization_role, 'recruiter'::organization_role])))))",null
+ai_recommendations_history,block_anon_ai_recommendations_history,ALL,false,null
+application_metadata,Users can delete application metadata in their orgs,DELETE,user_has_org_access(org_id),null
+application_metadata,Users can insert application metadata in their orgs,INSERT,null,user_has_org_access(org_id)
+application_metadata,Users can update application metadata in their orgs,UPDATE,user_has_org_access(org_id),user_has_org_access(org_id)
+application_metadata,Users can view application metadata in their orgs,SELECT,user_has_org_access(org_id),null
+applications,Organization members can update applications,UPDATE,"(job_id IN ( SELECT j.id
+   FROM (jobs j
+     JOIN user_organizations uo ON ((j.org_id = uo.org_id)))
+  WHERE ((uo.user_id = ( SELECT auth.uid() AS uid)) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'recruiter'::organization_role])))))",null
+applications,applications_insert_consolidated,INSERT,null,"(job_id IN ( SELECT j.id
+   FROM jobs j
+  WHERE (j.status = 'open'::job_status)))"
+applications,applications_select_consolidated,SELECT,"(job_id IN ( SELECT j.id
+   FROM (jobs j
+     JOIN user_organizations uo ON ((j.org_id = uo.org_id)))
+  WHERE (uo.user_id = ( SELECT auth.uid() AS uid))))",null
+apply_events,Service role can manage apply events,ALL,true,true
+beta_applications,beta_applications_insert_consolidated,INSERT,null,true
+beta_applications,beta_applications_select_consolidated,SELECT,"(is_platform_admin() OR (( SELECT auth.uid() AS uid) = user_id) OR (( SELECT auth.uid() AS uid) IN ( SELECT uo.user_id
+   FROM user_organizations uo
+  WHERE ((uo.org_id = beta_applications.org_id) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role]))))))",null
+beta_applications,beta_applications_update_consolidated,UPDATE,"(is_platform_admin() OR (( SELECT auth.uid() AS uid) IN ( SELECT uo.user_id
+   FROM user_organizations uo
+  WHERE ((uo.org_id = beta_applications.org_id) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role]))))))",null
+beta_users,Service role can manage beta users,ALL,true,true
+calendar_events,Users can create calendar events in their org,INSERT,null,(user_has_org_access(org_id) AND (created_by = ( SELECT auth.uid() AS uid)))
+calendar_events,Users can delete calendar events they created,DELETE,(user_has_org_access(org_id) AND (created_by = ( SELECT auth.uid() AS uid))),null
+calendar_events,Users can update calendar events they created,UPDATE,(user_has_org_access(org_id) AND (created_by = ( SELECT auth.uid() AS uid))),(user_has_org_access(org_id) AND (created_by = ( SELECT auth.uid() AS uid)))
+calendar_events,Users can view calendar events in their org,SELECT,user_has_org_access(org_id),null
+campaign_email_sends,block_anon_campaign_sends,ALL,false,null
+campaign_email_sends,campaign_sends_insert,INSERT,null,"(enrollment_id IN ( SELECT cce.id
+   FROM (candidate_campaign_enrollments cce
+     JOIN user_organizations uo ON ((cce.org_id = uo.org_id)))
+  WHERE (uo.user_id = auth.uid())))"
+campaign_email_sends,campaign_sends_select,SELECT,"(enrollment_id IN ( SELECT cce.id
+   FROM (candidate_campaign_enrollments cce
+     JOIN user_organizations uo ON ((cce.org_id = uo.org_id)))
+  WHERE (uo.user_id = auth.uid())))",null
+campaign_email_sends,campaign_sends_update,UPDATE,"(enrollment_id IN ( SELECT cce.id
+   FROM (candidate_campaign_enrollments cce
+     JOIN user_organizations uo ON ((cce.org_id = uo.org_id)))
+  WHERE (uo.user_id = auth.uid())))",null
+campaign_emails,block_anon_campaign_emails,ALL,false,null
+campaign_emails,campaign_emails_delete,DELETE,"(campaign_id IN ( SELECT dc.id
+   FROM (drip_campaigns dc
+     JOIN user_organizations uo ON ((dc.org_id = uo.org_id)))
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))",null
+campaign_emails,campaign_emails_insert,INSERT,null,"(campaign_id IN ( SELECT dc.id
+   FROM (drip_campaigns dc
+     JOIN user_organizations uo ON ((dc.org_id = uo.org_id)))
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'recruiter'::organization_role])))))"
+campaign_emails,campaign_emails_select,SELECT,"(campaign_id IN ( SELECT dc.id
+   FROM (drip_campaigns dc
+     JOIN user_organizations uo ON ((dc.org_id = uo.org_id)))
+  WHERE (uo.user_id = auth.uid())))",null
+campaign_emails,campaign_emails_update,UPDATE,"(campaign_id IN ( SELECT dc.id
+   FROM (drip_campaigns dc
+     JOIN user_organizations uo ON ((dc.org_id = uo.org_id)))
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'recruiter'::organization_role])))))",null
+candidate_campaign_enrollments,block_anon_campaign_enrollments,ALL,false,null
+candidate_campaign_enrollments,campaign_enrollments_delete,DELETE,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))",null
+candidate_campaign_enrollments,campaign_enrollments_insert,INSERT,null,user_has_org_access(org_id)
+candidate_campaign_enrollments,campaign_enrollments_select,SELECT,user_has_org_access(org_id),null
+candidate_campaign_enrollments,campaign_enrollments_update,UPDATE,user_has_org_access(org_id),null
+candidate_documents,block_anon_candidate_documents,ALL,false,null
+candidate_documents,candidate_documents_delete,DELETE,user_has_org_access(org_id),null
+candidate_documents,candidate_documents_insert,INSERT,null,user_has_org_access(org_id)
+candidate_documents,candidate_documents_select,SELECT,user_has_org_access(org_id),null
+candidate_documents,candidate_documents_update,UPDATE,user_has_org_access(org_id),user_has_org_access(org_id)
+candidate_notes,block_anon_candidate_notes,ALL,false,null
+candidate_notes,candidate_notes_delete_consolidated,DELETE,"((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND ((author_id = ( SELECT auth.uid() AS uid)) OR (org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))))",null
+candidate_notes,candidate_notes_insert_consolidated,INSERT,null,"((author_id = ( SELECT auth.uid() AS uid)) AND (org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))"
+candidate_notes,candidate_notes_select_consolidated,SELECT,"((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (job_candidate_id IN ( SELECT jc.id
+   FROM job_candidate jc
+  WHERE (jc.status = 'demo'::record_status)))))",null
+candidate_notes,candidate_notes_update_consolidated,UPDATE,"((author_id = ( SELECT auth.uid() AS uid)) AND (org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))))",null
+candidates,candidates_anon_insert_for_applications,INSERT,null,true
+candidates,candidates_authenticated_consolidated,ALL,(user_has_org_access(org_id) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (status = 'demo'::record_status))),(user_has_org_access(org_id) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))
+candidates,candidates_block_anon_except_insert,ALL,false,false
+client_submissions,block_anon_client_submissions,ALL,false,null
+client_submissions,client_submissions_delete,DELETE,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))",null
+client_submissions,client_submissions_insert,INSERT,null,user_has_org_access(org_id)
+client_submissions,client_submissions_select,SELECT,user_has_org_access(org_id),null
+client_submissions,client_submissions_update,UPDATE,user_has_org_access(org_id),null
+clients,block_anon_clients,ALL,false,null
+clients,clients_authenticated_consolidated,ALL,(is_authenticated() AND ((org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (status = 'demo'::record_status)))),(is_authenticated() AND (org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))
+connected_accounts,Users can delete their own connected accounts,DELETE,(user_id = ( SELECT auth.uid() AS uid)),null
+connected_accounts,Users can insert their own connected accounts,INSERT,null,(user_id = ( SELECT auth.uid() AS uid))
+connected_accounts,Users can update their own connected accounts,UPDATE,(user_id = ( SELECT auth.uid() AS uid)),(user_id = ( SELECT auth.uid() AS uid))
+connected_accounts,Users can view their own connected accounts,SELECT,(user_id = ( SELECT auth.uid() AS uid)),null
+daily_analytics_snapshots,Service role can manage analytics snapshots,ALL,true,true
+daily_analytics_snapshots,Users can view analytics in their orgs,SELECT,user_has_org_access(org_id),null
+data_imports,Admin users can insert imports,INSERT,null,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE ((uo.user_id = ( SELECT auth.uid() AS uid)) AND (uo.role = ANY (ARRAY['admin'::organization_role, 'owner'::organization_role])))))"
+data_imports,Admin users can update imports,UPDATE,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE ((uo.user_id = ( SELECT auth.uid() AS uid)) AND (uo.role = ANY (ARRAY['admin'::organization_role, 'owner'::organization_role])))))",null
+data_imports,Users can view imports for their organization,SELECT,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE (uo.user_id = ( SELECT auth.uid() AS uid))))",null
+drip_campaigns,block_anon_drip_campaigns,ALL,false,null
+drip_campaigns,drip_campaigns_delete,DELETE,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role])))))",null
+drip_campaigns,drip_campaigns_insert,INSERT,null,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'recruiter'::organization_role])))))"
+drip_campaigns,drip_campaigns_select,SELECT,user_has_org_access(org_id),null
+drip_campaigns,drip_campaigns_update,UPDATE,"(org_id IN ( SELECT uo.org_id
+   FROM user_organizations uo
+  WHERE ((uo.user_id = auth.uid()) AND (uo.role = ANY (ARRAY['owner'::organization_role, 'admin'::organization_role, 'recruiter'::organization_role])))))",null
+email_events,email_events_insert_service,INSERT,null,true
+email_events,email_events_select_auth,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+email_signups,Admins can view email signups,SELECT,"(EXISTS ( SELECT 1
+   FROM user_profiles
+  WHERE ((user_profiles.id = ( SELECT auth.uid() AS uid)) AND (user_profiles.role = 'admin'::user_role))))",null
+email_signups,Anyone can sign up for emails,INSERT,null,true
+email_templates,email_templates_delete_auth,DELETE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = 'admin'::organization_role))))",null
+email_templates,email_templates_insert_auth,INSERT,null,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = 'admin'::organization_role))))"
+email_templates,email_templates_select_auth,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
+email_templates,email_templates_update_auth,UPDATE,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE ((user_organizations.user_id = ( SELECT auth.uid() AS uid)) AND (user_organizations.role = 'admin'::organization_role))))",null
+import_records,System can insert import records,INSERT,null,true
+import_records,System can update import records,UPDATE,true,null
+import_records,Users can view import records for their organization,SELECT,"(import_id IN ( SELECT di.id
+   FROM (data_imports di
+     JOIN user_organizations uo ON ((di.org_id = uo.org_id)))
+  WHERE (uo.user_id = ( SELECT auth.uid() AS uid))))",null
+interviews,interviews_authenticated_consolidated,ALL,(is_authenticated() AND ((org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) OR ((get_user_role_safe(( SELECT auth.uid() AS uid)) = 'demo_viewer'::text) AND (record_status = 'demo'::record_status)))),(is_authenticated() AND (org_id = ANY (get_user_org_ids(( SELECT auth.uid() AS uid)))) AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))
+interviews,interviews_public_consolidated,ALL,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))","(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))"
+job_candidate,job_candidate_anon_insert_public_jobs,INSERT,null,"(job_id IN ( SELECT jobs.id
+   FROM jobs
+  WHERE ((jobs.status = 'open'::job_status) AND (jobs.public_slug IS NOT NULL) AND (jobs.published_at IS NOT NULL))))"
+job_candidate,job_candidate_authenticated_consolidated,ALL,"((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND ((get_user_role() = ANY (ARRAY['admin'::text, 'recruiter'::text])) OR ((get_user_role() = 'pm'::text) AND (assigned_to = ( SELECT auth.uid() AS uid))) OR (get_user_role() = 'bd'::text) OR ((get_user_role() = 'demo_viewer'::text) AND (status = 'demo'::record_status)) OR is_authenticated()))","((org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid)))) AND ((get_user_role() = ANY (ARRAY['admin'::text, 'recruiter'::text, 'pm'::text])) OR (is_authenticated() AND (get_user_role_safe(( SELECT auth.uid() AS uid)) <> 'demo_viewer'::text))))"
+job_candidate,job_candidate_block_anon_except_insert,ALL,(auth.role() <> 'anon'::text),null
+job_candidate,job_candidate_secure_select,SELECT,"(org_id IN ( SELECT user_organizations.org_id
+   FROM user_organizations
+  WHERE (user_organizations.user_id = ( SELECT auth.uid() AS uid))))",null
