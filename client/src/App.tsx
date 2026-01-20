@@ -70,6 +70,9 @@ const EmailSettingsAdmin = lazy(() => import("@/features/admin/pages/EmailSettin
 const DataImport = lazy(() => import("@/features/admin/pages/DataImport"));
 const DemoTranscript = lazy(() => import("@/features/public/pages/DemoTranscript"));
 const CampaignBuilder = lazy(() => import("@/features/communications/pages/CampaignBuilder"));
+const RecruitersLanding = lazy(() => import("@/features/public/pages/RecruitersLanding"));
+const SmallBusinessLanding = lazy(() => import("@/features/public/pages/SmallBusinessLanding"));
+const AgenciesLanding = lazy(() => import("@/features/public/pages/AgenciesLanding"));
 
 
 // Global error handler for SSL and network issues
@@ -157,6 +160,9 @@ function Router() {
         <Route path="/pricing" component={Pricing} />
         <Route path="/beta" component={BetaProgram} />
         <Route path="/demo-transcript" component={DemoTranscript} />
+        <Route path="/recruiters" component={RecruitersLanding} />
+        <Route path="/small-business" component={SmallBusinessLanding} />
+        <Route path="/agencies" component={AgenciesLanding} />
 
         <Route path="/privacy" component={PrivacyPolicy} />
         <Route path="/terms" component={TermsOfService} />
