@@ -469,6 +469,26 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Get current user's organization (must be before :id route)
+  app.get("/api/organizations/current", async (req, res) => {
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: "Organization ID not provided in headers" });
+      }
+      
+      const organization = await storage.auth.getOrganization(orgId);
+      if (!organization) {
+        return res.status(404).json({ error: "Organization not found" });
+      }
+      res.json(organization);
+    } catch (error) {
+      console.error("Error fetching current organization:", error);
+      res.status(500).json({ error: "Failed to fetch organization" });
+    }
+  });
+
   app.get("/api/organizations/:id", async (req, res) => {
     try {
       const organization = await storage.auth.getOrganization(req.params.id);

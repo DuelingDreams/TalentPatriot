@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -18,7 +18,9 @@ import {
   Loader2,
   ArrowLeft,
   Type,
-  Image
+  Image,
+  Upload,
+  X
 } from 'lucide-react'
 import { Link } from 'wouter'
 
@@ -54,6 +56,8 @@ export default function OrganizationSettings() {
   const [tagline, setTagline] = useState('')
   const [aboutText, setAboutText] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
 
   // Use orgRole for org-level permissions
   const effectiveRole = orgRole || userRole
@@ -122,6 +126,94 @@ export default function OrganizationSettings() {
   const selectPreset = (preset: typeof colorPresets[0]) => {
     setPrimaryColor(preset.primary)
     setAccentColor(preset.accent)
+  }
+
+  const handleLogoUpload = async (file: File) => {
+    if (!file) return
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp', 'image/gif']
+    if (!validTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload a PNG, JPG, SVG, WebP, or GIF image.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Logo must be less than 5MB.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsUploadingLogo(true)
+
+    try {
+      const formData = new FormData()
+      formData.append('logo', file)
+
+      // Get auth token from localStorage
+      const token = localStorage.getItem('supabase-auth-token')
+      let accessToken = ''
+      if (token) {
+        try {
+          const parsed = JSON.parse(token)
+          accessToken = parsed?.access_token || ''
+        } catch {
+          accessToken = ''
+        }
+      }
+
+      const response = await fetch('/api/upload/logo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'x-org-id': organizationId || '',
+        },
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || 'Failed to upload logo')
+      }
+
+      const result = await response.json()
+      setLogoUrl(result.logoUrl)
+      
+      toast({
+        title: 'Logo uploaded',
+        description: 'Your logo has been uploaded successfully.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to upload logo',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUploadingLogo(false)
+    }
+  }
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleLogoUpload(file)
+    }
+  }
+
+  const clearLogo = () => {
+    setLogoUrl('')
+    if (logoInputRef.current) {
+      logoInputRef.current.value = ''
+    }
   }
 
   const isLoading = orgLoading || brandingLoading
@@ -260,19 +352,80 @@ export default function OrganizationSettings() {
 
                 <Separator />
 
-                <div className="space-y-2">
-                  <Label htmlFor="logoUrl" className="flex items-center gap-2">
+                <div className="space-y-3">
+                  <Label className="flex items-center gap-2">
                     <Image className="w-4 h-4" />
-                    Logo URL
+                    Company Logo
                   </Label>
-                  <Input
-                    id="logoUrl"
-                    type="url"
-                    placeholder="https://example.com/logo.png"
-                    value={logoUrl}
-                    onChange={(e) => setLogoUrl(e.target.value)}
-                  />
-                  <p className="text-xs text-neutral-500">Enter the URL of your company logo (PNG, JPG, or SVG recommended)</p>
+                  
+                  {logoUrl ? (
+                    <div className="flex items-center gap-4 p-4 bg-neutral-50 rounded-lg border">
+                      <img 
+                        src={logoUrl} 
+                        alt="Company logo" 
+                        className="w-16 h-16 object-contain rounded border bg-white"
+                        onError={(e) => {
+                          const img = e.currentTarget
+                          img.style.display = 'none'
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-neutral-700 truncate">Logo uploaded</p>
+                        <p className="text-xs text-neutral-500 truncate">{logoUrl}</p>
+                      </div>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={clearLogo}
+                        className="text-neutral-400 hover:text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <div 
+                        className="border-2 border-dashed border-neutral-200 rounded-lg p-6 text-center hover:border-tp-accent transition-colors cursor-pointer"
+                        onClick={() => logoInputRef.current?.click()}
+                      >
+                        {isUploadingLogo ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="w-8 h-8 animate-spin text-tp-accent" />
+                            <p className="text-sm text-neutral-600">Uploading...</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <Upload className="w-8 h-8 text-neutral-400" />
+                            <p className="text-sm font-medium text-neutral-700">Click to upload logo</p>
+                            <p className="text-xs text-neutral-500">PNG, JPG, SVG, WebP, or GIF (max 5MB)</p>
+                          </div>
+                        )}
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp,image/gif"
+                          onChange={handleFileInputChange}
+                          className="hidden"
+                        />
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-neutral-200" />
+                        <span className="text-xs text-neutral-400">or</span>
+                        <div className="flex-1 h-px bg-neutral-200" />
+                      </div>
+
+                      <Input
+                        id="logoUrl"
+                        type="url"
+                        placeholder="https://example.com/logo.png"
+                        value={logoUrl}
+                        onChange={(e) => setLogoUrl(e.target.value)}
+                      />
+                      <p className="text-xs text-neutral-500">Enter a URL if your logo is already hosted elsewhere</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-2">

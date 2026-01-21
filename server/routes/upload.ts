@@ -482,6 +482,112 @@ router.post('/resume/signed-url', async (req, res) => {
   }
 })
 
+// Logo upload endpoint - REQUIRES AUTHENTICATION
+// Used for organization branding logos
+const logoUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const allowedMimeTypes = [
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/svg+xml',
+      'image/webp',
+      'image/gif'
+    ]
+    
+    if (allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Invalid file type. Only PNG, JPG, SVG, WebP, and GIF images are allowed.'))
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit for logos
+  }
+})
+
+router.post('/logo', requireAuth, logoUpload.single('logo'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ 
+        error: 'No file uploaded',
+        message: 'Please select an image file to upload'
+      })
+    }
+
+    const orgId = req.authContext?.orgId
+    
+    if (!orgId) {
+      return res.status(500).json({
+        error: 'Internal error',
+        message: 'Organization context not available'
+      })
+    }
+
+    // Generate unique filename
+    const uniqueId = nanoid()
+    const ext = req.file.originalname.split('.').pop()?.toLowerCase() || 'png'
+    // Store in a logos folder: logos/{orgId}/logo_{uniqueId}.{ext}
+    const storagePath = `logos/${orgId}/logo_${uniqueId}.${ext}`
+
+    // Ensure the 'logos' bucket exists or use a public bucket
+    // First, check if logos bucket exists
+    const { data: buckets } = await supabase.storage.listBuckets()
+    const logosBucketExists = buckets?.some(b => b.name === 'logos')
+    
+    if (!logosBucketExists) {
+      // Create the logos bucket as public
+      const { error: createError } = await supabase.storage.createBucket('logos', {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024
+      })
+      if (createError && !createError.message.includes('already exists')) {
+        console.error('Failed to create logos bucket:', createError)
+      }
+    }
+
+    // Upload to Supabase Storage (PUBLIC bucket for logos)
+    const { data, error } = await supabase.storage
+      .from('logos')
+      .upload(storagePath, req.file.buffer, {
+        contentType: req.file.mimetype,
+        cacheControl: '31536000', // 1 year cache for logos
+        upsert: true
+      })
+
+    if (error) {
+      console.error('Supabase storage upload error:', error)
+      return res.status(500).json({
+        error: 'Upload failed',
+        message: 'Failed to upload logo. Please try again.'
+      })
+    }
+
+    // Get the public URL for the logo
+    const { data: publicUrlData } = supabase.storage
+      .from('logos')
+      .getPublicUrl(storagePath)
+
+    res.json({
+      success: true,
+      logoUrl: publicUrlData.publicUrl,
+      storagePath: storagePath,
+      originalName: req.file.originalname,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+      message: 'Logo uploaded successfully'
+    })
+
+  } catch (error) {
+    console.error('Logo upload error:', error)
+    res.status(500).json({ 
+      error: 'Upload failed',
+      message: error instanceof Error ? error.message : 'Internal server error'
+    })
+  }
+})
+
 // Authenticated resume download endpoint - REQUIRES AUTHENTICATION
 router.get('/resume/:filename(*)', requireAuth, async (req, res) => {
   try {
