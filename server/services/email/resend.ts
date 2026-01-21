@@ -9,8 +9,8 @@ if (!resendApiKey) {
 
 export const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-export const EMAIL_FROM = 'TalentPatriot <support@talentpatriot.com>';
-export const SUPPORT_EMAIL = 'support@talentpatriot.com';
+export const EMAIL_FROM = 'TalentPatriot <noreply@support.talentpatriot.com>';
+export const SUPPORT_EMAIL = 'noreply@support.talentpatriot.com';
 
 export const TEMPLATE_TYPES = {
   BETA_APPLICATION_CONFIRMATION: 'beta_application_confirmation',
