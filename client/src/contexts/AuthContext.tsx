@@ -78,9 +78,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             })
           } else {
             // Regular user: get role from user metadata
-            const role = session.user.user_metadata?.role || 'user'
+            const appRole = session.user.user_metadata?.role || 'user'
             const orgId = session.user.user_metadata?.currentOrgId
-            setUserRole(role)
+            const primaryOrgRole = session.user.user_metadata?.primary_org_role
+            setUserRole(appRole)
 
             // Use the user's actual organization ID from their metadata
             const effectiveOrgId = orgId || DEV_ORG_ID
@@ -89,10 +90,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               sessionStorage.setItem('currentOrgId', effectiveOrgId)
             })
 
-            // Fetch org-level role from user_organizations table
+            // Fetch org-level role from user_organizations table, fallback to primary_org_role from metadata
             const fetchedOrgRole = await fetchOrgRole(session.user.id, effectiveOrgId)
             if (mounted) {
-              setOrgRole(fetchedOrgRole)
+              setOrgRole(fetchedOrgRole || primaryOrgRole || null)
             }
           }
         } else if (isDevelopment()) {
@@ -197,9 +198,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               })
             } else {
               // For regular users, get role from user metadata
-              const role = session.user.user_metadata?.role || 'user'
+              const appRole = session.user.user_metadata?.role || 'user'
               const orgId = session.user.user_metadata?.currentOrgId
-              setUserRole(role)
+              const primaryOrgRole = session.user.user_metadata?.primary_org_role
+              setUserRole(appRole)
 
               // Use the user's actual organization ID from their metadata
               const effectiveOrgId = orgId || DEV_ORG_ID
@@ -208,10 +210,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 sessionStorage.setItem('currentOrgId', effectiveOrgId)
               })
 
-              // Fetch org-level role from user_organizations table
+              // Fetch org-level role from user_organizations table, fallback to primary_org_role
               const fetchedOrgRole = await fetchOrgRole(session.user.id, effectiveOrgId)
               if (mounted) {
-                setOrgRole(fetchedOrgRole)
+                setOrgRole(fetchedOrgRole || primaryOrgRole || null)
               }
             }
           } else {

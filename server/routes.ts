@@ -542,18 +542,21 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       console.log('Organization created successfully:', organization.id);
 
       // Step 4: Update user metadata in Supabase Auth
+      // - primary_org_role: the user's highest org-level role (owner for org creators)
+      // - role: app-level role (mapped from org role for backward compatibility)
       try {
         await supabaseAdmin.auth.admin.updateUserById(ownerId, {
           user_metadata: {
             currentOrgId: organization.id,
-            role: metadata?.ownerRole || 'admin',
+            primary_org_role: 'owner',
+            role: 'admin',
             companyName: name,
             companySize: metadata?.companySize,
             onboardingCompleted: true
           }
         });
         
-        console.log(`Updated user ${ownerId} metadata with orgId: ${organization.id}`);
+        console.log(`Updated user ${ownerId} metadata with orgId: ${organization.id}, primary_org_role: owner`);
       } catch (metaError) {
         console.warn('Failed to update user metadata (non-critical):', metaError);
         // Don't fail the request if metadata update fails
@@ -635,8 +638,25 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       // 3) Update the user's auth metadata so AuthContext picks it up
+      // - currentOrgId: the user's current organization
+      // - primary_org_role: the user's highest org-level role (for global UI/UX decisions)
+      // - role: app-level role mapped from org role for backward compatibility
+      const appRoleMap: Record<string, string> = {
+        'owner': 'admin',
+        'admin': 'admin',
+        'hiring_manager': 'hiring_manager',
+        'recruiter': 'recruiter',
+        'interviewer': 'interviewer',
+        'viewer': 'recruiter'
+      };
+      const mappedAppRole = appRoleMap[role] || 'recruiter';
+      
       const { error: updateErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-        user_metadata: { currentOrgId: orgId, role },
+        user_metadata: { 
+          currentOrgId: orgId, 
+          primary_org_role: role,
+          role: mappedAppRole
+        },
       });
       
       if (updateErr) {
@@ -644,7 +664,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         throw updateErr;
       }
       
-      console.log(`Updated auth metadata for user ${userId} with orgId: ${orgId}, role: ${role}`);
+      console.log(`Updated auth metadata for user ${userId} with orgId: ${orgId}, primary_org_role: ${role}, role: ${mappedAppRole}`);
 
       res.status(201).json({ success: true });
     } catch (err: unknown) {
