@@ -87,6 +87,6 @@ docs/
 
 ## 🔄 Documentation Updates
 
-This documentation is actively maintained and updated with each release. Last updated: January 2025.
+This documentation is actively maintained and updated with each release. Last updated: January 2026.
 
 For the most current information, always refer to the latest version of these docs.

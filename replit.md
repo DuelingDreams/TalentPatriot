@@ -230,7 +230,7 @@ Build in separate Replit project.
 
 # Recent Changes
 
-## January 2025
+## January 2026
 - **Brand Color Update**: Added cyan (#0EA5E9) as official brand highlight color matching the TalentPatriot logo
 - **Public Pages Refresh**: Updated Landing and About pages with modern gradient backgrounds, cyan accents, and consistent styling
 - **Design Token Expansion**: Added tp-cyan tokens to CSS variables and Tailwind config
