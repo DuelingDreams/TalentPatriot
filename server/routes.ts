@@ -942,6 +942,131 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  // Organization branding endpoints
+  app.get('/api/organizations/branding', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      const channel = req.query.channel as string || 'careers';
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+
+      const { data: branding } = await supabaseAdmin
+        .from('organization_branding')
+        .select('*')
+        .eq('org_id', orgId)
+        .eq('channel', channel)
+        .single();
+
+      res.json(branding || {});
+    } catch (error) {
+      console.error('Error fetching branding:', error);
+      res.status(500).json({ error: 'Failed to fetch branding' });
+    }
+  });
+
+  app.post('/api/organizations/branding', requireAuth, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+
+      const { channel = 'careers', primary_color, accent_color, tagline, about_text, logo_url, favicon_url, custom_css } = req.body;
+
+      const { data: branding, error } = await supabaseAdmin
+        .from('organization_branding')
+        .upsert({
+          org_id: orgId,
+          channel,
+          primary_color,
+          accent_color,
+          tagline,
+          about_text,
+          logo_url,
+          favicon_url,
+          custom_css,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'org_id,channel',
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving branding:', error);
+        return res.status(500).json({ error: 'Failed to save branding' });
+      }
+
+      res.json(branding);
+    } catch (error) {
+      console.error('Error saving branding:', error);
+      res.status(500).json({ error: 'Failed to save branding' });
+    }
+  });
+
+  // Publish careers portal (admin only)
+  app.post('/api/organizations/publish-careers', requireAuth, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner' && userOrg.role !== 'hiring_manager')) {
+        return res.status(403).json({ error: 'Admin access required to publish careers portal' });
+      }
+
+      const { data: org, error } = await supabaseAdmin
+        .from('organizations')
+        .update({
+          careers_published: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', orgId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error publishing careers:', error);
+        return res.status(500).json({ error: 'Failed to publish careers portal' });
+      }
+
+      res.json({ success: true, organization: org });
+    } catch (error) {
+      console.error('Error publishing careers:', error);
+      res.status(500).json({ error: 'Failed to publish careers portal' });
+    }
+  });
+
+  // Get current organization info
+  app.get('/api/organizations/current', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required' });
+      }
+
+      const { data: org } = await supabaseAdmin
+        .from('organizations')
+        .select('id, name, slug, company_size, careers_published, created_at')
+        .eq('id', orgId)
+        .single();
+
+      res.json(org || {});
+    } catch (error) {
+      console.error('Error fetching current org:', error);
+      res.status(500).json({ error: 'Failed to fetch organization' });
+    }
+  });
+
   // Enhanced Reports & Analytics endpoints using materialized views
   app.get('/api/reports/metrics', async (req, res) => {
     try {

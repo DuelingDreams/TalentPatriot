@@ -150,11 +150,11 @@ export default function OnboardingStep2() {
 
         toast({
           title: "Organization created!",
-          description: `${companyName} has been set up successfully. Let's personalize your experience.`,
+          description: `${companyName} has been set up successfully. Let's customize your careers portal.`,
         })
         
-        // Redirect to Step 3 to choose first goal
-        setLocation('/onboarding/step3')
+        // Redirect to branding configuration step
+        setLocation('/onboarding/branding')
       } else {
         setError(result.error || 'Failed to set up your organization. Please try again.')
       }

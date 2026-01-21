@@ -42,6 +42,8 @@ const OnboardingStep2 = lazy(() => import("@/features/onboarding/pages/Onboardin
 const OnboardingStep3 = lazy(() => import("@/features/onboarding/pages/OnboardingStep3"));
 const OnboardingStep4 = lazy(() => import("@/features/onboarding/pages/OnboardingStep4"));
 const OnboardingStep5 = lazy(() => import("@/features/onboarding/pages/OnboardingStep5"));
+const OnboardingBranding = lazy(() => import("@/features/onboarding/pages/OnboardingBranding"));
+const OnboardingReview = lazy(() => import("@/features/onboarding/pages/OnboardingReview"));
 const OnboardingChecklist = lazy(() => import("@/features/onboarding/pages/OnboardingChecklist"));
 const Unauthorized = lazy(() => import("@/features/public/pages/Unauthorized"));
 const Landing = lazy(() => import("@/features/public/pages/Landing"));
@@ -155,6 +157,8 @@ function Router() {
         <Route path="/onboarding/step3" component={OnboardingStep3} />
         <Route path="/onboarding/step4" component={OnboardingStep4} />
         <Route path="/onboarding/step5" component={OnboardingStep5} />
+        <Route path="/onboarding/branding" component={OnboardingBranding} />
+        <Route path="/onboarding/review" component={OnboardingReview} />
         <Route path="/onboarding/checklist" component={OnboardingChecklist} />
         <Route path="/unauthorized" component={Unauthorized} />
         <Route path="/about" component={About} />
