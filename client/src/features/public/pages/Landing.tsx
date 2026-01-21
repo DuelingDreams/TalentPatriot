@@ -26,94 +26,90 @@ export default function Landing() {
     <div className="min-h-screen bg-white font-[Inter,sans-serif] overflow-x-hidden">
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-tp-primary focus:text-white focus:rounded-xl focus:shadow-lg focus:font-medium"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-[#0EA5E9] focus:text-white focus:rounded-xl focus:shadow-lg focus:font-medium"
       >
         Skip to main content
       </a>
 
-      <nav className="bg-white border-b border-neutral-200 fixed w-full z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
-              <Link href="/">
-                <div className="flex items-center gap-2 cursor-pointer">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center">
-                    <img 
-                      src="/talentpatriot-logo.png" 
-                      alt="TalentPatriot Logo" 
-                      className="w-8 h-8 md:w-10 md:h-10 object-contain"
-                      loading="eager"
-                    />
-                  </div>
-                  <span className="text-xl md:text-2xl font-bold text-neutral-900 tracking-tight">
-                    TalentPatriot
-                  </span>
-                </div>
-              </Link>
-              
-              <div className="hidden md:flex items-center gap-6">
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-neutral-600 font-medium hover:text-tp-primary transition-colors">
-                    Solutions
-                    <ChevronDown className="w-4 h-4" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <Link href="/recruiters">
-                      <DropdownMenuItem className="cursor-pointer">
-                        <span className="mr-2">👔</span>
-                        For Recruiters
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/small-business">
-                      <DropdownMenuItem className="cursor-pointer">
-                        <span className="mr-2">🏢</span>
-                        For Small Businesses
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/agencies">
-                      <DropdownMenuItem className="cursor-pointer">
-                        <span className="mr-2">🎯</span>
-                        For Staffing Agencies
-                      </DropdownMenuItem>
-                    </Link>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                
-                <Link href="/pricing" className="text-neutral-600 font-medium hover:text-tp-primary transition-colors">
-                  Pricing
-                </Link>
-                <Link href="/about" className="text-neutral-600 font-medium hover:text-tp-primary transition-colors">
-                  About
-                </Link>
+      <nav className="flex justify-between items-center px-[5%] py-6 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] sticky top-0 z-50">
+        <div className="flex items-center gap-8">
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg flex items-center justify-center">
+                <img 
+                  src="/talentpatriot-logo.png" 
+                  alt="TalentPatriot Logo" 
+                  className="w-8 h-8 md:w-10 md:h-10 object-contain"
+                  loading="eager"
+                />
               </div>
+              <span className="text-xl md:text-2xl font-bold text-neutral-900 tracking-tight">
+                TalentPatriot
+              </span>
             </div>
+          </Link>
+          
+          <div className="hidden md:flex items-center gap-6">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-1 text-neutral-700 font-medium hover:text-[#0EA5E9] transition-colors">
+                Solutions
+                <ChevronDown className="w-4 h-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56">
+                <Link href="/recruiters">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <span className="mr-2">👔</span>
+                    For Recruiters
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/small-business">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <span className="mr-2">🏢</span>
+                    For Small Businesses
+                  </DropdownMenuItem>
+                </Link>
+                <Link href="/agencies">
+                  <DropdownMenuItem className="cursor-pointer">
+                    <span className="mr-2">🎯</span>
+                    For Staffing Agencies
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuContent>
+            </DropdownMenu>
             
-            <div className="flex items-center gap-2 md:gap-3">
-              <Link href="/login">
-                <Button 
-                  variant="ghost" 
-                  className="text-neutral-600 hover:text-tp-primary font-medium"
-                  data-testid="btn-sign-in"
-                >
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/beta">
-                <Button 
-                  className="bg-tp-primary hover:bg-tp-accent text-white font-medium text-sm md:text-base px-4 md:px-6 py-2 transition-colors"
-                  data-testid="btn-beta-access"
-                >
-                  Beta Access
-                </Button>
-              </Link>
-            </div>
+            <Link href="/pricing" className="text-neutral-700 font-medium hover:text-[#0EA5E9] transition-colors">
+              Pricing
+            </Link>
+            <Link href="/about" className="text-neutral-700 font-medium hover:text-[#0EA5E9] transition-colors">
+              About
+            </Link>
           </div>
+        </div>
+        
+        <div className="flex gap-3 md:gap-4">
+          <Link href="/login">
+            <Button 
+              variant="ghost" 
+              className="text-[#0EA5E9] font-semibold hover:bg-transparent hover:text-[#0284C7] px-4 py-2"
+              data-testid="btn-sign-in"
+            >
+              Sign In
+            </Button>
+          </Link>
+          <Link href="/beta">
+            <Button 
+              className="btn-gradient btn-ripple text-white font-semibold px-4 md:px-6 py-2 rounded-xl"
+              data-testid="btn-beta-access"
+            >
+              Beta Access
+            </Button>
+          </Link>
         </div>
       </nav>
 
       <main id="main-content">
-        <section className="relative pt-32 pb-24 px-[5%] bg-tp-page-bg overflow-hidden">
-          <div className="absolute -top-1/2 -right-[20%] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(30,58,95,0.1)_0%,transparent_70%)] animate-float pointer-events-none" />
+        <section className="relative py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4] overflow-hidden">
+          <div className="absolute -top-1/2 -right-[20%] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(14,165,233,0.1)_0%,transparent_70%)] animate-float pointer-events-none" />
           
           <div className="max-w-[1200px] mx-auto text-center relative z-10">
             <h1 className="text-4xl md:text-5xl lg:text-[4rem] font-extrabold text-neutral-900 mb-6 tracking-[-0.02em] leading-[1.1]">
@@ -133,7 +129,7 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center my-12">
               <Link href="/beta">
                 <Button 
-                  className="bg-tp-primary hover:bg-tp-accent text-white font-semibold px-8 md:px-10 py-5 md:py-6 rounded-xl text-lg transition-colors"
+                  className="btn-gradient btn-ripple text-white font-semibold px-8 md:px-10 py-5 md:py-6 rounded-xl text-lg"
                   data-testid="btn-hero-beta"
                 >
                   Start Free Beta
@@ -142,7 +138,7 @@ export default function Landing() {
               </Link>
               <Button 
                 variant="outline"
-                className="bg-white text-neutral-900 border-2 border-tp-primary hover:bg-tp-primary hover:text-white px-8 md:px-10 py-5 md:py-6 rounded-xl font-semibold text-lg transition-all duration-300 hover:-translate-y-0.5"
+                className="bg-white text-neutral-900 border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white px-8 md:px-10 py-5 md:py-6 rounded-xl font-semibold text-lg transition-all duration-300 hover:-translate-y-0.5"
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 data-testid="btn-hero-demo"
               >
@@ -186,7 +182,7 @@ export default function Landing() {
                 { value: '<1hr', label: 'Average Setup Time' },
               ].map((stat, i) => (
                 <div key={i} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-tp-primary mb-2">{stat.value}</div>
+                  <div className="text-3xl md:text-4xl font-bold text-[#0EA5E9] mb-2">{stat.value}</div>
                   <div className="text-sm md:text-base text-neutral-500">{stat.label}</div>
                 </div>
               ))}
@@ -194,7 +190,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="py-24 px-[5%] bg-tp-page-bg">
+        <section className="py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4]">
           <div className="max-w-[1200px] mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-neutral-900 mb-4 tracking-[-0.02em]">
@@ -226,15 +222,15 @@ export default function Landing() {
               ].map((solution, i) => (
                 <Link key={i} href={solution.href}>
                   <div 
-                    className="group relative bg-white rounded-2xl p-8 border-2 border-neutral-100 hover:border-tp-primary hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden cursor-pointer h-full"
+                    className="group relative bg-white rounded-2xl p-8 border-2 border-neutral-100 hover:border-[#0EA5E9] hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden cursor-pointer h-full"
                     data-testid={`solution-card-${i}`}
                   >
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgba(30,58,95,0.1)] to-[rgba(20,184,166,0.1)] flex items-center justify-center mb-6 text-3xl group-hover:scale-110 group-hover:rotate-[5deg] transition-transform duration-300">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgba(14,165,233,0.1)] to-[rgba(16,185,129,0.1)] flex items-center justify-center mb-6 text-3xl group-hover:scale-110 group-hover:rotate-[5deg] transition-transform duration-300">
                       {solution.icon}
                     </div>
                     <h3 className="text-2xl font-bold text-neutral-900 mb-3">{solution.title}</h3>
                     <p className="text-neutral-500 text-base leading-relaxed mb-4">{solution.desc}</p>
-                    <span className="text-tp-primary font-semibold hover:text-tp-accent flex items-center gap-2 group-hover:gap-3 transition-all duration-300">
+                    <span className="text-[#0EA5E9] font-semibold hover:text-[#0284C7] flex items-center gap-2 group-hover:gap-3 transition-all duration-300">
                       Learn More
                       <ArrowRight className="w-4 h-4" />
                     </span>

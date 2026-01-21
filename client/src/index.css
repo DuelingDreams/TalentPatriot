@@ -28,6 +28,11 @@
   --tp-accent-hover: #2D6FA8;
   --tp-accent-light: #E0F2FE;
   
+  /* Cyan - Logo/Brand Highlight */
+  --tp-cyan: #0EA5E9;
+  --tp-cyan-hover: #0284C7;
+  --tp-cyan-light: #E0F7FF;
+  
   /* Background Colors */
   --tp-page-bg: #F7F9FC;
   --tp-card: #FFFFFF;

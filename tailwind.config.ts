@@ -25,6 +25,7 @@ export default {
           'primary': 'var(--tp-primary)',
           'secondary': 'var(--tp-secondary)',
           'accent': 'var(--tp-accent)',
+          'cyan': 'var(--tp-cyan)',
           'page-bg': 'var(--tp-page-bg)',
           'card': 'var(--tp-card)',
           'text': {
