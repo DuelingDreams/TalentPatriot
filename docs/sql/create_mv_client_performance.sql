@@ -46,7 +46,7 @@ SELECT
   COUNT(DISTINCT CASE WHEN jc.stage = 'hired' THEN jc.candidate_id END) AS candidates_hired
 FROM clients c
 LEFT JOIN jobs j ON j.client_id = c.id
-LEFT JOIN job_candidates jc ON jc.job_id = j.id
+LEFT JOIN job_candidate jc ON jc.job_id = j.id
 WHERE c.org_id IS NOT NULL
 GROUP BY c.org_id, c.id, c.name, c.industry;
 
