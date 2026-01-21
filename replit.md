@@ -16,9 +16,10 @@ Preferred communication style: Simple, everyday language.
 - **Design**: Light mode, soft gray backgrounds, rounded cards, consistent TalentPatriot branding (Navy, Soft Blue, Light Gray, Inter font), focusing on professional UI/UX, modern analytics, enhanced popover/modal UX, and accessibility.
 - **Design Token System**: Centralized CSS custom properties with Tailwind integration:
   - Primary: #1E3A5F (navy), Secondary: #14B8A6 (teal), Accent: #3F88C5
+  - Cyan: #0EA5E9 (logo/brand highlight color for CTAs and gradients)
   - Semantic tokens: success (green), warning (amber), error (red), info (sky blue) with full 50-900 scales
   - Neutral gray scale (50-950) for consistent typography and backgrounds
-  - TalentPatriot-specific tokens: tp-primary, tp-accent, tp-page, tp-card-surface
+  - TalentPatriot-specific tokens: tp-primary, tp-secondary, tp-accent, tp-cyan, tp-page, tp-card-surface
   - CSS variables in index.css, Tailwind tokens in tailwind.config.ts
 - **Feature-Based Architecture** (Monolith):
   - `client/src/features/candidates/` - Candidate management (components, hooks, pages)
@@ -226,3 +227,11 @@ Build in separate Replit project.
 - **Email Service**: SendGrid.
 - **AI**: OpenAI GPT-4o.
 - **Google APIs**: googleapis npm package for Calendar, Meet, and FreeBusy API.
+
+# Recent Changes
+
+## January 2025
+- **Brand Color Update**: Added cyan (#0EA5E9) as official brand highlight color matching the TalentPatriot logo
+- **Public Pages Refresh**: Updated Landing and About pages with modern gradient backgrounds, cyan accents, and consistent styling
+- **Design Token Expansion**: Added tp-cyan tokens to CSS variables and Tailwind config
+- **Documentation Updates**: Updated developer guide with feature-based architecture and design token system

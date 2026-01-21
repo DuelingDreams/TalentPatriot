@@ -83,50 +83,85 @@ MICROSOFT_CLIENT_SECRET=your_microsoft_client_secret
 ```
 talentpatriot/
 ├── client/src/              # Frontend React application
-│   ├── components/          # Reusable UI components
-│   ├── pages/              # Page components
-│   ├── hooks/              # Custom React hooks
-│   ├── lib/                # Utility functions
-│   └── contexts/           # React contexts
-├── server/                 # Backend Express application
-│   ├── routes.ts           # API route definitions
-│   ├── storage.ts          # Database operations
-│   ├── lib/                # Server utilities
-│   └── middleware/         # Express middleware
-├── shared/                 # Shared code between client/server
-│   └── schema.ts           # Database schema definitions
-├── docs/                   # Documentation
-└── migrations/             # Database migrations
+│   ├── features/            # Feature-based modules (monolith architecture)
+│   │   ├── candidates/      # Candidate management
+│   │   ├── jobs/            # Job postings and pipelines
+│   │   ├── communications/  # Email, campaigns, calendar, messaging
+│   │   ├── organization/    # Clients, org management
+│   │   ├── analytics/       # Dashboard analytics and reports
+│   │   └── public/          # Public pages (landing, about, beta)
+│   ├── components/          # Shared UI components
+│   ├── hooks/               # Custom React hooks
+│   ├── lib/                 # Utility functions
+│   └── contexts/            # React contexts
+├── server/                  # Backend Express application
+│   ├── routes.ts            # Main API route definitions
+│   ├── routes/              # Feature-specific route modules
+│   ├── storage.ts           # Database operations
+│   ├── lib/                 # Server utilities
+│   └── middleware/          # Express middleware
+├── shared/                  # Shared code between client/server
+│   ├── schema/              # Modular database schema definitions
+│   │   ├── index.ts         # Consolidated exports
+│   │   ├── enums.ts         # PostgreSQL enums
+│   │   ├── users.ts         # Organizations, user profiles
+│   │   ├── clients.ts       # Client/company records
+│   │   ├── jobs.ts          # Job postings
+│   │   ├── candidates.ts    # Candidates, applications, notes
+│   │   ├── pipelines.ts     # Pipeline columns
+│   │   ├── messages.ts      # Internal messaging
+│   │   ├── interviews.ts    # Interview scheduling
+│   │   ├── oauth.ts         # OAuth sessions
+│   │   ├── beta.ts          # Beta applications
+│   │   ├── analytics.ts     # AI insights
+│   │   ├── emails.ts        # Email settings, templates
+│   │   └── misc.ts          # Audit logs, activity
+│   ├── schema.ts            # Re-exports all for backward compatibility
+│   └── utils/               # Shared utilities (case conversion, etc.)
+├── docs/                    # Documentation
+└── migrations/              # Database migrations
 ```
 
-### Frontend Architecture
+### Frontend Architecture (Feature-Based)
 ```
 client/src/
+├── features/                  # Feature-based modules
+│   ├── candidates/            # Candidate management
+│   │   ├── components/        # Feature-specific components
+│   │   ├── hooks/             # Feature-specific hooks
+│   │   ├── pages/             # Feature pages
+│   │   └── index.ts           # Barrel export
+│   ├── jobs/                  # Job postings and pipelines
+│   ├── communications/        # Email, campaigns, calendar
+│   ├── organization/          # Clients, org management
+│   ├── analytics/             # Dashboard and reports
+│   └── public/                # Landing, about, pricing pages
 ├── components/
-│   ├── ui/                 # Base UI components (shadcn/ui)
-│   ├── layout/             # Layout components
-│   ├── forms/              # Form components
-│   ├── dialogs/            # Modal dialogs
-│   └── dashboard/          # Dashboard-specific components
-├── pages/                  # Route components
-├── hooks/                  # Custom hooks for data fetching
+│   ├── ui/                    # Base UI components (shadcn/ui)
+│   ├── layout/                # Layout components
+│   └── shared/                # Cross-feature shared components
+├── hooks/                     # Global custom hooks
 ├── lib/
-│   ├── queryClient.ts      # React Query configuration
-│   ├── utils.ts            # Utility functions
-│   └── validations.ts      # Form validation schemas
+│   ├── queryClient.ts         # React Query configuration
+│   ├── utils.ts               # Utility functions
+│   └── validations.ts         # Form validation schemas
 └── contexts/
-    └── AuthContext.tsx     # Authentication context
+    └── AuthContext.tsx        # Authentication context
 ```
 
 ### Backend Architecture
 ```
 server/
-├── routes.ts               # Main API routes
-├── storage.ts              # Database abstraction layer
+├── routes.ts                  # Main API routes
+├── routes/                    # Feature-specific route modules
+│   ├── google-auth.ts         # Google OAuth routes
+│   ├── google-calendar.ts     # Google Calendar integration
+│   └── upload.ts              # File upload routes
+├── storage.ts                 # Database abstraction layer
 ├── lib/
-│   ├── auth.ts            # Authentication utilities
-│   ├── email.ts           # Email service integration
-│   ├── ai.ts              # OpenAI integration
+│   ├── auth.ts                # Authentication utilities
+│   ├── email.ts               # Email service integration
+│   ├── ai.ts                  # OpenAI integration
 │   └── validation.ts      # Request validation
 └── middleware/
     ├── auth.ts            # Authentication middleware
@@ -262,6 +297,63 @@ export function ComponentName({ prop1, prop2 }: ComponentProps) {
 
 ### Styling Approach
 - Tailwind CSS for utility-first styling
+- Design Token System with CSS custom properties
+
+### Design Token System
+TalentPatriot uses a centralized design token system for consistent branding:
+
+```css
+/* CSS Variables (client/src/index.css) */
+:root {
+  /* Primary - Navy Brand */
+  --tp-primary: #1E3A5F;
+  --tp-primary-hover: #264C7A;
+  --tp-primary-light: #E6F0FF;
+  
+  /* Secondary - Teal Accent */
+  --tp-secondary: #14B8A6;
+  --tp-secondary-hover: #0D9488;
+  --tp-secondary-light: #CCFBF1;
+  
+  /* Accent - Blue */
+  --tp-accent: #3F88C5;
+  
+  /* Cyan - Logo/Brand Highlight */
+  --tp-cyan: #0EA5E9;
+  --tp-cyan-hover: #0284C7;
+  --tp-cyan-light: #E0F7FF;
+  
+  /* Semantic Colors */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+  --info: #0EA5E9;
+}
+```
+
+```typescript
+// Tailwind Config (tailwind.config.ts)
+colors: {
+  'tp': {
+    'primary': 'var(--tp-primary)',
+    'secondary': 'var(--tp-secondary)',
+    'accent': 'var(--tp-accent)',
+    'cyan': 'var(--tp-cyan)',
+    'page-bg': 'var(--tp-page-bg)',
+    'card': 'var(--tp-card)',
+  }
+}
+```
+
+Usage in components:
+```tsx
+// Using Tailwind classes
+<div className="bg-tp-primary text-white">Navy background</div>
+<div className="text-tp-cyan">Cyan brand color</div>
+
+// Using CSS variables directly
+<div style={{ backgroundColor: 'var(--tp-cyan)' }}>Cyan</div>
+```
 - Radix UI for accessible components
 - Shadcn/ui for design system consistency
 - Custom CSS variables for theming
