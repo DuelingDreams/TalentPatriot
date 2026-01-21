@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '@/lib/queryClient'
 import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { supabase } from '@/lib/supabase'
 import { 
   Building2, 
   Palette, 
@@ -64,7 +65,7 @@ export default function OrganizationSettings() {
   const isAdmin = effectiveRole === 'admin' || effectiveRole === 'owner' || effectiveRole === 'hiring_manager'
 
   const { data: orgInfo, isLoading: orgLoading } = useQuery<OrganizationInfo>({
-    queryKey: ['/api/organizations/current'],
+    queryKey: [`/api/organizations/${organizationId}`],
     enabled: !!organizationId,
   })
 
@@ -158,16 +159,12 @@ export default function OrganizationSettings() {
       const formData = new FormData()
       formData.append('logo', file)
 
-      // Get auth token from localStorage
-      const token = localStorage.getItem('supabase-auth-token')
-      let accessToken = ''
-      if (token) {
-        try {
-          const parsed = JSON.parse(token)
-          accessToken = parsed?.access_token || ''
-        } catch {
-          accessToken = ''
-        }
+      // Get auth token from Supabase session
+      const { data: { session } } = await supabase.auth.getSession()
+      const accessToken = session?.access_token || ''
+
+      if (!accessToken) {
+        throw new Error('Please sign in to upload a logo')
       }
 
       const response = await fetch('/api/upload/logo', {

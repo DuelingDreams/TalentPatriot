@@ -528,28 +528,12 @@ router.post('/logo', requireAuth, logoUpload.single('logo'), async (req, res) =>
     // Generate unique filename
     const uniqueId = nanoid()
     const ext = req.file.originalname.split('.').pop()?.toLowerCase() || 'png'
-    // Store in a logos folder: logos/{orgId}/logo_{uniqueId}.{ext}
-    const storagePath = `logos/${orgId}/logo_${uniqueId}.${ext}`
+    // Store in branding bucket: {orgId}/logo_{uniqueId}.{ext}
+    const storagePath = `${orgId}/logo_${uniqueId}.${ext}`
 
-    // Ensure the 'logos' bucket exists or use a public bucket
-    // First, check if logos bucket exists
-    const { data: buckets } = await supabase.storage.listBuckets()
-    const logosBucketExists = buckets?.some(b => b.name === 'logos')
-    
-    if (!logosBucketExists) {
-      // Create the logos bucket as public
-      const { error: createError } = await supabase.storage.createBucket('logos', {
-        public: true,
-        fileSizeLimit: 5 * 1024 * 1024
-      })
-      if (createError && !createError.message.includes('already exists')) {
-        console.error('Failed to create logos bucket:', createError)
-      }
-    }
-
-    // Upload to Supabase Storage (PUBLIC bucket for logos)
+    // Upload to Supabase Storage (branding bucket - public)
     const { data, error } = await supabase.storage
-      .from('logos')
+      .from('branding')
       .upload(storagePath, req.file.buffer, {
         contentType: req.file.mimetype,
         cacheControl: '31536000', // 1 year cache for logos
@@ -566,7 +550,7 @@ router.post('/logo', requireAuth, logoUpload.single('logo'), async (req, res) =>
 
     // Get the public URL for the logo
     const { data: publicUrlData } = supabase.storage
-      .from('logos')
+      .from('branding')
       .getPublicUrl(storagePath)
 
     res.json({

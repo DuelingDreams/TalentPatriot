@@ -472,10 +472,19 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   // Get current user's organization (must be before :id route)
   app.get("/api/organizations/current", async (req, res) => {
     try {
-      const orgId = req.headers['x-org-id'] as string;
+      let orgId = req.headers['x-org-id'] as string;
+      const userId = req.headers['x-user-id'] as string;
+      
+      // If no org ID in header, try to get user's first organization
+      if (!orgId && userId) {
+        const userOrgs = await storage.auth.getUserOrganizations(userId);
+        if (userOrgs && userOrgs.length > 0) {
+          orgId = userOrgs[0].orgId;
+        }
+      }
       
       if (!orgId) {
-        return res.status(400).json({ error: "Organization ID not provided in headers" });
+        return res.status(400).json({ error: "Organization ID not provided and user has no organizations" });
       }
       
       const organization = await storage.auth.getOrganization(orgId);
