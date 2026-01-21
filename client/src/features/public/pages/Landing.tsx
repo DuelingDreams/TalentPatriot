@@ -113,7 +113,7 @@ export default function Landing() {
           
           <div className="max-w-[1200px] mx-auto text-center relative z-10">
             <h1 className="text-4xl md:text-5xl lg:text-[4rem] font-extrabold text-neutral-900 mb-6 tracking-[-0.02em] leading-[1.1]">
-              Stop Losing Great Candidates to<br className="hidden md:block" />
+              Stop Losing Great Candidates to<br className="hidden md:block" />{" "}
               Companies With <span className="gradient-text animate-shimmer">Better Hiring Systems</span>
             </h1>
             
