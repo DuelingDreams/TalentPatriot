@@ -952,6 +952,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
+      if (userOrgs.length === 0) {
+        return res.status(403).json({ error: 'You do not have access to this organization' });
+      }
+
       const { data: branding } = await supabaseAdmin
         .from('organization_branding')
         .select('*')
@@ -966,6 +971,17 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     }
   });
 
+  const brandingSchema = z.object({
+    channel: z.string().default('careers'),
+    primary_color: z.string().optional(),
+    accent_color: z.string().optional(),
+    tagline: z.string().max(100).optional(),
+    about_text: z.string().max(500).optional(),
+    logo_url: z.string().url().optional().nullable(),
+    favicon_url: z.string().url().optional().nullable(),
+    custom_css: z.string().max(5000).optional(),
+  });
+
   app.post('/api/organizations/branding', requireAuth, writeLimiter, async (req: AuthenticatedRequest, res) => {
     try {
       const orgId = req.headers['x-org-id'] as string;
@@ -974,7 +990,13 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         return res.status(400).json({ error: 'Organization ID required' });
       }
 
-      const { channel = 'careers', primary_color, accent_color, tagline, about_text, logo_url, favicon_url, custom_css } = req.body;
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
+      if (userOrgs.length === 0) {
+        return res.status(403).json({ error: 'You do not have access to this organization' });
+      }
+
+      const validatedData = brandingSchema.parse(req.body);
+      const { channel, primary_color, accent_color, tagline, about_text, logo_url, favicon_url, custom_css } = validatedData;
 
       const { data: branding, error } = await supabaseAdmin
         .from('organization_branding')
@@ -1052,6 +1074,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       
       if (!orgId) {
         return res.status(400).json({ error: 'Organization ID required' });
+      }
+
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
+      if (userOrgs.length === 0) {
+        return res.status(403).json({ error: 'You do not have access to this organization' });
       }
 
       const { data: org } = await supabaseAdmin
@@ -5887,6 +5914,11 @@ Expires: 2025-12-31T23:59:59.000Z
       
       if (!orgId) {
         return res.status(400).json({ error: 'Organization ID required in x-org-id header' });
+      }
+
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
+      if (userOrgs.length === 0) {
+        return res.status(403).json({ error: 'You do not have access to this organization' });
       }
 
       const validatedData = createApprovalSchema.parse(req.body);
