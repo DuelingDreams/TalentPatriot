@@ -11,7 +11,7 @@ import {
 
 export default function Landing() {
   useEffect(() => {
-    document.title = "TalentPatriot – SMB ATS with Fast Setup & Fair Pricing"
+    document.title = "TalentPatriot – ATS for Small Businesses & Boutique Staffing Firms"
     
     let metaDescription = document.querySelector('meta[name="description"]')
     if (!metaDescription) {
@@ -19,7 +19,7 @@ export default function Landing() {
       metaDescription.setAttribute('name', 'description')
       document.head.appendChild(metaDescription)
     }
-    metaDescription.setAttribute('content', 'An SMB-first ATS with fast setup, fair pricing, accessibility-first design, and AI that works. Launch your branded careers page in under a day.')
+    metaDescription.setAttribute('content', 'The ATS/CRM built for small businesses and boutique staffing firms. Hire better without enterprise complexity—intuitive pipelines, AI resume parsing, and fair per-seat pricing.')
   }, [])
 
   return (
@@ -118,7 +118,7 @@ export default function Landing() {
             </h1>
             
             <p className="text-xl md:text-2xl text-neutral-500 mb-4">
-              The simple, affordable ATS built for growing businesses who can't afford enterprise complexity or enterprise mistakes.
+              The simple, affordable ATS/CRM built for small businesses and boutique staffing firms who can't afford enterprise complexity.
             </p>
             
             <div className="flex items-center justify-center gap-3 my-8 text-neutral-500 text-base">
@@ -247,7 +247,7 @@ export default function Landing() {
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-neutral-900 mb-4 tracking-[-0.02em]">
                 Why TalentPatriot
               </h2>
-              <p className="text-xl text-neutral-500">Enterprise Power. Small Business Simplicity.</p>
+              <p className="text-xl text-neutral-500">Powerful features. Simple workflows. Fair pricing.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
