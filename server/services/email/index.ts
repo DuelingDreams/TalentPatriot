@@ -1,4 +1,14 @@
-export { sendEmail, resend, EMAIL_FROM, SUPPORT_EMAIL, type EmailResult } from './resend';
+export { 
+  sendEmail, 
+  sendTemplateEmail,
+  sendBetaConfirmationEmail,
+  resend, 
+  EMAIL_FROM, 
+  SUPPORT_EMAIL,
+  RESEND_TEMPLATES,
+  type EmailResult,
+  type TemplateEmailParams,
+} from './resend';
 export { 
   betaConfirmationTemplate,
   betaApprovalTemplate,

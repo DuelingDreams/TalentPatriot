@@ -44,7 +44,7 @@ import crypto from "crypto";
 import { ImportService } from './lib/importService';
 import { toCamelCase } from '../shared/utils/caseConversion';
 import { renderMergeFields, type MergeFieldContext } from '../shared/utils/mergeFields';
-import { sendEmail, betaConfirmationTemplate, betaApprovalTemplate } from './services/email';
+import { sendEmail, sendBetaConfirmationEmail, betaConfirmationTemplate, betaApprovalTemplate } from './services/email';
 
 import { 
   type AuthenticatedRequest, 
@@ -5643,17 +5643,18 @@ Expires: 2025-12-31T23:59:59.000Z
         status: 'pending',
       });
       
-      // Send confirmation email to applicant
+      // Send confirmation email to applicant using Resend template
       try {
-        await sendEmail({
+        const firstName = validatedData.contactName.split(' ')[0];
+        const result = await sendBetaConfirmationEmail({
           to: validatedData.email,
-          subject: 'Thank You for Applying to TalentPatriot Beta!',
-          html: betaConfirmationTemplate({
-            contactName: validatedData.contactName,
-            companyName: validatedData.companyName,
-          }),
+          firstName,
         });
-        console.info('[API] Beta confirmation email sent to:', validatedData.email);
+        if (result.success) {
+          console.info('[API] Beta confirmation email sent to:', validatedData.email, 'messageId:', result.messageId);
+        } else {
+          console.error('[API] Beta confirmation email failed:', result.error);
+        }
       } catch (emailError) {
         console.error('[API] Failed to send beta confirmation email:', emailError);
       }
