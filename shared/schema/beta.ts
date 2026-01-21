@@ -24,6 +24,10 @@ export const betaApplications = pgTable("beta_applications", {
   processedAt: timestamp("processed_at"),
   processedBy: uuid("processed_by"),
   notes: text("notes"),
+  scheduledCallAt: timestamp("scheduled_call_at"),
+  callCompletedAt: timestamp("call_completed_at"),
+  callNotes: text("call_notes"),
+  magicLinkSentAt: timestamp("magic_link_sent_at"),
 });
 
 export const insertBetaApplicationSchema = createInsertSchema(betaApplications).omit({ id: true, createdAt: true, updatedAt: true });

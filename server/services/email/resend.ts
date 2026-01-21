@@ -136,3 +136,25 @@ export async function sendBetaConfirmationEmail(params: {
     html,
   });
 }
+
+export async function sendBetaMagicLinkEmail(params: {
+  to: string;
+  firstName: string;
+  magicLink: string;
+}): Promise<EmailResult> {
+  const { to, firstName, magicLink } = params;
+  
+  const { SYSTEM_TEMPLATES } = await import('./system-templates');
+  const template = SYSTEM_TEMPLATES.BETA_MAGIC_LINK_INVITATION;
+  
+  const html = renderTemplateVariables(template.html, { 
+    first_name: firstName,
+    magic_link: magicLink 
+  });
+  
+  return sendEmail({
+    to,
+    subject: template.subject,
+    html,
+  });
+}

@@ -5880,6 +5880,152 @@ Expires: 2025-12-31T23:59:59.000Z
     }
   });
 
+  // Schedule Call for Beta Applicant (Admin only)
+  app.post("/api/beta/applications/:id/schedule-call", requireAuth, requirePlatformAdmin, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
+    try {
+      const { id } = req.params;
+      const { scheduledCallAt } = req.body;
+      
+      if (!id) {
+        return res.status(400).json({ error: "Application ID is required" });
+      }
+      
+      if (!scheduledCallAt) {
+        return res.status(400).json({ error: "Scheduled call date/time is required" });
+      }
+      
+      const updatedApplication = await storage.beta.updateBetaApplication(id, {
+        scheduledCallAt: new Date(scheduledCallAt),
+        status: 'reviewing',
+      });
+      
+      console.info('[API] POST /api/beta/applications/:id/schedule-call →', { success: true, id });
+      res.json({ 
+        success: true, 
+        message: "Call scheduled successfully",
+        application: updatedApplication
+      });
+    } catch (error) {
+      console.error('Beta application schedule call error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to schedule call", details: errorMessage });
+    }
+  });
+
+  // Complete Call for Beta Applicant (Admin only)
+  app.post("/api/beta/applications/:id/complete-call", requireAuth, requirePlatformAdmin, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
+    try {
+      const { id } = req.params;
+      const { callNotes, approved } = req.body;
+      
+      if (!id) {
+        return res.status(400).json({ error: "Application ID is required" });
+      }
+      
+      const newStatus = approved ? 'approved' : 'rejected';
+      
+      const updatedApplication = await storage.beta.updateBetaApplication(id, {
+        callCompletedAt: new Date(),
+        callNotes,
+        status: newStatus,
+        reviewedAt: new Date(),
+        reviewedBy: req.user?.id,
+      });
+      
+      console.info('[API] POST /api/beta/applications/:id/complete-call →', { success: true, id, approved });
+      res.json({ 
+        success: true, 
+        message: approved ? "Call completed - applicant approved" : "Call completed - applicant not approved",
+        application: updatedApplication
+      });
+    } catch (error) {
+      console.error('Beta application complete call error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to complete call", details: errorMessage });
+    }
+  });
+
+  // Send Magic Link to Approved Beta Applicant (Admin only)
+  app.post("/api/beta/applications/:id/send-magic-link", requireAuth, requirePlatformAdmin, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res.status(400).json({ error: "Application ID is required" });
+      }
+      
+      // Get the application
+      const application = await storage.beta.getBetaApplication(id);
+      if (!application) {
+        return res.status(404).json({ error: "Beta application not found" });
+      }
+      
+      if (application.status !== 'approved') {
+        return res.status(400).json({ error: "Can only send magic link to approved applicants" });
+      }
+      
+      if (!supabaseAdmin) {
+        return res.status(500).json({ error: "Admin client not configured - cannot generate magic link" });
+      }
+      
+      // Generate magic link using Supabase Admin
+      const baseUrl = process.env.VITE_APP_URL || process.env.APP_URL || 'https://talentpatriot.com';
+      const { data, error: magicLinkError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'magiclink',
+        email: application.email,
+        options: {
+          redirectTo: `${baseUrl}/onboarding`,
+        }
+      });
+      
+      if (magicLinkError || !data?.properties?.action_link) {
+        console.error('Magic link generation error:', magicLinkError);
+        return res.status(500).json({ 
+          error: "Failed to generate magic link", 
+          details: magicLinkError?.message || 'No link generated' 
+        });
+      }
+      
+      // Send magic link email via Resend
+      const firstName = application.contactName.split(' ')[0];
+      const { sendBetaMagicLinkEmail } = await import('./services/email/resend');
+      const emailResult = await sendBetaMagicLinkEmail({
+        to: application.email,
+        firstName,
+        magicLink: data.properties.action_link,
+      });
+      
+      if (!emailResult.success) {
+        return res.status(500).json({ error: "Failed to send magic link email", details: emailResult.error });
+      }
+      
+      // Update application to mark magic link as sent
+      await storage.beta.updateBetaApplication(id, {
+        magicLinkSentAt: new Date(),
+      });
+      
+      console.info('[API] POST /api/beta/applications/:id/send-magic-link →', { 
+        success: true, 
+        id, 
+        email: application.email,
+        messageId: emailResult.messageId 
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `Magic link sent to ${application.email}`,
+        messageId: emailResult.messageId
+      });
+    } catch (error) {
+      console.error('Beta application send magic link error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to send magic link", details: errorMessage });
+    }
+  });
+
   // =============================================================================
   // ADMIN INBOX / APPROVAL REQUESTS ROUTES
   // =============================================================================
