@@ -2863,6 +2863,45 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
     orgSlug: z.string().optional()
   });
 
+  // Public branding endpoint for careers pages (no auth required)
+  app.get("/api/public/branding", async (req, res) => {
+    try {
+      const { orgSlug } = req.query as { orgSlug?: string };
+      
+      if (!orgSlug) {
+        return res.json({});
+      }
+
+      // Look up organization by slug
+      const organizations = await storage.auth.getOrganizations();
+      const organization = organizations.find(org => 
+        org.slug === orgSlug || 
+        org.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === orgSlug ||
+        org.name.toLowerCase().replace(/\s+/g, '-') === orgSlug
+      );
+
+      if (!organization) {
+        return res.json({});
+      }
+
+      // Get branding for careers channel
+      const { data: branding } = await supabaseAdmin
+        .from('organization_branding')
+        .select('logo_url, favicon_url, primary_color, accent_color, tagline, about_text, header_text, footer_text')
+        .eq('org_id', organization.id)
+        .eq('channel', 'careers')
+        .single();
+
+      res.json({
+        organizationName: organization.name,
+        ...branding
+      });
+    } catch (error) {
+      console.error('Error fetching public branding:', error);
+      res.json({});
+    }
+  });
+
   app.get("/api/public/jobs/slug/:slug", async (req, res) => {
     try {
       const paramsParse = jobSlugSchema.safeParse({ slug: req.params.slug });

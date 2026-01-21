@@ -8,6 +8,15 @@ import { MapPin, Clock, Briefcase, Building2, Search, Loader2, Calendar, AlertCi
 import { Badge } from '@/components/ui/badge'
 import type { Job } from '@shared/schema'
 
+type Branding = {
+  organizationName?: string
+  logo_url?: string
+  primary_color?: string
+  accent_color?: string
+  tagline?: string
+  about_text?: string
+}
+
 export default function Careers() {
   const { orgSlug } = useParams<{ orgSlug: string }>()
   const [searchTerm, setSearchTerm] = useState('')
@@ -15,6 +24,26 @@ export default function Careers() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [branding, setBranding] = useState<Branding>({})
+
+  // Fetch branding for organization
+  useEffect(() => {
+    const fetchBranding = async () => {
+      if (!orgSlug) return
+      
+      try {
+        const response = await fetch(`/api/public/branding?orgSlug=${encodeURIComponent(orgSlug)}`)
+        if (response.ok) {
+          const data = await response.json()
+          setBranding(data)
+        }
+      } catch (err) {
+        console.warn('Could not fetch branding:', err)
+      }
+    }
+
+    fetchBranding()
+  }, [orgSlug])
 
   // Fetch jobs from backend API
   useEffect(() => {
@@ -62,24 +91,39 @@ export default function Careers() {
 
   const isEmpty = !loading && jobs.length === 0
 
+  // Dynamic styles based on branding
+  const primaryColor = branding.primary_color || '#1E3A5F'
+  const accentColor = branding.accent_color || '#14B8A6'
+  const orgName = branding.organizationName || (orgSlug ? orgSlug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'TalentPatriot')
+  const tagline = branding.tagline || 'Find your next opportunity'
+
   // Show error state
   if (hasError) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <header className="bg-white shadow-sm border-b">
+        <header className="bg-white shadow-sm border-b" style={{ borderBottomColor: primaryColor + '20' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Careers at {orgSlug ? orgSlug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'TalentPatriot'}
+                <h1 className="text-3xl font-bold" style={{ color: primaryColor }}>
+                  Careers at {orgName}
                 </h1>
-                <p className="mt-2 text-gray-600">Find your next opportunity</p>
+                <p className="mt-2 text-gray-600">{tagline}</p>
               </div>
-              <img 
-                src="/talentpatriot-logo.png"
-                alt="TalentPatriot" 
-                className="h-12 object-contain"
-              />
+              {branding.logo_url ? (
+                <img 
+                  src={branding.logo_url}
+                  alt={orgName} 
+                  className="h-12 object-contain"
+                />
+              ) : (
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {orgName.charAt(0)}
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -101,6 +145,7 @@ export default function Careers() {
                   onClick={() => window.location.reload()} 
                   className="mt-4"
                   size="sm"
+                  style={{ backgroundColor: primaryColor }}
                 >
                   Try Again
                 </Button>
@@ -118,132 +163,169 @@ export default function Careers() {
       fallbackDescription="There was an error loading the careers page. Please try again."
     >
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                {/* Dynamic organization name from orgSlug or fallback */}
-                Careers at {orgSlug ? orgSlug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) : 'TalentPatriot'}
-              </h1>
-              <p className="mt-2 text-gray-600">Find your next opportunity</p>
+        {/* Header with organization branding */}
+        <header 
+          className="bg-white shadow-sm border-b"
+          style={{ borderBottomColor: primaryColor + '20' }}
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold" style={{ color: primaryColor }}>
+                  Careers at {orgName}
+                </h1>
+                <p className="mt-2 text-gray-600">{tagline}</p>
+              </div>
+              {branding.logo_url ? (
+                <img 
+                  src={branding.logo_url}
+                  alt={orgName} 
+                  className="h-12 object-contain"
+                />
+              ) : (
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-xl"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {orgName.charAt(0)}
+                </div>
+              )}
             </div>
-            <img 
-              src="/talentpatriot-logo.png"
-              alt="TalentPatriot" 
-              className="h-12 object-contain"
+          </div>
+        </header>
+
+        {/* About section if available */}
+        {branding.about_text && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div 
+              className="p-6 rounded-lg"
+              style={{ backgroundColor: primaryColor + '08', borderLeft: `4px solid ${accentColor}` }}
+            >
+              <p className="text-gray-700 leading-relaxed">{branding.about_text}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Search Bar */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <Input
+              type="text"
+              placeholder="Search jobs by title, description, or location..."
+              className="pl-10 pr-4 py-3 text-lg"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{ 
+                borderColor: primaryColor + '30',
+              }}
             />
           </div>
         </div>
-      </header>
 
-      {/* Search Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <Input
-            type="text"
-            placeholder="Search jobs by title, description, or location..."
-            className="pl-10 pr-4 py-3 text-lg"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* Job Listings */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          </div>
-        ) : filteredJobs.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredJobs.map((job: Job) => (
-              <Card 
-                key={job.id} 
-                className="group cursor-pointer overflow-hidden"
-                onClick={() => {
-                  const jobPath = orgSlug 
-                    ? `/org/${orgSlug}/careers/${job.public_slug || job.id}/apply`
-                    : `/careers/${job.public_slug || job.id}/apply`;
-                  setLocation(jobPath);
-                }}
-              >
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-xl text-neutral-900 group-hover:text-tp-accent transition-colors">
-                    {job.title}
-                  </CardTitle>
-                  {job.department && (
-                    <div className="flex items-center gap-2 text-gray-600 mt-1">
-                      <Building2 className="w-4 h-4" />
-                      <span className="text-sm">{job.department}</span>
+        {/* Job Listings */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: accentColor }} />
+            </div>
+          ) : filteredJobs.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredJobs.map((job: Job) => (
+                <Card 
+                  key={job.id} 
+                  className="group cursor-pointer overflow-hidden transition-shadow hover:shadow-lg"
+                  onClick={() => {
+                    const jobPath = orgSlug 
+                      ? `/org/${orgSlug}/careers/${job.public_slug || job.id}/apply`
+                      : `/careers/${job.public_slug || job.id}/apply`;
+                    setLocation(jobPath);
+                  }}
+                >
+                  <CardHeader className="pb-3">
+                    <CardTitle 
+                      className="text-xl transition-colors"
+                      style={{ color: primaryColor }}
+                    >
+                      <span className="group-hover:opacity-80">{job.title}</span>
+                    </CardTitle>
+                    {job.department && (
+                      <div className="flex items-center gap-2 text-gray-600 mt-1">
+                        <Building2 className="w-4 h-4" />
+                        <span className="text-sm">{job.department}</span>
+                      </div>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    {/* Meta badges */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {job.location && (
+                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {job.location}
+                        </Badge>
+                      )}
+                      {job.jobType && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {job.jobType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        </Badge>
+                      )}
+                      {job.experienceLevel && (
+                        <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
+                          <Briefcase className="w-3 h-3 mr-1" />
+                          {job.experienceLevel.replace(/\b\w/g, l => l.toUpperCase())}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  {/* Meta badges */}
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {job.location && (
-                      <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {job.location}
-                      </Badge>
-                    )}
-                    {job.jobType && (
-                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                        <Clock className="w-3 h-3 mr-1" />
-                        {job.jobType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </Badge>
-                    )}
-                    {job.experienceLevel && (
-                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-xs">
-                        <Briefcase className="w-3 h-3 mr-1" />
-                        {job.experienceLevel.replace(/\b\w/g, l => l.toUpperCase())}
-                      </Badge>
-                    )}
-                  </div>
 
-                  {/* Description preview */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
-                    {job.description}
-                  </p>
-                  
-                  {/* Posted date */}
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>Posted {(() => {
-                      const created = job.createdAt;
-                      return created ? new Date(created).toLocaleDateString() : '—';
-                    })()}</span>
-                  </div>
+                    {/* Description preview */}
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
+                      {job.description}
+                    </p>
+                    
+                    {/* Posted date */}
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Posted {(() => {
+                        const created = job.createdAt;
+                        return created ? new Date(created).toLocaleDateString() : '—';
+                      })()}</span>
+                    </div>
 
-                  <Button 
-                    className="w-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const jobPath = orgSlug 
-                        ? `/org/${orgSlug}/careers/${job.public_slug || job.id}/apply`
-                        : `/careers/${job.public_slug || job.id}/apply`;
-                      setLocation(jobPath);
-                    }}
-                  >
-                    View Details & Apply
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <Button 
+                      className="w-full text-white"
+                      style={{ backgroundColor: accentColor }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const jobPath = orgSlug 
+                          ? `/org/${orgSlug}/careers/${job.public_slug || job.id}/apply`
+                          : `/careers/${job.public_slug || job.id}/apply`;
+                        setLocation(jobPath);
+                      }}
+                    >
+                      View Details & Apply
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No open positions</h3>
+              <p className="text-gray-600">Check back later for new opportunities</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <footer className="border-t bg-white py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500">
+            Powered by <span style={{ color: primaryColor }} className="font-medium">TalentPatriot</span>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No open positions</h3>
-            <p className="text-gray-600">Check back later for new opportunities</p>
-          </div>
-        )}
+        </footer>
       </div>
-    </div>
     </PageErrorBoundary>
   )
 }
