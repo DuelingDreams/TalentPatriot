@@ -37,6 +37,8 @@ export interface ICommunicationsRepository {
   getOrganizationEmailSettings(orgId: string): Promise<OrganizationEmailSettings | undefined>;
   updateOrganizationEmailSettings(orgId: string, settings: Partial<InsertOrganizationEmailSettings>): Promise<OrganizationEmailSettings>;
   getEmailTemplates(orgId: string): Promise<EmailTemplate[]>;
+  getEmailTemplateByType(orgId: string, templateType: string): Promise<EmailTemplate | undefined>;
+  getSystemEmailTemplateByType(templateType: string): Promise<EmailTemplate | undefined>;
   createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate>;
   updateEmailTemplate(templateId: string, orgId: string, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate>;
   deleteEmailTemplate(templateId: string, orgId: string): Promise<void>;

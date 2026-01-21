@@ -212,27 +212,142 @@ export class CommunicationsRepository implements ICommunicationsRepository {
   }
   
   async getEmailTemplates(orgId: string): Promise<EmailTemplate[]> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('org_id', orgId)
+      .or('is_active.eq.true,is_active.is.null')
+      .order('template_type', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching email templates:', error);
+      throw new Error(`Failed to fetch email templates: ${error.message}`);
+    }
+
+    return data ? data.map(t => toCamelCase(t) as EmailTemplate) : [];
+  }
+
+  async getEmailTemplateByType(orgId: string, templateType: string): Promise<EmailTemplate | undefined> {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .eq('org_id', orgId)
+      .eq('template_type', templateType)
+      .or('is_active.eq.true,is_active.is.null')
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return undefined;
+      console.error('Error fetching email template by type:', error);
+      throw new Error(`Failed to fetch email template: ${error.message}`);
+    }
+
+    return data ? toCamelCase(data) as EmailTemplate : undefined;
+  }
+
+  async getSystemEmailTemplateByType(templateType: string): Promise<EmailTemplate | undefined> {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .is('org_id', null)
+      .eq('template_type', templateType)
+      .or('is_active.eq.true,is_active.is.null')
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return undefined;
+      console.error('Error fetching system email template:', error);
+      throw new Error(`Failed to fetch system email template: ${error.message}`);
+    }
+
+    return data ? toCamelCase(data) as EmailTemplate : undefined;
   }
   
   async createEmailTemplate(template: InsertEmailTemplate): Promise<EmailTemplate> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('email_templates')
+      .insert(toSnakeCase(template))
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating email template:', error);
+      throw new Error(`Failed to create email template: ${error.message}`);
+    }
+
+    return toCamelCase(data) as EmailTemplate;
   }
   
   async updateEmailTemplate(templateId: string, orgId: string, template: Partial<InsertEmailTemplate>): Promise<EmailTemplate> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('email_templates')
+      .update(toSnakeCase(template))
+      .eq('id', templateId)
+      .eq('org_id', orgId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating email template:', error);
+      throw new Error(`Failed to update email template: ${error.message}`);
+    }
+
+    return toCamelCase(data) as EmailTemplate;
   }
   
   async deleteEmailTemplate(templateId: string, orgId: string): Promise<void> {
-    throw new Error('Method not implemented.');
+    const { error } = await supabase
+      .from('email_templates')
+      .delete()
+      .eq('id', templateId)
+      .eq('org_id', orgId);
+
+    if (error) {
+      console.error('Error deleting email template:', error);
+      throw new Error(`Failed to delete email template: ${error.message}`);
+    }
   }
   
-  async getEmailEvents(orgId: string, options?: any): Promise<EmailEvent[]> {
-    throw new Error('Method not implemented.');
+  async getEmailEvents(orgId: string, options?: { limit?: number; eventType?: string; status?: string }): Promise<EmailEvent[]> {
+    let query = supabase
+      .from('email_events')
+      .select('*')
+      .eq('org_id', orgId)
+      .order('sent_at', { ascending: false });
+
+    if (options?.limit) {
+      query = query.limit(options.limit);
+    }
+    if (options?.eventType) {
+      query = query.eq('event_type', options.eventType);
+    }
+    if (options?.status) {
+      query = query.eq('status', options.status);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching email events:', error);
+      throw new Error(`Failed to fetch email events: ${error.message}`);
+    }
+
+    return data ? data.map(e => toCamelCase(e) as EmailEvent) : [];
   }
   
   async createEmailEvent(event: InsertEmailEvent): Promise<EmailEvent> {
-    throw new Error('Method not implemented.');
+    const { data, error } = await supabase
+      .from('email_events')
+      .insert(toSnakeCase(event))
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating email event:', error);
+      throw new Error(`Failed to create email event: ${error.message}`);
+    }
+
+    return toCamelCase(data) as EmailEvent;
   }
   
   async getMessagesPaginated(params: {

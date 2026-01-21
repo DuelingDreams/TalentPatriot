@@ -1,14 +1,16 @@
 export { 
   sendEmail, 
-  sendTemplateEmail,
+  sendDatabaseTemplateEmail,
   sendBetaConfirmationEmail,
+  renderTemplateVariables,
   resend, 
   EMAIL_FROM, 
   SUPPORT_EMAIL,
-  RESEND_TEMPLATES,
+  TEMPLATE_TYPES,
   type EmailResult,
-  type TemplateEmailParams,
+  type DatabaseTemplateEmailParams,
 } from './resend';
+export { SYSTEM_TEMPLATES, type SystemTemplate } from './system-templates';
 export { 
   betaConfirmationTemplate,
   betaApprovalTemplate,

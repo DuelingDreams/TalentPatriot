@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import type { EmailTemplate } from '@shared/schema';
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -11,14 +12,28 @@ export const resend = resendApiKey ? new Resend(resendApiKey) : null;
 export const EMAIL_FROM = 'TalentPatriot <contact@talentpatriot.com>';
 export const SUPPORT_EMAIL = 'support@talentpatriot.com';
 
-export const RESEND_TEMPLATES = {
-  BETA_APPLICATION_CONFIRMATION: 'beta-application-confirmation',
+export const TEMPLATE_TYPES = {
+  BETA_APPLICATION_CONFIRMATION: 'beta_application_confirmation',
+  APPLICATION_RECEIVED: 'application_received',
+  INTERVIEW_INVITATION: 'interview_invitation',
+  STATUS_UPDATE: 'status_update',
+  OFFER_LETTER: 'offer_letter',
+  WELCOME: 'welcome',
 } as const;
 
 export interface EmailResult {
   success: boolean;
   messageId?: string;
   error?: string;
+}
+
+export function renderTemplateVariables(html: string, variables: Record<string, string | number>): string {
+  let rendered = html;
+  for (const [key, value] of Object.entries(variables)) {
+    const regex = new RegExp(`\\{\\{\\s*${key}\\s*\\}\\}`, 'g');
+    rendered = rendered.replace(regex, String(value));
+  }
+  return rendered;
 }
 
 export async function sendEmail(params: {
@@ -61,61 +76,47 @@ export async function sendEmail(params: {
   }
 }
 
-export interface TemplateEmailParams {
+export interface DatabaseTemplateEmailParams {
   to: string | string[];
-  templateId: string;
+  template: EmailTemplate;
   variables: Record<string, string | number>;
   from?: string;
   replyTo?: string;
-  subject?: string;
+  subjectOverride?: string;
 }
 
-export async function sendTemplateEmail(params: TemplateEmailParams): Promise<EmailResult> {
+export async function sendDatabaseTemplateEmail(params: DatabaseTemplateEmailParams): Promise<EmailResult> {
   const { 
     to, 
-    templateId, 
+    template,
     variables, 
     from = EMAIL_FROM, 
     replyTo = SUPPORT_EMAIL,
-    subject 
+    subjectOverride 
   } = params;
 
-  if (!resend) {
-    console.log('[Email] Would send template email:', { to, templateId, variables });
-    return { success: true, messageId: 'mock-template-' + Date.now() };
+  const subject = subjectOverride || template.fallbackSubject;
+  const htmlContent = template.fallbackHtml;
+
+  if (!subject) {
+    console.error('[Email] Template missing subject:', template.templateType);
+    return { success: false, error: 'Email template is missing a subject line' };
   }
 
-  try {
-    const emailPayload: any = {
-      from,
-      to: Array.isArray(to) ? to : [to],
-      replyTo,
-      template: {
-        id: templateId,
-        variables,
-      },
-    };
-    
-    if (subject) {
-      emailPayload.subject = subject;
-    }
-    
-    const result = await resend.emails.send(emailPayload);
-
-    if (result.error) {
-      console.error('[Email] Template send error:', result.error);
-      return { success: false, error: result.error.message };
-    }
-
-    console.info('[Email] Template email sent:', { to, templateId, messageId: result.data?.id });
-    return { success: true, messageId: result.data?.id };
-  } catch (error) {
-    console.error('[Email] Template send exception:', error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    };
+  if (!htmlContent) {
+    console.error('[Email] Template missing HTML content:', template.templateType);
+    return { success: false, error: 'Email template is missing HTML content' };
   }
+
+  const html = renderTemplateVariables(htmlContent, variables);
+
+  return sendEmail({
+    to,
+    subject,
+    html,
+    from,
+    replyTo,
+  });
 }
 
 export async function sendBetaConfirmationEmail(params: {
@@ -124,23 +125,14 @@ export async function sendBetaConfirmationEmail(params: {
 }): Promise<EmailResult> {
   const { to, firstName } = params;
   
-  const templateId = process.env.RESEND_BETA_CONFIRMATION_TEMPLATE_ID;
+  const { SYSTEM_TEMPLATES } = await import('./system-templates');
+  const template = SYSTEM_TEMPLATES.BETA_APPLICATION_CONFIRMATION;
   
-  if (!templateId) {
-    console.warn('[Email] RESEND_BETA_CONFIRMATION_TEMPLATE_ID not set, using fallback HTML');
-    const { betaConfirmationTemplate } = await import('./templates');
-    return sendEmail({
-      to,
-      subject: 'Thanks for Applying to TalentPatriot Beta!',
-      html: betaConfirmationTemplate({ contactName: firstName, companyName: '' }),
-    });
-  }
-
-  return sendTemplateEmail({
+  const html = renderTemplateVariables(template.html, { first_name: firstName });
+  
+  return sendEmail({
     to,
-    templateId,
-    variables: {
-      first_name: firstName,
-    },
+    subject: template.subject,
+    html,
   });
 }
