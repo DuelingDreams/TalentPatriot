@@ -158,6 +158,65 @@ export function welcomeTemplate(data: WelcomeData): string {
   `);
 }
 
+export interface BetaApplicationNotificationData {
+  contactName: string;
+  email: string;
+  companyName: string;
+  companySize: string;
+  role: string;
+  painPoints: string;
+  currentAts?: string;
+  expectations?: string;
+  adminDashboardUrl: string;
+}
+
+export function betaApplicationNotificationTemplate(data: BetaApplicationNotificationData): string {
+  return wrapTemplate(`
+    <h2 style="color: #1E3A5F; margin-bottom: 24px;">New Beta Application Received</h2>
+    
+    <p>A new beta application has been submitted and is ready for your review:</p>
+    
+    <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin: 0 0 16px 0; color: #1E3A5F;">Contact Details</h3>
+      <p style="margin: 8px 0;"><strong>Name:</strong> ${data.contactName}</p>
+      <p style="margin: 8px 0;"><strong>Email:</strong> <a href="mailto:${data.email}" style="color: #14B8A6;">${data.email}</a></p>
+      <p style="margin: 8px 0;"><strong>Role:</strong> ${data.role}</p>
+    </div>
+    
+    <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="margin: 0 0 16px 0; color: #1E3A5F;">Company Information</h3>
+      <p style="margin: 8px 0;"><strong>Company:</strong> ${data.companyName}</p>
+      <p style="margin: 8px 0;"><strong>Size:</strong> ${data.companySize}</p>
+      ${data.currentAts ? `<p style="margin: 8px 0;"><strong>Current ATS:</strong> ${data.currentAts}</p>` : ''}
+    </div>
+    
+    <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f97316;">
+      <h3 style="margin: 0 0 12px 0; color: #c2410c;">Pain Points</h3>
+      <p style="margin: 0; white-space: pre-wrap;">${data.painPoints}</p>
+    </div>
+    
+    ${data.expectations ? `
+    <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #22c55e;">
+      <h3 style="margin: 0 0 12px 0; color: #15803d;">Expectations</h3>
+      <p style="margin: 0; white-space: pre-wrap;">${data.expectations}</p>
+    </div>
+    ` : ''}
+    
+    <p><strong>Next Steps:</strong></p>
+    <ol style="padding-left: 20px;">
+      <li>Schedule a discovery call with the applicant</li>
+      <li>After the call, approve their application in the admin dashboard</li>
+      <li>They'll receive an invite email with their onboarding link</li>
+    </ol>
+    
+    <div style="text-align: center;">
+      <a href="${data.adminDashboardUrl}" style="${buttonStyles}">View in Admin Dashboard</a>
+    </div>
+    
+    <p style="margin-top: 32px; color: #6b7280; font-size: 14px;">This is an automated notification from TalentPatriot.</p>
+  `);
+}
+
 export interface ApprovalNotificationData {
   adminName: string;
   requestType: string;

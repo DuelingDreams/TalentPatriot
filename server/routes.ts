@@ -5623,7 +5623,7 @@ Expires: 2025-12-31T23:59:59.000Z
         status: 'pending',
       });
       
-      // Send confirmation email
+      // Send confirmation email to applicant
       try {
         await sendEmail({
           to: validatedData.email,
@@ -5636,6 +5636,29 @@ Expires: 2025-12-31T23:59:59.000Z
         console.info('[API] Beta confirmation email sent to:', validatedData.email);
       } catch (emailError) {
         console.error('[API] Failed to send beta confirmation email:', emailError);
+      }
+
+      // Send notification email to admin for discovery call scheduling
+      try {
+        const { betaApplicationNotificationTemplate } = await import('./services/email/templates');
+        await sendEmail({
+          to: 'contact@talentpatriot.com',
+          subject: `New Beta Application: ${validatedData.companyName}`,
+          html: betaApplicationNotificationTemplate({
+            contactName: validatedData.contactName,
+            email: validatedData.email,
+            companyName: validatedData.companyName,
+            companySize: validatedData.companySize,
+            role: validatedData.role,
+            painPoints: validatedData.painPoints,
+            currentAts: validatedData.currentAts,
+            expectations: validatedData.expectations,
+            adminDashboardUrl: `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'https://talentpatriot.com'}/admin/beta-applications`,
+          }),
+        });
+        console.info('[API] Beta application notification sent to admin');
+      } catch (emailError) {
+        console.error('[API] Failed to send admin notification email:', emailError);
       }
       
       console.info('[API] POST /api/beta/apply →', { success: true, id: betaApplication.id });
