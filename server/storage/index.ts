@@ -6,6 +6,7 @@ import type { ICommunicationsRepository } from './communications/interface';
 import type { IImportsRepository } from './imports/interface';
 import type { IAnalyticsRepository } from './analytics/interface';
 import type { IBetaRepository } from './beta/interface';
+import type { IApprovalRepository } from './approvals/interface';
 
 // Import all domain implementations
 import { AuthRepository } from './auth/repository';
@@ -15,6 +16,7 @@ import { CommunicationsRepository } from './communications/repository';
 import { ImportsRepository } from './imports/repository';
 import { AnalyticsRepository } from './analytics/repository';
 import { BetaRepository } from './beta/repository';
+import { ApprovalRepository } from './approvals/repository';
 
 // Main storage interface aggregating all domain repositories
 export interface IStorage {
@@ -26,6 +28,7 @@ export interface IStorage {
   imports: IImportsRepository;
   analytics: IAnalyticsRepository;
   beta: IBetaRepository;
+  approvals: IApprovalRepository;
 }
 
 // Re-export all domain interfaces
@@ -36,6 +39,7 @@ export type { ICommunicationsRepository } from './communications/interface';
 export type { IImportsRepository } from './imports/interface';
 export type { IAnalyticsRepository } from './analytics/interface';
 export type { IBetaRepository } from './beta/interface';
+export type { IApprovalRepository } from './approvals/interface';
 
 // Re-export all domain implementations
 export { AuthRepository } from './auth/repository';
@@ -45,6 +49,7 @@ export { CommunicationsRepository } from './communications/repository';
 export { ImportsRepository } from './imports/repository';
 export { AnalyticsRepository } from './analytics/repository';
 export { BetaRepository } from './beta/repository';
+export { ApprovalRepository } from './approvals/repository';
 
 // Main DatabaseStorage implementation
 export class DatabaseStorage implements IStorage {
@@ -55,6 +60,7 @@ export class DatabaseStorage implements IStorage {
   public readonly imports: IImportsRepository;
   public readonly analytics: IAnalyticsRepository;
   public readonly beta: IBetaRepository;
+  public readonly approvals: IApprovalRepository;
 
   constructor() {
     this.auth = new AuthRepository();
@@ -64,6 +70,7 @@ export class DatabaseStorage implements IStorage {
     this.imports = new ImportsRepository();
     this.analytics = new AnalyticsRepository();
     this.beta = new BetaRepository();
+    this.approvals = new ApprovalRepository();
   }
 }
 

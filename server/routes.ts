@@ -44,6 +44,7 @@ import crypto from "crypto";
 import { ImportService } from './lib/importService';
 import { toCamelCase } from '../shared/utils/caseConversion';
 import { renderMergeFields, type MergeFieldContext } from '../shared/utils/mergeFields';
+import { sendEmail, betaConfirmationTemplate, betaApprovalTemplate } from './services/email';
 
 import { 
   type AuthenticatedRequest, 
@@ -5431,6 +5432,21 @@ Expires: 2025-12-31T23:59:59.000Z
         status: 'pending',
       });
       
+      // Send confirmation email
+      try {
+        await sendEmail({
+          to: validatedData.email,
+          subject: 'Thank You for Applying to TalentPatriot Beta!',
+          html: betaConfirmationTemplate({
+            contactName: validatedData.contactName,
+            companyName: validatedData.companyName,
+          }),
+        });
+        console.info('[API] Beta confirmation email sent to:', validatedData.email);
+      } catch (emailError) {
+        console.error('[API] Failed to send beta confirmation email:', emailError);
+      }
+      
       console.info('[API] POST /api/beta/apply →', { success: true, id: betaApplication.id });
       res.status(201).json({ 
         success: true, 
@@ -5514,6 +5530,9 @@ Expires: 2025-12-31T23:59:59.000Z
       
       const validatedData = updateBetaApplicationSchema.parse(req.body);
       
+      // Get original application for email sending
+      const originalApplication = await storage.beta.getBetaApplication(id);
+      
       // Add review timestamp and reviewer if status is being changed
       const updateData = { ...validatedData };
       if (validatedData.status && validatedData.status !== 'pending') {
@@ -5522,6 +5541,28 @@ Expires: 2025-12-31T23:59:59.000Z
       }
       
       const updatedApplication = await storage.beta.updateBetaApplication(id, updateData);
+      
+      // Send approval email if status changed to 'approved'
+      if (validatedData.status === 'approved' && originalApplication && originalApplication.status !== 'approved') {
+        try {
+          const baseUrl = process.env.REPLIT_DEV_DOMAIN 
+            ? `https://${process.env.REPLIT_DEV_DOMAIN}` 
+            : 'https://talentpatriot.com';
+          
+          await sendEmail({
+            to: originalApplication.email,
+            subject: 'You\'re Approved! Welcome to TalentPatriot Beta 🎉',
+            html: betaApprovalTemplate({
+              contactName: originalApplication.contactName,
+              companyName: originalApplication.companyName,
+              onboardingUrl: `${baseUrl}/onboarding/step1?beta=${id}`,
+            }),
+          });
+          console.info('[API] Beta approval email sent to:', originalApplication.email);
+        } catch (emailError) {
+          console.error('[API] Failed to send beta approval email:', emailError);
+        }
+      }
       
       // Return the application data as-is (storage layer handles normalization)
       const normalizedApplication = updatedApplication;
@@ -5572,6 +5613,187 @@ Expires: 2025-12-31T23:59:59.000Z
         return res.status(404).json({ error: "Beta application not found", details: errorMessage });
       }
       res.status(500).json({ error: "Failed to delete beta application", details: errorMessage });
+    }
+  });
+
+  // =============================================================================
+  // ADMIN INBOX / APPROVAL REQUESTS ROUTES
+  // =============================================================================
+
+  // Get approval requests for organization (Admin Inbox)
+  app.get("/api/admin/inbox", requireAuth, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required in x-org-id header' });
+      }
+
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const status = req.query.status as string | undefined;
+      const approvalRequests = await storage.approvals.getApprovalRequestsByOrg(orgId, status);
+      
+      console.info('[API] GET /api/admin/inbox →', { success: true, count: approvalRequests.length });
+      res.json(approvalRequests);
+    } catch (error) {
+      console.error('Admin inbox fetch error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch approval requests", details: errorMessage });
+    }
+  });
+
+  // Get pending approval count for organization
+  app.get("/api/admin/inbox/count", requireAuth, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required in x-org-id header' });
+      }
+
+      const count = await storage.approvals.getPendingApprovalCount(orgId);
+      
+      console.info('[API] GET /api/admin/inbox/count →', { success: true, count });
+      res.json({ count });
+    } catch (error) {
+      console.error('Admin inbox count error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to fetch pending count", details: errorMessage });
+    }
+  });
+
+  // Resolve an approval request (approve/reject)
+  const resolveApprovalSchema = z.object({
+    status: z.enum(['approved', 'rejected']),
+    resolutionNotes: z.string().optional(),
+  });
+
+  app.patch("/api/admin/inbox/:id", requireAuth, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
+    try {
+      const { id } = req.params;
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required in x-org-id header' });
+      }
+
+      const userOrgs = await storage.auth.getUserOrganizations(req.user?.id, orgId);
+      const userOrg = userOrgs.length > 0 ? userOrgs[0] : null;
+      if (!userOrg || (userOrg.role !== 'admin' && userOrg.role !== 'owner')) {
+        return res.status(403).json({ error: 'Admin access required' });
+      }
+
+      const validatedData = resolveApprovalSchema.parse(req.body);
+      
+      const updatedRequest = await storage.approvals.resolveApprovalRequest(
+        id,
+        req.user!.id,
+        validatedData.status,
+        validatedData.resolutionNotes
+      );
+
+      // Handle post-approval actions based on request type
+      if (validatedData.status === 'approved') {
+        const request = await storage.approvals.getApprovalRequest(id);
+        if (request) {
+          // Handle different request types
+          if (request.requestType === 'careers_publish') {
+            // Update organization's careers status to published
+            await supabase
+              .from('organizations')
+              .update({ 
+                careers_status: 'published',
+                published_at: new Date().toISOString()
+              })
+              .eq('id', request.orgId);
+          } else if (request.requestType === 'admin_claim') {
+            // Grant admin privileges to the user
+            await supabase
+              .from('user_organizations')
+              .update({ 
+                is_admin: true,
+                admin_claimed_at: new Date().toISOString()
+              })
+              .eq('user_id', request.targetId)
+              .eq('org_id', request.orgId);
+          }
+        }
+      }
+      
+      console.info('[API] PATCH /api/admin/inbox/:id →', { success: true, id, status: validatedData.status });
+      res.json({ 
+        success: true, 
+        message: `Request ${validatedData.status} successfully`,
+        request: updatedRequest 
+      });
+    } catch (error) {
+      console.error('Approval request update error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to update approval request", details: errorMessage });
+    }
+  });
+
+  // Create an approval request (for recruiters requesting publish, admin claims, etc.)
+  const createApprovalSchema = z.object({
+    requestType: z.enum(['onboarding_complete', 'careers_publish', 'admin_claim', 'seat_upgrade', 'team_invite']),
+    targetTable: z.string(),
+    targetId: z.string().uuid(),
+    title: z.string(),
+    description: z.string().optional(),
+    requestedPayload: z.record(z.any()).optional(),
+  });
+
+  app.post("/api/admin/inbox", requireAuth, writeLimiter, async (req: AuthenticatedRequest, res) => {
+    console.info('[API]', req.method, req.url, 'User:', req.user?.email);
+    try {
+      const orgId = req.headers['x-org-id'] as string;
+      
+      if (!orgId) {
+        return res.status(400).json({ error: 'Organization ID required in x-org-id header' });
+      }
+
+      const validatedData = createApprovalSchema.parse(req.body);
+      
+      const approvalRequest = await storage.approvals.createApprovalRequest({
+        orgId,
+        requestType: validatedData.requestType,
+        targetTable: validatedData.targetTable,
+        targetId: validatedData.targetId,
+        title: validatedData.title,
+        description: validatedData.description,
+        requestedBy: req.user!.id,
+        requestedPayload: validatedData.requestedPayload || {},
+        status: 'pending',
+      });
+      
+      console.info('[API] POST /api/admin/inbox →', { success: true, id: approvalRequest.id });
+      res.status(201).json({ 
+        success: true, 
+        message: "Approval request created successfully",
+        request: approvalRequest 
+      });
+    } catch (error) {
+      console.error('Approval request creation error:', error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          error: "Validation failed", 
+          details: error.errors.map(e => `${e.path.join('.')}: ${e.message}`) 
+        });
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      res.status(500).json({ error: "Failed to create approval request", details: errorMessage });
     }
   });
 

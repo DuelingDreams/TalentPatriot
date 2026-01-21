@@ -1,7 +1,7 @@
 import { pgTable, text, uuid, timestamp, varchar, boolean, integer, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { userRoleEnum, orgRoleEnum } from "./enums";
+import { userRoleEnum, orgRoleEnum, onboardingStatusEnum, careersStatusEnum, membershipStatusEnum } from "./enums";
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -11,6 +11,9 @@ export const organizations = pgTable("organizations", {
   slug: text("slug"),
   seatsPurchased: integer("seats_purchased").default(0).notNull(),
   planTier: varchar("plan_tier", { length: 50 }).default('starter'),
+  onboardingStatus: onboardingStatusEnum("onboarding_status").default('not_started'),
+  careersStatus: careersStatusEnum("careers_status").default('draft'),
+  publishedAt: timestamp("published_at"),
 }, (table) => ({
   uniqueSlug: uniqueIndex("unique_org_slug").on(table.slug),
 }));
@@ -50,6 +53,15 @@ export const userOrganizations = pgTable("user_organizations", {
   role: orgRoleEnum("role").notNull(),
   isRecruiterSeat: boolean("is_recruiter_seat").default(false).notNull(),
   joinedAt: timestamp("joined_at").defaultNow().notNull(),
+  status: membershipStatusEnum("status").default('active'),
+  isAdmin: boolean("is_admin").default(false),
+  adminClaim: boolean("admin_claim").default(false),
+  isBillableSeat: boolean("is_billable_seat").default(false),
+  invitedBy: uuid("invited_by"),
+  inviteStatus: text("invite_status").default('accepted'),
+  invitedAt: timestamp("invited_at").defaultNow(),
+  statusUpdatedAt: timestamp("status_updated_at").defaultNow(),
+  adminClaimedAt: timestamp("admin_claimed_at"),
 }, (table) => ({
   uniqueUserOrg: uniqueIndex("unique_user_org").on(table.userId, table.orgId),
 }));

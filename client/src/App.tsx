@@ -65,6 +65,7 @@ const IntegrationsSettings = lazy(() => import("@/features/settings/pages/Integr
 const Settings = lazy(() => import("@/features/settings/pages/Settings"));
 const BetaProgram = lazy(() => import("@/features/public/pages/BetaProgram"));
 const BetaApplicationsAdmin = lazy(() => import("@/features/admin/pages/BetaApplicationsAdmin"));
+const AdminInbox = lazy(() => import("@/features/admin/pages/AdminInbox"));
 const ResumeParsingDemo = lazy(() => import("@/features/public/pages/ResumeParsingDemo"));
 const EmailSettingsAdmin = lazy(() => import("@/features/admin/pages/EmailSettingsAdmin"));
 const DataImport = lazy(() => import("@/features/admin/pages/DataImport"));
@@ -315,6 +316,13 @@ function Router() {
         <Route path="/admin/beta-applications">
           <ProtectedRoute type="route">
             <BetaApplicationsAdmin />
+          </ProtectedRoute>
+        </Route>
+        
+        {/* Admin inbox for approval requests */}
+        <Route path="/admin/inbox">
+          <ProtectedRoute type="route">
+            <AdminInbox />
           </ProtectedRoute>
         </Route>
         

@@ -19,3 +19,8 @@ export const channelTypeEnum = pgEnum('channel_type', ['internal', 'email', 'cli
 export const calendarEventStatusEnum = pgEnum('calendar_event_status', ['confirmed', 'tentative', 'cancelled']);
 export const parsingStatusEnum = pgEnum('parsing_status', ['pending', 'processing', 'completed', 'failed']);
 export const connectionHealthEnum = pgEnum('connection_health', ['healthy', 'needs_reconnect', 'error', 'unknown']);
+
+export const onboardingStatusEnum = pgEnum('onboarding_status_enum', ['not_started', 'profile_incomplete', 'awaiting_admin', 'ready_to_launch', 'live']);
+export const careersStatusEnum = pgEnum('careers_status_enum', ['draft', 'review_requested', 'published', 'paused', 'archived']);
+export const membershipStatusEnum = pgEnum('membership_status_enum', ['pending', 'active', 'suspended', 'revoked']);
+export const brandingChannelEnum = pgEnum('branding_channel_enum', ['careers', 'email', 'portal']);
