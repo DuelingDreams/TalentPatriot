@@ -55,7 +55,7 @@ export default function OrganizationSettings() {
   const [aboutText, setAboutText] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
 
-  const isAdmin = userRole === 'admin' || userRole === 'hiring_manager'
+  const isAdmin = userRole === 'admin' || userRole === 'owner' || userRole === 'hiring_manager'
 
   const { data: orgInfo, isLoading: orgLoading } = useQuery<OrganizationInfo>({
     queryKey: ['/api/organizations/current'],

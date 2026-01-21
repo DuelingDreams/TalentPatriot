@@ -41,7 +41,7 @@ export default function OnboardingReview() {
   const queryClient = useQueryClient()
   const [launchComplete, setLaunchComplete] = useState(false)
 
-  const isAdmin = userRole === 'admin' || userRole === 'hiring_manager'
+  const isAdmin = userRole === 'admin' || userRole === 'owner' || userRole === 'hiring_manager'
 
   const { data: orgInfo } = useQuery<OrganizationInfo>({
     queryKey: ['/api/organizations/current'],

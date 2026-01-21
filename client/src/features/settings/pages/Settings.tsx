@@ -31,14 +31,14 @@ const settingsSections = [
     description: 'Configure organization details, branding, and team members',
     href: '/settings/organization',
     icon: Building2,
-    roles: ['admin']
+    roles: ['admin', 'owner', 'hiring_manager']
   },
   {
     title: 'Integrations',
     description: 'Connect third-party services and manage API access',
     href: '/settings/integrations',
     icon: Puzzle,
-    roles: ['admin']
+    roles: ['admin', 'owner']
   }
 ]
 
