@@ -10,7 +10,9 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   userRole: string | null
+  orgRole: string | null
   currentOrgId: string | null
+  organizationId: string | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signUp: (email: string, password: string, role?: string, orgId?: string) => Promise<{ error: any }>
@@ -18,6 +20,7 @@ interface AuthContextType {
   signOut: () => Promise<void>
   updateUserRole: (role: string) => Promise<{ error: any }>
   setCurrentOrgId: (orgId: string) => Promise<{ error: any }>
+  refreshOrgRole: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -26,8 +29,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
+  const [orgRole, setOrgRole] = useState<string | null>(null)
   const [currentOrgId, setCurrentOrgIdState] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const fetchOrgRole = async (userId: string, orgId: string): Promise<string | null> => {
+    try {
+      const response = await fetch(`/api/users/${userId}/organizations`)
+      if (response.ok) {
+        const orgs = await response.json()
+        const currentOrg = orgs.find((o: any) => o.orgId === orgId || o.org_id === orgId)
+        if (currentOrg) {
+          return currentOrg.role || null
+        }
+      }
+    } catch (error) {
+      console.warn('[Auth] Failed to fetch org role:', error)
+    }
+    return null
+  }
 
   useEffect(() => {
     let mounted = true
@@ -58,23 +78,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             })
           } else {
             // Regular user: get role from user metadata
-            const role = session.user.user_metadata?.role || 'hiring_manager'
+            const role = session.user.user_metadata?.role || 'user'
             const orgId = session.user.user_metadata?.currentOrgId
             setUserRole(role)
 
             // Use the user's actual organization ID from their metadata
-            if (orgId) {
-              setCurrentOrgIdState(orgId)
-              safeStorageOperation(() => {
-                sessionStorage.setItem('currentOrgId', orgId)
-              })
-            } else {
-              // If no orgId in metadata, fallback to development org for testing
-              const developmentOrgId = DEV_ORG_ID
-              setCurrentOrgIdState(developmentOrgId)
-              safeStorageOperation(() => {
-                sessionStorage.setItem('currentOrgId', developmentOrgId)
-              })
+            const effectiveOrgId = orgId || DEV_ORG_ID
+            setCurrentOrgIdState(effectiveOrgId)
+            safeStorageOperation(() => {
+              sessionStorage.setItem('currentOrgId', effectiveOrgId)
+            })
+
+            // Fetch org-level role from user_organizations table
+            const fetchedOrgRole = await fetchOrgRole(session.user.id, effectiveOrgId)
+            if (mounted) {
+              setOrgRole(fetchedOrgRole)
             }
           }
         } else if (isDevelopment()) {
@@ -84,10 +102,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (devAuth) {
             setUser(devAuth.user as any)
             setUserRole(devAuth.userRole)
+            setOrgRole(devAuth.userRole) // In dev mode, use same role
             setCurrentOrgIdState(devAuth.orgId)
           }
         } else {
           setUserRole(null)
+          setOrgRole(null)
           setCurrentOrgIdState(null)
         }
       } catch (error) {
@@ -100,6 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (devAuth) {
             setUser(devAuth.user as any)
             setUserRole(devAuth.userRole)
+            setOrgRole(devAuth.userRole)
             setCurrentOrgIdState(devAuth.orgId)
           }
         } else {
@@ -107,6 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(null)
           setUser(null)
           setUserRole(null)
+          setOrgRole(null)
           setCurrentOrgIdState(null)
         }
       } finally {
@@ -125,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null)
         setUser(null)
         setUserRole(null)
+        setOrgRole(null)
         setCurrentOrgIdState(null)
       }
     })
@@ -142,6 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(null)
           setUser(null)
           setUserRole(null)
+          setOrgRole(null)
           setCurrentOrgIdState(null)
           safeStorageOperation(() => {
             sessionStorage.removeItem('currentOrgId')
@@ -173,27 +197,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               })
             } else {
               // For regular users, get role from user metadata
-              const role = session.user.user_metadata?.role || 'hiring_manager'
+              const role = session.user.user_metadata?.role || 'user'
               const orgId = session.user.user_metadata?.currentOrgId
               setUserRole(role)
 
               // Use the user's actual organization ID from their metadata
-              if (orgId) {
-                setCurrentOrgIdState(orgId)
-                safeStorageOperation(() => {
-                  sessionStorage.setItem('currentOrgId', orgId)
-                })
-              } else {
-                // If no orgId in metadata, fallback to development org for testing
-                const developmentOrgId = '90531171-d56b-4732-baba-35be47b0cb08'
-                setCurrentOrgIdState(developmentOrgId)
-                safeStorageOperation(() => {
-                  sessionStorage.setItem('currentOrgId', developmentOrgId)
-                })
+              const effectiveOrgId = orgId || DEV_ORG_ID
+              setCurrentOrgIdState(effectiveOrgId)
+              safeStorageOperation(() => {
+                sessionStorage.setItem('currentOrgId', effectiveOrgId)
+              })
+
+              // Fetch org-level role from user_organizations table
+              const fetchedOrgRole = await fetchOrgRole(session.user.id, effectiveOrgId)
+              if (mounted) {
+                setOrgRole(fetchedOrgRole)
               }
             }
           } else {
             setUserRole(null)
+            setOrgRole(null)
             setCurrentOrgIdState(null)
             safeStorageOperation(() => {
               sessionStorage.removeItem('currentOrgId')
@@ -207,7 +230,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.warn('Auth state change error safely handled:', error)
           // Set safe defaults only if component is still mounted
           if (mounted) {
-            setUserRole(session?.user ? 'hiring_manager' : null)
+            setUserRole(session?.user ? 'user' : null)
+            setOrgRole(null)
             setCurrentOrgIdState(null)
             setLoading(false)
           }
@@ -377,11 +401,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const refreshOrgRole = async () => {
+    if (user?.id && currentOrgId) {
+      const fetchedOrgRole = await fetchOrgRole(user.id, currentOrgId)
+      setOrgRole(fetchedOrgRole)
+    }
+  }
+
   const value = {
     user,
     session,
     userRole,
+    orgRole,
     currentOrgId,
+    organizationId: currentOrgId,
     loading,
     signIn,
     signUp,
@@ -389,6 +422,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     updateUserRole,
     setCurrentOrgId,
+    refreshOrgRole,
   }
 
   return (

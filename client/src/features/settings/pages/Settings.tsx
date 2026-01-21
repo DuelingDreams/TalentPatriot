@@ -43,10 +43,12 @@ const settingsSections = [
 ]
 
 export default function Settings() {
-  const { userRole } = useAuth()
+  const { orgRole, userRole } = useAuth()
 
+  // Use orgRole for org-level permissions, fallback to userRole for platform-level
+  const effectiveRole = orgRole || userRole
   const filteredSections = settingsSections.filter(section => 
-    !userRole || section.roles.includes(userRole)
+    !effectiveRole || section.roles.includes(effectiveRole)
   )
 
   return (

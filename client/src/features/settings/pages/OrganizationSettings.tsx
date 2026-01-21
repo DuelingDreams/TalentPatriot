@@ -45,7 +45,7 @@ const colorPresets = [
 ]
 
 export default function OrganizationSettings() {
-  const { organizationId, userRole } = useAuth()
+  const { organizationId, userRole, orgRole } = useAuth()
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
@@ -55,7 +55,9 @@ export default function OrganizationSettings() {
   const [aboutText, setAboutText] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
 
-  const isAdmin = userRole === 'admin' || userRole === 'owner' || userRole === 'hiring_manager'
+  // Use orgRole for org-level permissions
+  const effectiveRole = orgRole || userRole
+  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'owner' || effectiveRole === 'hiring_manager'
 
   const { data: orgInfo, isLoading: orgLoading } = useQuery<OrganizationInfo>({
     queryKey: ['/api/organizations/current'],

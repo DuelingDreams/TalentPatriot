@@ -35,13 +35,15 @@ type BrandingInfo = {
 }
 
 export default function OnboardingReview() {
-  const { user, organizationId, userRole } = useAuth()
+  const { user, organizationId, userRole, orgRole } = useAuth()
   const [, setLocation] = useLocation()
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [launchComplete, setLaunchComplete] = useState(false)
 
-  const isAdmin = userRole === 'admin' || userRole === 'owner' || userRole === 'hiring_manager'
+  // Use orgRole for org-level permissions
+  const effectiveRole = orgRole || userRole
+  const isAdmin = effectiveRole === 'admin' || effectiveRole === 'owner' || effectiveRole === 'hiring_manager'
 
   const { data: orgInfo } = useQuery<OrganizationInfo>({
     queryKey: ['/api/organizations/current'],
