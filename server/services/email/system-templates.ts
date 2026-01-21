@@ -69,7 +69,7 @@ export const SYSTEM_TEMPLATES: Record<string, SystemTemplate> = {
                               <span>As a beta user, you'll have direct access to our team for feedback and support. We're excited to have you on board!</span>
                             </p>
                             <p style="margin: 0; padding: 0; font-size: 1em; padding-top: 1em; padding-bottom: 0.5em;">
-                              <span>Questions? Reply to this email or reach us at <a href="mailto:contact@talentpatriot.com" style="color: #14B8A6;">contact@talentpatriot.com</a>.</span>
+                              <span>Questions? Reply to this email or reach us at <a href="mailto:support@talentpatriot.com" style="color: #14B8A6;">support@talentpatriot.com</a>.</span>
                             </p>
                             <p style="margin: 0; padding: 0; font-size: 1em; padding-top: 1em; padding-bottom: 0.5em;">
                               <span>—</span>
@@ -97,7 +97,7 @@ export const SYSTEM_TEMPLATES: Record<string, SystemTemplate> = {
   },
   BETA_APPLICATION_CONFIRMATION: {
     type: 'beta_application_confirmation',
-    subject: 'Thanks for Applying to TalentPatriot Beta!',
+    subject: 'Thanks for applying for TalentPatriot Beta',
     variables: ['first_name'],
     html: `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
@@ -175,7 +175,7 @@ export const SYSTEM_TEMPLATES: Record<string, SystemTemplate> = {
                               <br />
                             </p>
                             <p style="margin: 0; padding: 0; font-size: 1em; padding-top: 0.5em; padding-bottom: 0.5em;">
-                              <span>If you have any questions in the meantime, feel free to reply to this email or reach us at <a href="mailto:contact@talentpatriot.com" style="color: #14B8A6;">contact@talentpatriot.com</a>.</span>
+                              <span>If you have any questions in the meantime, feel free to reply to this email or reach us at <a href="mailto:support@talentpatriot.com" style="color: #14B8A6;">support@talentpatriot.com</a>.</span>
                             </p>
                             <p style="margin: 0; padding: 0; font-size: 1em; padding-top: 0.5em; padding-bottom: 0.5em;">
                               <br />
