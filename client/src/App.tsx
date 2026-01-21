@@ -65,6 +65,7 @@ const ProfileSettings = lazy(() => import("@/features/organization/pages/Profile
 const AccountSettings = lazy(() => import("@/features/organization/pages/AccountSettings"));
 const IntegrationsSettings = lazy(() => import("@/features/settings/pages/IntegrationsSettings"));
 const Settings = lazy(() => import("@/features/settings/pages/Settings"));
+const OrganizationSettings = lazy(() => import("@/features/settings/pages/OrganizationSettings"));
 const BetaProgram = lazy(() => import("@/features/public/pages/BetaProgram"));
 const BetaApplicationsAdmin = lazy(() => import("@/features/admin/pages/BetaApplicationsAdmin"));
 const AdminInbox = lazy(() => import("@/features/admin/pages/AdminInbox"));
@@ -192,7 +193,7 @@ function Router() {
         {/* Protected routes */}
         <Route path="/settings/organization">
           <ProtectedRoute type="route">
-            <OrganizationSetup />
+            <OrganizationSettings />
           </ProtectedRoute>
         </Route>
         <Route path="/dashboard">
