@@ -1200,7 +1200,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           .order('candidates_hired', { ascending: false }),
         
         supabaseAdmin
-          .from('vw_client_performance')
+          .from('mv_client_performance')
           .select('*')
           .eq('org_id', orgId)
           .order('total_jobs', { ascending: false })
