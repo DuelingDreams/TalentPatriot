@@ -21,3 +21,15 @@ export {
   type WelcomeData,
   type ApprovalNotificationData,
 } from './templates';
+
+export {
+  sendNewApplicationNotification,
+  sendInterviewInvitation,
+  sendInterviewReminder,
+  sendStatusUpdate,
+  sendWelcomeEmail,
+  sendJobOffer,
+  sendMessageAlert,
+  sendEventReminder,
+  sendTeamAlert,
+} from './ats-emails';

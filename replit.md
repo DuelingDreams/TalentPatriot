@@ -224,13 +224,14 @@ Build in separate Replit project.
 - **Image Upload**: Multer.
 - **Security**: HaveIBeenPwned.org.
 - **OAuth Providers**: Google, Microsoft.
-- **Email Service**: SendGrid.
+- **Email Service**: Resend (noreply@support.talentpatriot.com).
 - **AI**: OpenAI GPT-4o.
 - **Google APIs**: googleapis npm package for Calendar, Meet, and FreeBusy API.
 
 # Recent Changes
 
 ## January 2026
+- **Email Migration**: Migrated from SendGrid to Resend for all email functionality. ATS email functions now in `server/services/email/ats-emails.ts`
 - **Brand Color Update**: Added cyan (#0EA5E9) as official brand highlight color matching the TalentPatriot logo
 - **Public Pages Refresh**: Updated Landing and About pages with modern gradient backgrounds, cyan accents, and consistent styling
 - **Design Token Expansion**: Added tp-cyan tokens to CSS variables and Tailwind config

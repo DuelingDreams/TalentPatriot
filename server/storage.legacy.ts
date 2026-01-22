@@ -58,7 +58,7 @@ import {
   type InsertImportRecord
 } from "@shared/schema";
 import { createClient } from '@supabase/supabase-js';
-import { atsEmailService } from './emailService';
+import { sendNewApplicationNotification } from './services/email';
 import { resumeParsingService, type ParsedResumeData } from './resumeParser';
 
 // Dashboard stats return type
@@ -3015,7 +3015,7 @@ export class DatabaseStorage implements IStorage {
               // Get real user email from Supabase Auth
               const email = await getUserEmailFromAuth(userProfile.id);
               if (email) {
-                await atsEmailService.sendNewApplicationNotification(
+                await sendNewApplicationNotification(
                   email,
                   candidate.name,
                   job.title,
@@ -3023,13 +3023,8 @@ export class DatabaseStorage implements IStorage {
                   {
                     candidateEmail: candidate.email,
                     candidatePhone: candidate.phone || undefined,
-                    candidateLocation: undefined, // Could be added to candidate model later
                     applicationDate: new Date().toLocaleDateString(),
-                    candidateExperience: undefined, // Could be parsed from resume
                     resumeUrl: candidate.resumeUrl || undefined,
-                    candidateProfileUrl: undefined, // Could be a frontend URL
-                    organizationLogo: undefined, // Could be added to organization model
-                    organizationAddress: undefined, // Could be added to organization model
                   }
                 );
                 console.log(`Email notification sent to ${email} for new application by ${candidate.name}`);
