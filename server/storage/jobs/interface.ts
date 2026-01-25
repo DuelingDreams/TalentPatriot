@@ -90,27 +90,7 @@ export interface IJobsRepository {
   getPipelineColumns(orgId: string): Promise<PipelineColumn[]>;
   createPipelineColumn(column: InsertPipelineColumn): Promise<PipelineColumn>;
   
-  // Job Pipeline Data (unified fetch for consistency)
-  getJobPipelineData(jobId: string, orgId: string, includeCompleted?: boolean): Promise<{
-    columns: Array<{ id: string; title: string; position: string }>;
-    applications: Array<{
-      id: string;
-      jobId: string;
-      candidateId: string;
-      columnId: string;
-      status: string;
-      appliedAt: string;
-      candidate: {
-        id: string;
-        name: string;
-        email: string;
-        phone: string | null;
-        resumeUrl: string | null;
-      } | null;
-    }>;
-  }>;
-  
-  // Optimized pipeline data fetch (reduces DB round-trips)
+  // Pipeline data fetch with auto org-lookup and default column creation
   getJobPipelineDataOptimized(jobId: string, includeCompleted?: boolean): Promise<{
     columns: Array<{ id: string; title: string; position: string }>;
     applications: Array<{
