@@ -517,7 +517,7 @@ export class JobsRepository implements IJobsRepository {
         throw new Error(`Failed to fetch pipeline columns: ${columnsError.message}`);
       }
 
-      // Build the query for applications
+      // Build the query for applications (expanded fields for enhanced cards)
       let query = supabase
         .from('job_candidate')
         .select(`
@@ -529,7 +529,7 @@ export class JobsRepository implements IJobsRepository {
           created_at,
           stage,
           notes,
-          candidate:candidates(id, name, email, phone, resume_url)
+          candidate:candidates(id, name, email, phone, resume_url, current_title, skills, desired_salary_min, desired_salary_max, experience_level)
         `)
         .eq('job_id', jobId)
         .eq('status', 'active');
@@ -562,12 +562,18 @@ export class JobsRepository implements IJobsRepository {
           columnId: app.pipeline_column_id,
           status: app.status,
           appliedAt: app.created_at,
+          stage: app.stage,
           candidate: app.candidate ? {
             id: app.candidate.id,
             name: app.candidate.name,
             email: app.candidate.email,
             phone: app.candidate.phone,
-            resumeUrl: app.candidate.resume_url
+            resumeUrl: app.candidate.resume_url,
+            currentTitle: app.candidate.current_title,
+            skills: app.candidate.skills,
+            desiredSalaryMin: app.candidate.desired_salary_min,
+            desiredSalaryMax: app.candidate.desired_salary_max,
+            experienceLevel: app.candidate.experience_level
           } : null
         }))
       };

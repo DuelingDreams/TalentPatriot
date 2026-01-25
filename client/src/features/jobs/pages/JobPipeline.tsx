@@ -25,7 +25,7 @@ import { CandidateNotes } from '@/features/candidates/components/CandidateNotes'
 import { DemoPipelineKanban } from '@/components/demo/DemoPipelineKanban'
 import { PipelineProgressBar } from '../components/PipelineProgressBar'
 import { useAuth } from '@/contexts/AuthContext'
-import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX, Eye, EyeOff } from 'lucide-react'
+import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX, Eye, EyeOff, DollarSign } from 'lucide-react'
 import { CandidateNotesDialog } from '@/features/candidates/components/CandidateNotesDialog'
 import { Link } from 'wouter'
 import { openResumeInNewTab } from '@/lib/resumeUtils'
@@ -203,6 +203,33 @@ function EnhancedApplicationCard({
     }
   }
 
+  // Format salary for display
+  const formatSalary = (min?: number | null, max?: number | null) => {
+    if (!min && !max) return null
+    if (min && max) return `$${Math.round(min/1000)}k-$${Math.round(max/1000)}k`
+    if (min) return `$${Math.round(min/1000)}k+`
+    if (max) return `$${Math.round(max/1000)}k`
+    return null
+  }
+
+  // Calculate time ago
+  const getTimeAgo = (dateString: string) => {
+    try {
+      const date = new Date(dateString)
+      const now = new Date()
+      const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+      if (diffDays === 0) return 'Today'
+      if (diffDays === 1) return '1 day ago'
+      if (diffDays < 7) return `${diffDays} days ago`
+      if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+      return `${Math.floor(diffDays / 30)} months ago`
+    } catch {
+      return 'Unknown'
+    }
+  }
+
+  const salaryDisplay = formatSalary(desiredSalaryMin, desiredSalaryMax)
+
   return (
     <div
       ref={setNodeRef}
@@ -210,107 +237,160 @@ function EnhancedApplicationCard({
       {...attributes}
       {...listeners}
       className={`
-        touch-none select-none mb-3
+        touch-none select-none mb-2
         ${isCurrentlyDragging ? 'z-50' : 'z-0'}
       `}
     >
       <Card className={`
-        bg-white shadow-sm border transition-all duration-200 group relative
+        bg-white shadow-sm border transition-all duration-200 group relative max-w-[320px]
         ${isCurrentlyDragging 
           ? 'border-tp-accent shadow-xl scale-105 rotate-2' 
           : 'border-neutral-200 hover:shadow-lg hover:border-tp-accent hover:scale-[1.01]'
         }
       `}>
-        <CardContent className="p-3 sm:p-4">
-          {/* Drag Handle */}
-          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-60 transition-opacity">
-            <GripVertical className="w-4 h-4 text-slate-400" />
-          </div>
-
-          {/* Main Content */}
-          <div className="pr-6">
-            {/* Candidate Name and Status */}
-            <div className="flex items-start justify-between mb-2">
-              <h4 className="font-semibold text-slate-900 text-sm leading-tight">
-                {safeCandidateName}
-              </h4>
-              <Badge 
-                variant="outline" 
-                className="text-xs px-2 py-1 ml-2 flex-shrink-0"
-              >
-                {status === 'active' ? 'Active' : status}
-              </Badge>
+        <CardContent className="p-3">
+          {/* Header: Avatar + Name + Stage Badge */}
+          <div className="flex items-start gap-2 mb-2">
+            {/* 32px Avatar */}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-xs font-semibold flex-shrink-0">
+              {safeCandidateName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             
-            {/* Job Title and Company */}
-            <div className="mb-2">
-              <p className="text-sm font-medium text-slate-700">
-                {jobInfo?.title || 'Position Title'}
-              </p>
-              <p className="text-xs text-slate-500">
-                {clientInfo?.name || jobInfo?.client?.name || 'Company Name'}
-              </p>
-            </div>
-
-            {/* Contact Info */}
-            <div className="mb-3 space-y-1">
-              <div className="flex items-center gap-1 text-xs text-slate-600">
-                <Mail className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{safeCandidateEmail}</span>
+            {/* Name + Title + Stage Badge */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h4 className="font-semibold text-slate-900 text-[13px] leading-tight truncate flex-1">
+                  {safeCandidateName}
+                </h4>
+                {stage && (
+                  <span className={`
+                    px-1.5 py-0.5 text-[9px] font-medium rounded flex-shrink-0
+                    ${stage === 'applied' ? 'bg-blue-100 text-blue-700' :
+                      stage === 'screening' || stage === 'phone_screen' ? 'bg-purple-100 text-purple-700' :
+                      stage === 'interview' ? 'bg-amber-100 text-amber-700' :
+                      stage === 'offer' ? 'bg-green-100 text-green-700' :
+                      stage === 'hired' ? 'bg-emerald-100 text-emerald-700' :
+                      stage === 'rejected' ? 'bg-red-100 text-red-700' :
+                      'bg-slate-100 text-slate-700'}
+                  `}>
+                    {stage.replace('_', ' ')}
+                  </span>
+                )}
               </div>
-              {safeCandidatePhone && (
-                <div className="flex items-center gap-1 text-xs text-slate-600">
-                  <Phone className="w-3 h-3 flex-shrink-0" />
-                  <span>{safeCandidatePhone}</span>
-                </div>
+              {currentTitle && (
+                <p className="text-[12px] text-slate-600 truncate">{currentTitle}</p>
+              )}
+              {clientInfo?.name && (
+                <p className="text-[11px] text-slate-500 truncate">{clientInfo.name}</p>
               )}
             </div>
+            
+            {/* Drag Handle / Menu */}
+            <div className="opacity-40 group-hover:opacity-100 transition-opacity">
+              <GripVertical className="w-4 h-4 text-slate-400" />
+            </div>
+          </div>
 
-            {/* Applied Date */}
-            <div className="mb-3">
-              <span className="text-xs text-slate-500">
-                Applied: {formatDate(appliedAt || '')}
+          {/* Metadata Row: Location + Salary */}
+          <div className="flex items-center gap-3 text-[11px] text-slate-600 mb-1">
+            {experienceLevel && (
+              <span className="flex items-center gap-1">
+                <Briefcase className="w-3 h-3" />
+                {experienceLevel}
               </span>
-            </div>
+            )}
+            {salaryDisplay && (
+              <span className="flex items-center gap-1 text-amber-600 font-medium">
+                <DollarSign className="w-3 h-3" />
+                {salaryDisplay}
+              </span>
+            )}
+          </div>
 
-            {/* Quick Action Buttons - Responsive Layout */}
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 touch-manipulation"
-                onClick={handleViewResume}
-                data-testid={`resume-${applicationId}`}
-              >
-                <FileText className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
-                <span className="truncate">{safeResumeUrl ? 'Resume' : 'No Resume'}</span>
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 touch-manipulation"
-                onClick={handleOpenNotes}
-                data-testid={`notes-${applicationId}`}
-              >
-                <MessageSquare className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
-                <span className="truncate">Notes</span>
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="text-xs h-9 sm:h-8 flex-1 min-w-0 px-3 hover:bg-red-50 hover:border-red-200 hover:text-red-700 touch-manipulation"
-                onClick={handleRejectCandidate}
-                disabled={rejectCandidate.isPending}
-                data-testid={`reject-${applicationId}`}
-              >
-                {rejectCandidate.isPending ? (
-                  <Loader2 className="w-4 h-4 sm:w-3 sm:h-3 mr-1 animate-spin flex-shrink-0" />
-                ) : (
-                  <UserX className="w-4 h-4 sm:w-3 sm:h-3 mr-1 flex-shrink-0" />
-                )}
-                <span className="truncate">Reject</span>
-              </Button>
+          {/* Time Ago */}
+          <div className="flex items-center gap-1 text-[11px] text-slate-500 mb-2">
+            <Clock className="w-3 h-3" />
+            {getTimeAgo(appliedAt || '')}
+          </div>
+
+          {/* Skills Tags (up to 3) */}
+          {skills && skills.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2">
+              {skills.slice(0, 3).map((skill, idx) => (
+                <span 
+                  key={idx}
+                  className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[10px] rounded"
+                >
+                  {skill}
+                </span>
+              ))}
+              {skills.length > 3 && (
+                <span className="text-[10px] text-slate-400">+{skills.length - 3}</span>
+              )}
             </div>
+          )}
+
+          {/* Icon-only Action Buttons */}
+          <div className="flex items-center gap-1 pt-2 border-t border-slate-100">
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+              onClick={handleViewResume}
+              title="View Resume"
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600"
+              onClick={(e) => {
+                e.stopPropagation()
+                window.location.href = `mailto:${safeCandidateEmail}`
+              }}
+              title="Send Email"
+            >
+              <Mail className="w-4 h-4" />
+            </Button>
+            {safeCandidatePhone && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0 hover:bg-purple-50 hover:text-purple-600"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.location.href = `tel:${safeCandidatePhone}`
+                }}
+                title="Call"
+              >
+                <Phone className="w-4 h-4" />
+              </Button>
+            )}
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0 hover:bg-amber-50 hover:text-amber-600"
+              onClick={handleOpenNotes}
+              title="Notes"
+            >
+              <MessageSquare className="w-4 h-4" />
+            </Button>
+            <div className="flex-1" />
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+              onClick={handleRejectCandidate}
+              disabled={rejectCandidate.isPending}
+              title="Reject"
+            >
+              {rejectCandidate.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <UserX className="w-4 h-4" />
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -843,7 +923,13 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
               jobId: application.jobId || jobId || 'unknown',
               columnId: application.columnId || application.pipeline_column_id || null,
               status: application.status || 'active',
-              appliedAt: application.appliedAt || application.created_at || new Date().toISOString()
+              appliedAt: application.appliedAt || application.created_at || new Date().toISOString(),
+              currentTitle: candidateData.currentTitle || candidateData.current_title || null,
+              skills: candidateData.skills || null,
+              desiredSalaryMin: candidateData.desiredSalaryMin || candidateData.desired_salary_min || null,
+              desiredSalaryMax: candidateData.desiredSalaryMax || candidateData.desired_salary_max || null,
+              experienceLevel: candidateData.experienceLevel || candidateData.experience_level || null,
+              stage: application.stage || null
             }
             
             return (
