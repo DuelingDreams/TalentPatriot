@@ -1,0 +1,26 @@
+[
+  {
+    "create_statement": "CREATE TABLE daily_analytics_snapshots (id uuid NOT NULL DEFAULT gen_random_uuid(), org_id uuid NOT NULL, snapshot_date date NOT NULL, total_jobs integer DEFAULT 0, active_jobs integer DEFAULT 0, total_candidates integer DEFAULT 0, total_applications integer DEFAULT 0, applications_today integer DEFAULT 0, hires_today integer DEFAULT 0, metrics jsonb DEFAULT '{}'::jsonb, created_at timestamp with time zone DEFAULT now());"
+  },
+  {
+    "create_statement": "CREATE TABLE email_signups (id uuid NOT NULL DEFAULT gen_random_uuid(), email text NOT NULL, source text DEFAULT 'landing_page'::text, ip_address inet, user_agent text, created_at timestamp without time zone NOT NULL DEFAULT now(), converted_to_user boolean DEFAULT false, converted_at timestamp without time zone, unsubscribed boolean DEFAULT false, unsubscribed_at timestamp without time zone);"
+  },
+  {
+    "create_statement": "CREATE TABLE job_candidate_stage_history (id uuid NOT NULL DEFAULT gen_random_uuid(), job_candidate_id uuid NOT NULL, candidate_id uuid, job_id uuid, from_stage text, to_stage text NOT NULL, changed_at timestamp with time zone DEFAULT now(), changed_by uuid, notes text);"
+  },
+  {
+    "create_statement": "CREATE TABLE report_queue (id uuid NOT NULL DEFAULT gen_random_uuid(), org_id uuid NOT NULL, report_type character varying(50) NOT NULL, format character varying(10) NOT NULL, period character varying(20) NOT NULL, status character varying(20) DEFAULT 'pending'::character varying, file_url text, error_message text, requested_by uuid, created_at timestamp with time zone DEFAULT now(), completed_at timestamp with time zone);"
+  },
+  {
+    "create_statement": "CREATE TABLE report_schedules (id uuid NOT NULL DEFAULT gen_random_uuid(), org_id uuid NOT NULL, report_type character varying(50) NOT NULL, frequency character varying(20) NOT NULL, format character varying(10) NOT NULL, recipients ARRAY NOT NULL, filter_config jsonb DEFAULT '{}'::jsonb, enabled boolean DEFAULT true, last_sent timestamp with time zone, next_scheduled timestamp with time zone, created_at timestamp with time zone DEFAULT now(), updated_at timestamp with time zone DEFAULT now());"
+  },
+  {
+    "create_statement": "CREATE TABLE tasks (id uuid NOT NULL DEFAULT gen_random_uuid(), org_id uuid NOT NULL, job_candidate_id uuid, candidate_id uuid, job_id uuid, title text NOT NULL, description text, task_type text, assigned_to uuid, status text DEFAULT 'pending'::text, priority text DEFAULT 'medium'::text, due_date timestamp with time zone, completed_at timestamp with time zone, completed_by uuid, created_at timestamp with time zone DEFAULT now(), updated_at timestamp with time zone DEFAULT now());"
+  },
+  {
+    "create_statement": "CREATE TABLE workflow_execution_log (id uuid NOT NULL DEFAULT gen_random_uuid(), job_candidate_id uuid, trigger_id uuid, stage text NOT NULL, action_type text NOT NULL, status text NOT NULL, error_message text, execution_time_ms integer, executed_at timestamp with time zone DEFAULT now());"
+  },
+  {
+    "create_statement": "CREATE TABLE workflow_triggers (id uuid NOT NULL DEFAULT gen_random_uuid(), stage text NOT NULL, action_type text NOT NULL, action_config jsonb NOT NULL, is_active boolean DEFAULT true, execution_order integer DEFAULT 0, created_at timestamp with time zone DEFAULT now(), updated_at timestamp with time zone DEFAULT now());"
+  }
+]

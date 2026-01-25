@@ -1,0 +1,218 @@
+[
+  {
+    "table_name": "_job_candidate_stage_shadow",
+    "columns": "job_candidate_id, last_stage, updated_at"
+  },
+  {
+    "table_name": "ai_insights_cache",
+    "columns": "id, org_id, insights_data, recruitment_metrics, generated_at, expires_at, created_at, updated_at"
+  },
+  {
+    "table_name": "ai_insights_metrics",
+    "columns": "id, org_id, total_insights_generated, recommendations_implemented, recommendations_dismissed, avg_user_rating, api_calls_count, last_generation_time, created_at, updated_at"
+  },
+  {
+    "table_name": "ai_recommendations_history",
+    "columns": "id, org_id, recommendation_id, recommendation_type, priority, title, description, impact, action_items, confidence, user_feedback, implemented_at, dismissed_at, created_at, updated_at"
+  },
+  {
+    "table_name": "application_metadata",
+    "columns": "id, org_id, candidate_id, job_id, education_details, employment_details, application_source, submission_timestamp, form_version, created_at, updated_at"
+  },
+  {
+    "table_name": "applications",
+    "columns": "id, job_id, candidate_id, status, applied_at, column_id"
+  },
+  {
+    "table_name": "apply_events",
+    "columns": "id, job_id, applicant_email, requester_ip, created_at"
+  },
+  {
+    "table_name": "approval_requests",
+    "columns": "id, org_id, request_type, target_table, target_id, title, description, requested_by, requested_payload, status, resolved_by, resolution_notes, requested_at, resolved_at, created_at, updated_at"
+  },
+  {
+    "table_name": "beta_applications",
+    "columns": "id, company_name, contact_name, email, phone, website, company_size, current_ats, pain_points, expectations, status, user_id, org_id, review_notes, reviewed_at, reviewed_by, created_at, updated_at, processed_at, processed_by, notes, scheduled_call_at, call_completed_at, call_notes, magic_link_sent_at"
+  },
+  {
+    "table_name": "beta_organizations",
+    "columns": "id, name, slug, created_at, beta_applied_at, beta_approved_at, beta_notes, original_company_name, contact_email, company_size, pain_points, team_size, total_jobs, total_candidates"
+  },
+  {
+    "table_name": "beta_program_stats",
+    "columns": "pending_applications, approved_applications, rejected_applications, converted_users, created_organizations"
+  },
+  {
+    "table_name": "beta_users",
+    "columns": "id, email, full_name, company_name, company_size"
+  },
+  {
+    "table_name": "calendar_events",
+    "columns": "id, org_id, provider, provider_event_id, thread_id, summary, description, start_at, end_at, timezone, conference_url, attendees, status, created_by, deleted_at, created_at, updated_at"
+  },
+  {
+    "table_name": "campaign_email_sends",
+    "columns": "id, enrollment_id, campaign_email_id, status, scheduled_at, sent_at, created_at"
+  },
+  {
+    "table_name": "campaign_emails",
+    "columns": "id, campaign_id, subject, body, delay_days, sequence_order, created_at, updated_at"
+  },
+  {
+    "table_name": "candidate_campaign_enrollments",
+    "columns": "id, org_id, candidate_id, campaign_id, status, enrolled_at, completed_at, created_at, updated_at"
+  },
+  {
+    "table_name": "candidate_documents",
+    "columns": "id, org_id, candidate_id, name, file_url, file_type, file_size, uploaded_by, created_at, updated_at"
+  },
+  {
+    "table_name": "candidate_notes",
+    "columns": "id, org_id, job_candidate_id, author_id, content, is_private, created_at, updated_at"
+  },
+  {
+    "table_name": "candidates",
+    "columns": "id, org_id, name, email, phone, resume_url, status, created_at, updated_at, created_by, resume_parsed, skills, experience_level, total_years_experience, education, summary, searchable_content, linkedin_url, portfolio_url, work_authorization, visa_sponsorship, age_confirmation, previous_employee, referral_source, employment_history, comprehensive_education, data_privacy_ack, ai_acknowledgment, gender, race_ethnicity, veteran_status, disability_status, skill_levels, source, work_experience, projects, languages, certifications, parsing_status, resume_parsed_at, parsing_error, desired_salary_min, desired_salary_max, availability, rating, current_title"
+  },
+  {
+    "table_name": "client_submissions",
+    "columns": "id, org_id, candidate_id, client_id, job_id, position_title, rate, status, feedback, submitted_at, submitted_by, created_at, updated_at"
+  },
+  {
+    "table_name": "clients",
+    "columns": "id, org_id, name, industry, location, website, contact_name, contact_email, contact_phone, notes, status, client_type, pocs, region, priority, payment_terms, last_contact_at, margin_trend, created_by, created_at, updated_at"
+  },
+  {
+    "table_name": "connected_accounts",
+    "columns": "id, user_id, org_id, provider, provider_email, scopes, connector_account_id, encrypted_refresh_token, access_token_expires_at, last_used_at, is_active, connected_at, created_at, updated_at, health_status, last_validated_at, last_error_code, last_error_message, needs_attention"
+  },
+  {
+    "table_name": "daily_analytics_snapshots",
+    "columns": "id, org_id, snapshot_date, total_jobs, active_jobs, total_candidates, total_applications, applications_today, hires_today, metrics, created_at"
+  },
+  {
+    "table_name": "data_imports",
+    "columns": "id, org_id, user_id, import_type, file_name, file_size, status, total_records, successful_records, failed_records, field_mapping, error_summary, processing_started_at, processing_completed_at, created_at, updated_at"
+  },
+  {
+    "table_name": "drip_campaigns",
+    "columns": "id, org_id, name, description, status, trigger_type, trigger_conditions, rules, created_by, created_at, updated_at"
+  },
+  {
+    "table_name": "email_events",
+    "columns": "id, org_id, event_type, recipient_email, recipient_name, sendgrid_message_id, template_id, job_id, candidate_id, status, error_message, template_data, metadata, sent_at, delivered_at, opened_at, clicked_at"
+  },
+  {
+    "table_name": "email_signups",
+    "columns": "id, email, source, ip_address, user_agent, created_at, converted_to_user, converted_at, unsubscribed, unsubscribed_at"
+  },
+  {
+    "table_name": "email_templates",
+    "columns": "id, org_id, template_type, template_name, sendgrid_template_id, fallback_subject, fallback_html, fallback_text, template_variables, is_active, is_default, created_at, updated_at"
+  },
+  {
+    "table_name": "import_records",
+    "columns": "id, import_id, row_number, original_data, processed_data, status, error_message, entity_id, entity_type, created_at"
+  },
+  {
+    "table_name": "interviews",
+    "columns": "id, org_id, job_candidate_id, title, type, status, scheduled_at, duration, location, interviewer_id, notes, feedback, rating, record_status, created_at, updated_at"
+  },
+  {
+    "table_name": "job_candidate",
+    "columns": "id, org_id, job_id, candidate_id, pipeline_column_id, stage, notes, assigned_to, status, source, created_at, updated_at"
+  },
+  {
+    "table_name": "job_candidate_stage_history",
+    "columns": "id, job_candidate_id, candidate_id, job_id, from_stage, to_stage, changed_at, changed_by, notes"
+  },
+  {
+    "table_name": "job_pipeline_stage_events",
+    "columns": "id, job_candidate_id, from_stage, to_stage, changed_by, change_reason, created_at, org_id, job_id, candidate_id, changed_at"
+  },
+  {
+    "table_name": "jobs",
+    "columns": "id, org_id, title, description, location, job_type, department, salary_range, experience_level, remote_option, client_id, status, record_status, public_slug, published_at, created_at, updated_at, created_by, assigned_to, is_public"
+  },
+  {
+    "table_name": "message_recipients",
+    "columns": "id, org_id, message_id, recipient_id, is_read, read_at, created_at"
+  },
+  {
+    "table_name": "message_threads",
+    "columns": "id, org_id, subject, channel_type, external_thread_id, participant_ids, last_message_at, created_at, updated_at"
+  },
+  {
+    "table_name": "messages",
+    "columns": "id, org_id, type, priority, subject, content, sender_id, recipient_id, client_id, job_id, candidate_id, job_candidate_id, is_read, read_at, is_archived, thread_id, reply_to_id, channel_type, external_message_id, attachments, tags, record_status, created_at, updated_at"
+  },
+  {
+    "table_name": "notes",
+    "columns": "id, org_id, entity_type, entity_id, author_id, content, is_private, created_at, updated_at"
+  },
+  {
+    "table_name": "oauth_sessions",
+    "columns": "id, session_token_hash, user_id, org_id, return_to, state_nonce, redirect_host, expires_at, consumed_at, created_at, created_ip, user_agent"
+  },
+  {
+    "table_name": "organization_branding",
+    "columns": "id, org_id, channel, logo_url, favicon_url, primary_color, secondary_color, accent_color, font_family, header_text, footer_text, custom_css, is_published, metadata, created_at, updated_at"
+  },
+  {
+    "table_name": "organization_email_settings",
+    "columns": "id, org_id, from_email, from_name, reply_to_email, company_logo_url, brand_color, brand_secondary_color, company_website, company_address, enabled_events, email_signature, created_at, updated_at"
+  },
+  {
+    "table_name": "organizations",
+    "columns": "id, name, created_at, owner_id, slug, seats_purchased, plan_tier, onboarding_status, careers_status, published_at"
+  },
+  {
+    "table_name": "pipeline_columns",
+    "columns": "id, org_id, job_id, title, position, created_at, updated_at"
+  },
+  {
+    "table_name": "report_queue",
+    "columns": "id, org_id, report_type, format, period, status, file_url, error_message, requested_by, created_at, completed_at"
+  },
+  {
+    "table_name": "report_schedules",
+    "columns": "id, org_id, report_type, frequency, format, recipients, filter_config, enabled, last_sent, next_scheduled, created_at, updated_at"
+  },
+  {
+    "table_name": "schema_migrations",
+    "columns": "version, applied_at"
+  },
+  {
+    "table_name": "stage_order",
+    "columns": "id, org_id, stage, order_index, is_active, created_at, display_name"
+  },
+  {
+    "table_name": "tasks",
+    "columns": "id, org_id, job_candidate_id, candidate_id, job_id, title, description, task_type, assigned_to, status, priority, due_date, completed_at, completed_by, created_at, updated_at"
+  },
+  {
+    "table_name": "timezone_cache",
+    "columns": "id, name, display_name, offset, region, created_at"
+  },
+  {
+    "table_name": "user_organizations",
+    "columns": "id, user_id, org_id, role, is_recruiter_seat, joined_at, status, is_admin, admin_claim, is_billable_seat, invited_by, invite_status, invited_at, status_updated_at, admin_claimed_at"
+  },
+  {
+    "table_name": "user_profiles",
+    "columns": "id, role, first_name, last_name, phone, job_title, department, location, bio, created_at, updated_at"
+  },
+  {
+    "table_name": "user_settings",
+    "columns": "id, user_id, email_notifications, browser_notifications, weekly_reports, team_invites, public_profile, created_at, updated_at"
+  },
+  {
+    "table_name": "workflow_execution_log",
+    "columns": "id, job_candidate_id, trigger_id, stage, action_type, status, error_message, execution_time_ms, executed_at"
+  },
+  {
+    "table_name": "workflow_triggers",
+    "columns": "id, stage, action_type, action_config, is_active, execution_order, created_at, updated_at"
+  }
+]

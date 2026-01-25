@@ -1,0 +1,72 @@
+[
+  {
+    "Policy Name": "Org admins can delete brand assets",
+    "Table": "objects",
+    "Action": "DELETE",
+    "Using (SELECT)": "((bucket_id = 'email-brand-assets'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE ((user_organizations.user_id = auth.uid()) AND (user_organizations.role = 'admin'::organization_role)))))",
+    "With Check (INSERT/UPDATE)": null
+  },
+  {
+    "Policy Name": "Org admins can delete template assets",
+    "Table": "objects",
+    "Action": "DELETE",
+    "Using (SELECT)": "((bucket_id = 'email-templates'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE ((user_organizations.user_id = auth.uid()) AND (user_organizations.role = 'admin'::organization_role)))))",
+    "With Check (INSERT/UPDATE)": null
+  },
+  {
+    "Policy Name": "Org admins can update brand assets",
+    "Table": "objects",
+    "Action": "UPDATE",
+    "Using (SELECT)": "((bucket_id = 'email-brand-assets'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE ((user_organizations.user_id = auth.uid()) AND (user_organizations.role = 'admin'::organization_role)))))",
+    "With Check (INSERT/UPDATE)": null
+  },
+  {
+    "Policy Name": "Org admins can update template assets",
+    "Table": "objects",
+    "Action": "UPDATE",
+    "Using (SELECT)": "((bucket_id = 'email-templates'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE ((user_organizations.user_id = auth.uid()) AND (user_organizations.role = 'admin'::organization_role)))))",
+    "With Check (INSERT/UPDATE)": null
+  },
+  {
+    "Policy Name": "Org admins can upload brand assets",
+    "Table": "objects",
+    "Action": "INSERT",
+    "Using (SELECT)": null,
+    "With Check (INSERT/UPDATE)": "((bucket_id = 'email-brand-assets'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE ((user_organizations.user_id = auth.uid()) AND (user_organizations.role = 'admin'::organization_role)))))"
+  },
+  {
+    "Policy Name": "Org admins can upload template assets",
+    "Table": "objects",
+    "Action": "INSERT",
+    "Using (SELECT)": null,
+    "With Check (INSERT/UPDATE)": "((bucket_id = 'email-templates'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE ((user_organizations.user_id = auth.uid()) AND (user_organizations.role = 'admin'::organization_role)))))"
+  },
+  {
+    "Policy Name": "Org members can view attachments",
+    "Table": "objects",
+    "Action": "SELECT",
+    "Using (SELECT)": "((bucket_id = 'email-attachments'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE (user_organizations.user_id = auth.uid()))))",
+    "With Check (INSERT/UPDATE)": null
+  },
+  {
+    "Policy Name": "Org members can view brand assets",
+    "Table": "objects",
+    "Action": "SELECT",
+    "Using (SELECT)": "((bucket_id = 'email-brand-assets'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE (user_organizations.user_id = auth.uid()))))",
+    "With Check (INSERT/UPDATE)": null
+  },
+  {
+    "Policy Name": "Org members can view template assets",
+    "Table": "objects",
+    "Action": "SELECT",
+    "Using (SELECT)": "((bucket_id = 'email-templates'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE (user_organizations.user_id = auth.uid()))))",
+    "With Check (INSERT/UPDATE)": null
+  },
+  {
+    "Policy Name": "Users can upload attachments",
+    "Table": "objects",
+    "Action": "INSERT",
+    "Using (SELECT)": null,
+    "With Check (INSERT/UPDATE)": "((bucket_id = 'email-attachments'::text) AND (split_part(name, '/'::text, 1) IN ( SELECT (user_organizations.org_id)::text AS org_id\n   FROM user_organizations\n  WHERE (user_organizations.user_id = auth.uid()))))"
+  }
+]

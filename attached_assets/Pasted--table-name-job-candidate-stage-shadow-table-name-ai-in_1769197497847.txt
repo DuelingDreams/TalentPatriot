@@ -1,0 +1,200 @@
+[
+  {
+    "table_name": "_job_candidate_stage_shadow"
+  },
+  {
+    "table_name": "ai_insights_cache"
+  },
+  {
+    "table_name": "ai_insights_metrics"
+  },
+  {
+    "table_name": "ai_recommendations_history"
+  },
+  {
+    "table_name": "application_metadata"
+  },
+  {
+    "table_name": "applications"
+  },
+  {
+    "table_name": "apply_events"
+  },
+  {
+    "table_name": "approval_requests"
+  },
+  {
+    "table_name": "beta_applications"
+  },
+  {
+    "table_name": "beta_organizations"
+  },
+  {
+    "table_name": "beta_program_stats"
+  },
+  {
+    "table_name": "beta_users"
+  },
+  {
+    "table_name": "calendar_events"
+  },
+  {
+    "table_name": "campaign_email_sends"
+  },
+  {
+    "table_name": "campaign_emails"
+  },
+  {
+    "table_name": "candidate_campaign_enrollments"
+  },
+  {
+    "table_name": "candidate_documents"
+  },
+  {
+    "table_name": "candidate_full_profile"
+  },
+  {
+    "table_name": "candidate_notes"
+  },
+  {
+    "table_name": "candidates"
+  },
+  {
+    "table_name": "client_submissions"
+  },
+  {
+    "table_name": "clients"
+  },
+  {
+    "table_name": "connected_accounts"
+  },
+  {
+    "table_name": "daily_analytics_snapshots"
+  },
+  {
+    "table_name": "data_imports"
+  },
+  {
+    "table_name": "drip_campaigns"
+  },
+  {
+    "table_name": "email_events"
+  },
+  {
+    "table_name": "email_signups"
+  },
+  {
+    "table_name": "email_templates"
+  },
+  {
+    "table_name": "import_records"
+  },
+  {
+    "table_name": "interviews"
+  },
+  {
+    "table_name": "job_candidate"
+  },
+  {
+    "table_name": "job_candidate_stage_history"
+  },
+  {
+    "table_name": "job_pipeline_stage_events"
+  },
+  {
+    "table_name": "jobs"
+  },
+  {
+    "table_name": "message_recipients"
+  },
+  {
+    "table_name": "message_threads"
+  },
+  {
+    "table_name": "messages"
+  },
+  {
+    "table_name": "notes"
+  },
+  {
+    "table_name": "oauth_sessions"
+  },
+  {
+    "table_name": "organization_branding"
+  },
+  {
+    "table_name": "organization_email_settings"
+  },
+  {
+    "table_name": "organizations"
+  },
+  {
+    "table_name": "pipeline_columns"
+  },
+  {
+    "table_name": "public_jobs"
+  },
+  {
+    "table_name": "report_queue"
+  },
+  {
+    "table_name": "report_schedules"
+  },
+  {
+    "table_name": "schema_migrations"
+  },
+  {
+    "table_name": "stage_order"
+  },
+  {
+    "table_name": "tasks"
+  },
+  {
+    "table_name": "timezone_cache"
+  },
+  {
+    "table_name": "user_organizations"
+  },
+  {
+    "table_name": "user_profiles"
+  },
+  {
+    "table_name": "user_settings"
+  },
+  {
+    "table_name": "v_approval_requests"
+  },
+  {
+    "table_name": "v_candidate_skills_analysis"
+  },
+  {
+    "table_name": "v_candidate_skills_flattened"
+  },
+  {
+    "table_name": "v_candidate_skills_summary"
+  },
+  {
+    "table_name": "v_dashboard_activity"
+  },
+  {
+    "table_name": "v_dashboard_pipeline_snapshot"
+  },
+  {
+    "table_name": "v_job_health"
+  },
+  {
+    "table_name": "v_pipeline_stage_avg_time"
+  },
+  {
+    "table_name": "v_pipeline_stage_counts"
+  },
+  {
+    "table_name": "vw_client_performance"
+  },
+  {
+    "table_name": "workflow_execution_log"
+  },
+  {
+    "table_name": "workflow_triggers"
+  }
+]

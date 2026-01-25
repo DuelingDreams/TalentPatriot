@@ -1,0 +1,54 @@
+pg_get_viewdef
+" SELECT c.org_id,
+    skill_item.skill_item AS skill_name,
+    count(*) AS candidate_count,
+    count(
+        CASE
+            WHEN jc.stage = 'hired'::candidate_stage THEN 1
+            ELSE NULL::integer
+        END) AS hired_with_skill,
+    count(
+        CASE
+            WHEN jc.stage = ANY (ARRAY['interview'::candidate_stage, 'offer'::candidate_stage, 'hired'::candidate_stage]) THEN 1
+            ELSE NULL::integer
+        END) AS quality_candidates_with_skill,
+        CASE
+            WHEN count(*) > 0 THEN count(
+            CASE
+                WHEN jc.stage = 'hired'::candidate_stage THEN 1
+                ELSE NULL::integer
+            END)::double precision / count(*)::double precision * 100::double precision
+            ELSE 0::double precision
+        END AS skill_hire_rate,
+    avg(
+        CASE
+            WHEN jc.stage = 'hired'::candidate_stage THEN EXTRACT(days FROM jc.updated_at - jc.created_at)
+            ELSE NULL::numeric
+        END) AS avg_time_to_hire_with_skill,
+    avg(
+        CASE
+            WHEN c.skill_levels IS NOT NULL AND c.skill_levels ? skill_item.skill_item THEN
+            CASE c.skill_levels ->> skill_item.skill_item
+                WHEN 'Beginner'::text THEN 1
+                WHEN 'Intermediate'::text THEN 2
+                WHEN 'Advanced'::text THEN 3
+                WHEN 'Expert'::text THEN 4
+                ELSE
+                CASE
+                    WHEN (c.skill_levels ->> skill_item.skill_item) ~ '^[0-9]+$'::text THEN (c.skill_levels ->> skill_item.skill_item)::integer
+                    ELSE NULL::integer
+                END
+            END
+            ELSE NULL::integer
+        END) AS avg_proficiency_level,
+    mode() WITHIN GROUP (ORDER BY (
+        CASE
+            WHEN c.skill_levels IS NOT NULL AND c.skill_levels ? skill_item.skill_item THEN c.skill_levels ->> skill_item.skill_item
+            ELSE NULL::text
+        END)) AS most_common_proficiency
+   FROM candidates c
+     CROSS JOIN LATERAL unnest(c.skills) skill_item(skill_item)
+     LEFT JOIN job_candidate jc ON c.id = jc.candidate_id
+  WHERE c.skills IS NOT NULL AND array_length(c.skills, 1) > 0
+  GROUP BY c.org_id, skill_item.skill_item
+ HAVING count(*) >= 2;"
