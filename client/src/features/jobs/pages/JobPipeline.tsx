@@ -44,6 +44,12 @@ interface ApplicationCardProps {
   status: string
   appliedAt?: string
   isDragging?: boolean
+  currentTitle?: string | null
+  skills?: string[] | null
+  desiredSalaryMin?: number | null
+  desiredSalaryMax?: number | null
+  experienceLevel?: string | null
+  stage?: string | null
 }
 
 // Enhanced Application Card Component
@@ -58,7 +64,13 @@ function EnhancedApplicationCard({
   columnId,
   status,
   appliedAt,
-  isDragging 
+  isDragging,
+  currentTitle,
+  skills,
+  desiredSalaryMin,
+  desiredSalaryMax,
+  experienceLevel,
+  stage
 }: ApplicationCardProps) {
   const {
     attributes,

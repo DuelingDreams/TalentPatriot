@@ -5,19 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-background transition-all duration-150 ease-[cubic-bezier(0.4,0,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:-translate-y-px hover:shadow-[0_4px_8px_rgba(0,0,0,0.12)] active:translate-y-0 active:shadow-[0_2px_4px_rgba(0,0,0,0.08)]",
   {
     variants: {
       variant: {
-        default: "bg-tp-primary text-white hover:bg-tp-accent active:opacity-90",
+        default: "bg-tp-primary text-white hover:bg-tp-accent",
         destructive:
-          "bg-error text-white hover:opacity-90",
+          "bg-error text-white hover:bg-red-600",
         outline:
-          "border border-tp-primary text-tp-primary bg-white hover:bg-tp-primary-light active:opacity-90",
+          "border border-tp-primary text-tp-primary bg-white hover:bg-tp-primary-light",
         secondary:
-          "bg-tp-accent text-white hover:bg-tp-primary active:opacity-90",
-        ghost: "hover:bg-tp-card-surface text-tp-primary",
-        link: "text-tp-accent underline-offset-4 hover:underline hover:text-tp-primary",
+          "bg-tp-accent text-white hover:bg-tp-primary",
+        ghost: "hover:bg-tp-card-surface text-tp-primary hover:shadow-none",
+        link: "text-tp-accent underline-offset-4 hover:underline hover:text-tp-primary hover:shadow-none hover:translate-y-0",
       },
       size: {
         default: "h-11 px-6 py-3 text-sm min-h-[44px]",
