@@ -1,13 +1,50 @@
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Play, ChevronDown } from 'lucide-react'
 import { Link } from 'wouter'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
+function MagneticButton({ children, className = '', strength = 0.3, ...props }: { 
+  children: React.ReactNode
+  className?: string
+  strength?: number
+  [key: string]: any 
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null)
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!btnRef.current) return
+    const rect = btnRef.current.getBoundingClientRect()
+    const centerX = rect.left + rect.width / 2
+    const centerY = rect.top + rect.height / 2
+    const deltaX = (e.clientX - centerX) * strength
+    const deltaY = (e.clientY - centerY) * strength
+    setPosition({ x: deltaX, y: deltaY })
+  }, [strength])
+
+  const handleMouseLeave = useCallback(() => {
+    setPosition({ x: 0, y: 0 })
+  }, [])
+
+  return (
+    <Button
+      ref={btnRef}
+      className={`magnetic-btn ${className}`}
+      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      {...props}
+    >
+      {children}
+    </Button>
+  )
+}
 
 export default function Landing() {
   useEffect(() => {
@@ -31,7 +68,7 @@ export default function Landing() {
         Skip to main content
       </a>
 
-      <nav className="flex justify-between items-center px-[5%] py-6 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04)] sticky top-0 z-50">
+      <nav className="flex justify-between items-center px-[5%] py-6 glass shadow-[0_2px_8px_rgba(0,0,0,0.04)] sticky top-0 z-50">
         <div className="flex items-center gap-8">
           <Link href="/">
             <div className="flex items-center gap-2 cursor-pointer">
@@ -110,43 +147,46 @@ export default function Landing() {
       <main id="main-content">
         <section className="relative py-24 px-[5%] bg-gradient-to-br from-[#EFF6FF] to-[#F0FDF4] overflow-hidden">
           <div className="absolute -top-1/2 -right-[20%] w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(14,165,233,0.1)_0%,transparent_70%)] animate-float pointer-events-none" />
+          <div className="absolute top-1/4 -left-[10%] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(16,185,129,0.08)_0%,transparent_70%)] animate-float pointer-events-none" style={{ animationDelay: '-5s' }} />
           
           <div className="max-w-[1200px] mx-auto text-center relative z-10">
-            <h1 className="text-4xl md:text-5xl lg:text-[4rem] font-extrabold text-neutral-900 mb-6 tracking-[-0.02em] leading-[1.1]">
+            <h1 className="animate-fade-in-up stagger-1 text-4xl md:text-5xl lg:text-[4rem] font-extrabold text-neutral-900 mb-6 tracking-[-0.02em] leading-[1.1]">
               Stop Losing Great Candidates to<br className="hidden md:block" />{" "}
               Companies With <span className="gradient-text animate-shimmer">Better Hiring Systems</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-neutral-500 mb-4">
+            <p className="animate-fade-in-up stagger-2 text-xl md:text-2xl text-neutral-500 mb-4">
               The simple, affordable ATS/CRM built for small businesses and boutique staffing firms who can't afford enterprise complexity.
             </p>
             
-            <div className="flex items-center justify-center gap-3 my-8 text-neutral-500 text-base">
+            <div className="animate-fade-in-up stagger-3 flex items-center justify-center gap-3 my-8 text-neutral-500 text-base">
               <span>🎯 Built specifically for</span>
               <span className="font-semibold text-[#10B981]">small businesses & boutique agencies</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center my-12">
+            <div className="animate-fade-in-up stagger-4 flex flex-col sm:flex-row gap-4 justify-center my-12">
               <Link href="/beta">
-                <Button 
+                <MagneticButton 
                   className="btn-gradient btn-ripple text-white font-semibold px-8 md:px-10 py-5 md:py-6 rounded-xl text-lg"
                   data-testid="btn-hero-beta"
+                  strength={0.25}
                 >
                   Start Free Beta
                   <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+                </MagneticButton>
               </Link>
-              <Button 
+              <MagneticButton 
                 variant="outline"
                 className="bg-white text-neutral-900 border-2 border-[#0EA5E9] hover:bg-[#0EA5E9] hover:text-white px-8 md:px-10 py-5 md:py-6 rounded-xl font-semibold text-lg transition-all duration-300 hover:-translate-y-0.5"
                 onClick={() => document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth' })}
                 data-testid="btn-hero-demo"
+                strength={0.25}
               >
                 Watch 2-Min Demo
-              </Button>
+              </MagneticButton>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-neutral-500 mb-12">
+            <div className="animate-fade-in-up stagger-5 flex flex-wrap items-center justify-center gap-4 text-sm text-neutral-500 mb-12">
               <span>✓ No credit card required</span>
               <span className="hidden sm:inline">|</span>
               <span>✓ 14-day free trial</span>
@@ -154,7 +194,7 @@ export default function Landing() {
               <span>✓ Setup in under 1 hour</span>
             </div>
 
-            <div className="max-w-[1000px] mx-auto mt-12 rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.15)] bg-white">
+            <div className="animate-fade-in-scale stagger-6 max-w-[1000px] mx-auto mt-12 rounded-3xl overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.15)] glass-card">
               <div 
                 id="demo"
                 className="relative pb-[56.25%] bg-gradient-to-br from-[#667EEA] to-[#764BA2] cursor-pointer group"
@@ -222,7 +262,7 @@ export default function Landing() {
               ].map((solution, i) => (
                 <Link key={i} href={solution.href}>
                   <div 
-                    className="group relative bg-white rounded-2xl p-8 border-2 border-neutral-100 hover:border-[#0EA5E9] hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden cursor-pointer h-full"
+                    className="group relative glass-card rounded-2xl p-8 border-2 border-neutral-100 hover:border-[#0EA5E9] hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden cursor-pointer h-full"
                     data-testid={`solution-card-${i}`}
                   >
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgba(14,165,233,0.1)] to-[rgba(16,185,129,0.1)] flex items-center justify-center mb-6 text-3xl group-hover:scale-110 group-hover:rotate-[5deg] transition-transform duration-300">
@@ -259,7 +299,7 @@ export default function Landing() {
               ].map((benefit, i) => (
                 <div 
                   key={i}
-                  className="group relative bg-white rounded-2xl p-8 border-2 border-neutral-100 hover:border-[#0EA5E9] hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden card-accent-left"
+                  className="group relative glass-card rounded-2xl p-8 border-2 border-neutral-100 hover:border-[#0EA5E9] hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden card-accent-left"
                   data-testid={`benefit-card-${i}`}
                 >
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[rgba(14,165,233,0.1)] to-[rgba(16,185,129,0.1)] flex items-center justify-center mb-6 text-3xl group-hover:scale-110 group-hover:rotate-[5deg] transition-transform duration-300">
