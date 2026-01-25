@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useParams } from 'wouter'
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, PointerSensor, TouchSensor, useSensor, useSensors, useDroppable } from '@dnd-kit/core'
+import { motion } from 'framer-motion'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -757,20 +758,32 @@ function PipelineColumn({ column, applications, jobId }: PipelineColumnProps) {
         </CardHeader>
       </Card>
       
-      {/* Column Content Area */}
+      {/* Column Content Area - Drop Zone */}
       <div 
         ref={setNodeRef}
         className={`
-          min-h-[500px] p-4 border-2 border-t-0 rounded-t-none rounded-b-lg
-          transition-all duration-200
-          ${styling.columnBg} ${styling.columnBorder}
+          relative min-h-[500px] p-4 border-2 border-t-0 rounded-t-none rounded-b-lg
+          transition-all duration-200 ease-out
+          ${styling.columnBg}
           ${
             isOver 
-              ? 'border-blue-500 shadow-lg bg-opacity-80 scale-[1.01]' 
-              : ''
+              ? 'border-blue-500 border-solid shadow-[0_8px_24px_rgba(59,130,246,0.15)] bg-blue-50/50 scale-[1.02]' 
+              : `border-dashed ${styling.columnBorder}`
           }
         `}
       >
+        {/* Drop Here Indicator */}
+        {isOver && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-blue-500/10 backdrop-blur-sm rounded-lg px-6 py-3 border-2 border-blue-500 border-dashed"
+            >
+              <span className="text-blue-600 font-medium text-sm">Drop here</span>
+            </motion.div>
+          </div>
+        )}
         {/* Add Candidate Button */}
         <Button
           onClick={handleAddCandidate}
@@ -1588,9 +1601,19 @@ export default function JobPipeline() {
                   
                   <DragOverlay>
                     {activeCandidate ? (
-                      <div className="cursor-grabbing">
+                      <motion.div 
+                        className="cursor-grabbing"
+                        initial={{ scale: 1.05, rotate: 3 }}
+                        animate={{ scale: 1.05, rotate: 3 }}
+                        exit={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        style={{ 
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                          transformOrigin: 'center center'
+                        }}
+                      >
                         <CandidateCard candidate={activeCandidate} isDragging />
-                      </div>
+                      </motion.div>
                     ) : null}
                   </DragOverlay>
                 </DndContext>
