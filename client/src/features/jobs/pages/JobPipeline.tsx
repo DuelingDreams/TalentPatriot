@@ -1522,7 +1522,12 @@ export default function JobPipeline() {
                     </div>
                     <div className="flex items-center gap-2 text-slate-500 text-sm mt-2">
                       <Calendar className="w-4 h-4" />
-                      <span>Created {new Date(currentJob.created_at).toLocaleDateString()}</span>
+                      <span>Created {(() => {
+                        const dateStr = currentJob.created_at || currentJob.createdAt
+                        if (!dateStr) return 'N/A'
+                        const date = new Date(dateStr)
+                        return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString()
+                      })()}</span>
                     </div>
                   </div>
                 </div>
