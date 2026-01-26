@@ -97,8 +97,8 @@ export function useJobPipeline(jobId: string | undefined, options?: { enableReal
     // long enough that refetches don't overwrite optimistic updates with stale data
     staleTime: options?.enableRealTime ? 30000 : (2 * 60 * 1000), // 30 seconds for real-time, 2 minutes otherwise
     refetchInterval: isDemoUser ? false : (options?.enableRealTime ? 60000 : false), // 60 seconds for real-time updates (increased from 10s to prevent overwriting optimistic updates)
-    refetchOnWindowFocus: !isDemoUser,
-    refetchOnReconnect: true,
+    refetchOnWindowFocus: false, // Disabled to prevent stale data from overwriting optimistic updates when tab regains focus
+    refetchOnReconnect: false, // Disabled for same reason - rely on manual refresh or interval instead
     gcTime: 5 * 60 * 1000  // 5 minutes
   })
 }
