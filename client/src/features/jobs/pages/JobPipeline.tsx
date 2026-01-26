@@ -107,8 +107,8 @@ function EnhancedApplicationCard({
     )
   }
   
-  // Fetch job and client data with real-time updates for pipeline
-  const { data: jobs } = useJobs({ enableRealTime: true })
+  // Fetch job and client data - real-time disabled to prevent overwriting pipeline optimistic updates
+  const { data: jobs } = useJobs({ enableRealTime: false })
   const { data: clients } = useClients()
   
   // Find job and client info with defensive checks
@@ -1050,8 +1050,9 @@ export default function JobPipeline() {
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
   
-  // Fetch data - must be called before any conditional returns (with real-time updates)
-  const { data: jobs } = useJobs({ enableRealTime: true })
+  // Fetch data - must be called before any conditional returns
+  // Note: enableRealTime disabled to prevent re-renders that overwrite pipeline optimistic updates
+  const { data: jobs } = useJobs({ enableRealTime: false })
   const { 
     data: jobCandidates, 
     isLoading: candidatesLoading,
@@ -1060,8 +1061,8 @@ export default function JobPipeline() {
     isRealtimeEnabled,
     refresh: refreshCandidates
   } = useCandidatesForJob(jobId, { 
-    enableRealtime: true, 
-    pollingInterval: 30 
+    enableRealtime: false, // Disabled to prevent overwriting pipeline optimistic updates
+    pollingInterval: 0 // Disabled - pipeline data comes from useJobPipeline instead
   })
   // Show demo kanban board for demo viewers
   if (userRole === 'demo_viewer') {
