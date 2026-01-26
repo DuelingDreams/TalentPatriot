@@ -93,8 +93,10 @@ export function useJobPipeline(jobId: string | undefined, options?: { enableReal
     },
     enabled: !!jobId,
     // Optimized for real-time pipeline updates
-    staleTime: options?.enableRealTime ? 1000 : (2 * 60 * 1000), // 1 second for real-time, 2 minutes otherwise
-    refetchInterval: isDemoUser ? false : (options?.enableRealTime ? 10000 : false), // 10 seconds for real-time updates
+    // Note: Supabase has read-replica lag (can be several seconds), so staleTime needs to be 
+    // long enough that refetches don't overwrite optimistic updates with stale data
+    staleTime: options?.enableRealTime ? 30000 : (2 * 60 * 1000), // 30 seconds for real-time, 2 minutes otherwise
+    refetchInterval: isDemoUser ? false : (options?.enableRealTime ? 60000 : false), // 60 seconds for real-time updates (increased from 10s to prevent overwriting optimistic updates)
     refetchOnWindowFocus: !isDemoUser,
     refetchOnReconnect: true,
     gcTime: 5 * 60 * 1000  // 5 minutes
