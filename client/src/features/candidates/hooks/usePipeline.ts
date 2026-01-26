@@ -92,14 +92,15 @@ export function useJobPipeline(jobId: string | undefined, options?: { enableReal
       return result as PipelineData
     },
     enabled: !!jobId,
-    // Optimized for real-time pipeline updates
-    // Note: Supabase has read-replica lag (can be several seconds), so staleTime needs to be 
-    // long enough that refetches don't overwrite optimistic updates with stale data
-    staleTime: options?.enableRealTime ? 30000 : (2 * 60 * 1000), // 30 seconds for real-time, 2 minutes otherwise
-    refetchInterval: isDemoUser ? false : (options?.enableRealTime ? 60000 : false), // 60 seconds for real-time updates (increased from 10s to prevent overwriting optimistic updates)
-    refetchOnWindowFocus: false, // Disabled to prevent stale data from overwriting optimistic updates when tab regains focus
-    refetchOnReconnect: false, // Disabled for same reason - rely on manual refresh or interval instead
-    gcTime: 5 * 60 * 1000  // 5 minutes
+    // CRITICAL: Pipeline data must be "sticky" to preserve optimistic updates
+    // Supabase has read-replica lag that can return stale data on refetch
+    // All these settings prevent any automatic refetching that could overwrite moves
+    staleTime: Infinity, // Data is NEVER considered stale - only updated via optimistic updates
+    refetchInterval: false, // No automatic refetching - user must navigate away and back to refresh
+    refetchOnWindowFocus: false, // Prevents stale data when switching apps/tabs
+    refetchOnReconnect: false, // Prevents stale data on network reconnect
+    refetchOnMount: false, // Only fetch if no data exists - don't refetch on component remount
+    gcTime: 10 * 60 * 1000  // 10 minutes - keep in cache longer
   })
 }
 
