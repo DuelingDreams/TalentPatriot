@@ -57,6 +57,9 @@ GET /api/auth/oauth/callback?provider=google&code=...
 
 ## 📊 Standard Response Format
 
+### Naming Convention
+All API responses use **camelCase** for field names (e.g., `createdAt`, `updatedAt`, `orgId`). This applies to all endpoints.
+
 ### Success Response
 ```json
 {
@@ -121,7 +124,7 @@ GET /api/organizations
       "industry": "Technology",
       "size": "51-200",
       "website": "https://acme.com",
-      "created_at": "2024-01-15T10:00:00Z"
+      "createdAt": "2024-01-15T10:00:00Z"
     }
   ]
 }
@@ -190,8 +193,8 @@ GET /api/jobs?org_id={org_id}&status=open&limit=20&page=1
         "id": "client_789",
         "name": "Engineering Team"
       },
-      "created_at": "2024-01-20T14:30:00Z",
-      "updated_at": "2024-01-22T09:15:00Z"
+      "createdAt": "2024-01-20T14:30:00Z",
+      "updatedAt": "2024-01-22T09:15:00Z"
     }
   ],
   "meta": {
@@ -300,7 +303,7 @@ GET /api/candidates?org_id={org_id}&search=john&skills=react,typescript
           "description": "Lead frontend development team..."
         }
       ],
-      "created_at": "2024-01-18T11:20:00Z"
+      "createdAt": "2024-01-18T11:20:00Z"
     }
   ]
 }
@@ -363,8 +366,8 @@ GET /api/applications?org_id={org_id}&job_id={job_id}&stage=interview
       "candidate_id": "candidate_101",
       "stage": "interview",
       "status": "active",
-      "applied_at": "2024-01-25T16:45:00Z",
-      "updated_at": "2024-01-26T10:30:00Z",
+      "appliedAt": "2024-01-25T16:45:00Z",
+      "updatedAt": "2024-01-26T10:30:00Z",
       "notes": "Strong technical background, good cultural fit",
       "candidate": {
         "id": "candidate_101",
@@ -596,7 +599,7 @@ GET /api/candidates?sort=created_at:desc,name:asc
 ```
 
 Available sort fields:
-- `created_at`, `updated_at`
+- `createdAt`, `updatedAt`
 - `name`, `email`
 - `experience_level`
 

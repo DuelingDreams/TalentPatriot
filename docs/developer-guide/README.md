@@ -13,7 +13,7 @@ Welcome to the TalentPatriot developer documentation. This guide covers technica
 - **State Management**: TanStack React Query
 - **Authentication**: Supabase Auth + OAuth (Google/Microsoft)
 - **AI Integration**: OpenAI GPT-4o
-- **Email Service**: SendGrid
+- **Email Service**: Resend
 - **File Storage**: Supabase Storage
 
 ### System Architecture
@@ -30,7 +30,7 @@ Welcome to the TalentPatriot developer documentation. This guide covers technica
          │              │   External APIs │              │
          │              │                 │              │
          └──────────────│ • OpenAI GPT-4o │──────────────┘
-                        │ • SendGrid      │
+                        │ • Resend        │
                         │ • OAuth Providers│
                         └─────────────────┘
 ```
@@ -69,7 +69,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_key
 OPENAI_API_KEY=your_openai_api_key
 
 # Email Service
-SENDGRID_API_KEY=your_sendgrid_api_key
+RESEND_API_KEY=your_resend_api_key
 
 # Authentication
 GOOGLE_CLIENT_ID=your_google_client_id
@@ -254,6 +254,12 @@ POST   /api/ai/generate-insights    # Generate hiring insights
   }
 }
 ```
+
+### Response Format Convention
+- **API responses use camelCase** for all field names (e.g., `createdAt`, `publishedAt`, `orgId`)
+- Frontend code should expect camelCase from API responses
+- Database columns use snake_case, but the API layer transforms them to camelCase
+- For backwards compatibility, some frontend code handles both formats
 
 ### Authentication
 - JWT tokens via Supabase Auth
