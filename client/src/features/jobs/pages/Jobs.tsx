@@ -47,9 +47,9 @@ type JobHealth = 'healthy' | 'needs_attention' | 'stale'
 // Job health calculation logic
 function calculateJobHealth(job: any, candidateCount: number): JobHealth {
   const now = new Date()
-  const createdTime = safeGetTime(job.created_at)
+  const createdTime = safeGetTime(job.createdAt || job.created_at)
   const daysSinceCreated = createdTime ? Math.floor((now.getTime() - createdTime) / (1000 * 60 * 60 * 24)) : 0
-  const publishedTime = safeGetTime(job.published_at)
+  const publishedTime = safeGetTime(job.publishedAt || job.published_at)
   const daysSincePublished = publishedTime ? Math.floor((now.getTime() - publishedTime) / (1000 * 60 * 60 * 24)) : null
   
   // For draft jobs
@@ -263,7 +263,7 @@ export default function Jobs() {
   const sortedJobs = [...filteredJobs].sort((a, b) => {
     switch (sortBy) {
       case 'date':
-        return safeGetTime(b.created_at) - safeGetTime(a.created_at)
+        return safeGetTime(b.createdAt || b.created_at) - safeGetTime(a.createdAt || a.created_at)
       case 'candidates':
         return b.candidateCount - a.candidateCount
       case 'status':
@@ -454,7 +454,7 @@ export default function Jobs() {
                                     <div className="flex items-center gap-1">
                                       <Calendar className="w-4 h-4" />
                                       <span data-testid={`job-created-${job.id}`}>
-                                        {formatJobDate(job.published_at, 'Posted') || formatJobDate(job.created_at, 'Created') || 'No date'}
+                                        {formatJobDate(job.publishedAt || job.published_at, 'Posted') || formatJobDate(job.createdAt || job.created_at, 'Created') || 'No date'}
                                       </span>
                                     </div>
                                     
