@@ -18,16 +18,39 @@ import { Link, useLocation } from 'wouter'
 import { EmptyState } from '@/components/ui/empty-state'
 
 type SortOption = 'date' | 'candidates' | 'status' | 'health'
-type FilterOption = 'all' | 'open' | 'closed' | 'on_hold' | 'draft'
+type FilterOption = 'active' | 'all' | 'open' | 'closed' | 'on_hold' | 'draft' | 'archived'
+
+// Safe date formatting - handles null/undefined/invalid dates
+function formatJobDate(dateStr: string | null | undefined, prefix: string): string {
+  if (!dateStr) return ''
+  try {
+    const date = new Date(dateStr)
+    if (isNaN(date.getTime())) return ''
+    return `${prefix} ${date.toLocaleDateString()}`
+  } catch {
+    return ''
+  }
+}
+
+// Safe date parsing - returns timestamp or 0 for sorting
+function safeGetTime(dateStr: string | null | undefined): number {
+  if (!dateStr) return 0
+  try {
+    const date = new Date(dateStr)
+    return isNaN(date.getTime()) ? 0 : date.getTime()
+  } catch {
+    return 0
+  }
+}
 type JobHealth = 'healthy' | 'needs_attention' | 'stale'
 
 // Job health calculation logic
 function calculateJobHealth(job: any, candidateCount: number): JobHealth {
   const now = new Date()
-  const createdDate = new Date(job.created_at)
-  const daysSinceCreated = Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24))
-  const publishedDate = job.published_at ? new Date(job.published_at) : null
-  const daysSincePublished = publishedDate ? Math.floor((now.getTime() - publishedDate.getTime()) / (1000 * 60 * 60 * 24)) : null
+  const createdTime = safeGetTime(job.created_at)
+  const daysSinceCreated = createdTime ? Math.floor((now.getTime() - createdTime) / (1000 * 60 * 60 * 24)) : 0
+  const publishedTime = safeGetTime(job.published_at)
+  const daysSincePublished = publishedTime ? Math.floor((now.getTime() - publishedTime) / (1000 * 60 * 60 * 24)) : null
   
   // For draft jobs
   if (job.status === 'draft') {
@@ -76,7 +99,7 @@ function getHealthIcon(health: JobHealth) {
 export default function Jobs() {
   const [isGuidedModalOpen, setIsGuidedModalOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortOption>('date')
-  const [filterBy, setFilterBy] = useState<FilterOption>('all')
+  const [filterBy, setFilterBy] = useState<FilterOption>('active')
   const { toast } = useToast()
   const { userRole, currentOrgId } = useAuth()
   const [, setLocation] = useLocation()
@@ -228,6 +251,10 @@ export default function Jobs() {
   
   // Apply filtering
   const filteredJobs = jobsWithStats.filter((job: any) => {
+    if (filterBy === 'active') {
+      // Active = everything except archived and closed
+      return job.status !== 'archived' && job.status !== 'closed'
+    }
     if (filterBy === 'all') return true
     return job.status === filterBy
   })
@@ -236,7 +263,7 @@ export default function Jobs() {
   const sortedJobs = [...filteredJobs].sort((a, b) => {
     switch (sortBy) {
       case 'date':
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        return safeGetTime(b.created_at) - safeGetTime(a.created_at)
       case 'candidates':
         return b.candidateCount - a.candidateCount
       case 'status':
@@ -317,11 +344,13 @@ export default function Jobs() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="all">All Jobs</SelectItem>
                 <SelectItem value="open">Open</SelectItem>
                 <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
                 <SelectItem value="on_hold">On Hold</SelectItem>
+                <SelectItem value="closed">Closed</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -425,10 +454,7 @@ export default function Jobs() {
                                     <div className="flex items-center gap-1">
                                       <Calendar className="w-4 h-4" />
                                       <span data-testid={`job-created-${job.id}`}>
-                                        {job.published_at 
-                                          ? `Posted ${new Date(job.published_at).toLocaleDateString()}`
-                                          : `Created ${new Date(job.created_at).toLocaleDateString()}`
-                                        }
+                                        {formatJobDate(job.published_at, 'Posted') || formatJobDate(job.created_at, 'Created') || 'No date'}
                                       </span>
                                     </div>
                                     
