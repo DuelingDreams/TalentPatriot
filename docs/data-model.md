@@ -661,7 +661,7 @@ Publish job to public careers page.
     "id": "uuid",
     "slug": "senior-react-developer-abc123",
     "status": "open",
-    "published_at": "2025-10-24T10:00:00Z"
+    "publishedAt": "2025-10-24T10:00:00Z"
   }
 }
 ```
