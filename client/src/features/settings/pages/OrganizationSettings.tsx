@@ -70,7 +70,7 @@ export default function OrganizationSettings() {
   })
 
   const { data: branding, isLoading: brandingLoading } = useQuery<BrandingInfo>({
-    queryKey: ['/api/organizations/branding', 'careers'],
+    queryKey: ['/api/organizations/branding'],
     enabled: !!organizationId,
   })
 

@@ -1014,7 +1014,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         .select('*')
         .eq('org_id', orgId)
         .eq('channel', channel)
-        .single();
+        .maybeSingle();
 
       res.json(branding || {});
     } catch (error) {
@@ -2951,11 +2951,11 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         .select('logo_url, favicon_url, primary_color, accent_color, tagline, about_text, header_text, footer_text')
         .eq('org_id', organization.id)
         .eq('channel', 'careers')
-        .single();
+        .maybeSingle();
 
       res.json({
         organizationName: organization.name,
-        ...branding
+        ...(branding || {})
       });
     } catch (error) {
       console.error('Error fetching public branding:', error);

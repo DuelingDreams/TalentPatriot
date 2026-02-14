@@ -51,7 +51,7 @@ export default function OnboardingReview() {
   })
 
   const { data: branding } = useQuery<BrandingInfo>({
-    queryKey: ['/api/organizations/branding', 'careers'],
+    queryKey: ['/api/organizations/branding'],
     enabled: !!organizationId,
   })
 
