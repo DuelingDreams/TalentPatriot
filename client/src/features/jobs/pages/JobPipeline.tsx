@@ -391,7 +391,6 @@ function EnhancedApplicationCard({
                     variant="ghost"
                     className="h-8 w-8 p-0 hover:bg-purple-50 hover:text-purple-600"
                     title="Offer Letter"
-                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   >
                     <FileText className="w-4 h-4" />
                   </Button>

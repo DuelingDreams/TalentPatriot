@@ -237,7 +237,7 @@ export function OfferLetterDialog({
   return (
     <>
       {trigger ? (
-        <span onClick={() => setOpen(true)} className="cursor-pointer">{trigger}</span>
+        <span onClick={(e) => { e.stopPropagation(); setOpen(true); }} className="cursor-pointer">{trigger}</span>
       ) : (
         <Button onClick={() => setOpen(true)} size="sm" variant="outline">
           <FileText size={16} className="mr-1" />
@@ -246,11 +246,10 @@ export function OfferLetterDialog({
       )}
 
       <AppModal
-        isOpen={open}
+        open={open}
         onClose={() => setOpen(false)}
-        title={existingOfferId ? 'Edit Offer Letter' : 'Create Offer Letter'}
-        subtitle={`${candidateName} — ${jobTitle}${clientName ? ` (${clientName})` : ''}`}
-        maxWidth="max-w-6xl"
+        title={`${existingOfferId ? 'Edit' : 'Create'} Offer Letter — ${candidateName} — ${jobTitle}${clientName ? ` (${clientName})` : ''}`}
+        className="sm:max-w-6xl"
       >
         <div className="flex gap-2 mb-4 border-b">
           <button
