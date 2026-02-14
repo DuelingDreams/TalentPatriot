@@ -247,7 +247,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated, defaultCli
                         <SelectValue placeholder="Select a client (optional)" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="z-[100] bg-white border border-slate-200 shadow-lg rounded-md max-h-48 overflow-y-auto">
+                    <SelectContent className="z-[200] bg-white border border-slate-200 shadow-lg rounded-md max-h-48 overflow-y-auto">
                       <SelectItem value="__no_client" className="hover:bg-slate-50 focus:bg-slate-100 cursor-pointer py-2 px-3">
                         No client assigned
                       </SelectItem>
@@ -320,7 +320,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated, defaultCli
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="z-[100]">
+                      <SelectContent className="z-[200]">
                         <SelectItem value="onsite">On-site</SelectItem>
                         <SelectItem value="remote">Remote</SelectItem>
                         <SelectItem value="hybrid">Hybrid</SelectItem>
@@ -355,7 +355,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated, defaultCli
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="z-[100]">
+                      <SelectContent className="z-[200]">
                         <SelectItem value="entry">Entry Level</SelectItem>
                         <SelectItem value="mid">Mid Level</SelectItem>
                         <SelectItem value="senior">Senior Level</SelectItem>
@@ -379,7 +379,7 @@ export function PostJobDialog({ trigger, triggerButton, onJobCreated, defaultCli
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="z-[100]">
+                      <SelectContent className="z-[200]">
                         <SelectItem value="full-time">Full Time</SelectItem>
                         <SelectItem value="part-time">Part Time</SelectItem>
                         <SelectItem value="contract">Contract</SelectItem>
