@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -11,110 +11,93 @@ import { AppErrorBoundary } from "@/utils/appErrorBoundary";
 import { DemoToggleFooter } from "@/components/DemoToggleFooter";
 import { supabase } from "@/lib/supabase";
 import AppShell from "./AppShell";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
-// Loading component for suspense fallback
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
   </div>
 );
 
-// Lazy load all pages for better performance
-const NotFound = lazy(() => import("@/features/public/pages/NotFound"));
-const Dashboard = lazy(() => import("@/features/analytics/pages/Dashboard"));
-const Jobs = lazy(() => import("@/features/jobs/pages/Jobs"));
-const JobPipeline = lazy(() => import("@/features/jobs/pages/JobPipeline"));
-const Clients = lazy(() => import("@/features/organization/pages/Clients"));
-const ClientDetail = lazy(() => import("@/features/organization/pages/ClientDetail"));
-const Candidates = lazy(() => import("@/features/candidates/pages/Candidates"));
-const ProfessionalCandidates = lazy(() => import("@/features/candidates/pages/ProfessionalCandidates"));
-const CandidateProfile = lazy(() => import("@/features/candidates/pages/CandidateProfile"));
-const Calendar = lazy(() => import("@/features/public/pages/Calendar"));
-// Use Google-integrated Messages page with email/calendar features
-const Messages = lazy(() => import("@/features/communications/pages/MessagesWithGoogle"));
-const Reports = lazy(() => import("@/features/analytics/pages/Reports"));
-const Login = lazy(() => import("@/features/auth/pages/Login"));
-const Signup = lazy(() => import("@/features/auth/pages/Signup"));
-const ForgotPassword = lazy(() => import("@/features/auth/pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("@/features/auth/pages/ResetPassword"));
-const OnboardingStep1 = lazy(() => import("@/features/onboarding/pages/OnboardingStep1"));
-const OnboardingStep2 = lazy(() => import("@/features/onboarding/pages/OnboardingStep2"));
-const OnboardingStep3 = lazy(() => import("@/features/onboarding/pages/OnboardingStep3"));
-const OnboardingStep4 = lazy(() => import("@/features/onboarding/pages/OnboardingStep4"));
-const OnboardingStep5 = lazy(() => import("@/features/onboarding/pages/OnboardingStep5"));
-const OnboardingBranding = lazy(() => import("@/features/onboarding/pages/OnboardingBranding"));
-const OnboardingReview = lazy(() => import("@/features/onboarding/pages/OnboardingReview"));
-const OnboardingChecklist = lazy(() => import("@/features/onboarding/pages/OnboardingChecklist"));
-const Unauthorized = lazy(() => import("@/features/public/pages/Unauthorized"));
-const Landing = lazy(() => import("@/features/public/pages/Landing"));
-const AuthCallback = lazy(() => import("@/features/auth/pages/AuthCallback"));
-// Public job posting pages - using correct components
-const OrganizationSetup = lazy(() => import("@/features/organization/pages/OrganizationSetup"));
-const PrivacyPolicy = lazy(() => import("@/features/public/pages/PrivacyPolicy"));
-const TermsOfService = lazy(() => import("@/features/public/pages/TermsOfService"));
-const Careers = lazy(() => import("@/features/public/pages/Careers"));
-const CareersBySlug = lazy(() => import("@/features/public/pages/CareersBySlug"));
-const JobApplicationForm = lazy(() => import("@/features/jobs/pages/JobApplicationForm"));
-const Health = lazy(() => import("@/features/public/pages/Health"));
-const TestFeatures = lazy(() => import("@/features/admin/pages/TestFeatures"));
-const Help = lazy(() => import("@/features/public/pages/Help"));
-const Documentation = lazy(() => import("@/features/public/pages/Documentation"));
-const About = lazy(() => import("@/features/public/pages/About"));
-const Pricing = lazy(() => import("@/features/public/pages/Pricing"));
-const ProfileSettings = lazy(() => import("@/features/organization/pages/ProfileSettings"));
-const AccountSettings = lazy(() => import("@/features/organization/pages/AccountSettings"));
-const IntegrationsSettings = lazy(() => import("@/features/settings/pages/IntegrationsSettings"));
-const Settings = lazy(() => import("@/features/settings/pages/Settings"));
-const OrganizationSettings = lazy(() => import("@/features/settings/pages/OrganizationSettings"));
-const BetaProgram = lazy(() => import("@/features/public/pages/BetaProgram"));
-const BetaApplicationsAdmin = lazy(() => import("@/features/admin/pages/BetaApplicationsAdmin"));
-const AdminInbox = lazy(() => import("@/features/admin/pages/AdminInbox"));
-const ResumeParsingDemo = lazy(() => import("@/features/public/pages/ResumeParsingDemo"));
-const EmailSettingsAdmin = lazy(() => import("@/features/admin/pages/EmailSettingsAdmin"));
-const DataImport = lazy(() => import("@/features/admin/pages/DataImport"));
-const DemoTranscript = lazy(() => import("@/features/public/pages/DemoTranscript"));
-const CampaignBuilder = lazy(() => import("@/features/communications/pages/CampaignBuilder"));
-const RecruitersLanding = lazy(() => import("@/features/public/pages/RecruitersLanding"));
-const SmallBusinessLanding = lazy(() => import("@/features/public/pages/SmallBusinessLanding"));
-const AgenciesLanding = lazy(() => import("@/features/public/pages/AgenciesLanding"));
+const NotFound = lazyWithRetry(() => import("@/features/public/pages/NotFound"));
+const Dashboard = lazyWithRetry(() => import("@/features/analytics/pages/Dashboard"));
+const Jobs = lazyWithRetry(() => import("@/features/jobs/pages/Jobs"));
+const JobPipeline = lazyWithRetry(() => import("@/features/jobs/pages/JobPipeline"));
+const Clients = lazyWithRetry(() => import("@/features/organization/pages/Clients"));
+const ClientDetail = lazyWithRetry(() => import("@/features/organization/pages/ClientDetail"));
+const Candidates = lazyWithRetry(() => import("@/features/candidates/pages/Candidates"));
+const ProfessionalCandidates = lazyWithRetry(() => import("@/features/candidates/pages/ProfessionalCandidates"));
+const CandidateProfile = lazyWithRetry(() => import("@/features/candidates/pages/CandidateProfile"));
+const Calendar = lazyWithRetry(() => import("@/features/public/pages/Calendar"));
+const Messages = lazyWithRetry(() => import("@/features/communications/pages/MessagesWithGoogle"));
+const Reports = lazyWithRetry(() => import("@/features/analytics/pages/Reports"));
+const Login = lazyWithRetry(() => import("@/features/auth/pages/Login"));
+const Signup = lazyWithRetry(() => import("@/features/auth/pages/Signup"));
+const ForgotPassword = lazyWithRetry(() => import("@/features/auth/pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("@/features/auth/pages/ResetPassword"));
+const OnboardingStep1 = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingStep1"));
+const OnboardingStep2 = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingStep2"));
+const OnboardingStep3 = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingStep3"));
+const OnboardingStep4 = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingStep4"));
+const OnboardingStep5 = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingStep5"));
+const OnboardingBranding = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingBranding"));
+const OnboardingReview = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingReview"));
+const OnboardingChecklist = lazyWithRetry(() => import("@/features/onboarding/pages/OnboardingChecklist"));
+const Unauthorized = lazyWithRetry(() => import("@/features/public/pages/Unauthorized"));
+const Landing = lazyWithRetry(() => import("@/features/public/pages/Landing"));
+const AuthCallback = lazyWithRetry(() => import("@/features/auth/pages/AuthCallback"));
+const OrganizationSetup = lazyWithRetry(() => import("@/features/organization/pages/OrganizationSetup"));
+const PrivacyPolicy = lazyWithRetry(() => import("@/features/public/pages/PrivacyPolicy"));
+const TermsOfService = lazyWithRetry(() => import("@/features/public/pages/TermsOfService"));
+const Careers = lazyWithRetry(() => import("@/features/public/pages/Careers"));
+const CareersBySlug = lazyWithRetry(() => import("@/features/public/pages/CareersBySlug"));
+const JobApplicationForm = lazyWithRetry(() => import("@/features/jobs/pages/JobApplicationForm"));
+const Health = lazyWithRetry(() => import("@/features/public/pages/Health"));
+const TestFeatures = lazyWithRetry(() => import("@/features/admin/pages/TestFeatures"));
+const Help = lazyWithRetry(() => import("@/features/public/pages/Help"));
+const Documentation = lazyWithRetry(() => import("@/features/public/pages/Documentation"));
+const About = lazyWithRetry(() => import("@/features/public/pages/About"));
+const Pricing = lazyWithRetry(() => import("@/features/public/pages/Pricing"));
+const ProfileSettings = lazyWithRetry(() => import("@/features/organization/pages/ProfileSettings"));
+const AccountSettings = lazyWithRetry(() => import("@/features/organization/pages/AccountSettings"));
+const IntegrationsSettings = lazyWithRetry(() => import("@/features/settings/pages/IntegrationsSettings"));
+const Settings = lazyWithRetry(() => import("@/features/settings/pages/Settings"));
+const OrganizationSettings = lazyWithRetry(() => import("@/features/settings/pages/OrganizationSettings"));
+const BetaProgram = lazyWithRetry(() => import("@/features/public/pages/BetaProgram"));
+const BetaApplicationsAdmin = lazyWithRetry(() => import("@/features/admin/pages/BetaApplicationsAdmin"));
+const AdminInbox = lazyWithRetry(() => import("@/features/admin/pages/AdminInbox"));
+const ResumeParsingDemo = lazyWithRetry(() => import("@/features/public/pages/ResumeParsingDemo"));
+const EmailSettingsAdmin = lazyWithRetry(() => import("@/features/admin/pages/EmailSettingsAdmin"));
+const DataImport = lazyWithRetry(() => import("@/features/admin/pages/DataImport"));
+const DemoTranscript = lazyWithRetry(() => import("@/features/public/pages/DemoTranscript"));
+const CampaignBuilder = lazyWithRetry(() => import("@/features/communications/pages/CampaignBuilder"));
+const RecruitersLanding = lazyWithRetry(() => import("@/features/public/pages/RecruitersLanding"));
+const SmallBusinessLanding = lazyWithRetry(() => import("@/features/public/pages/SmallBusinessLanding"));
+const AgenciesLanding = lazyWithRetry(() => import("@/features/public/pages/AgenciesLanding"));
 
 
 // Global error handler for SSL and network issues
 function GlobalErrorHandlerSetup() {
   useEffect(() => {
-    // Handle only critical chunk load failures that prevent app startup
-    const handleChunkLoadError = (event: ErrorEvent) => {
-      if (
-        event.message.includes('Loading chunk') &&
-        event.message.includes('failed')
-      ) {
-        console.warn('Critical chunk load failure detected, attempting page reload...');
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      }
-    };
-
-    // Handle only SSL certificate errors during initial load
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       const reason = event.reason?.toString() || '';
       if (
         reason.includes('ERR_ECDH_FALLBACK_CERTIFICATE_INVALID') ||
         (reason.includes('SSL') && reason.includes('CERT'))
       ) {
-        console.warn('SSL certificate error detected, attempting page reload...');
         event.preventDefault();
-        setTimeout(() => {
+        const key = "__tp_chunk_reload";
+        const last = sessionStorage.getItem(key);
+        const now = Date.now();
+        if (!last || now - Number(last) > 10_000) {
+          sessionStorage.setItem(key, String(now));
           window.location.reload();
-        }, 3000);
+        }
       }
     };
 
-    window.addEventListener('error', handleChunkLoadError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
     return () => {
-      window.removeEventListener('error', handleChunkLoadError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
     };
   }, []);

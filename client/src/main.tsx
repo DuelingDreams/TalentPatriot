@@ -5,15 +5,16 @@ import "./bootstrap";
 import "./utils/errorHandler"; // Import error handler to initialize it
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
-// Auto-reload on chunk load errors (once per session)
-let __tpReloadedForChunkError = false;
-
 window.addEventListener("error", (e: ErrorEvent) => {
   const m = String((e?.error as any)?.message ?? e?.message ?? "");
-  // Covers: "Loading chunk", "ChunkLoadError", "Failed to fetch dynamically imported module"
-  if (!__tpReloadedForChunkError && /(Loading chunk|ChunkLoadError|dynamically imported)/i.test(m)) {
-    __tpReloadedForChunkError = true;
-    setTimeout(() => window.location.reload(), 75);
+  if (/(Loading chunk|ChunkLoadError|dynamically imported)/i.test(m)) {
+    const key = "__tp_chunk_reload";
+    const last = sessionStorage.getItem(key);
+    const now = Date.now();
+    if (!last || now - Number(last) > 10_000) {
+      sessionStorage.setItem(key, String(now));
+      window.location.reload();
+    }
   }
 });
 
