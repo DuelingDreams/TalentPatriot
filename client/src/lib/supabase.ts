@@ -65,19 +65,46 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   }
 })
 
-// Handle global auth errors to prevent refresh token errors from appearing in console
+export async function handleExpiredSession() {
+  try {
+    await supabase.auth.signOut({ scope: 'local' })
+  } catch {
+  }
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const keysToRemove = Object.keys(localStorage).filter(k =>
+        k.startsWith('sb-') || k.includes('supabase')
+      )
+      keysToRemove.forEach(k => localStorage.removeItem(k))
+    }
+  } catch {
+  }
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      sessionStorage.removeItem('currentOrgId')
+    }
+  } catch {
+  }
+  if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+    window.location.href = '/login'
+  }
+}
+
 if (typeof window !== 'undefined') {
-  // Override console.error to filter out Supabase refresh token errors
   const originalConsoleError = console.error
   console.error = (...args: any[]) => {
-    // Check if this is a Supabase refresh token error
     const errorMessage = args[0]
     if (typeof errorMessage === 'object' && errorMessage?.__isAuthError && errorMessage?.code === 'refresh_token_not_found') {
-      // Silently handle refresh token errors - these are expected when sessions expire
-      console.log('Session expired - refresh token not found (handled gracefully)')
+      console.warn('[Auth] Session expired - signing out and redirecting to login')
+      handleExpiredSession()
       return
     }
-    // For all other errors, use the original console.error
+    const stringified = typeof errorMessage === 'string' ? errorMessage : ''
+    if (stringified.includes('refresh_token_not_found') || stringified.includes('Invalid Refresh Token')) {
+      console.warn('[Auth] Session expired - signing out and redirecting to login')
+      handleExpiredSession()
+      return
+    }
     originalConsoleError.apply(console, args)
   }
 }

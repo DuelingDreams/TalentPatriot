@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 import { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import { supabase, handleExpiredSession } from '@/lib/supabase'
 import { safeStorageOperation } from '@/utils/errorHandler'
 import { DEMO_ORG_ID } from '@/lib/demo-data-consolidated'
 import { isDemoEnabled } from '@/lib/demoToggle'
@@ -32,6 +32,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [orgRole, setOrgRole] = useState<string | null>(null)
   const [currentOrgId, setCurrentOrgIdState] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const sessionCheckInFlight = useRef(false)
+  const userRef = useRef<User | null>(null)
+  userRef.current = user
+
+  const clearAuthState = useCallback(() => {
+    setSession(null)
+    setUser(null)
+    setUserRole(null)
+    setOrgRole(null)
+    setCurrentOrgIdState(null)
+    safeStorageOperation(() => {
+      sessionStorage.removeItem('currentOrgId')
+    })
+  }, [])
+
+  const validateSession = useCallback(async (): Promise<boolean> => {
+    if (sessionCheckInFlight.current) return true
+    sessionCheckInFlight.current = true
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error) {
+        const msg = error.message || ''
+        if (msg.includes('refresh_token_not_found') || msg.includes('Invalid Refresh Token') || msg.includes('Invalid JWT')) {
+          console.warn('[Auth] Session validation failed - expired token detected')
+          handleExpiredSession()
+          return false
+        }
+      }
+      if (!session) {
+        return false
+      }
+      return true
+    } catch {
+      return false
+    } finally {
+      sessionCheckInFlight.current = false
+    }
+  }, [])
 
   const fetchOrgRole = async (userId: string, orgId: string): Promise<string | null> => {
     try {
@@ -61,10 +99,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Enhanced auth initialization with development mode support
     const initAuth = async () => {
       try {
-        // FIRST: Check for real Supabase session (production or real test users)
-        const { data: { session } } = await supabase.auth.getSession()
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
         if (!mounted) return
+
+        if (sessionError) {
+          const msg = sessionError.message || ''
+          if (msg.includes('refresh_token_not_found') || msg.includes('Invalid Refresh Token') || msg.includes('Invalid JWT')) {
+            console.warn('[Auth] Expired session detected on init - redirecting to login')
+            handleExpiredSession()
+            return
+          }
+        }
 
         setSession(session)
         setUser(session?.user ?? null)
@@ -117,10 +163,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setOrgRole(null)
           setCurrentOrgIdState(null)
         }
-      } catch (error) {
+      } catch (error: any) {
+        const errMsg = error?.message || error?.code || ''
+        if (typeof errMsg === 'string' && (errMsg.includes('refresh_token_not_found') || errMsg.includes('Invalid Refresh Token'))) {
+          console.warn('[Auth] Expired session caught during init')
+          handleExpiredSession()
+          return
+        }
         console.warn('[Auth] Initialization error:', error)
         
-        // Fallback to development auth if available
         if (isDevelopment() && mounted) {
           setDevelopmentAuth('hildebrand') // Use Hildebrand for Emily Wright testing
           const devAuth = getDevelopmentAuth()
@@ -255,9 +306,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && userRef.current) {
+        validateSession()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
     return () => {
       mounted = false
       subscription?.unsubscribe?.()
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [])
 
