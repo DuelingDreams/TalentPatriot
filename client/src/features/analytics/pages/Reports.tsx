@@ -198,7 +198,7 @@ export default function Reports() {
           
           <div className="flex flex-col sm:flex-row gap-3">
             <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-              <SelectTrigger className="w-full sm:w-40">
+              <SelectTrigger className="w-full sm:w-40" aria-label="Select time period">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

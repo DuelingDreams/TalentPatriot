@@ -197,6 +197,7 @@ export function HelpCenter() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 py-3 text-lg"
+              aria-label="Search help articles"
             />
           </div>
         </div>

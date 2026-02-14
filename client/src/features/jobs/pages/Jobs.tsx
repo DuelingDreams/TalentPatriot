@@ -340,7 +340,7 @@ export default function Jobs() {
             <Filter className="w-4 h-4 text-neutral-500" />
             <span className="text-sm font-medium text-neutral-700">Filter:</span>
             <Select value={filterBy} onValueChange={(value: FilterOption) => setFilterBy(value)}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40" aria-label="Filter by status">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -359,7 +359,7 @@ export default function Jobs() {
             <ArrowUpDown className="w-4 h-4 text-neutral-500" />
             <span className="text-sm font-medium text-neutral-700">Sort by:</span>
             <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-40" aria-label="Filter by type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

@@ -216,6 +216,7 @@ export default function Careers() {
               className="pl-10 pr-4 py-3 text-lg"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search jobs"
               style={{ 
                 borderColor: primaryColor + '30',
               }}

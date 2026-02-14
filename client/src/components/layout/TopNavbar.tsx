@@ -67,6 +67,7 @@ export function TopNavbar({ onMobileMenuToggle, pageTitle = "Dashboard" }: TopNa
               type="text"
               placeholder="Search..."
               className="pl-10 pr-4 py-2 bg-neutral-100 border-0 focus:bg-white w-64"
+              aria-label="Search"
             />
           </div>
 

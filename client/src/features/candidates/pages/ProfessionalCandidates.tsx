@@ -346,11 +346,12 @@ export default function ProfessionalCandidates() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
+                    aria-label="Search candidates"
                   />
                 </div>
               </div>
               <Select value={selectedStage} onValueChange={setSelectedStage}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Filter by status">
                   <SelectValue placeholder="Filter by stage" />
                 </SelectTrigger>
                 <SelectContent>
@@ -362,7 +363,7 @@ export default function ProfessionalCandidates() {
                 </SelectContent>
               </Select>
               <Select value={selectedSkill} onValueChange={setSelectedSkill}>
-                <SelectTrigger>
+                <SelectTrigger aria-label="Filter by source">
                   <SelectValue placeholder="Filter by skill" />
                 </SelectTrigger>
                 <SelectContent>
