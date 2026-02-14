@@ -77,7 +77,7 @@ const COLORS = ['#1F3A5F', '#264C99', '#5C667B', '#8B9DC3', '#A8B5D1']
 
 export default function Reports() {
   const { currentOrgId } = useAuth()
-  const [selectedPeriod, setSelectedPeriod] = useState('3months')
+  const [selectedPeriod, setSelectedPeriod] = useState('1year')
   const [generatingReport, setGeneratingReport] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
 
@@ -206,6 +206,7 @@ export default function Reports() {
                 <SelectItem value="3months">Last 3 Months</SelectItem>
                 <SelectItem value="6months">Last 6 Months</SelectItem>
                 <SelectItem value="1year">Last Year</SelectItem>
+                <SelectItem value="all">All Time</SelectItem>
               </SelectContent>
             </Select>
             

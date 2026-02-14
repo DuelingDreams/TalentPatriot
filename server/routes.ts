@@ -1163,20 +1163,32 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
         case '1month': periodMonths = 1; break
         case '6months': periodMonths = 6; break  
         case '1year': periodMonths = 12; break
+        case 'all': periodMonths = 0; break
         default: periodMonths = 3
       }
 
-      const startDate = new Date()
-      startDate.setMonth(startDate.getMonth() - periodMonths)
+      const startDate = periodMonths > 0 ? new Date() : null
+      if (startDate) {
+        startDate.setMonth(startDate.getMonth() - periodMonths)
+      }
 
       // Use materialized views for efficient analytics
+      let pipelineQuery = supabaseAdmin
+        .from('mv_pipeline_metrics')
+        .select('*')
+        .eq('org_id', orgId)
+      if (startDate) pipelineQuery = pipelineQuery.gte('period_month', startDate.toISOString())
+      pipelineQuery = pipelineQuery.order('period_month')
+
+      let timeToHireQuery = supabaseAdmin
+        .from('mv_time_to_hire')
+        .select('*')
+        .eq('org_id', orgId)
+      if (startDate) timeToHireQuery = timeToHireQuery.gte('hire_month', startDate.toISOString())
+      timeToHireQuery = timeToHireQuery.order('hire_month')
+
       const [pipelineData, sourceData, timeToHireData, skillsData, recruiterData, clientData] = await Promise.all([
-        supabaseAdmin
-          .from('mv_pipeline_metrics')
-          .select('*')
-          .eq('org_id', orgId)
-          .gte('period_month', startDate.toISOString())
-          .order('period_month'),
+        pipelineQuery,
         
         supabaseAdmin
           .from('mv_candidate_sources')
@@ -1184,12 +1196,7 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
           .eq('org_id', orgId)
           .order('total_applications', { ascending: false }),
         
-        supabaseAdmin
-          .from('mv_time_to_hire')
-          .select('*')
-          .eq('org_id', orgId)
-          .gte('hire_month', startDate.toISOString())
-          .order('hire_month'),
+        timeToHireQuery,
         
         supabaseAdmin
           .from('v_candidate_skills_flattened')
