@@ -27,6 +27,7 @@ import { PipelineProgressBar } from '../components/PipelineProgressBar'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Briefcase, Building2, Calendar, Users, Mail, Phone, FileText, Loader2, MessageSquare, Edit3, ArrowRightLeft, Share2, GripVertical, Clock, UserX, Eye, EyeOff, DollarSign } from 'lucide-react'
 import { CandidateNotesDialog } from '@/features/candidates/components/CandidateNotesDialog'
+import { OfferLetterDialog } from '@/features/jobs/components/OfferLetterDialog'
 import { Link } from 'wouter'
 import { openResumeInNewTab } from '@/lib/resumeUtils'
 
@@ -376,6 +377,27 @@ function EnhancedApplicationCard({
             >
               <MessageSquare className="w-4 h-4" />
             </Button>
+            {(stage === 'offer' || stage === 'hired') && (
+              <OfferLetterDialog
+                candidateId={safeCandidateId}
+                candidateName={safeCandidateName}
+                jobId={safeJobId}
+                jobTitle={jobInfo?.title || 'Untitled Job'}
+                clientId={jobInfo?.clientId}
+                clientName={clientInfo?.name}
+                trigger={
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 hover:bg-purple-50 hover:text-purple-600"
+                    title="Offer Letter"
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                  >
+                    <FileText className="w-4 h-4" />
+                  </Button>
+                }
+              />
+            )}
             <div className="flex-1" />
             <Button 
               size="sm" 

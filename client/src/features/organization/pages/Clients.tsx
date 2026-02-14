@@ -145,6 +145,18 @@ export default function Clients() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   })
 
+  const { data: clientFinancials } = useQuery({
+    queryKey: ['/api/clients/stats/financials', currentOrgId],
+    queryFn: async () => {
+      if (!currentOrgId) return {}
+      const response = await fetch('/api/clients/stats/financials')
+      if (!response.ok) throw new Error('Failed to fetch client financials')
+      return response.json()
+    },
+    enabled: !!currentOrgId,
+    staleTime: 5 * 60 * 1000,
+  })
+
   // Fetch placements for selected client
   const { data: clientPlacements, isLoading: isLoadingPlacements } = useQuery<Placement[]>({
     queryKey: ['/api/clients', selectedClient?.id, 'placements', currentOrgId],
@@ -214,18 +226,23 @@ export default function Clients() {
         displayStatus = 'Active'
       }
       
+      const financials = (clientFinancials as Record<string, { revenue: number; grossProfit: number; placements: number }>)?.[client.id]
+      const revenue = financials?.revenue || 0
+      const grossProfit = financials?.grossProfit || 0
+      const avgMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0
+
       return {
         ...client,
         openJobs,
         placements: clientPlacements,
-        revenue: 0,
-        grossProfit: 0,
-        avgMargin: 0,
+        revenue,
+        grossProfit,
+        avgMargin: Math.round(avgMargin * 10) / 10,
         displayStatus,
         logo: getClientInitials(client.name),
       }
     })
-  }, [clients, jobs, placementCounts])
+  }, [clients, jobs, placementCounts, clientFinancials])
 
   const filteredClients = useMemo(() => {
     return clientsWithStats.filter(client =>
