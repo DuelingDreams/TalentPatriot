@@ -206,17 +206,18 @@ export default function Clients() {
         ? new Date(client.lastContactAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
         : false
       
+      const clientPlacements = (placementCounts as Record<string, number>)?.[client.id] || 0
       let displayStatus: 'Active' | 'Prospect' | 'Inactive' = 'Prospect'
       if (client.status === 'archived') {
         displayStatus = 'Inactive'
-      } else if (hasActiveJobs || hasRecentActivity) {
+      } else if (hasActiveJobs || hasRecentActivity || clientPlacements > 0) {
         displayStatus = 'Active'
       }
       
       return {
         ...client,
         openJobs,
-        placements: (placementCounts as Record<string, number>)?.[client.id] || 0,
+        placements: clientPlacements,
         revenue: 0,
         grossProfit: 0,
         avgMargin: 0,
