@@ -1,0 +1,41 @@
+            function nP(e, t) {
+                if (!nx("runtime.sendMessage")) {
+                    throw Error("No runtime.sendMessage support");
+                }
+
+                chrome.runtime.sendMessage(e, response => {
+                    // Check for lastError immediately in the callback
+                    if (chrome.runtime.lastError) {
+                        const errorMessage = chrome.runtime.lastError.message ?? "Unknown chrome.runtime.lastError";
+
+                        // Handle 'Extension context invalidated' gracefully
+                        if (errorMessage.includes("Extension context invalidated")) {
+                            console.warn("Message to extension context failed: Extension context invalidated. This is expected if the extension reloaded or the tab closed.", errorMessage);
+                            // Optionally, call the callback with undefined or a specific error object
+                            // if 't' expects to be called in all cases.
+                            // if (t) t(undefined);
+                            return; // Stop further processing
+                        }
+
+                        // For other errors, you might still want to throw or log
+                        console.error(`runtime/sendMessage error: ${errorMessage}`);
+                        throw Error(`runtime/sendMessage: ${errorMessage}`);
+                    }
+
+                    // If no error, proceed with the original callback
+                    if (t) {
+                        t(response);
+                    }
+                });
+
+                // It's also good practice to check for chrome.runtime.lastError
+                // right after calling sendMessage, though it's less common for
+                // 'Extension context invalidated' to appear here before the callback.
+                if (chrome.runtime.lastError) {
+                    const errorMessage = chrome.runtime.lastError.message ?? "Unknown chrome.runtime.lastError";
+                    if (errorMessage.includes("Extension context invalidated")) {
+                        console.warn("Message to extension context failed immediately: Extension context invalidated.", errorMessage);
+                        return;
+                    }
+                }
+            }
