@@ -56,6 +56,7 @@ import {
 } from './middleware/auth';
 import { writeLimiter, authLimiter, publicJobLimiter } from './middleware/rate-limit';
 import { upload } from './middleware/upload';
+import { refreshIfStale, triggerDeferredRefresh, startScheduledRefresh } from './lib/analyticsRefresh';
 import multer from 'multer';
 
 // Configure multer for document uploads (PDF, DOC, DOCX, TXT)
@@ -1153,6 +1154,8 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
       }
 
       console.log(`[ANALYTICS] Generating comprehensive metrics for org: ${orgId}, period: ${period}`)
+
+      await refreshIfStale();
 
       // Calculate period months for filtering
       let periodMonths = 3
@@ -4584,6 +4587,9 @@ Acknowledgments: https://talentpatriot.com/security-acknowledgments
   app.put("/api/job-candidates/:id", writeLimiter, async (req, res) => {
     try {
       const jobCandidate = await storage.candidates.updateJobCandidate(req.params.id, req.body);
+      if (req.body.stage || req.body.pipelineColumnId) {
+        triggerDeferredRefresh();
+      }
       res.json(jobCandidate);
     } catch (error) {
       console.error('Job candidate update error:', error);
@@ -5426,6 +5432,7 @@ Expires: 2025-12-31T23:59:59.000Z
       }
       
       const updatedJobCandidate = await storage.jobs.updateJobCandidateStage(id, stage);
+      triggerDeferredRefresh();
       res.json(updatedJobCandidate);
     } catch (error) {
       console.error("Error updating job candidate stage:", error);
@@ -6577,6 +6584,8 @@ Expires: 2025-12-31T23:59:59.000Z
   console.log('✅ Mounted Google integration routes');
 
   const httpServer = createServer(app);
+
+  startScheduledRefresh();
 
   console.log("📡 Registered all API routes");
 
