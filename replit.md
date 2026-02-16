@@ -21,7 +21,7 @@ Preferred communication style: Simple, everyday language.
 - **API**: RESTful endpoints with Zod validation and centralized error handling.
 - **Authentication**: Supabase Auth with Role-Based Access Control (RBAC) and Row-Level Security (RLS).
 - **Middleware Architecture**: Modular middleware for authentication, rate limiting, file uploads, and subdomain resolution.
-- **Routes Architecture**: Centralized routes with a plan for future feature-based modularization.
+- **Routes Architecture**: Feature-based modular routes under `server/routes/`. Each module exports a factory function returning an Express Router. The orchestrator `server/routes.ts` (59 lines) mounts all sub-routers. Modules: core, public, organization, analytics, candidates, campaigns, clients, jobs, pipeline, communications, admin, auth, beta, imports, offerLetters, plus existing upload/google-auth/google-calendar.
 
 ## Data Storage
 - **ORM**: Drizzle ORM.
