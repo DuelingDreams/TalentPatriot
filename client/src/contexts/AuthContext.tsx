@@ -116,8 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(session?.user ?? null)
 
         // Determine if user is in demo mode - only for specific demo email or explicit demo flag
-        const isDemoUser = session?.user?.email === 'demo@yourapp.com' || 
-                          session?.user?.email === 'demo@talentpatriot.com' ||
+        const isDemoUser = session?.user?.email === 'demo@talentpatriot.com' ||
                           (isDemoEnabled() && session?.user?.email?.includes('demo'))
 
         if (session?.user) {
@@ -244,7 +243,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (session?.user) {
             // Special handling for demo user
-            if (session.user.email === 'demo@yourapp.com') {
+            if (session.user.email === 'demo@talentpatriot.com') {
               setUserRole('demo_viewer')
               const demoOrgId = '550e8400-e29b-41d4-a716-446655440000'
               setCurrentOrgIdState(demoOrgId)

@@ -327,7 +327,7 @@ export default function Login() {
                 setLoading(true)
                 setError('')
                 try {
-                  const { error } = await signIn('demo@yourapp.com', 'Demo1234!')
+                  const { error } = await signIn('demo@talentpatriot.com', 'Demo1234!')
                   if (error) {
                     setError('Demo login failed. Please try again.')
                   } else {
