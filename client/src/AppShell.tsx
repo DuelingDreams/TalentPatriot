@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { waitForSession } from "./hooks/useAuthSession";
 import { useAuth } from "./contexts/AuthContext";
 
 // Public paths that don't require authentication

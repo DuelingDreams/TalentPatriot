@@ -35,7 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchOrgRole = async (userId: string, orgId: string): Promise<string | null> => {
     try {
-      const response = await fetch(`/api/users/${userId}/organizations`)
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      if (!authToken) return null
+
+      const response = await fetch(`/api/users/${userId}/organizations`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      })
       if (response.ok) {
         const orgs = await response.json()
         const currentOrg = orgs.find((o: any) => o.orgId === orgId || o.org_id === orgId)
