@@ -50,9 +50,9 @@ const writeLimiter = rateLimit({
 // Speed limiter for excessive requests
 const speedLimiter = slowDown({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  delayAfter: 50, // Allow 50 requests per windowMs without delay
+  delayAfter: 200, // Allow ~20 full page navigations before throttling
   delayMs: (hits) => hits * 100, // Add 100ms delay per request after delayAfter
-  maxDelayMs: 5000, // Maximum delay of 5 seconds
+  maxDelayMs: 1000, // Maximum delay of 1 second
 });
 
 // Enable compression for better performance
@@ -233,18 +233,6 @@ app.use((req, res, next) => {
   res.setHeader('X-Powered-By', 'TalentPatriot ATS Platform');
   res.setHeader('Server', 'TalentPatriot Production Server');
   
-  next();
-});
-
-app.use((req, res, next) => {
-  // Cache static assets
-  if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
-    res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year
-  }
-  // Cache API responses for 5 minutes
-  else if (req.path.startsWith('/api') && req.method === 'GET') {
-    res.setHeader('Cache-Control', 'private, max-age=300'); // 5 minutes
-  }
   next();
 });
 

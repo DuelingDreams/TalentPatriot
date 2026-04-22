@@ -145,12 +145,15 @@ export function useOptimizedBatchQuery(resources: string[]) {
       }
       
       // Batch multiple API calls into one
-      const promises = resources.map(resource => 
+      const promises = resources.map(resource =>
         fetch(`/api/${resource}`, {
           headers: {
             'Authorization': `Bearer ${authToken}`
           }
-        }).then(r => r.json())
+        }).then(r => {
+          if (!r.ok) throw new Error(`Failed to fetch ${resource}: ${r.status}`)
+          return r.json()
+        })
       );
       return Promise.all(promises);
     },
@@ -183,6 +186,7 @@ export function useOptimizedInfiniteQuery(endpoint: string, pageSize = 20) {
           }
         }
       );
+      if (!response.ok) throw new Error(`Failed to fetch ${endpoint}: ${response.status}`)
       return response.json();
     },
     enabled: !!user,

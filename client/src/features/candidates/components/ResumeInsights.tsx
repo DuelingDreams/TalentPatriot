@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -46,7 +46,13 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [isParsing, setIsParsing] = useState(false)
-  
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
   const candidateId = candidate.id || (candidate as any).id
   
   const triggerParsing = async () => {
@@ -68,6 +74,7 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
       
       // Polling function to check for parsing completion
       const pollForCompletion = async (attempts = 0): Promise<void> => {
+        if (!mountedRef.current) return
         if (attempts >= 12) { // Max 60 seconds (12 * 5s)
           toast({
             title: 'Analysis Taking Longer',
@@ -93,7 +100,9 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
           // Fetch fresh data
           const response = await apiRequest(`/api/candidates/${candidateId}`) as any
           const status = response?.parsing_status || response?.parsingStatus
-          
+
+          if (!mountedRef.current) return
+
           if (status === 'completed') {
             toast({
               title: 'Analysis Complete',
@@ -118,6 +127,7 @@ export function ResumeInsights({ candidate, orgId, onParsingTriggered }: ResumeI
           setTimeout(() => pollForCompletion(attempts + 1), 5000)
         } catch (error) {
           console.error('Polling error:', error)
+          if (!mountedRef.current) return
           setTimeout(() => pollForCompletion(attempts + 1), 5000)
         }
       }
